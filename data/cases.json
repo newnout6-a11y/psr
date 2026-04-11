@@ -1,0 +1,47 @@
+[
+  {
+    "id": "case_001",
+    "title": "Парсер маркетплейсов с обходом антиботов",
+    "description": "Разработал систему парсинга для агрегации данных с 5 маркетплейсов. Использовал ротацию IPv6, curl_cffi для TLS спуфинга, Nodriver для сложных страниц. Система обрабатывает 100K+ товаров ежедневно.",
+    "tech": ["Python", "curl_cffi", "Nodriver", "IPv6", "Scrapy", "PostgreSQL"],
+    "result": "100K+ товаров/день, 99.5% uptime",
+    "budget": 50000,
+    "date": "2025-01-15"
+  },
+  {
+    "id": "case_002",
+    "title": "API для мобильного приложения",
+    "description": "Спроектировал и реализовал REST API для мобильного приложения доставки. Интеграция с платёжными системами, real-time трекинг заказов.",
+    "tech": ["Python", "FastAPI", "PostgreSQL", "Redis", "WebSocket", "Docker"],
+    "result": "10K+ DAU, <100ms response time",
+    "budget": 120000,
+    "date": "2024-11-20"
+  },
+  {
+    "id": "case_003",
+    "title": "Миграция монолита на микросервисы",
+    "description": "Провёл декомпозицию монолитного Django приложения на 12 микросервисов. Настроил Kubernetes кластер, CI/CD пайплайн, мониторинг.",
+    "tech": ["Python", "Django", "Kubernetes", "Docker", "Prometheus", "Grafana"],
+    "result": "Ускорение деплоя в 20x, 99.9% uptime",
+    "budget": 250000,
+    "date": "2024-08-10"
+  },
+  {
+    "id": "case_004",
+    "title": "Telegram бот для автоматизации бизнес-процессов",
+    "description": "Разработал Telegram бота для управления задачами, интеграция с CRM, автоматические отчёты, аналитика.",
+    "tech": ["Python", "aiogram", "PostgreSQL", "Redis", "Docker"],
+    "result": "Автоматизация 70% рутинных операций",
+    "budget": 35000,
+    "date": "2025-02-05"
+  },
+  {
+    "id": "case_005",
+    "title": "Оптимизация PostgreSQL запросов",
+    "description": "Провёл аудит и оптимизацию медленных SQL запросов. Настроил индексы, партицирование, connection pooling. Ускорение критичных эндпоинтов в 15 раз.",
+    "tech": ["PostgreSQL", "Python", "SQLAlchemy", "PgBouncer"],
+    "result": "Ускорение запросов в 15x, экономия 40% ресурсов сервера",
+    "budget": 80000,
+    "date": "2024-12-01"
+  }
+]

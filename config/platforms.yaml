@@ -1,0 +1,67 @@
+# Глобальные платформы
+GLOBAL_PLATFORMS:
+  upwork:
+    url: "https://www.upwork.com"
+    api_url: "https://api.upwork.com/graphql"
+    protection: "cloudflare"
+    method: "graphql_reversing"
+  
+  fiverr:
+    url: "https://www.fiverr.com"
+    api_url: "https://www.fiverr.com/api/v4/"
+    protection: "cloudflare"
+    method: "mobile_api"
+  
+  freelancer:
+    url: "https://www.freelancer.com"
+    api_url: "https://www.freelancer.com/api/projects/1.0/"
+    protection: "cloudflare"
+    method: "official_api"
+
+# Восточная Европа
+EASTERN_EUROPE_PLATFORMS:
+  just_join_it:
+    url: "https://justjoin.it"
+    api_url: "https://justjoin.it/api/v2/"
+    protection: "datadome"
+    method: "rsc_extraction"
+  
+  no_fluff_jobs:
+    url: "https://nofluffjobs.com"
+    api_url: "https://nofluffjobs.com/api/"
+    protection: "basic"
+    method: "hidden_json_api"
+
+# СНГ платформы
+CIS_PLATFORMS:
+  kwork:
+    url: "https://kwork.ru"
+    api_url: "https://api.kwork.ru/"
+    protection: "basic"
+    method: "mobile_api_jwt"
+  
+  fl_ru:
+    url: "https://www.fl.ru"
+    api_url: "https://www.fl.ru/api/"
+    protection: "basic"
+    method: "unofficial_api"
+  
+  habr_freelance:
+    url: "https://freelance.habr.com"
+    api_url: "https://freelance.habr.com/api/v1/"
+    protection: "none"
+    method: "rss_hidden_api"
+
+# Настройки прокси
+PROXY:
+  ipv6_rotation: true
+  vproxy_url: "http://127.0.0.1:1080"
+  session_format: "user-{id}"
+  ttl_format: "user-ttl-{count}"
+
+# Настройки безопасности
+OPSEC:
+  use_commercial_vpn: false
+  geo_consistency: true
+  time_consistency: true
+  browser_fingerprint_rotation: true

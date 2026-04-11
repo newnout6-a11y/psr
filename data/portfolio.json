@@ -1,0 +1,25 @@
+{
+  "developer": {
+    "name": "Сахаров Владимир",
+    "email": "vovasahren@gmail.com",
+    "skills": [
+      "Python",
+      "FastAPI",
+      "Django",
+      "Парсинг/Скрейпинг",
+      "Автоматизация",
+      "Телеграм-боты"
+    ],
+    "experience_years": 4,
+    "hourly_rate": 20,
+    "languages": [
+      "Russian",
+      "English"
+    ]
+  },
+  "portfolio_highlights": [
+    "Сделал сложный парсер криптобирж на Python + Asyncio",
+    "Автоматизировал бизнес процесс для логистической компании с Telegram-ботом",
+    "Разработал API бекэнд для мобильного приложения доставки на FastAPI"
+  ]
+}

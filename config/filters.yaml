@@ -1,0 +1,56 @@
+# Навыки которые ты ищешь (любой из них — проект проходит)
+required_skills:
+  - python
+  - javascript
+  - typescript
+  - react
+  - django
+  - fastapi
+  - flask
+  - node
+  - api
+  - парсер
+  - скрейпинг
+  - телеграм бот
+  - telegram bot
+  - автоматизация
+  - скрипт
+
+# Стоп-слова (проект отсеивается, даже если есть нужные навыки)
+stop_words:
+  - продаж
+  - менеджер
+  - оператор
+  - кассир
+  - водитель
+  - копирайт
+  - рерайт
+  - набор текст
+  - ввод данных
+  - seo продвижение
+  - smm
+  - маркетолог
+  - 1с
+  - 1c
+  # Корпоративные/нерелевантные
+  - data scientist
+  - machine learning engineer
+  - rigging
+  - animator
+  - 3d artist
+  - military
+  - warfighter
+  - clearance
+  - security clearance
+  - phd required
+  - staff engineer
+  - principal engineer
+  - director of
+  - vp of
+  - chief
+
+# Минимальный бюджет (в рублях или эквиваленте) (0 = любой)
+min_budget: 0
+
+# Максимальный возраст заказа в часах (0 = любой)
+max_age_hours: 48
