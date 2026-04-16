@@ -4,6 +4,7 @@
 """
 
 import hashlib
+import os
 import mmh3
 from typing import Optional, List
 from loguru import logger
@@ -94,7 +95,7 @@ class OriginFinder:
             from curl_cffi import requests as curl_requests
             
             url = f"https://api.securitytrails.com/v1/history/{domain}/dns/a"
-            headers = {"APIKEY": ""}  # Нужен API ключ
+            headers = {"APIKEY": os.getenv("SECURITYTRAILS_API_KEY", "")}
             
             response = curl_requests.get(url, headers=headers, impersonate="chrome_120")
             

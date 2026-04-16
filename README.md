@@ -48,6 +48,33 @@ cp .env.example .env
 # Заполните .env своими данными
 ```
 
+#### Session Hub (рекомендуется)
+
+Теперь **Session Hub** является основным источником кук для авторизации. Это локальный сервер (порт 8669), который предоставляет свежие куки из Chrome.
+
+```bash
+# Запустите Session Hub сервер (см. docs/SESSION_HUB.md)
+# Или используйте куки из .env как fallback
+```
+
+См. полную документацию: [`docs/SESSION_HUB.md`](docs/SESSION_HUB.md)
+
+### Основные переменные окружения
+
+```bash
+# LLM
+GROQ_API_KEY=your_key
+GOOGLE_API_KEY=your_key
+LLM_PROVIDER=groq  # или google
+
+# Платформы
+PLATFORMS=kwork,fl_ru,fiverr
+SEARCH_QUERY=python
+
+# Telegram для уведомлений
+TELEGRAM_TOKEN=your_bot_token
+```
+
 ### 3. Запуск
 
 ```bash
@@ -56,6 +83,9 @@ python main.py
 
 # Непрерывный режим
 CONTINUOUS_MODE=true python main.py
+
+# Непрерывный режим с интервалом
+python main.py --continuous --limit 5
 ```
 
 ## 🏗️ Архитектура
@@ -80,8 +110,12 @@ CONTINUOUS_MODE=true python main.py
 |---|---|---|
 | Upwork | Just Join IT | Kwork |
 | Fiverr | No Fluff Jobs | FL.ru |
-| Freelancer | Bulldogjob | Хабр Фриланс |
+| Freelancer | Bulldogjob | Weblancer |
 | Toptal | Wild.Codes | Freelance.ru |
+| PeoplePerHour | | OneCLancer |
+| RemoteOK | | HH.ru |
+
+> ⚠️ **Важно**: Хабр Фриланс (freelance.habr.com) был закрыт и больше не доступен.
 
 ## 🔧 Ключевые модули
 
@@ -124,19 +158,41 @@ match = rag.match_project(project)
 3. **Ротация IPv6** — vproxy с /64 подсетью (18 квинтиллионов IP)
 4. **Временные паттерны** — случайные задержки, рабочее время региона
 
+## 🆕 Новые функции (2025)
+
+### Telegram-подтверждение с inline-кнопками
+При отклике на Kwork бот присылает проект + скриншот + отклик с inline-кнопками:
+- Цена проекта / +20% / +50% — одним нажатием
+- Своя цена — ввод числа в чат
+- Пропустить — пропустить проект
+
+### Мультивалютность
+Автоматическая конвертация бюджетов из USD, EUR, GBP и др. в рубли для фильтрации по `min_budget`.
+Источники курсов: ЦБ РФ (приоритет), exchangerate-api (fallback).
+
+### Уведомления об ответах
+Мониторинг входящих сообщений на Kwork и уведомление в Telegram при получении ответа от заказчика.
+
+### Структурированное логирование
+Все события (парсинг, фильтрация, отправка, ошибки) сохраняются в SQLite для аналитики.
+
 ## 📝 План реализации
 
 - [x] Структура проекта
 - [x] Базовый TLS клиент (curl_cffi)
 - [x] Реверс-инжиниринг API
-- [x] Парсеры Kwork, FL.ru, Upwork
+- [x] Парсеры Kwork, FL.ru, Upwork, Fiverr
 - [x] NLP фильтрация заказов
-- [x] RAG пайплайн (FAISS)
-- [x] Генератор откликов с обходом AI-детекторов
-- [x] OPSEC модуль
-- [ ] IPv6 ротация (vproxy настройка)
-- [ ] Браузерная автоматизация (Nodriver/Camoufox)
-- [ ] Интеграция с 30+ платформами
+- [x] RAG пайплайн (FAISS) с инкрементальной переиндексацией
+- [x] Генератор откликов с обходом AI-детекторов (Groq + Gemini fallback)
+- [x] Мультивалютность (конвертация бюджетов в RUB)
+- [x] Rate-limiting для парсеров
+- [x] Уведомления об ответах в Telegram (inline-кнопки)
+- [x] Структурированное логирование в SQLite
+- [x] CI/CD (GitHub Actions)
+- [x] Браузерная автоматизация (Nodriver + Camoufox)
+- [ ] IPv6 ротация (vproxy настройка) - отложено
+- [ ] Гео-консистентность (OPSEC level 3) - отложено
 
 ## 📄 Лицензия
 

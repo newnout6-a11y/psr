@@ -1,0 +1,52 @@
+OTCHET PARSINGA
+==================================================
+Data: 2026-04-14 18:56:52
+Zapros: python
+
+
+[fl_ru] 40 proektov
+  1. Оператор чата... (40000.0 RUB)
+     -> https://www.fl.ru/projects/5499607/operator-chata-.html
+  2. Дизайн Киоска Самообслуживания... (ne ukazan)
+     -> https://www.fl.ru/projects/5500011/dizayn-kioska-samoobslujivaniya.html
+  3. Приведите друга и получите бонус от FL.ru... (2100.0 RUB)
+     -> https://www.fl.ru/projects/5497585/privedite-druga-i-poluchite-bonus-ot-flru.html
+
+[freelancer_com] 40 proektov
+  1. Modern Travel Portal Website Development... (7000.0 INR)
+     -> https://www.freelancer.com/projects/web-development/Modern-Travel-Portal-Website-Development
+  2. Electronic Medical Assessment Form Automation... (500.0 GBP)
+     -> https://www.freelancer.com/projects/web-development/Electronic-Medical-Assessment-Form
+  3. Android Social Media App Build... (1000.0 INR)
+     -> https://www.freelancer.com/projects/android/Android-Social-Media-App-Build-40365566
+
+[hh_ru] 40 proektov
+  1. Middle frontend-разработчик... (200000.0 RUR)
+     -> https://hh.ru/vacancy/89514991
+  2. Backend developer (Senior)... (300000.0 RUR)
+     -> https://hh.ru/vacancy/131796294
+  3. Инженер машинного обучения в группу исследований... (ne ukazan)
+     -> https://hh.ru/vacancy/132138048
+
+[remoteok] 40 proektov
+  1. Biology AI Training Expert... (ne ukazan)
+     -> https://remoteOK.com/remote-jobs/remote-biology-ai-training-expert-anyone-ai-1130953
+  2. Data Analyst... (ne ukazan)
+     -> https://remoteOK.com/remote-jobs/remote-data-analyst-world-golf-tour-wgt-1130952
+  3. Staff Machine Learning Engineer... (ne ukazan)
+     -> https://remoteOK.com/remote-jobs/remote-staff-machine-learning-engineer-fullscript-1130924
+
+[upwork] 0 proektov
+
+[weblancer] 0 proektov
+
+[oneclancer] 0 proektov
+
+[fiverr] 0 proektov
+
+[freelance_ru] 0 proektov
+
+[peopleperhour] 0 proektov
+
+==================================================
+VSEGO: 160 proektov

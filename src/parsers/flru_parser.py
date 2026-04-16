@@ -34,7 +34,7 @@ class FLRuParser(BaseParser):
         }
         
         try:
-            response = self._safe_get(
+            response = await self.throttled_get(
                 self.API_URL,
                 params=params,
             )

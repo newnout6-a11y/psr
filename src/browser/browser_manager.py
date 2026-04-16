@@ -1,0 +1,384 @@
+"""
+Единый менеджер браузера Nodriver.
+Singleton — один инстанс на всё приложение, постоянный профиль,
+валидация авторизации, экспорт кук для curl_cffi.
+"""
+
+import os
+import json
+import asyncio
+from typing import Optional, Dict, Any, List
+
+import nodriver as uc
+from loguru import logger
+
+
+class BrowserManager:
+    _instance = None
+    _lock = asyncio.Lock()
+    _browser_lock = asyncio.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(
+        self,
+        headless: bool = True,
+        profile_dir: str = "data/browser_profiles",
+    ):
+        # Используем классовый флаг для thread-safety
+        if getattr(BrowserManager, "_globally_initialized", False):
+            return
+        BrowserManager._globally_initialized = True
+
+        if hasattr(self, "_initialized"):
+            return
+        self._initialized = True
+
+        self.headless = headless
+        self.profile_dir = os.path.abspath(profile_dir)
+        self.browser: Optional[uc.Browser] = None
+        self._pages: Dict[str, uc.Tab] = {}
+        self._auth_validated: Dict[str, bool] = {}
+        self._starting = False  # Флаг чтобы не запускать параллельно
+
+        logger.debug(f"BrowserManager: создан инстанс id={id(self)} (Singleton)")
+
+    async def get_browser(self) -> uc.Browser:
+        # Быстрая проверка без lock
+        if self.browser and not self.browser.stopped:
+            return self.browser
+
+        # Используем lock чтобы только один поток запускал браузер
+        async with self._browser_lock:
+            # Двойная проверка после получения lock
+            if self.browser and not self.browser.stopped:
+                return self.browser
+
+            if self._starting:
+                logger.debug("BrowserManager: ожидание запуска браузера другим потоком...")
+                while self._starting:
+                    await asyncio.sleep(0.1)
+                if self.browser and not self.browser.stopped:
+                    return self.browser
+
+            self._starting = True
+            logger.info(f"BrowserManager: запуск браузера (headless={self.headless})...")
+            os.makedirs(self.profile_dir, exist_ok=True)
+
+            try:
+                self.browser = await uc.start(
+                    headless=self.headless,
+                    browser_args=[
+                        "--window-size=1920,1080",
+                        "--disable-blink-features=AutomationControlled",
+                    ],
+                    user_data_dir=self.profile_dir,
+                )
+                logger.info("BrowserManager: ✅ браузер запущен (единый инстанс)")
+                return self.browser
+            except Exception as e:
+                logger.error(f"BrowserManager: ошибка запуска браузера: {e}")
+                self.browser = None
+                raise
+            finally:
+                self._starting = False
+
+    async def ensure_browser(self) -> uc.Browser:
+        try:
+            return await self.get_browser()
+        except Exception:
+            logger.warning("BrowserManager: повторная попытка запуска браузера...")
+            self.browser = None
+            self._auth_validated.clear()
+            await asyncio.sleep(2)
+            return await self.get_browser()
+
+    async def get_page(self, url: str, reuse: bool = True) -> uc.Tab:
+        browser = await self.ensure_browser()
+
+        if reuse:
+            for target in browser.targets:
+                if target.type_ == "page" and url in target.url:
+                    logger.debug(f"BrowserManager: переиспользуем вкладку {url}")
+                    return target
+
+        try:
+            page = await browser.get(url)
+            return page
+        except Exception as e:
+            logger.warning(f"BrowserManager: ошибка загрузки страницы, реконнект: {e}")
+            browser = await self.ensure_browser()
+            return await browser.get(url)
+
+    async def set_cookies_from_env(self, domain: str):
+        """
+        Fallback метод - загружает куки из переменных окружения.
+        Используется только если Session Hub недоступен.
+        """
+        cookies_map = self._load_env_cookies(domain)
+        if not cookies_map:
+            logger.warning(f"BrowserManager: нет кук для {domain} в .env")
+            return
+
+        browser = await self.get_browser()
+        page = await browser.get(f"https://{domain}/")
+        await page.sleep(1)
+
+        success_count = 0
+        for name, value in cookies_map.items():
+            if not value:
+                continue
+            try:
+                await page.send(
+                    uc.cdp.network.set_cookie(
+                        name=name,
+                        value=value,
+                        domain=domain,
+                        path="/",
+                    )
+                )
+                success_count += 1
+            except Exception as e:
+                logger.debug(f"BrowserManager: ошибка установки куки {name}: {e}")
+
+        logger.info(f"BrowserManager: ⚠️ fallback на .env: {success_count} кук для {domain}")
+
+    async def set_cookies_from_hub(self, domain: str) -> bool:
+        """
+        Основной источник кук - Session Hub (127.0.0.1:8669).
+        Формат ответа: {"status":"ok","count":N,"cookies":[...]}
+        """
+        import requests as sync_requests
+
+        try:
+            hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
+            resp = sync_requests.get(
+                f"{hub_url}?domain={domain}",
+                timeout=10,
+            )
+            if resp.status_code != 200:
+                logger.warning(f"BrowserManager: Session Hub вернул HTTP {resp.status_code}")
+                return False
+
+            data = resp.json()
+
+            # Проверяем статус ответа
+            if data.get("status") != "ok":
+                logger.warning(f"BrowserManager: Session Hub статус: {data.get('status')}")
+                return False
+
+            cookies = data.get("cookies", [])
+            if not cookies:
+                logger.warning(f"BrowserManager: Session Hub вернул пустой список кук")
+                return False
+
+            browser = await self.get_browser()
+            page = await browser.get(f"https://{domain}/")
+            await page.sleep(1)
+
+            # Получаем метаданные для логирования
+            first_cookie = cookies[0]
+            profile_info = f"{first_cookie.get('browser', 'unknown')}/{first_cookie.get('profile_name', first_cookie.get('profile', 'unknown'))}"
+
+            success_count = 0
+            for c in cookies:
+                if not c.get("name") or not c.get("value"):
+                    continue
+                clean_domain = c["domain"].lstrip(".")
+                try:
+                    await page.send(
+                        uc.cdp.network.set_cookie(
+                            name=c["name"],
+                            value=c["value"],
+                            domain=clean_domain,
+                            path=c.get("path", "/"),
+                            secure=c.get("secure", False),
+                        )
+                    )
+                    success_count += 1
+                except Exception as e:
+                    logger.debug(f"BrowserManager: ошибка установки куки {c['name']}: {e}")
+
+            logger.info(
+                f"BrowserManager: ✅ {success_count}/{len(cookies)} кук из Session Hub ({profile_info}) для {domain}"
+            )
+            return True
+        except Exception as e:
+            logger.warning(f"BrowserManager: Session Hub недоступен ({e})")
+            return False
+
+    async def validate_auth(self, domain: str) -> bool:
+        if self._auth_validated.get(domain, False):
+            return True
+
+        browser = await self.get_browser()
+        page = await browser.get(f"https://{domain}/")
+        await page.sleep(3)
+
+        try:
+            html = await page.get_content()
+        except Exception:
+            return False
+
+        is_auth = self._check_auth_markers(domain, html)
+
+        if is_auth:
+            self._auth_validated[domain] = True
+            logger.info(f"BrowserManager: авторизация на {domain} подтверждена")
+        else:
+            logger.warning(f"BrowserManager: авторизация на {domain} НЕ подтверждена!")
+            self._auth_validated[domain] = False
+
+        return is_auth
+
+    async def init_auth(self, domain: str):
+        """
+        Инициализация авторизации.
+        Приоритет: 1) Session Hub (основной), 2) .env (fallback)
+        Thread-safe: параллельные вызовы для одного домена блокируются.
+        """
+        # Быстрая проверка без lock
+        if self._auth_validated.get(domain, False):
+            logger.debug(f"BrowserManager: auth for {domain} already validated, skipping")
+            return True
+
+        # Lock для этого домена (создаем если нет)
+        lock_key = f"_auth_lock_{domain}"
+        if not hasattr(self, lock_key):
+            setattr(self, lock_key, asyncio.Lock())
+        domain_lock = getattr(self, lock_key)
+
+        async with domain_lock:
+            # Двойная проверка после получения lock
+            if self._auth_validated.get(domain, False):
+                logger.debug(f"BrowserManager: auth for {domain} validated by another coroutine")
+                return True
+
+            logger.info(f"BrowserManager: начинаем init_auth для {domain}...")
+
+            # Пробуем Session Hub (основной источник свежих кук)
+            hub_ok = await self.set_cookies_from_hub(domain)
+
+            if not hub_ok:
+                # Fallback на .env только если Hub недоступен
+                logger.warning(f"BrowserManager: Session Hub недоступен, используем .env как fallback для {domain}")
+                await self.set_cookies_from_env(domain)
+
+            is_auth = await self.validate_auth(domain)
+            if not is_auth:
+                logger.error(
+                    f"BrowserManager: авторизация на {domain} провалена! "
+                    "Проверь что Session Hub запущен (127.0.0.1:8669) или куки в .env актуальны."
+                )
+            return is_auth
+
+    async def export_cookies(self, domain: str) -> Dict[str, str]:
+        browser = await self.get_browser()
+        try:
+            result = {}
+            for page in browser.targets:
+                if page.type_ == "page" and domain in page.url:
+                    cookies_data = await page.send(uc.cdp.network.get_cookies())
+                    for c in cookies_data.cookies:
+                        if domain in (c.domain or ""):
+                            result[c.name] = c.value
+                    break
+            return result
+        except Exception as e:
+            logger.debug(f"BrowserManager: не удалось экспортировать куки: {e}")
+            return {}
+
+    async def take_screenshot(self, page: uc.Tab, project_id: str, step_name: str) -> Optional[str]:
+        try:
+            folder = os.path.join("data", "screenshots", str(project_id))
+            os.makedirs(folder, exist_ok=True)
+            path = os.path.join(folder, f"{step_name}.png")
+            await page.save_screenshot(path)
+            logger.debug(f"Скриншот сохранён: {path}")
+            return path
+        except Exception as e:
+            logger.warning(f"Не удалось сделать скриншот {step_name}: {e}")
+            return None
+
+    async def wait_for_content(
+        self,
+        page: uc.Tab,
+        selector: str,
+        timeout: int = 10,
+        poll_interval: float = 0.5,
+    ) -> bool:
+        elapsed = 0.0
+        while elapsed < timeout:
+            try:
+                element = await page.find(selector, timeout=1)
+                if element:
+                    return True
+            except Exception:
+                pass
+            await page.sleep(poll_interval)
+            elapsed += poll_interval
+        return False
+
+    async def close_page(self, page: uc.Tab):
+        try:
+            # Чтобы не закрывался весь процесс Chromium,
+            # мы не закрываем саму вкладку, если она потенциально единственная.
+            # Вместо этого мы можем редиректить или оставлять как есть (get_page её переиспользует).
+            pass
+        except Exception:
+            pass
+
+    async def stop(self):
+        if self.browser:
+            try:
+                self.browser.stop()
+            except Exception:
+                pass
+            self.browser = None
+            self._pages.clear()
+            self._auth_validated.clear()
+            logger.info("BrowserManager: браузер остановлен")
+
+    def _check_auth_markers(self, domain: str, html: str) -> bool:
+        html_lower = html.lower()
+        markers = {
+            "kwork.ru": [
+                "мои кворки",
+                "мой баланс",
+                "kw-username",
+                "sidebar-user-info",
+                "data-userid",
+            ],
+            "www.fl.ru": [
+                "toppanel-name",
+                "my-projects",
+                "user-panel",
+            ],
+        }
+        domain_markers = markers.get(domain, markers.get(domain.replace("www.", ""), []))
+        return any(m in html_lower for m in domain_markers)
+
+    def _load_env_cookies(self, domain: str) -> Dict[str, str]:
+        if domain == "kwork.ru":
+            return {
+                "slrememberme": os.getenv("KWORK_COOKIE_REMEMBERME", ""),
+                "userId": os.getenv("KWORK_COOKIE_USERID", ""),
+                "PHPSESSID": os.getenv("KWORK_COOKIE_PHPSESSID", ""),
+                "csrf_token": os.getenv("KWORK_CSRF_TOKEN", "") or os.getenv("KWORK_COOKIE_CSRF", ""),
+            }
+        elif domain in ("www.fl.ru", "fl.ru"):
+            return {
+                "PHPSESSID": os.getenv("FL_RU_COOKIE_SESSION", ""),
+                "id": os.getenv("FL_RU_COOKIE_ID", ""),
+                "pwd": os.getenv("FL_RU_COOKIE_PWD", ""),
+                "XSRF-TOKEN": os.getenv("FL_RU_XSRF_TOKEN", ""),
+            }
+        return {}
+
+    @classmethod
+    def reset(cls):
+        cls._instance = None
+        cls._globally_initialized = False

@@ -2,6 +2,8 @@
 Базовый класс для всех парсеров фриланс-платформ.
 """
 
+import asyncio
+import time
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any, List
 from src.evolution import TLSClient
@@ -23,13 +25,29 @@ class ProjectItem(BaseModel):
     client_id: Optional[str] = None
 
 
+class RateLimiter:
+    def __init__(self, min_interval: float = 2.0):
+        self.min_interval = min_interval
+        self._last_request: float = 0.0
+        self._lock = asyncio.Lock()
+
+    async def wait(self):
+        async with self._lock:
+            now = time.monotonic()
+            elapsed = now - self._last_request
+            if elapsed < self.min_interval:
+                delay = self.min_interval - elapsed
+                logger.debug(f"RateLimiter: ждём {delay:.1f}с")
+                await asyncio.sleep(delay)
+            self._last_request = time.monotonic()
+
+
 class BaseParser(ABC):
-    """Абстрактный базовый класс парсера."""
-    
     PLATFORM_NAME = "base"
     BASE_URL = ""
     API_URL = ""
-    
+    RATE_LIMIT_SECONDS: float = 2.0
+
     def __init__(
         self,
         proxy: Optional[str] = None,
@@ -43,15 +61,15 @@ class BaseParser(ABC):
         self.headers = self._default_headers()
         self.auth_token = None
         self.csrf_token = None
-        
-        logger.info(f"{self.PLATFORM_NAME} парсер инициализирован")
-    
+        self.rate_limiter = RateLimiter(min_interval=self.RATE_LIMIT_SECONDS)
+
+        logger.info(f"{self.PLATFORM_NAME} парсер инициализирован (rate_limit={self.RATE_LIMIT_SECONDS}с)")
+
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10), reraise=True)
     def _safe_get(self, url: str, **kwargs):
-        """Безопасный GET запрос с retry."""
         if 'headers' not in kwargs:
             kwargs['headers'] = self.headers
-            
+
         try:
             response = self.client.get(url, **kwargs)
         except Exception as e:
@@ -59,11 +77,14 @@ class BaseParser(ABC):
             raise
 
         if response.status_code in [403, 429, 503]:
-            # Maybe rotate impersonate here
             logger.warning(f"{self.PLATFORM_NAME} получил HTTP {response.status_code}, ретрай...")
             raise Exception(f"HTTP {response.status_code}")
-            
+
         return response
+
+    async def throttled_get(self, url: str, **kwargs):
+        await self.rate_limiter.wait()
+        return self._safe_get(url, **kwargs)
 
     @abstractmethod
     async def get_projects(

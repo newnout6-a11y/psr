@@ -20,7 +20,6 @@ class ProposalDB:
         self._init_db()
     
     def _init_db(self):
-        """Создание таблиц."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS proposals (
@@ -59,7 +58,6 @@ class ProposalDB:
         url: Optional[str] = None,
         status: str = "sent",
     ) -> int:
-        """Сохранить отправленный отклик."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
                 """INSERT INTO proposals
@@ -118,3 +116,12 @@ class ProposalDB:
                 "platforms_used": row[1] if row else 0,
                 "today_sent": self.count_today_sent(),
             }
+
+    def mark_response(self, project_id: str, response_text: str):
+        """Отметить ответ от заказчика."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE proposals SET response = ? WHERE project_id = ?",
+                (response_text, project_id)
+            )
+            conn.commit()

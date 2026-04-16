@@ -7,24 +7,14 @@ AI-скоринг релевантности проектов.
 import os
 import json
 import re
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from loguru import logger
-from groq import Groq
 from src.parsers.base_parser import ProjectItem
 
 
 class AIRelevanceScorer:
-    """Оценивает релевантность проектов через LLM."""
 
     def __init__(self, portfolio_path: str = "data/portfolio.json"):
-        self.groq_api_key = os.getenv("GROQ_API_KEY")
-        self.groq_client = None
-        if self.groq_api_key:
-            try:
-                self.groq_client = Groq(api_key=self.groq_api_key)
-            except Exception as e:
-                logger.error(f"AIScorer: не удалось инициализировать Groq: {e}")
-
         self.portfolio = self._load_portfolio(portfolio_path)
         self._build_profile_summary()
 
@@ -51,25 +41,16 @@ class AIRelevanceScorer:
         projects: List[ProjectItem],
         threshold: int = 6,
     ) -> List[Tuple[ProjectItem, int]]:
-        """
-        Оценивает список проектов через LLM.
-        Возвращает только те, что набрали >= threshold баллов.
-        """
-        if not self.groq_client:
-            logger.warning("AIScorer: Groq не инициализирован, пропускаем AI-скоринг")
-            return [(p, 7) for p in projects]  # fallback: всё проходит
 
         if not projects:
             return []
 
-        # Батчим по 10 проектов для эффективности
         scored = []
         for i in range(0, len(projects), 10):
             batch = projects[i:i + 10]
             batch_scores = await self._score_batch(batch)
             scored.extend(batch_scores)
 
-        # Фильтруем по порогу
         passed = [(p, score) for p, score in scored if score >= threshold]
         rejected = [(p, score) for p, score in scored if score < threshold]
 
@@ -85,8 +66,6 @@ class AIRelevanceScorer:
     async def _score_batch(
         self, batch: List[ProjectItem]
     ) -> List[Tuple[ProjectItem, int]]:
-        """Оценивает батч проектов одним запросом к LLM."""
-        # Формируем список проектов для промпта
         projects_text = ""
         for idx, p in enumerate(batch, 1):
             desc_short = (p.description or "")[:200]
@@ -121,37 +100,43 @@ class AIRelevanceScorer:
 [{{"id": 1, "score": 8}}, {{"id": 2, "score": 3}}, ...]
 Только JSON, ничего больше!"""
 
+        scores_data = None
+
         try:
-            completion = self.groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": "Ты оцениваешь релевантность проектов. Отвечай ТОЛЬКО валидным JSON."},
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.1,  # Низкая температура для стабильности оценок
+            from src.brain.llm_router import get_llm_router
+            router = get_llm_router()
+            response = await router.generate(
+                prompt=prompt,
+                provider=None,  # авто-выбор с fallback
+                temperature=0.1,
                 max_tokens=300,
             )
-
-            response_text = completion.choices[0].message.content.strip()
-            # Извлекаем JSON из ответа
-            json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
-            if not json_match:
-                logger.warning(f"AIScorer: не удалось извлечь JSON: {response_text[:100]}")
-                return [(p, 7) for p in batch]  # fallback
-
-            scores_data = json.loads(json_match.group())
-
-            results = []
-            for idx, project in enumerate(batch):
-                score = 7  # default
-                for item in scores_data:
-                    if item.get("id") == idx + 1:
-                        score = max(0, min(10, int(item.get("score", 7))))
-                        break
-                results.append((project, score))
-
-            return results
-
+            scores_data = self._parse_scores(response.strip())
         except Exception as e:
-            logger.error(f"AIScorer: ошибка при скоринге: {e}")
-            return [(p, 7) for p in batch]  # fallback: всё проходит
+            logger.warning(f"AIScorer: LLM Router ошибка: {e}")
+
+        if scores_data is None:
+            logger.warning("AIScorer: не удалось распарсить скоры, fallback")
+            return [(p, 7) for p in batch]
+
+        results = []
+        for idx, project in enumerate(batch):
+            score = 7
+            for item in scores_data:
+                if item.get("id") == idx + 1:
+                    score = max(0, min(10, int(item.get("score", 7))))
+                    break
+            results.append((project, score))
+
+        return results
+
+    def _parse_scores(self, response_text: str) -> Optional[List[Dict]]:
+        json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
+        if not json_match:
+            logger.warning(f"AIScorer: не удалось извлечь JSON: {response_text[:100]}")
+            return None
+        try:
+            return json.loads(json_match.group())
+        except json.JSONDecodeError:
+            logger.warning(f"AIScorer: невалидный JSON: {response_text[:100]}")
+            return None

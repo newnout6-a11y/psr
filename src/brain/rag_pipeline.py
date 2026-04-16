@@ -5,6 +5,7 @@ RAG-пайплайн для сопоставления заказов с ком�
 
 import os
 import json
+import numpy as np
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 from loguru import logger
@@ -41,27 +42,50 @@ class RAGPipeline:
         self._initialized = False
     
     def initialize(self):
-        """Ленивая инициализация ML-моделей."""
         if self._initialized:
             return
         
         try:
             from sentence_transformers import SentenceTransformer
             import faiss
+            import numpy as np
             
             logger.info(f"Загрузка модели эмбеддингов: {self.embedding_model}")
             self.embeddings = SentenceTransformer(self.embedding_model)
             
-            # Индекс FAISS
-            if self.cases:
-                case_texts = [c.get("title", "") + " " + c.get("description", "") for c in self.cases]
-                case_embeddings = self.embeddings.encode(case_texts)
-                
-                dimension = case_embeddings.shape[1]
-                self.db = faiss.IndexFlatL2(dimension)
-                self.db.add(case_embeddings.astype("float32"))
-                
-                logger.info(f"FAISS индекс создан: {len(self.cases)} кейсов, {dimension} измерений")
+            # Проверяем существование сохраненного индекса
+            index_path = self.cases_path.replace(".json", ".faiss")
+            mapping_path = self.cases_path.replace(".json", ".mapping")
+            
+            if os.path.exists(index_path) and os.path.exists(mapping_path):
+                # Загружаем существующий индекс
+                self.db = faiss.read_index(index_path)
+                with open(mapping_path, "r", encoding="utf-8") as f:
+                    self._case_id_to_index = json.load(f)
+                logger.info(f"FAISS индекс загружен: {len(self._case_id_to_index)} кейсов")
+            else:
+                # Создаем новый индекс с ID mapping
+                if self.cases:
+                    case_texts = [c.get("title", "") + " " + c.get("description", "") for c in self.cases]
+                    case_embeddings = self.embeddings.encode(case_texts)
+                    
+                    dimension = case_embeddings.shape[1]
+                    # Используем IndexIDMap для инкрементального добавления
+                    base_index = faiss.IndexFlatL2(dimension)
+                    self.db = faiss.IndexIDMap(base_index)
+                    
+                    # Добавляем с ID
+                    ids = np.arange(len(self.cases), dtype=np.int64)
+                    self.db.add_with_ids(case_embeddings.astype("float32"), ids)
+                    
+                    # Сохраняем маппинг
+                    self._case_id_to_index = {str(i): i for i in range(len(self.cases))}
+                    self._save_index()
+                    
+                    logger.info(f"FAISS индекс создан: {len(self.cases)} кейсов, {dimension} измерений")
+                else:
+                    self.db = None
+                    self._case_id_to_index = {}
             
             self._initialized = True
         
@@ -97,7 +121,7 @@ class RAGPipeline:
             distances, indices = self.db.search(project_embedding, k=min(5, len(self.cases)))
             
             for dist, idx in zip(distances[0], indices[0]):
-                if idx < len(self.cases):
+                if idx >= 0 and idx < len(self.cases):  # FAISS возвращает -1 если не найдено
                     # FAISS возвращает L2 расстояние → конвертируем в similarity
                     similarity = 1 / (1 + dist)
                     if similarity >= self.similarity_threshold:
@@ -162,19 +186,46 @@ class RAGPipeline:
         return "\n".join(context_parts)
     
     def add_case(self, case: Dict[str, Any]):
-        """Добавить новый кейс в базу."""
+        """Добавить новый кейс в базу (инкрементально)."""
+        self.initialize()
+        
+        # Генерируем ID
+        new_id = len(self.cases)
+        case["_index_id"] = new_id
+        
         self.cases.append(case)
         
-        # Переиндексация
-        if self._initialized and self.cases and self.embeddings:
-            case_texts = [c.get("title", "") + " " + c.get("description", "") for c in self.cases]
-            case_embeddings = self.embeddings.encode(case_texts)
+        # Инкрементальное добавление в FAISS
+        if self._initialized and self.db is not None and self.embeddings:
+            case_text = case.get("title", "") + " " + case.get("description", "")
+            embedding = self.embeddings.encode([case_text]).astype("float32")
             
-            dimension = case_embeddings.shape[1]
-            self.db = faiss.IndexFlatL2(dimension)
-            self.db.add(case_embeddings.astype("float32"))
+            # Добавляем с ID
+            id_array = np.array([new_id], dtype=np.int64)
+            self.db.add_with_ids(embedding, id_array)
             
-            logger.info(f"Кейс добавлен: {case.get('title', '')}")
+            # Обновляем маппинг
+            self._case_id_to_index[str(new_id)] = new_id
+            
+            # Сохраняем индекс
+            self._save_index()
+            
+            logger.info(f"Кейс инкрементально добавлен: {case.get('title', '')} (ID: {new_id})")
+    
+    def _save_index(self):
+        """Сохранить FAISS индекс на диск."""
+        try:
+            import faiss
+            index_path = self.cases_path.replace(".json", ".faiss")
+            mapping_path = self.cases_path.replace(".json", ".mapping")
+            
+            faiss.write_index(self.db, index_path)
+            with open(mapping_path, "w", encoding="utf-8") as f:
+                json.dump(self._case_id_to_index, f)
+            
+            logger.debug(f"Индекс сохранен: {index_path}")
+        except Exception as e:
+            logger.error(f"Ошибка сохранения индекса: {e}")
     
     def save_cases(self, path: Optional[str] = None):
         """Сохранить кейсы в файл."""

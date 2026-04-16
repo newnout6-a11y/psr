@@ -1,0 +1,31 @@
+target-version = "py311"
+line-length = 120
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "RUF", # Ruff-specific rules
+]
+ignore = [
+    "E501",    # Line too long (handled by formatter)
+    "N818",    # Exception name should end with Error
+    "RUF012",  # Mutable class default
+]
+
+[lint.pydocstyle]
+convention = "google"
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
