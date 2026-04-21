@@ -53,8 +53,13 @@ class CurrencyConverter:
                 )
                 if response.status_code == 200:
                     data = response.json()
-                    self._rates = data.get("rates", {})
-                    self._rates[self._base_currency] = 1.0
+                    api_rates = data.get("rates", {})
+                    converted_rates = {self._base_currency: 1.0}
+                    for code, value in api_rates.items():
+                        if not value:
+                            continue
+                        converted_rates[code] = 1 / value
+                    self._rates = converted_rates
                     self._last_update = datetime.now()
                     logger.info(f"Курсы валют обновлены (fallback): {len(self._rates)} валют")
                     return

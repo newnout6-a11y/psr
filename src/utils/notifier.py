@@ -186,6 +186,11 @@ class TelegramNotifier:
         """Получить отредактированный текст отклика если есть."""
         return self._edited_proposals.pop(project_id, None)
 
+    def _truncate_caption(self, text: str, limit: int = 1024) -> str:
+        if len(text) <= limit:
+            return text
+        return text[: limit - 3] + "..."
+
     async def start(self):
         """Запуск слушателя бота в фоновом режиме."""
         if self.running_task:
@@ -207,6 +212,7 @@ class TelegramNotifier:
         project_id: str,
         project_title: str,
         proposal_text: str,
+        platform: str = "kwork",
         budget: Optional[float] = None,
         screenshot_path: Optional[str] = None,
     ) -> Optional[str]:
@@ -221,11 +227,11 @@ class TelegramNotifier:
         # Формируем сообщение
         budget_str = f"{int(budget)} руб." if budget else "не указан"
         msg = (
-            f"🔔 *Новый проект на Kwork!*\n\n"
-            f"📌 *Заголовок:* {project_title}\n"
-            f"🆔 *ID:* {project_id}\n"
-            f"💰 *Бюджет:* {budget_str}\n\n"
-            f"📝 *Текст отклика:*\n{proposal_text}\n\n"
+            f"🔔 Новый проект ({platform})\n\n"
+            f"📌 Заголовок: {project_title}\n"
+            f"🆔 ID: {project_id}\n"
+            f"💰 Бюджет: {budget_str}\n\n"
+            f"📝 Текст отклика:\n{proposal_text}\n\n"
             f"Выбери цену:"
         )
 
@@ -266,7 +272,10 @@ class TelegramNotifier:
             if screenshot_path and os.path.exists(screenshot_path):
                 photo = FSInputFile(screenshot_path)
                 await self.bot.send_photo(
-                    self.admin_id, photo, caption=msg[:1024], parse_mode="Markdown", reply_markup=keyboard
+                    self.admin_id,
+                    photo,
+                    caption=self._truncate_caption(msg),
+                    reply_markup=keyboard,
                 )
                 # Удаляем скриншот после отправки
                 try:
@@ -274,7 +283,7 @@ class TelegramNotifier:
                 except OSError:
                     pass
             else:
-                await self.bot.send_message(self.admin_id, msg, parse_mode="Markdown", reply_markup=keyboard)
+                await self.bot.send_message(self.admin_id, msg, reply_markup=keyboard)
         except Exception as e:
             logger.error(f"TelegramNotifier: Ошибка отправки: {e}")
             self._approval_events.pop(project_id, None)
@@ -299,17 +308,17 @@ class TelegramNotifier:
             return
 
         msg = (
-            f"💬 *Ответ от заказчика!*\n\n"
-            f"📌 *Проект:* {project_title}\n"
-            f"🌐 *Платформа:* {platform}\n\n"
-            f"📨 *Сообщение:*\n`{response_text[:500]}`"
+            f"💬 Ответ от заказчика!\n\n"
+            f"📌 Проект: {project_title}\n"
+            f"🌐 Платформа: {platform}\n\n"
+            f"📨 Сообщение:\n{response_text[:500]}"
         )
 
         if len(response_text) > 500:
-            msg += "\n\n_(сообщение обрезано)_"
+            msg += "\n\n(сообщение обрезано)"
 
         try:
-            await self.bot.send_message(self.admin_id, msg, parse_mode="Markdown")
+            await self.bot.send_message(self.admin_id, msg)
             logger.info(f"TelegramNotifier: уведомление об ответе отправлено для {project_title}")
         except Exception as e:
             logger.error(f"TelegramNotifier: ошибка отправки уведомления: {e}")
@@ -323,6 +332,9 @@ class TelegramNotifier:
         proposal_text: str,
         screenshot_path: Optional[str] = None,
         project_id: str = "",
+        offers_count: int = 0,
+        client_hired_percent: int = 0,
+        competitor_prices: Optional[list] = None,
     ):
         """Отправить уведомление с кнопками цен (для dry-run режима)."""
         if not self.admin_id:
@@ -330,13 +342,38 @@ class TelegramNotifier:
             return
 
         budget_str = f"{int(budget)} руб." if budget else "не указан"
+
+        # Конкурентная разведка
+        competition = ""
+        if offers_count > 0:
+            competition = f"\n👥 Конкуренция: {offers_count} откликов"
+            if offers_count > 50:
+                competition += " ⚠️ высокая"
+            elif offers_count > 20:
+                competition += " 🟡 средняя"
+            else:
+                competition += " 🟢 низкая"
+        if client_hired_percent > 0:
+            competition += f"\n📈 Нанимает: {client_hired_percent}%"
+
+        # Цены конкурентов (если удалось спарсить)
+        if competitor_prices:
+            prices_str = ", ".join(
+                f"{p['price']}₽" for p in competitor_prices[:5]
+            )
+            competition += f"\n💰 Цены конкурентов: {prices_str}"
+            min_price = min(p['price'] for p in competitor_prices)
+            max_price = max(p['price'] for p in competitor_prices)
+            competition += f"\n📊 Диапазон: {min_price}–{max_price}₽"
+
         msg = (
-            f"🔔 *Новый проект ({platform})*\n\n"
-            f"📌 *{project_title}*\n"
-            f"🆔 *ID:* {project_id}\n"
-            f"💰 *Бюджет:* {budget_str}\n\n"
-            f"📝 *Текст отклика:*\n{proposal_text}\n\n"
-            f"*Выбери цену:*"
+            f"🔔 Новый проект ({platform})\n\n"
+            f"📌 {project_title}\n"
+            f"🆔 ID: {project_id}\n"
+            f"💰 Бюджет: {budget_str}"
+            f"{competition}\n\n"
+            f"📝 Текст отклика:\n{proposal_text}\n\n"
+            f"Выбери цену:"
         )
 
         # Кнопки с ценами (как в реальном режиме)
@@ -378,15 +415,13 @@ class TelegramNotifier:
                 await self.bot.send_photo(
                     self.admin_id,
                     photo,
-                    caption=msg,
-                    parse_mode="Markdown",
+                    caption=self._truncate_caption(msg),
                     reply_markup=keyboard,
                 )
             else:
                 await self.bot.send_message(
                     self.admin_id,
                     msg,
-                    parse_mode="Markdown",
                     reply_markup=keyboard,
                 )
             logger.info(f"TelegramNotifier: уведомление с ценами отправлено: {project_title}")

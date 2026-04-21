@@ -3,14 +3,15 @@
 Загружает фильтры из config/filters.yaml и применяет к парсингу.
 """
 
-import asyncio
 import yaml
-from pathlib import Path
-from typing import List, Dict, Any, Set
 from loguru import logger
-from src.parsers.base_parser import ProjectItem
+from typing import List
+from datetime import datetime, timezone
+
 from src.action.proposal_db import ProposalDB
+from src.parsers.base_parser import ProjectItem
 from src.utils.currency import get_converter
+from src.utils.time_utils import parse_created_at_datetime
 
 
 class ProjectFilter:
@@ -25,6 +26,18 @@ class ProjectFilter:
             self._converter = await get_converter()
         return self._converter
 
+    def _project_age_hours(self, project: ProjectItem) -> float | None:
+        created_dt = parse_created_at_datetime(project.created_at, project.platform)
+        if created_dt is None:
+            return None
+
+        if created_dt.tzinfo is not None:
+            age_seconds = (datetime.now(timezone.utc) - created_dt.astimezone(timezone.utc)).total_seconds()
+        else:
+            age_seconds = (datetime.now() - created_dt).total_seconds()
+
+        return max(age_seconds, 0) / 3600
+
     def _load_config(self):
         try:
             with open(self.config_path, "r", encoding="utf-8") as f:
@@ -34,15 +47,20 @@ class ProjectFilter:
             self.stop_words = [s.lower() for s in config.get("stop_words", [])]
             self.min_budget = config.get("min_budget", 0)
             self.max_budget = config.get("max_budget", 0)
+            self.per_page = config.get("per_page", 20)
             self.max_age_hours = config.get("max_age_hours", 48)
             self.max_proposals = config.get("max_proposals", 0)
-            logger.info(f"Фильтры загружены: бюджет {self.min_budget}-{self.max_budget or '∞'}₽, возраст ≤{self.max_age_hours}ч")
+            logger.info(
+                f"Фильтры загружены: бюджет {self.min_budget}-{self.max_budget or '∞'}₽, "
+                f"возраст ≤{self.max_age_hours}ч, per_page={self.per_page}"
+            )
         except Exception as e:
             logger.error(f"Ошибка загрузки фильтров: {e}")
             self.required_skills = []
             self.stop_words = []
             self.min_budget = 0
             self.max_budget = 0
+            self.per_page = 20
             self.max_age_hours = 0
             self.max_proposals = 0
     
@@ -62,6 +80,20 @@ class ProjectFilter:
                 continue
             
             seen_urls.add(getattr(p, 'url', None))
+
+            if self.max_proposals > 0 and (p.offers_count or 0) > self.max_proposals:
+                logger.debug(
+                    f"Проект '{p.title[:30]}' отсеян: откликов {p.offers_count} > лимита {self.max_proposals}"
+                )
+                continue
+
+            if self.max_age_hours > 0:
+                age_hours = self._project_age_hours(p)
+                if age_hours is not None and age_hours > self.max_age_hours:
+                    logger.debug(
+                        f"Проект '{p.title[:30]}' отсеян: возраст {age_hours:.1f}ч > {self.max_age_hours}ч"
+                    )
+                    continue
             
             text = f"{p.title} {p.description}".lower()
             skills_text = " ".join([s.lower() for s in p.skills])

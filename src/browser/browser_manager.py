@@ -9,8 +9,11 @@ import json
 import asyncio
 from typing import Optional, Dict, Any, List
 
+import httpx
 import nodriver as uc
 from loguru import logger
+
+from .fingerprint import Fingerprint, pick as pick_fingerprint
 
 
 class BrowserManager:
@@ -68,13 +71,19 @@ class BrowserManager:
             logger.info(f"BrowserManager: запуск браузера (headless={self.headless})...")
             os.makedirs(self.profile_dir, exist_ok=True)
 
+            # Детерминированный отпечаток по profile_dir → сессия стабильна,
+            # но между разными профилями различается.
+            fp: Fingerprint = pick_fingerprint(seed=self.profile_dir)
+            self._fingerprint = fp
+            logger.debug(
+                f"BrowserManager: fingerprint UA={fp.user_agent[:50]}... "
+                f"viewport={fp.viewport} lang={fp.accept_language.split(',')[0]} tz={fp.timezone}"
+            )
+
             try:
                 self.browser = await uc.start(
                     headless=self.headless,
-                    browser_args=[
-                        "--window-size=1920,1080",
-                        "--disable-blink-features=AutomationControlled",
-                    ],
+                    browser_args=fp.browser_args(),
                     user_data_dir=self.profile_dir,
                 )
                 logger.info("BrowserManager: ✅ браузер запущен (единый инстанс)")
@@ -151,14 +160,13 @@ class BrowserManager:
         Основной источник кук - Session Hub (127.0.0.1:8669).
         Формат ответа: {"status":"ok","count":N,"cookies":[...]}
         """
-        import requests as sync_requests
-
         try:
             hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
-            resp = sync_requests.get(
-                f"{hub_url}?domain={domain}",
-                timeout=10,
-            )
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"{hub_url}?domain={domain}",
+                    timeout=10,
+                )
             if resp.status_code != 200:
                 logger.warning(f"BrowserManager: Session Hub вернул HTTP {resp.status_code}")
                 return False
@@ -263,7 +271,16 @@ class BrowserManager:
             hub_ok = await self.set_cookies_from_hub(domain)
 
             if not hub_ok:
-                # Fallback на .env только если Hub недоступен
+                # Строгий режим: отказываемся работать без Hub (куки в .env быстро протухают)
+                strict = os.getenv("SESSION_HUB_REQUIRED", "false").lower() == "true"
+                if strict:
+                    logger.error(
+                        f"BrowserManager: Session Hub недоступен, а SESSION_HUB_REQUIRED=true → отказ. "
+                        f"Запусти Session Hub: python scripts/session_hub/session_hub_manual.py"
+                    )
+                    self._auth_validated[domain] = False
+                    return False
+                # Иначе fallback на .env
                 logger.warning(f"BrowserManager: Session Hub недоступен, используем .env как fallback для {domain}")
                 await self.set_cookies_from_env(domain)
 
@@ -352,10 +369,13 @@ class BrowserManager:
                 "sidebar-user-info",
                 "data-userid",
             ],
-            "www.fl.ru": [
-                "toppanel-name",
-                "my-projects",
-                "user-panel",
+            "freelance.ru": [
+                "/auth/logout",
+                "мой профиль",
+                "мои проекты",
+                "сообщения",
+                "userpanel",
+                "top-menu-user",
             ],
         }
         domain_markers = markers.get(domain, markers.get(domain.replace("www.", ""), []))
@@ -369,12 +389,19 @@ class BrowserManager:
                 "PHPSESSID": os.getenv("KWORK_COOKIE_PHPSESSID", ""),
                 "csrf_token": os.getenv("KWORK_CSRF_TOKEN", "") or os.getenv("KWORK_COOKIE_CSRF", ""),
             }
-        elif domain in ("www.fl.ru", "fl.ru"):
+        elif domain in ("freelance.ru", "www.freelance.ru"):
+            cookies_json = os.getenv("FREELANCE_RU_COOKIES_JSON", "").strip()
+            if cookies_json:
+                try:
+                    parsed = json.loads(cookies_json)
+                    if isinstance(parsed, dict):
+                        return {str(k): str(v) for k, v in parsed.items() if v}
+                except Exception as e:
+                    logger.warning(f"BrowserManager: FREELANCE_RU_COOKIES_JSON не распарсен: {e}")
             return {
-                "PHPSESSID": os.getenv("FL_RU_COOKIE_SESSION", ""),
-                "id": os.getenv("FL_RU_COOKIE_ID", ""),
-                "pwd": os.getenv("FL_RU_COOKIE_PWD", ""),
-                "XSRF-TOKEN": os.getenv("FL_RU_XSRF_TOKEN", ""),
+                "PHPSESSID": os.getenv("FREELANCE_RU_COOKIE_SESSION", ""),
+                "DUID": os.getenv("FREELANCE_RU_COOKIE_DUID", ""),
+                "remember": os.getenv("FREELANCE_RU_COOKIE_REMEMBER", ""),
             }
         return {}
 

@@ -1,17 +1,16 @@
 """
 Отправка откликов.
-Kwork — через библиотеку kwork (мобильный API + web-сессия).
-FL.ru — через BrowserManager (Nodriver).
-Freelancer.com — через REST API.
+Поддерживаемые платформы: Kwork и Freelance.ru.
 """
 
+import json
 import os
 import random
-import json
 import shutil
-from typing import Dict, Any, Optional
-import httpx
+from typing import Optional
+
 from loguru import logger
+
 from src.browser.browser_manager import BrowserManager
 
 
@@ -43,6 +42,77 @@ class ProposalSender:
             except Exception as e:
                 logger.debug(f"Не удалось удалить скриншоты: {e}")
 
+    async def scrape_competitor_prices(self, project_url: str) -> list:
+        """Парсинг видимых цен конкурентов со страницы проекта (до отправки отклика)."""
+        self.last_competitor_prices = []
+        try:
+            await self._ensure_auth("kwork.ru")
+            mgr = self.browser_mgr
+            if not mgr._auth_validated.get("kwork.ru", False):
+                return []
+
+            page = await mgr.get_page(project_url, reuse=True)
+            await page.scroll_down(300)
+            await page.sleep(2)
+
+            competitor_prices = await page.evaluate(
+                """
+                () => {
+                    const results = [];
+                    const nodes = document.querySelectorAll(
+                        '.offer-card, .response-item, .wants-offer, .offer-item, ' +
+                        '[class*="offer"], [class*="response"], [class*="candidate"]'
+                    );
+                    nodes.forEach(node => {
+                        const priceEl = node.querySelector(
+                            '.price, .amount, .bid-value, [class*="price"], ' +
+                            '[class*="cost"], [class*="budget"]'
+                        );
+                        const nameEl = node.querySelector(
+                            '.username, .freelancer-name, [class*="username"], ' +
+                            '[class*="name"]'
+                        );
+                        if (priceEl) {
+                            const raw = priceEl.innerText.trim();
+                            const clean = raw.replace(/[^0-9.]/g, '');
+                            const val = parseFloat(clean);
+                            if (val > 0) {
+                                results.push({ price: val, name: nameEl ? nameEl.innerText.trim() : '', raw: raw });
+                            }
+                        }
+                    });
+                    if (results.length === 0) {
+                        const allEls = document.querySelectorAll('span, div, p');
+                        allEls.forEach(el => {
+                            const text = el.innerText || '';
+                            if (text.length < 30 && /\\d+\\s*(₽|руб)/.test(text)) {
+                                const clean = text.replace(/[^0-9.]/g, '');
+                                const val = parseFloat(clean);
+                                if (val > 0 && val < 1000000) {
+                                    results.push({ price: val, name: '', raw: text.trim() });
+                                }
+                            }
+                        });
+                    }
+                    const unique = [];
+                    const seen = new Set();
+                    results.forEach(r => { if (!seen.has(r.price)) { seen.add(r.price); unique.push(r); } });
+                    return unique;
+                }
+                """
+            )
+            if competitor_prices:
+                prices_str = ", ".join(
+                    f"{p['price']}₽" + (f" ({p['name']})" if p.get('name') else "")
+                    for p in competitor_prices[:10]
+                )
+                logger.info(f"Kwork: конкурентные цены: [{prices_str}]")
+                self.last_competitor_prices = competitor_prices
+                return competitor_prices
+        except Exception as e:
+            logger.debug(f"Kwork: не удалось спарсить цены конкурентов: {e}")
+        return []
+
     def _get_kwork_api(self):
         if self._kwork_api is not None:
             return self._kwork_api
@@ -70,6 +140,45 @@ class ProposalSender:
         if not self.browser_mgr._auth_validated.get(domain, False):
             await self.browser_mgr.init_auth(domain)
 
+    async def _page_contains(self, page, markers: list[str]) -> bool:
+        try:
+            html = (await page.get_content()).lower()
+        except Exception:
+            return False
+        return any(marker.lower() in html for marker in markers)
+
+    async def _confirm_kwork_submission(self, page) -> bool:
+        try:
+            return await page.evaluate(
+                """
+                (() => {
+                    const text = (document.body.innerText || '').toLowerCase();
+                    const successMarkers = [
+                        'предложение отправлено',
+                        'отклик отправлен',
+                        'ваше предложение отправлено',
+                        'предложение успешно отправлено',
+                        'предложение принято',
+                        'ответ отправлен'
+                    ];
+                    if (successMarkers.some(marker => text.includes(marker))) {
+                        return true;
+                    }
+
+                    const successSelectors = [
+                        '.alert-success',
+                        '.kw-alert--success',
+                        '.wants-offer-success',
+                        '[class*="success-message"]',
+                        '[class*="offer-success"]'
+                    ];
+                    return successSelectors.some(selector => document.querySelector(selector));
+                })()
+                """
+            )
+        except Exception:
+            return False
+
     async def send_kwork_proposal(
         self,
         project_url: str,
@@ -80,7 +189,6 @@ class ProposalSender:
     ) -> bool:
         logger.info(f"Kwork: отправка отклика на проект {project_id}")
 
-        # Минимальная цена на Kwork — 500 руб
         numeric_price = 500
         if price:
             try:
@@ -91,14 +199,16 @@ class ProposalSender:
             except Exception:
                 numeric_price = 500
 
-        # Dry-run: только браузерная демонстрация без реальной отправки
         if dry_run:
             logger.info("Kwork: [DRY-RUN] браузерная демонстрация без отправки")
             return await self._send_kwork_browser(
-                project_url, project_id, proposal_text, str(numeric_price), dry_run=True
+                project_url,
+                project_id,
+                proposal_text,
+                str(numeric_price),
+                dry_run=True,
             )
 
-        # Шаг 1: Попытка через API
         api = self._get_kwork_api()
         if api:
             try:
@@ -120,17 +230,19 @@ class ProposalSender:
                 if json_resp.get("success"):
                     logger.info(f"Kwork: отклик отправлен через API на проект {project_id}")
                     return True
-                else:
-                    error_msg = json_resp.get("message", "неизвестная ошибка")
-                    logger.error(f"Kwork: отклик отклонён API: {error_msg}")
 
+                error_msg = json_resp.get("message", "неизвестная ошибка")
+                logger.error(f"Kwork: отклик отклонён API: {error_msg}")
             except Exception as e:
                 logger.error(f"Kwork: ошибка API-отправки: {e}")
 
-        # Шаг 2: Fallback на браузер
         logger.warning("Kwork: API недоступен или упал, fallback на браузер")
         return await self._send_kwork_browser(
-            project_url, project_id, proposal_text, str(numeric_price), dry_run=False
+            project_url,
+            project_id,
+            proposal_text,
+            str(numeric_price),
+            dry_run=False,
         )
 
     async def _send_kwork_browser(
@@ -142,15 +254,89 @@ class ProposalSender:
         dry_run: bool = False,
     ) -> bool:
         logger.info(f"Kwork: отправка через браузер на {project_url}")
+        self.last_competitor_prices = []  # Сброс перед новым проектом
 
         await self._ensure_auth("kwork.ru")
         mgr = self.browser_mgr
 
         if not mgr._auth_validated.get("kwork.ru", False):
-            logger.warning("Kwork: браузерная авторизация не подтверждена!")
+            logger.warning("Kwork: браузерная авторизация не подтверждена")
             return False
 
         page = await mgr.get_page(project_url, reuse=True)
+
+        # Конкурентная разведка: парсим видимые цены конкурентов со страницы
+        competitor_prices = []
+        try:
+            competitor_prices = await page.evaluate(
+                """
+                () => {
+                    const results = [];
+                    // Вариант 1: карточки откликов с классами offer-card / response-item
+                    const nodes = document.querySelectorAll(
+                        '.offer-card, .response-item, .wants-offer, .offer-item, ' +
+                        '[class*="offer"], [class*="response"], [class*="candidate"]'
+                    );
+                    nodes.forEach(node => {
+                        const priceEl = node.querySelector(
+                            '.price, .amount, .bid-value, [class*="price"], ' +
+                            '[class*="cost"], [class*="budget"]'
+                        );
+                        const nameEl = node.querySelector(
+                            '.username, .freelancer-name, [class*="username"], ' +
+                            '[class*="name"]'
+                        );
+                        if (priceEl) {
+                            const raw = priceEl.innerText.trim();
+                            const clean = raw.replace(/[^0-9.]/g, '');
+                            const val = parseFloat(clean);
+                            if (val > 0) {
+                                results.push({
+                                    price: val,
+                                    name: nameEl ? nameEl.innerText.trim() : '',
+                                    raw: raw
+                                });
+                            }
+                        }
+                    });
+
+                    // Вариант 2: ищем все элементы с текстом "₽" или "руб" рядом с числом
+                    if (results.length === 0) {
+                        const allEls = document.querySelectorAll('span, div, p');
+                        allEls.forEach(el => {
+                            const text = el.innerText || '';
+                            if (text.length < 30 && /\\d+\\s*(₽|руб)/.test(text)) {
+                                const clean = text.replace(/[^0-9.]/g, '');
+                                const val = parseFloat(clean);
+                                if (val > 0 && val < 1000000) {
+                                    results.push({ price: val, name: '', raw: text.trim() });
+                                }
+                            }
+                        });
+                    }
+
+                    // Убираем дубликаты
+                    const unique = [];
+                    const seen = new Set();
+                    results.forEach(r => {
+                        if (!seen.has(r.price)) {
+                            seen.add(r.price);
+                            unique.push(r);
+                        }
+                    });
+                    return unique;
+                }
+                """
+            )
+            if competitor_prices:
+                prices_str = ", ".join(
+                    f"{p['price']}₽" + (f" ({p['name']})" if p.get('name') else "")
+                    for p in competitor_prices[:10]
+                )
+                logger.info(f"Kwork: конкурентные цены: [{prices_str}]")
+                self.last_competitor_prices = competitor_prices
+        except Exception as e:
+            logger.debug(f"Kwork: не удалось спарсить цены конкурентов: {e}")
 
         try:
             await page.scroll_down(300)
@@ -172,14 +358,16 @@ class ProposalSender:
             editor = await page.find(".trumbowyg-editor", timeout=4)
             if editor:
                 safe_text = json.dumps(proposal_text)
-                await page.evaluate(f"""
+                await page.evaluate(
+                    f"""
                     const editor = document.querySelector('.trumbowyg-editor');
                     if (editor) {{
                         editor.innerHTML = {safe_text};
                         editor.dispatchEvent(new Event('input', {{ bubbles: true }}));
                         editor.dispatchEvent(new Event('blur', {{ bubbles: true }}));
                     }}
-                """)
+                    """
+                )
                 await page.sleep(random.uniform(1, 2))
             else:
                 textarea = await page.find("textarea[name='description']", timeout=2)
@@ -192,7 +380,8 @@ class ProposalSender:
                     if not price_input:
                         price_input = await page.find("input[type='tel']", timeout=2)
                     if price_input:
-                        await page.evaluate("""
+                        await page.evaluate(
+                            """
                             () => {
                                 const el = document.querySelector('#offer-custom-price') || document.querySelector('input[type="tel"]');
                                 if (el) {
@@ -200,7 +389,8 @@ class ProposalSender:
                                     el.dispatchEvent(new Event('input', { bubbles: true }));
                                 }
                             }
-                        """)
+                            """
+                        )
                         await price_input.send_keys(str(int(float(price))))
                         await page.sleep(random.uniform(0.5, 1))
                 except Exception as e:
@@ -209,7 +399,7 @@ class ProposalSender:
             await mgr.take_screenshot(page, project_id, "03_form_filled")
 
             if dry_run:
-                logger.info(f"Kwork: [DRY-RUN] Форма заполнена, ПРОПУСКАЕМ КЛИК Отправить. Пауза 5 сек...")
+                logger.info("Kwork: [DRY-RUN] форма заполнена, отправку пропускаем")
                 await page.sleep(5)
                 self._cleanup_screenshots(project_id)
                 return True
@@ -220,89 +410,229 @@ class ProposalSender:
 
             if submit_btn:
                 await submit_btn.click()
-                logger.info(f"Kwork: Форма отправлена!")
                 await page.sleep(4)
-                self._cleanup_screenshots(project_id)
-                return True
+                if await self._confirm_kwork_submission(page):
+                    self._cleanup_screenshots(project_id)
+                    logger.info("Kwork: отправка подтверждена")
+                    return True
+
+                if await self._page_contains(
+                    page,
+                    [
+                        "ошибка",
+                        "не удалось",
+                        "минимальная цена",
+                        "заполните",
+                        "слишком короткое",
+                    ],
+                ):
+                    logger.warning("Kwork: после submit обнаружены признаки ошибки, отклик не подтверждён")
+                else:
+                    logger.warning("Kwork: submit выполнен, но подтверждение отправки не найдено")
+                return False
 
             logger.warning("Kwork: не удалось найти кнопку отправки")
             return False
-
         except Exception as e:
             logger.error(f"Kwork: ошибка браузерной отправки: {e}")
             return False
         finally:
             await mgr.close_page(page)
 
-    async def send_flru_proposal(
+    async def _open_freelanceru_answer_form(self, page) -> bool:
+        for _ in range(2):
+            opened = await page.evaluate(
+                """
+                (() => {
+                    const button = document.querySelector('.answer-button');
+                    if (button && getComputedStyle(button).display !== 'none') {
+                        button.click();
+                    }
+
+                    const form = document.querySelector('.answer-form');
+                    if (form) {
+                        form.style.display = 'block';
+                    }
+
+                    return !!(
+                        document.querySelector('.answer-form textarea') ||
+                        document.querySelector('#discussion_div textarea') ||
+                        document.querySelector('textarea')
+                    );
+                })()
+                """
+            )
+            if opened:
+                return True
+            await page.sleep(1.5)
+
+        try:
+            return await page.find("textarea", timeout=3) is not None
+        except Exception:
+            return False
+
+    async def _fill_freelanceru_form(self, page, proposal_text: str, price: Optional[str]) -> bool:
+        safe_text = json.dumps(proposal_text)
+        safe_price = json.dumps("")
+        if price:
+            try:
+                safe_price = json.dumps(str(int(float(price))))
+            except Exception:
+                safe_price = json.dumps(str(price))
+
+        return await page.evaluate(
+            f"""
+            (() => {{
+                const form =
+                    document.querySelector('.answer-form form') ||
+                    document.querySelector('form[action*="discussion"]') ||
+                    document.querySelector('form');
+                const textarea =
+                    document.querySelector('.answer-form textarea') ||
+                    form?.querySelector('textarea') ||
+                    document.querySelector('textarea');
+
+                if (!textarea) {{
+                    return false;
+                }}
+
+                textarea.focus();
+                textarea.value = {safe_text};
+                textarea.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                textarea.dispatchEvent(new Event('change', {{ bubbles: true }}));
+
+                const inlineMode = form?.querySelector('input[name="mode"]');
+                if (inlineMode && !inlineMode.value) {{
+                    inlineMode.value = 'inline';
+                }}
+
+                const priceValue = {safe_price};
+                if (priceValue) {{
+                    const priceInput =
+                        form?.querySelector('input[name*="price"], input[name*="cost"], input[name*="budget"], input[name*="sum"]');
+                    if (priceInput) {{
+                        priceInput.value = priceValue;
+                        priceInput.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                        priceInput.dispatchEvent(new Event('change', {{ bubbles: true }}));
+                    }}
+                }}
+
+                return true;
+            }})()
+            """
+        )
+
+    async def send_freelanceru_proposal(
         self,
         project_url: str,
         project_id: str,
         proposal_text: str,
         price: Optional[str] = None,
+        dry_run: bool = False,
     ) -> bool:
-        logger.info(f"FL.ru: отправка отклика на {project_url}")
+        logger.info(f"Freelance.ru: отправка отклика на {project_url}")
 
-        await self._ensure_auth("www.fl.ru")
+        await self._ensure_auth("freelance.ru")
         mgr = self.browser_mgr
 
-        if not mgr._auth_validated.get("www.fl.ru", False):
-            logger.warning("FL.ru: авторизация не подтверждена")
+        if not mgr._auth_validated.get("freelance.ru", False):
+            logger.warning("Freelance.ru: авторизация не подтверждена")
             return False
 
         page = await mgr.get_page(project_url, reuse=True)
 
         try:
             await page.sleep(random.uniform(2, 4))
+            await mgr.take_screenshot(page, project_id, "01_project_page")
 
-            respond_btn = await page.find("Откликнуться", timeout=5)
-            if not respond_btn:
-                logger.warning("FL.ru: кнопка 'Откликнуться' не найдена")
+            blocked = await self._page_contains(
+                page,
+                [
+                    "доступ к этому заданию для базовых аккаунтов закрыт",
+                    "/auth/login?return_url=",
+                    "премиум-аккаунтом",
+                ],
+            )
+            if blocked:
+                logger.warning("Freelance.ru: проект закрыт для текущего аккаунта")
                 return False
 
-            await respond_btn.click()
-            await page.sleep(random.uniform(1.5, 3))
+            form_opened = await self._open_freelanceru_answer_form(page)
+            if not form_opened:
+                logger.warning("Freelance.ru: форма ответа не найдена")
+                return False
 
-            textarea = await page.find('textarea[name*="offer"]', timeout=3)
-            if not textarea:
-                textarea = await page.find("textarea", timeout=3)
+            filled = await self._fill_freelanceru_form(page, proposal_text, price)
+            if not filled:
+                logger.warning("Freelance.ru: не удалось заполнить форму")
+                return False
 
-            if textarea and proposal_text:
-                safe_text = json.dumps(proposal_text)
-                await page.evaluate(f"""
-                    const ta = document.querySelector('textarea[name*="offer"]') || document.querySelector('textarea');
-                    if (ta) {{
-                        ta.value = {safe_text};
-                        ta.dispatchEvent(new Event('input', {{ bubbles: true }}));
-                    }}
-                """)
-                await page.sleep(0.5)
+            await mgr.take_screenshot(page, project_id, "02_form_filled")
 
-            if price:
-                price_input = await page.find('input[name="price"]', timeout=3)
-                if not price_input:
-                    price_input = await page.find("input.js-money", timeout=3)
-                if price_input:
-                    await price_input.send_keys(str(price))
-                    await page.sleep(0.5)
+            if dry_run:
+                logger.info("Freelance.ru: [DRY-RUN] форма заполнена, отправку пропускаем")
+                await page.sleep(5)
+                self._cleanup_screenshots(project_id)
+                return True
 
-            await mgr.take_screenshot(page, project_id, "03_form_filled")
+            submitted = await page.evaluate(
+                """
+                (() => {
+                    const form =
+                        document.querySelector('.answer-form form') ||
+                        document.querySelector('form[action*="discussion"]') ||
+                        document.querySelector('form');
+                    if (!form) {
+                        return false;
+                    }
 
-            submit_btn = await page.find('button[type="submit"]', timeout=3)
-            if submit_btn:
-                await submit_btn.click()
-                await page.sleep(random.uniform(3, 5))
+                    const submit =
+                        form.querySelector('button[type="submit"], input[type="submit"], .btn-success, .btn-primary');
+                    if (submit) {
+                        submit.click();
+                        return true;
+                    }
 
-                html = await page.get_content()
-                if any(m in html.lower() for m in ["отклик отправлен", "предложение отправлено"]):
-                    logger.info("FL.ru: отклик отправлен")
-                    return True
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit();
+                        return true;
+                    }
 
-            logger.warning("FL.ru: не удалось подтвердить отправку")
+                    form.submit();
+                    return true;
+                })()
+                """
+            )
+            if not submitted:
+                logger.warning("Freelance.ru: кнопка отправки не найдена")
+                return False
+
+            await page.sleep(5)
+            await mgr.take_screenshot(page, project_id, "03_form_submitted")
+
+            sent = await page.evaluate(
+                """
+                (() => !!(
+                    document.querySelector('.new_message .th_message') ||
+                    document.querySelector('.message.th_message') ||
+                    document.querySelector('.message.have_answer')
+                ))()
+                """
+            )
+            if sent:
+                logger.info("Freelance.ru: отклик отправлен")
+                self._cleanup_screenshots(project_id)
+                return True
+
+            if await self._page_contains(page, ["сообщение отправлено", "ответ добавлен"]):
+                logger.info("Freelance.ru: отправка подтверждена текстовым маркером")
+                self._cleanup_screenshots(project_id)
+                return True
+
+            logger.warning("Freelance.ru: не удалось подтвердить отправку")
             return False
-
         except Exception as e:
-            logger.error(f"FL.ru: ошибка отправки: {e}")
+            logger.error(f"Freelance.ru: ошибка отправки: {e}")
             return False
         finally:
             await mgr.close_page(page)
@@ -311,63 +641,41 @@ class ProposalSender:
         self,
         project_url: str,
         project_id: str,
-        project_title: Optional[str] = None,
+        platform: str,
     ) -> Optional[str]:
-        await self._ensure_auth("kwork.ru")
-        mgr = self.browser_mgr
+        platform = platform.lower()
+        selector_map = {
+            "kwork": "div.project-description",
+            "freelance_ru": ".proj-comm-card",
+        }
+        domain_map = {
+            "kwork": "kwork.ru",
+            "freelance_ru": "freelance.ru",
+        }
 
+        domain = domain_map.get(platform)
+        selector = selector_map.get(platform, "body")
+        if domain:
+            try:
+                await self._ensure_auth(domain)
+            except Exception as e:
+                logger.debug(f"Preview auth check failed for {domain}: {e}")
+
+        mgr = self.browser_mgr
         page = await mgr.get_page(project_url, reuse=True)
 
         try:
-            logger.info(f"Kwork: загрузка превью для {project_id}...")
-            loaded = await mgr.wait_for_content(page, "div.project-description", timeout=10)
-
-            logger.info(f"Kwork: делаем скриншот страницы проекта...")
+            await mgr.wait_for_content(page, selector, timeout=10)
             screenshot_path = await mgr.take_screenshot(page, project_id, "01_project_page")
-
-            if not loaded:
+            if not screenshot_path:
                 await page.scroll_down(400)
                 await page.sleep(2)
                 screenshot_path = await mgr.take_screenshot(page, project_id, "01_project_page_scrolled")
-
             return screenshot_path
         except Exception as e:
-            logger.error(f"Kwork preview error: {e}")
+            logger.error(f"{platform} preview error: {e}")
             await mgr.close_page(page)
             return None
-
-    async def send_freelancercom_proposal(
-        self,
-        project_id: str,
-        proposal_text: str,
-        price: Optional[str] = None,
-    ) -> bool:
-        token = os.getenv("FREELANCER_OAUTH_TOKEN")
-        if not token:
-            logger.warning("Freelancer.com: нет OAUTH токена")
-            return False
-
-        url = "https://www.freelancer.com/api/projects/0.1/bids/"
-        headers = {"freelancer-oauth-v1": token, "Content-Type": "application/json"}
-        payload = {
-            "project_id": int(project_id),
-            "amount": float(price) if price else 50.0,
-            "period": 7,
-            "milestone_percentage": 100,
-            "description": proposal_text,
-        }
-
-        try:
-            async with httpx.AsyncClient() as client:
-                res = await client.post(url, headers=headers, json=payload, timeout=10.0)
-                if res.status_code == 200:
-                    logger.info("Freelancer.com: бид отправлен")
-                    return True
-                logger.error(f"Freelancer.com API Error {res.status_code}: {res.text}")
-                return False
-        except Exception as e:
-            logger.error(f"Freelancer.com Request Error: {e}")
-            return False
 
     async def send_proposal(
         self,
@@ -379,11 +687,21 @@ class ProposalSender:
         dry_run: bool = False,
     ) -> bool:
         if platform == "kwork":
-            return await self.send_kwork_proposal(project_url, project_id, proposal_text, price, dry_run=dry_run)
-        elif platform == "fl_ru":
-            return await self.send_flru_proposal(project_url, project_id, proposal_text, price)
-        elif platform == "freelancer_com":
-            return await self.send_freelancercom_proposal(project_id, proposal_text, price)
-        else:
-            logger.warning(f"Авто-отправка не поддерживается: {platform}")
-            return False
+            return await self.send_kwork_proposal(
+                project_url,
+                project_id,
+                proposal_text,
+                price,
+                dry_run=dry_run,
+            )
+        if platform == "freelance_ru":
+            return await self.send_freelanceru_proposal(
+                project_url,
+                project_id,
+                proposal_text,
+                price,
+                dry_run=dry_run,
+            )
+
+        logger.warning(f"Авто-отправка не поддерживается: {platform}")
+        return False
