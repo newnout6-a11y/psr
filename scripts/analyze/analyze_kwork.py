@@ -1,6 +1,15 @@
+import sys
+from pathlib import Path
+
 from bs4 import BeautifulSoup
 
-with open(r"c:\psr\data\kwork_debug.html", "r", encoding="utf-8") as f:
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.paths import KWORK_DEBUG_HTML_FILE
+
+with KWORK_DEBUG_HTML_FILE.open("r", encoding="utf-8") as f:
     soup = BeautifulSoup(f.read(), "lxml")
 
 cards = soup.select("div.want-card")

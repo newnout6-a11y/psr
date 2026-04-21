@@ -7,6 +7,7 @@ import os
 import asyncio
 from typing import Optional, Dict, Any
 from loguru import logger
+from src.paths import BROWSER_PROFILES_DIR, SCREENSHOTS_DIR
 
 
 class CamoufoxManager:
@@ -18,7 +19,7 @@ class CamoufoxManager:
     def __init__(
         self,
         headless: bool = True,
-        profile_dir: str = "data/browser_profiles/camoufox",
+        profile_dir: str = str(BROWSER_PROFILES_DIR / "camoufox"),
     ):
         self.headless = headless
         self.profile_dir = os.path.abspath(profile_dir)
@@ -102,7 +103,7 @@ class CamoufoxManager:
         try:
             import os
 
-            folder = os.path.join("data", "screenshots", str(project_id))
+            folder = os.path.join(str(SCREENSHOTS_DIR), str(project_id))
             os.makedirs(folder, exist_ok=True)
             path = os.path.join(folder, f"{step_name}.png")
             await page.screenshot(path=path, full_page=True)

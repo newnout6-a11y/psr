@@ -4,17 +4,17 @@
 """
 
 import sqlite3
-import os
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 from loguru import logger
+from src.paths import LOGS_DB_FILE
 
 
 class LogDB:
     """База данных для логов и аналитики."""
     
-    def __init__(self, db_path: str = "data/logs.db"):
+    def __init__(self, db_path: str = str(LOGS_DB_FILE)):
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
         self.db_path = db_path
         self._init_db()
@@ -53,6 +53,19 @@ class LogDB:
                     timestamp TEXT NOT NULL,
                     platform TEXT NOT NULL,
                     project_id TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    error_message TEXT,
+                    duration_ms INTEGER
+                )
+            """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS generation_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    project_id TEXT NOT NULL,
+                    provider TEXT NOT NULL,
                     status TEXT NOT NULL,
                     error_message TEXT,
                     duration_ms INTEGER
@@ -107,6 +120,25 @@ class LogDB:
                    VALUES (?, ?, ?, ?, ?, ?)""",
                 (datetime.now().isoformat(), platform, project_id, status, 
                  error_message, duration_ms)
+            )
+            conn.commit()
+
+    def log_generation(
+        self,
+        platform: str,
+        project_id: str,
+        provider: str,
+        status: str,
+        error_message: str = None,
+        duration_ms: int = None,
+    ):
+        """Залогировать генерацию отклика."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                """INSERT INTO generation_logs
+                   (timestamp, platform, project_id, provider, status, error_message, duration_ms)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (datetime.now().isoformat(), platform, project_id, provider, status, error_message, duration_ms)
             )
             conn.commit()
     

@@ -9,19 +9,14 @@ env/
 .agent/
 scratch/
 
-data/*.db
-data/logs.txt
-data/generated_proposals.txt
-data/last_llm_prompt.txt
-data/last_llm_response.txt
-data/screenshots/
-data/browser_profiles/
-data/form_structure.txt
-data/kwork_offer_form.png
-
-debug_*.png
-debug_*.html
-
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Runtime and debug artifacts live under data/ and should not pollute git.
+/data/runtime/
+/data/debug/
+
+# Reference data stays versioned.
+!/data/reference/
+!/data/reference/**

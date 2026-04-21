@@ -3,10 +3,10 @@ SQLite база данных для отслеживания отправлен�
 """
 
 import sqlite3
-import os
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 from pathlib import Path
+from src.paths import PROPOSALS_DB_FILE
 
 
 class ProposalDB:
@@ -14,7 +14,7 @@ class ProposalDB:
     База данных отправленных откликов.
     """
     
-    def __init__(self, db_path: str = "data/proposals.db"):
+    def __init__(self, db_path: str = str(PROPOSALS_DB_FILE)):
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
         self.db_path = db_path
         self._init_db()

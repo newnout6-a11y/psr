@@ -10,11 +10,12 @@ import re
 from typing import List, Dict, Any, Tuple, Optional
 from loguru import logger
 from src.parsers.base_parser import ProjectItem
+from src.paths import PORTFOLIO_FILE
 
 
 class AIRelevanceScorer:
 
-    def __init__(self, portfolio_path: str = "data/portfolio.json"):
+    def __init__(self, portfolio_path: str = str(PORTFOLIO_FILE)):
         self.portfolio = self._load_portfolio(portfolio_path)
         self._build_profile_summary()
 

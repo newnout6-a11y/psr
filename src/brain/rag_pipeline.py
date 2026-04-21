@@ -9,6 +9,7 @@ import numpy as np
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 from loguru import logger
+from src.paths import CASES_FILE, PORTFOLIO_FILE
 
 
 class RAGPipeline:
@@ -19,8 +20,8 @@ class RAGPipeline:
     
     def __init__(
         self,
-        portfolio_path: str = "data/portfolio.json",
-        cases_path: str = "data/cases.json",
+        portfolio_path: str = str(PORTFOLIO_FILE),
+        cases_path: str = str(CASES_FILE),
         embedding_model: str = "all-MiniLM-L6-v2",
         similarity_threshold: float = 0.75,
     ):

@@ -14,6 +14,7 @@ import nodriver as uc
 from loguru import logger
 
 from .fingerprint import Fingerprint, pick as pick_fingerprint
+from src.paths import BROWSER_PROFILES_DIR, SCREENSHOTS_DIR
 
 
 class BrowserManager:
@@ -29,7 +30,7 @@ class BrowserManager:
     def __init__(
         self,
         headless: bool = True,
-        profile_dir: str = "data/browser_profiles",
+        profile_dir: str = str(BROWSER_PROFILES_DIR),
     ):
         # Используем классовый флаг для thread-safety
         if getattr(BrowserManager, "_globally_initialized", False):
@@ -310,7 +311,7 @@ class BrowserManager:
 
     async def take_screenshot(self, page: uc.Tab, project_id: str, step_name: str) -> Optional[str]:
         try:
-            folder = os.path.join("data", "screenshots", str(project_id))
+            folder = os.path.join(str(SCREENSHOTS_DIR), str(project_id))
             os.makedirs(folder, exist_ok=True)
             path = os.path.join(folder, f"{step_name}.png")
             await page.save_screenshot(path)

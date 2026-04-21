@@ -4,9 +4,15 @@
 
 import asyncio
 import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from src.brain.llm_router import get_llm_router
 from src.action.proposal_templates import generate_proposal as generate_template_proposal

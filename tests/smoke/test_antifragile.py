@@ -4,8 +4,10 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+
+from src.paths import BROWSER_PROFILES_DIR
 
 
 def test_circuit_breaker_opens_after_failures():
@@ -56,9 +58,10 @@ def test_circuit_breaker_exponential_backoff():
 def test_fingerprint_deterministic_by_seed():
     from src.browser.fingerprint import pick
 
-    f1 = pick(seed="data/browser_profiles")
-    f2 = pick(seed="data/browser_profiles")
-    f3 = pick(seed="different/profile")
+    seed = str(BROWSER_PROFILES_DIR)
+    f1 = pick(seed=seed)
+    f2 = pick(seed=seed)
+    f3 = pick(seed=str(BROWSER_PROFILES_DIR / "different"))
 
     assert f1.user_agent == f2.user_agent
     assert f1.viewport == f2.viewport

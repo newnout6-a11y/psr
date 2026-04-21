@@ -12,6 +12,7 @@ from typing import Optional
 from loguru import logger
 
 from src.browser.browser_manager import BrowserManager
+from src.paths import SCREENSHOTS_DIR
 
 
 class ProposalSender:
@@ -34,7 +35,7 @@ class ProposalSender:
 
     def _cleanup_screenshots(self, project_id: str):
         """Удалить папку со скриншотами проекта после отправки."""
-        screenshot_dir = os.path.join("data", "screenshots", project_id)
+        screenshot_dir = os.path.join(str(SCREENSHOTS_DIR), project_id)
         if os.path.exists(screenshot_dir):
             try:
                 shutil.rmtree(screenshot_dir)

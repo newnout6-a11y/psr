@@ -1,9 +1,16 @@
 import asyncio
 import os
+import sys
+from pathlib import Path
 import nodriver as uc
 from dotenv import load_dotenv
 
 load_dotenv()
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.paths import KWORK_PROJECT_CHECK_PNG_FILE, ensure_parent
 
 async def main():
     print("Запускаем дебаг Kwork с куками...")
@@ -30,8 +37,8 @@ async def main():
     await asyncio.sleep(5) # Ждём прогрузки
     
     # Делаем скриншот
-    path = r"c:\psr\data\kwork_project_check.png"
-    await page.save_screenshot(path)
+    path = ensure_parent(KWORK_PROJECT_CHECK_PNG_FILE)
+    await page.save_screenshot(str(path))
     print(f"Скриншот сохранен: {path}")
     
     # Сохраним текст всех кнопок на странице

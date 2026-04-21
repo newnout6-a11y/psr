@@ -1,9 +1,16 @@
 import asyncio
 import os
+import sys
+from pathlib import Path
 import nodriver as uc
 from dotenv import load_dotenv
 
 load_dotenv()
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.paths import KWORK_PROJECT_CHECK_PNG_FILE, ensure_parent
 
 async def main():
     print("Запускаем Nodriver...")
@@ -31,8 +38,8 @@ async def main():
     await asyncio.sleep(5)
     
     # Сохраняем скриншот как доказательство!
-    screenshot_path = r"C:\Users\Redmi\.gemini\antigravity\brain\dd90bc6a-77cd-42f8-b95c-23dc17b44d16\kwork_proof.png"
-    await page.save_screenshot(screenshot_path)
+    screenshot_path = ensure_parent(KWORK_PROJECT_CHECK_PNG_FILE)
+    await page.save_screenshot(str(screenshot_path))
     
     print(f"Скриншот сохранен по пути: {screenshot_path}")
     

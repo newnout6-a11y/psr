@@ -1,5 +1,5 @@
 """
-Упрощенный парсинг фриланс-платформ (только API, без браузера).
+Упрощенный парсинг активных фриланс-платформ.
 """
 
 import asyncio
@@ -7,53 +7,35 @@ import json
 import os
 import sys
 from datetime import datetime
-from typing import List, Dict, Any
+from pathlib import Path
+from typing import Dict, List
 
-# Добавляем src в путь
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from dotenv import load_dotenv
-from rich.console import Console
-from rich.table import Table
 
-# Только API-парсеры (без браузера)
-from src.parsers.base_parser import BaseParser, ProjectItem
-from src.parsers.flru_parser import FLRuParser
-from src.parsers.upwork_parser import UpworkParser
-from src.parsers.freelancer_parser import FreelancerComParser
-from src.parsers.hh_parser import HHParser
-from src.parsers.remoteok_parser import RemoteOKParser
-from src.parsers.weblancer_parser import WeblancerParser
-from src.parsers.oneclancer_parser import OneCLancerParser
-from src.parsers.fiverr_parser import FiverrParser
-from src.parsers.freelanceru_parser import FreelanceRuParser
-from src.parsers.pph_parser import PeoplePerHourParser
-
-# Отключаем rich для Windows console
-console = Console(emoji=False, legacy_windows=True)
+from src.paths import PARSING_RESULTS_DIR, ensure_layout
+from src.filter.project_filter import ProjectFilter
+from src.parsers import FreelanceRuParser, HHParser, KworkAPIParser
+from src.parsers.base_parser import ProjectItem
 
 
 class SimpleAPIParser:
-    """Простой API-парсер без браузера."""
+    """Простой API-парсер без браузерной отправки."""
 
     def __init__(self):
         self.parsers = []
         self.results: Dict[str, List[ProjectItem]] = {}
+        self.per_page = ProjectFilter().per_page
         self._init_parsers()
 
     def _init_parsers(self):
-        """Инициализация API-парсеров."""
         parser_map = {
-            "fl_ru": FLRuParser,
-            "upwork": UpworkParser,
-            "freelancer_com": FreelancerComParser,
-            "hh_ru": HHParser,
-            "remoteok": RemoteOKParser,
-            "weblancer": WeblancerParser,
-            "oneclancer": OneCLancerParser,
-            "fiverr": FiverrParser,
+            "kwork": KworkAPIParser,
             "freelance_ru": FreelanceRuParser,
-            "peopleperhour": PeoplePerHourParser,
+            "hh_ru": HHParser,
         }
 
         for name, parser_class in parser_map.items():
@@ -64,9 +46,8 @@ class SimpleAPIParser:
                 print(f"[ERR] {name}: {e}")
 
     async def parse_all(self, pages: int = 2, query: str = "python") -> Dict[str, List[ProjectItem]]:
-        """Парсинг всех платформ."""
         print(f"\n>>> Parsing {len(self.parsers)} platforms...")
-        print(f">>> Query: '{query}', Pages: {pages}\n")
+        print(f">>> Query: '{query}', Pages: {pages}, Per page: {self.per_page}\n")
 
         filters = {"query": query}
         all_results = {}
@@ -78,23 +59,21 @@ class SimpleAPIParser:
                 print(f"[OK] {platform_name}: {len(projects)} projects")
             except Exception as e:
                 print(f"[ERR] {platform_name}: {str(e)[:50]}")
-
             await asyncio.sleep(0.5)
 
         return all_results
 
     async def _parse_platform(self, parser, name: str, pages: int, filters: dict) -> List[ProjectItem]:
-        """Парсинг одной платформы."""
         all_projects = []
         for page in range(1, pages + 1):
             try:
                 projects = await asyncio.wait_for(
-                    parser.get_projects(page=page, per_page=20, filters=filters), timeout=30.0
+                    parser.get_projects(page=page, per_page=self.per_page, filters=filters),
+                    timeout=30.0,
                 )
-                if projects:
-                    all_projects.extend(projects)
-                else:
+                if not projects:
                     break
+                all_projects.extend(projects)
             except asyncio.TimeoutError:
                 print(f"  [WARN] {name} page {page}: timeout")
                 break
@@ -104,16 +83,13 @@ class SimpleAPIParser:
             await asyncio.sleep(0.3)
         return all_projects
 
-    def save_results(self, results: Dict[str, List[ProjectItem]], output_dir: str = "data/parsing_results"):
-        """Сохранение результатов."""
+    def save_results(self, results: Dict[str, List[ProjectItem]], output_dir: str = str(PARSING_RESULTS_DIR)):
         os.makedirs(output_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # JSON
         json_path = os.path.join(output_dir, f"projects_{timestamp}.json")
-        data = {}
-        for platform, projects in results.items():
-            data[platform] = [
+        data = {
+            platform: [
                 {
                     "id": p.id,
                     "title": p.title,
@@ -126,18 +102,18 @@ class SimpleAPIParser:
                 }
                 for p in projects
             ]
-
+            for platform, projects in results.items()
+        }
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        # CSV
         csv_path = os.path.join(output_dir, f"projects_{timestamp}.csv")
         import csv
 
         with open(csv_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["platform", "id", "title", "budget", "currency", "skills", "url"])
-            for platform, projects in results.items():
+            for projects in results.values():
                 for p in projects:
                     writer.writerow(
                         [
@@ -151,38 +127,34 @@ class SimpleAPIParser:
                         ]
                     )
 
-        # Отчет
         report_path = os.path.join(output_dir, f"report_{timestamp}.txt")
         with open(report_path, "w", encoding="utf-8") as f:
-            f.write(f"OTCHET PARSINGA\n{'=' * 50}\n")
-            f.write(f"Data: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"Zapros: {os.getenv('SEARCH_QUERY', 'python')}\n\n")
+            f.write(f"ОТЧЕТ ПАРСИНГА\n{'=' * 50}\n")
+            f.write(f"Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Запрос: {os.getenv('SEARCH_QUERY', 'python')}\n\n")
 
             total = 0
             for platform, projects in sorted(results.items(), key=lambda x: len(x[1]), reverse=True):
                 count = len(projects)
                 total += count
-                f.write(f"\n[{platform}] {count} proektov\n")
+                f.write(f"\n[{platform}] {count} проектов\n")
                 for i, p in enumerate(projects[:3], 1):
-                    budget_str = f"{p.budget} {p.currency}" if p.budget else "ne ukazan"
+                    budget_str = f"{p.budget} {p.currency}" if p.budget else "не указан"
                     f.write(f"  {i}. {p.title[:60]}... ({budget_str})\n")
                     f.write(f"     -> {p.url}\n")
-
-            f.write(f"\n{'=' * 50}\nVSEGO: {total} proektov\n")
+            f.write(f"\n{'=' * 50}\nВСЕГО: {total} проектов\n")
 
         return json_path, csv_path, report_path
 
     def print_summary(self, results: Dict[str, List[ProjectItem]]):
-        """Вывод таблицы."""
         print("\n" + "=" * 60)
-        print("SVODKA REZULTATOV")
+        print("СВОДКА РЕЗУЛЬТАТОВ")
         print("=" * 60)
 
         total = 0
         for platform, projects in sorted(results.items(), key=lambda x: len(x[1]), reverse=True):
             count = len(projects)
             total += count
-
             if projects:
                 budgets = [p.budget for p in projects if p.budget]
                 avg = sum(budgets) / len(budgets) if budgets else 0
@@ -193,40 +165,38 @@ class SimpleAPIParser:
                 print(f"{platform:15} | {count:4} | - | -")
 
         print("=" * 60)
-        print(f"VSEGO: {total} proektov")
+        print(f"ВСЕГО: {total} проектов")
         print("=" * 60)
 
 
 async def main():
     load_dotenv()
+    ensure_layout()
 
     pages = int(os.getenv("PAGES_TO_PARSE", "2"))
     query = os.getenv("SEARCH_QUERY", "python")
 
     parser = SimpleAPIParser()
-
     if not parser.parsers:
-        print("[ERR] Ne udalos initsializirovat parsery!")
+        print("[ERR] Не удалось инициализировать парсеры")
         return
 
     results = await parser.parse_all(pages=pages, query=query)
-
     parser.print_summary(results)
 
     if any(results.values()):
         json_path, csv_path, report_path = parser.save_results(results)
-        print(f"\n[OK] Rezultaty sohraneny:")
+        print("\n[OK] Результаты сохранены:")
         print(f"     JSON: {json_path}")
         print(f"     CSV: {csv_path}")
-        print(f"     Otchet: {report_path}")
+        print(f"     Отчет: {report_path}")
     else:
-        print("\n[WARN] Nichego ne naideno")
+        print("\n[WARN] Ничего не найдено")
 
-    # Zakryvaem parsery
-    for _, p in parser.parsers:
+    for _, parser_instance in parser.parsers:
         try:
-            p.close()
-        except:
+            parser_instance.close()
+        except Exception:
             pass
 
 

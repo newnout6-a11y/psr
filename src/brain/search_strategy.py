@@ -9,12 +9,13 @@ import json
 import re
 from typing import List, Dict, Any
 from loguru import logger
+from src.paths import PORTFOLIO_FILE
 
 
 class SearchStrategy:
     """Генерация поисковых запросов через AI из пользовательского описания."""
 
-    def __init__(self, portfolio_path: str = "data/portfolio.json"):
+    def __init__(self, portfolio_path: str = str(PORTFOLIO_FILE)):
         self.portfolio = self._load_portfolio(portfolio_path)
         self._profile_summary = self._build_profile()
         self._cached_queries: Dict[str, List[str]] = {}
@@ -82,8 +83,10 @@ class SearchStrategy:
                 "Поиск по названию и описанию проектов. "
                 "Бюджет 500-10000 руб. Заказы на русском."
             )
-        elif platform == "fl_ru":
-            platform_ctx = "FL.ru — русскоязычная биржа фриланса. Поиск по ключевым словам. Бюджет от 1000 руб."
+        elif platform == "freelance_ru":
+            platform_ctx = "Freelance.ru — русскоязычная биржа фриланса. Поиск по ключевым словам (?keyword=...). Бюджет обычно в рублях."
+        elif platform == "hh_ru":
+            platform_ctx = "HH.ru — русскоязычная площадка вакансий. Нужны короткие запросы по стеку и автоматизации, без full-time корпоративных ролей."
         else:
             platform_ctx = "Международная биржа фриланса. Проекты на английском."
 
@@ -104,7 +107,7 @@ class SearchStrategy:
 - Бюджет до 10000 руб — не крупные проекты, не на постоянку
 - Исключить: full-time, долгосрочные, корпоративные позиции
 - Разнообразие: разные формулировки, синонимы, смежные темы
-- Запросы на языке платформы (русский для Kwork/FL.ru)
+- Запросы на языке платформы (русский для Kwork/Freelance.ru/HH.ru)
 
 Сгенерируй ровно {count} запросов в формате JSON массива строк:
 ["запрос1", "запрос2", ...]
@@ -129,9 +132,14 @@ class SearchStrategy:
                 "python", "telegram бот", "парсер", "api",
                 "автоматизация", "скрипт", "flask", "django",
             ]
-        elif platform == "fl_ru":
+        elif platform == "freelance_ru":
             return [
                 "python", "бот", "парсер", "api",
                 "автоматизация", "скрипт",
+            ]
+        elif platform == "hh_ru":
+            return [
+                "python", "автоматизация", "парсер",
+                "telegram бот", "api", "backend",
             ]
         return ["python", "automation", "bot", "api", "script"]

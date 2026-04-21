@@ -1,199 +1,430 @@
-# 🤖 Система автоматизации фриланс-парсинга и откликов
+# PSR
 
-Полностью автономный комплекс для агрегации заказов с 35+ фриланс-платформ, ИИ-фильтрации и персонализированных откликов.
+Единый актуальный README проекта.
 
-## 📁 Структура проекта
+Актуально на: `2026-04-21`
 
-```
+Этот файл теперь является единственным источником истины по проекту. Старые `README`, usage-документы и текстовые аудиты удалены.
+
+## Что это
+
+PSR это Python-проект для автоматизации цикла поиска и обработки заказов на фриланс-биржах:
+
+- парсинг заказов с поддерживаемых площадок;
+- keyword/NLP/AI-фильтрация;
+- веттинг заказчика;
+- OSINT-обогащение;
+- генерация отклика;
+- ручное подтверждение через Telegram;
+- авто-отправка там, где она реализована;
+- логирование в SQLite и просмотр метрик в Streamlit.
+
+## Что сейчас реально работает
+
+- `kwork`:
+  поиск через API, fallback на браузер, генерация отклика, ручное подтверждение цены, авто-отправка;
+- `freelance_ru`:
+  HTML-поиск, генерация отклика, ручное подтверждение цены, browser-flow для отправки;
+- `hh_ru`:
+  поиск через публичное API, используется как источник вакансий/заказов для мониторинга, без авто-отправки;
+- `Groq`:
+  основной и фактически рабочий LLM-провайдер в текущем коде;
+- `Google/Gemini` и `GLM`:
+  заготовки в коде есть, но в текущем runtime отключены.
+
+## Структура проекта
+
+```text
 psr/
-├── src/
-│   ├── parsers/           # Парсеры платформ
-│   │   ├── base_parser.py
-│   │   ├── kwork_parser.py
-│   │   ├── flru_parser.py
-│   │   └── upwork_parser.py
-│   ├── evolution/         # Обход WAF + реверс API
-│   │   ├── tls_client.py
-│   │   ├── origin_finder.py
-│   │   └── api_reverser.py
-│   ├── brain/             # NLP + RAG
-│   │   ├── nlp_filter.py
-│   │   └── rag_pipeline.py
-│   ├── action/            # Генерация и отправка
-│   │   ├── proposal_generator.py
-│   │   └── proposal_sender.py
-│   └── orchestrator.py    # Главный оркестратор
 ├── config/
-│   └── platforms.yaml     # Конфигурация платформ
+│   ├── filters.yaml      # Рабочие фильтры рантайма
+│   └── platforms.yaml    # Справочное описание платформ
 ├── data/
-│   ├── portfolio.json     # Портфолио разработчика
-│   └── cases.json         # Кейсы для RAG
+│   ├── reference/        # Портфолио, кейсы, поисковые reference-данные
+│   ├── runtime/          # БД, логи, browser profiles, parsing results
+│   └── debug/            # HTML-дампы, скриншоты и ручной дебаг
+├── scripts/
+│   ├── analyze/          # Диагностические и проверочные скрипты
+│   ├── debug/            # Ручной дебаг платформ и страниц
+│   ├── session_hub/      # Локальные Session Hub серверы
+│   └── check_client.py   # Ручной OSINT/пробив клиента
+├── src/
+│   ├── action/          # Генерация и отправка откликов
+│   ├── brain/           # LLM router, RAG, NLP, search strategy
+│   ├── browser/         # BrowserManager, fingerprint, auth/cookies
+│   ├── dashboard/       # Streamlit-дашборд
+│   ├── evolution/       # TLS client и вспомогательные сетевые модули
+│   ├── filter/          # Keyword filter, AI scorer, vetting
+│   ├── osint/           # OSINT и probiv-агрегатор
+│   ├── parsers/         # Парсеры платформ
+│   ├── paths.py         # Единая карта путей проекта
+│   ├── utils/           # Telegram, логи, валюты, circuit breaker, время
+│   └── orchestrator.py  # Главный цикл
+├── tests/
+│   ├── smoke/           # Быстрые автономные проверки
+│   ├── integration/     # Сквозные проверки модулей
+│   └── manual/          # Ручные инженерные тесты
+├── scratch/             # Локальные черновики, в git не идут
+├── main.py              # Точка входа
+├── py.ps1               # Обёртка для правильного Python на этой машине
 ├── requirements.txt
-├── main.py
 └── .env.example
 ```
 
-## 🚀 Быстрый старт
+Логика по папкам простая:
 
-### 1. Установка зависимостей
+- `data/reference` хранит входные данные, которые нужны проекту постоянно;
+- `data/runtime` хранит всё, что появляется во время работы;
+- `data/debug` собирает только отладочные артефакты, чтобы они не смешивались с рантаймом и исходниками.
 
-```bash
-pip install -r requirements.txt
+## Окружение на этой машине
+
+На этой машине корректный Python расположен здесь:
+
+```text
+C:\Users\Redmi\AppData\Local\Programs\Python\Python312\python.exe
 ```
 
-### 2. Настройка
+Для удобства в репозитории есть `py.ps1`:
 
-```bash
-cp .env.example .env
-# Заполните .env своими данными
+```powershell
+.\py.ps1 main.py --dry-run --limit 3
+.\py.ps1 scripts\check_client.py torvalds
+.\py.ps1 -m pip install -r requirements.txt
 ```
 
-#### Session Hub (рекомендуется)
+Если понадобится `node`/`npm`, путь на этой машине:
 
-Теперь **Session Hub** является основным источником кук для авторизации. Это локальный сервер (порт 8669), который предоставляет свежие куки из Chrome.
-
-```bash
-# Запустите Session Hub сервер (см. docs/SESSION_HUB.md)
-# Или используйте куки из .env как fallback
+```text
+C:\Program Files\nodejs
 ```
 
-См. полную документацию: [`docs/SESSION_HUB.md`](docs/SESSION_HUB.md)
+Сам проект при обычной работе остаётся Python-first; обязательного Node toolchain для основного цикла нет.
 
-### Основные переменные окружения
+## Зависимости
 
-```bash
-# LLM
-GROQ_API_KEY=your_key
-GOOGLE_API_KEY=your_key
-LLM_PROVIDER=groq  # или google
+Основные зависимости берутся из [requirements.txt](/C:/psr/requirements.txt):
 
-# Платформы
-PLATFORMS=kwork,fl_ru,fiverr
-SEARCH_QUERY=python
+- сетевой слой: `requests`, `curl_cffi`, `httpx`, `aiohttp`;
+- браузер: `nodriver`, `playwright`;
+- парсинг: `lxml`, `parsel`, `beautifulsoup4`, `pydantic`;
+- LLM/NLP: `groq`, `google-generativeai`, `sentence-transformers`, `faiss-cpu`;
+- Telegram и утилиты: `aiogram`, `python-dotenv`, `pyyaml`, `loguru`, `tenacity`, `rich`;
+- наблюдаемость: `streamlit`, `pandas`.
 
-# Telegram для уведомлений
-TELEGRAM_TOKEN=your_bot_token
+Установка:
+
+```powershell
+.\py.ps1 -m pip install -r requirements.txt
 ```
 
-### 3. Запуск
+## Конфигурация
 
-```bash
-# Один цикл обработки
-python main.py
+1. Создай `.env` из шаблона:
 
-# Непрерывный режим
-CONTINUOUS_MODE=true python main.py
-
-# Непрерывный режим с интервалом
-python main.py --continuous --limit 5
+```powershell
+Copy-Item .env.example .env
 ```
 
-## 🏗️ Архитектура
+2. Заполни минимум:
 
-### Уровень 1: Транспорт и разведка
-- **TLS спуфинг**: curl_cffi для подмены JA3/JA4 отпечатков
-- **Origin IP bypass**: Обход Cloudflare через прямые запросы к Origin серверу
-- **IPv6 ротация**: vproxy с квинтиллионами адресов
-
-### Уровень 2: Логика и анализ
-- **NLP фильтрация**: Анализ заказов, извлечение стека, отсев спама
-- **RAG-пайплайн**: Сопоставление с портфолио через FAISS
-- **Honeypot detection**: Обнаружение генеративных ловушек
-
-### Уровень 3: Взаимодействие
-- **Генератор откликов**: Обход AI-детекторов через контроль перплексии/взрывности
-- **OPSEC**: Гео/временная консистентность, ISP-туннели
-
-## 📊 Поддерживаемые платформы
-
-| Глобальные | Восточная Европа | СНГ |
-|---|---|---|
-| Upwork | Just Join IT | Kwork |
-| Fiverr | No Fluff Jobs | FL.ru |
-| Freelancer | Bulldogjob | Weblancer |
-| Toptal | Wild.Codes | Freelance.ru |
-| PeoplePerHour | | OneCLancer |
-| RemoteOK | | HH.ru |
-
-> ⚠️ **Важно**: Хабр Фриланс (freelance.habr.com) был закрыт и больше не доступен.
-
-## 🔧 Ключевые модули
-
-### TLSClient
-```python
-from src.evolution import TLSClient
-
-client = TLSClient(browser="chrome_120", proxy="http://127.0.0.1:1080")
-response = client.get("https://api.example.com/data")
+```env
+GROQ_API_KEY=
+PLATFORMS=kwork,freelance_ru,hh_ru
+SEARCH_BRIEF=мелкие заказы на автоматизацию, ботов, парсеры, скрипты, небольшие сайты. бюджет до 10к. не на постоянку, не крупные проекты
+TELEGRAM_TOKEN=
+ADMIN_CHAT_ID=
 ```
 
-### OriginFinder
-```python
-from src.evolution import OriginFinder
+3. Ключевые переменные:
 
-finder = OriginFinder(shodan_api_key="...")
-origins = finder.get_working_origins("example.com")
+- `GROQ_API_KEY`: основной рабочий LLM;
+- `AI_SCORE_THRESHOLD`: порог AI-скоринга;
+- `PLATFORMS`: активные платформы;
+- `SEARCH_BRIEF`: описание поиска своими словами;
+- `SEARCH_QUERY`: fallback-запросы через `|`, если AI генерация недоступна;
+- `TOP_PROJECTS`: сколько лучших проектов обрабатывать в цикле;
+- `CONTINUOUS_MODE` и `CYCLE_INTERVAL`: непрерывный режим;
+- `TELEGRAM_TOKEN`, `ADMIN_CHAT_ID`, `APPROVAL_TIMEOUT`: approval и уведомления;
+- `BROWSER_HEADLESS`: headless браузер;
+- `SESSION_HUB_URL`, `SESSION_HUB_REQUIRED`: источник кук;
+- `OSINT_ENABLED` и `OSINT_*`: OSINT и probiv;
+- `PROXY_URL`: прокси для API и сетевых вызовов.
+
+Дополнительные фильтры проекта живут в [config/filters.yaml](/C:/psr/config/filters.yaml). В рантайме реально применяются:
+
+- `required_skills`;
+- `stop_words`;
+- `min_budget`;
+- `max_budget`;
+- `per_page`;
+- `max_age_hours`;
+- `max_proposals`;
+- `min_client_score`.
+
+## Session Hub и куки
+
+В текущем коде Session Hub это основной источник кук для браузерной авторизации.
+
+Приоритет такой:
+
+1. `SESSION_HUB_URL`
+2. куки из `.env` как fallback, если `SESSION_HUB_REQUIRED=false`
+
+### Реальные скрипты в репозитории
+
+- `scripts/session_hub/session_hub_manual.py`
+  простой локальный сервер, который хранит куки в `session_hub_cookies.json`;
+- `scripts/session_hub/session_hub_example.py`
+  пример сервера, читающего куки из Chrome через `browser-cookie3`.
+
+### Важно
+
+Эти скрипты требуют дополнительные зависимости, которых нет в `requirements.txt` основного проекта:
+
+```powershell
+.\py.ps1 -m pip install flask
 ```
 
-### NLPFilter
-```python
-from src.brain import NLPFilter
+Для `session_hub_example.py` дополнительно:
 
-filter = NLPFilter()
-analysis = filter.analyze_project(project)
+```powershell
+.\py.ps1 -m pip install browser-cookie3
 ```
 
-### RAGPipeline
-```python
-from src.brain import RAGPipeline
+### Запуск manual Session Hub
 
-rag = RAGPipeline(portfolio_path="data/portfolio.json")
-match = rag.match_project(project)
+```powershell
+.\py.ps1 scripts\session_hub\session_hub_manual.py
 ```
 
-## 🛡️ OPSEC рекомендации
+После этого сервер слушает `http://127.0.0.1:8669`.
 
-1. **Не используйте коммерческие VPN** — ASN-сети помечены платформами
-2. **Соблюдайте географическую консистентность** — часовой профиль, WebRTC, язык
-3. **Ротация IPv6** — vproxy с /64 подсетью (18 квинтиллионов IP)
-4. **Временные паттерны** — случайные задержки, рабочее время региона
+Поддерживаемые endpoint'ы:
 
-## 🆕 Новые функции (2025)
+- `GET /cookies?domain=kwork.ru`
+- `POST /update`
+- `GET /list`
+- `GET /health`
 
-### Telegram-подтверждение с inline-кнопками
-При отклике на Kwork бот присылает проект + скриншот + отклик с inline-кнопками:
-- Цена проекта / +20% / +50% — одним нажатием
-- Своя цена — ввод числа в чат
-- Пропустить — пропустить проект
+### Fallback через `.env`
 
-### Мультивалютность
-Автоматическая конвертация бюджетов из USD, EUR, GBP и др. в рубли для фильтрации по `min_budget`.
-Источники курсов: ЦБ РФ (приоритет), exchangerate-api (fallback).
+Для `kwork`:
 
-### Уведомления об ответах
-Мониторинг входящих сообщений на Kwork и уведомление в Telegram при получении ответа от заказчика.
+```env
+KWORK_EMAIL=
+KWORK_PASSWORD=
+KWORK_COOKIE_REMEMBERME=
+KWORK_COOKIE_USERID=
+KWORK_COOKIE_PHPSESSID=
+KWORK_COOKIE_CSRF=
+```
 
-### Структурированное логирование
-Все события (парсинг, фильтрация, отправка, ошибки) сохраняются в SQLite для аналитики.
+Для `freelance_ru`:
 
-## 📝 План реализации
+```env
+FREELANCE_RU_COOKIES_JSON=
+FREELANCE_RU_COOKIE_SESSION=
+FREELANCE_RU_COOKIE_DUID=
+FREELANCE_RU_COOKIE_REMEMBER=
+```
 
-- [x] Структура проекта
-- [x] Базовый TLS клиент (curl_cffi)
-- [x] Реверс-инжиниринг API
-- [x] Парсеры Kwork, FL.ru, Upwork, Fiverr
-- [x] NLP фильтрация заказов
-- [x] RAG пайплайн (FAISS) с инкрементальной переиндексацией
-- [x] Генератор откликов с обходом AI-детекторов (Groq + Gemini fallback)
-- [x] Мультивалютность (конвертация бюджетов в RUB)
-- [x] Rate-limiting для парсеров
-- [x] Уведомления об ответах в Telegram (inline-кнопки)
-- [x] Структурированное логирование в SQLite
-- [x] CI/CD (GitHub Actions)
-- [x] Браузерная автоматизация (Nodriver + Camoufox)
-- [ ] IPv6 ротация (vproxy настройка) - отложено
-- [ ] Гео-консистентность (OPSEC level 3) - отложено
+## Запуск проекта
 
-## 📄 Лицензия
+### Один цикл
 
-MIT
+```powershell
+.\py.ps1 main.py
+```
+
+### Без реальной отправки
+
+```powershell
+.\py.ps1 main.py --dry-run --limit 3
+```
+
+### С произвольным поисковым описанием
+
+```powershell
+.\py.ps1 main.py --dry-run --search "парсеры, telegram-боты, автоматизация, мелкие backend-заказы" --top 5
+```
+
+### Непрерывный режим
+
+```powershell
+.\py.ps1 main.py --continuous --limit 5
+```
+
+Аргументы `main.py`:
+
+- `--continuous`: бесконечный цикл;
+- `--dry-run`: без реальной отправки;
+- `--limit`: лимит откликов на платформу за цикл;
+- `--search`: описание поиска своими словами;
+- `--top`: сколько top-проектов брать в обработку.
+
+## Как проходит один цикл
+
+1. Загрузка `.env`
+2. Инициализация `FreelanceOrchestrator`
+3. Проверка входящих сообщений
+4. Генерация поисковых запросов
+5. Парсинг платформ
+6. Keyword-фильтрация
+7. NLP-фильтрация
+8. AI-скоринг
+9. Веттинг заказчика
+10. OSINT-обогащение
+11. Генерация отклика
+12. Telegram approval по цене и тексту
+13. Авто-отправка или сохранение как draft
+14. Логирование в SQLite
+
+## Telegram-flow
+
+Telegram используется для двух задач:
+
+- approval по цене и тексту отклика;
+- уведомления о входящих ответах от заказчика.
+
+В текущей версии:
+
+- approval идёт через inline-кнопки;
+- можно выбрать базовую цену, `+20%`, `+50%`, свою цену или пропуск;
+- можно отправить новый текст отклика;
+- уведомления отправляются в plain text без markdown-экранирования, чтобы не ломаться на пользовательских строках.
+
+## OSINT и probiv
+
+OSINT включается через:
+
+```env
+OSINT_ENABLED=true
+OSINT_PROVIDERS=github,habr,duckduckgo,kwork_profile
+OSINT_PROBIV_PROVIDERS=emailrep,whatsmyname,hibp,leakcheck,intelx
+```
+
+Поддерживаются:
+
+- публичные провайдеры: GitHub, Habr, DuckDuckGo, профиль Kwork;
+- probiv-провайдеры: EmailRep, WhatsMyName, HIBP, LeakCheck, IntelX;
+- извлечение email, телефонов, Telegram и username из текста проекта;
+- кэширование результатов.
+
+Ручной запуск проверки клиента:
+
+```powershell
+.\py.ps1 scripts\check_client.py torvalds
+.\py.ps1 scripts\check_client.py suspicious_user -d "Пишите на test@example.com или @tg_nick"
+```
+
+## Dashboard
+
+Запуск:
+
+```powershell
+streamlit run src\dashboard\app.py
+```
+
+Разделы:
+
+- `Обзор`
+- `Парсинг`
+- `Генерация`
+- `Отклики`
+- `Ошибки`
+- `Устойчивость`
+
+Dashboard читает данные из:
+
+- `data/logs.db`
+- `data/proposals.db`
+
+## Базы и рабочие файлы
+
+Основные runtime-файлы в `data/`:
+
+- `logs.db`: структурированные логи;
+- `proposals.db`: отправленные и сохранённые отклики;
+- `generated_proposals.txt`: последний накопленный дамп сгенерированных откликов;
+- `last_llm_prompt.txt`
+- `last_llm_response.txt`
+- `browser_profiles/`: постоянный браузерный профиль;
+- `osint_cache.db`: если OSINT кэш уже был создан во время работы.
+
+Часть файлов в `data/` являются временными/служебными и не считаются документацией.
+
+## Важные модули
+
+- [main.py](/C:/psr/main.py): точка входа
+- [src/orchestrator.py](/C:/psr/src/orchestrator.py): главный workflow
+- [src/action/proposal_generator.py](/C:/psr/src/action/proposal_generator.py): генерация откликов
+- [src/action/proposal_sender.py](/C:/psr/src/action/proposal_sender.py): отправка откликов
+- [src/browser/browser_manager.py](/C:/psr/src/browser/browser_manager.py): браузер, авторизация, куки
+- [src/filter/project_filter.py](/C:/psr/src/filter/project_filter.py): runtime-фильтрация
+- [src/filter/client_vetter.py](/C:/psr/src/filter/client_vetter.py): веттинг клиента
+- [src/brain/llm_router.py](/C:/psr/src/brain/llm_router.py): роутинг LLM
+- [src/osint/aggregator.py](/C:/psr/src/osint/aggregator.py): OSINT aggregation
+- [src/dashboard/app.py](/C:/psr/src/dashboard/app.py): дашборд
+
+## Тесты и проверки
+
+Локально можно запускать:
+
+```powershell
+.\py.ps1 tests\smoke\test_antifragile.py
+.\py.ps1 tests\smoke\test_probiv.py
+.\py.ps1 tests\integration\test_osint_integration.py
+```
+
+Синтаксическая проверка:
+
+```powershell
+.\py.ps1 -m compileall -q main.py src tests
+```
+
+Если на интерпретаторе установлен `pytest`, можно запускать и так:
+
+```powershell
+.\py.ps1 -m pytest -q
+```
+
+## Ограничения и текущее состояние
+
+- основной LLM сейчас это `Groq`; `Google` и `GLM` не используются в фактическом рантайме;
+- `hh_ru` не отправляет отклики автоматически;
+- `platforms.yaml` не является главным runtime-конфигом; рабочие настройки берутся из `.env` и `config/filters.yaml`;
+- browser automation зависит от актуальных кук;
+- `session_hub_*` скрипты являются локальной инфраструктурой и требуют отдельных пакетов;
+- часть `scripts/analyze` и `scripts/debug` это инженерные вспомогательные инструменты, не обязательные для основного запуска.
+
+## Быстрые команды
+
+```powershell
+# Установка зависимостей
+.\py.ps1 -m pip install -r requirements.txt
+
+# Dry-run
+.\py.ps1 main.py --dry-run --limit 3
+
+# Continuous
+.\py.ps1 main.py --continuous
+
+# OSINT-check
+.\py.ps1 scripts\check_client.py torvalds
+
+# Dashboard
+streamlit run src\dashboard\app.py
+```
+
+## История документации
+
+На `2026-04-21` из репозитория удалены разрозненные и устаревшие документы:
+
+- старый `README.md` заменён этим файлом;
+- `docs/USAGE.md`;
+- `docs/SESSION_HUB.md`;
+- текстовые research/audit-файлы в `docs/research/`;
+- текстовый audit-report в `data/parsing_results/`.
+
+Дальше поддерживается только этот `README.md`.
