@@ -4,7 +4,7 @@
 """
 
 import random
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 TEMPLATES = [
     # Шаблон 1: Прямой и прагматичный

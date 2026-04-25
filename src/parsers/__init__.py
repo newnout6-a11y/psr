@@ -1,29 +1,40 @@
+"""Parser exports with lazy loading.
+
+Avoid importing every platform parser at package import time: Kwork parsing now
+has a shared platform service, and eager imports create circular dependencies.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
 from .base_parser import BaseParser
-from .kwork_parser import KworkParser
-from .kwork_api_parser import KworkAPIParser
-from .flru_parser import FLRuParser
-from .upwork_parser import UpworkParser
-from .freelancer_parser import FreelancerComParser
-from .freelanceru_parser import FreelanceRuParser
-from .pph_parser import PeoplePerHourParser
-from .hh_parser import HHParser
-from .remoteok_parser import RemoteOKParser
-from .weblancer_parser import WeblancerParser
-from .oneclancer_parser import OneCLancerParser
-from .fiverr_parser import FiverrParser
+
+
+_EXPORTS = {
+    "KworkParser": (".kwork_parser", "KworkParser"),
+    "KworkAPIParser": (".kwork_api_parser", "KworkAPIParser"),
+    "FreelanceRuParser": (".freelanceru_parser", "FreelanceRuParser"),
+    "HHParser": (".hh_parser", "HHParser"),
+}
+
+
+def __getattr__(name: str) -> Any:
+    if name not in _EXPORTS:
+        raise AttributeError(name)
+    module_name, attr_name = _EXPORTS[name]
+    from importlib import import_module
+
+    module = import_module(module_name, __name__)
+    value = getattr(module, attr_name)
+    globals()[name] = value
+    return value
+
 
 __all__ = [
     "BaseParser",
     "KworkParser",
     "KworkAPIParser",
-    "FLRuParser",
-    "UpworkParser",
-    "FreelancerComParser",
     "FreelanceRuParser",
-    "PeoplePerHourParser",
     "HHParser",
-    "RemoteOKParser",
-    "WeblancerParser",
-    "OneCLancerParser",
-    "FiverrParser",
 ]

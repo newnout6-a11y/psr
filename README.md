@@ -109,7 +109,7 @@ C:\Program Files\nodejs
 - браузер: `nodriver`, `playwright`;
 - парсинг: `lxml`, `parsel`, `beautifulsoup4`, `pydantic`;
 - LLM/NLP: `groq`, `google-generativeai`, `sentence-transformers`, `faiss-cpu`;
-- Telegram и утилиты: `aiogram`, `python-dotenv`, `pyyaml`, `loguru`, `tenacity`, `rich`;
+- Telegram и утилиты: `aiogram`, `telethon`, `python-dotenv`, `pyyaml`, `loguru`, `tenacity`, `rich`;
 - наблюдаемость: `streamlit`, `pandas`.
 
 Установка:
@@ -132,8 +132,11 @@ Copy-Item .env.example .env
 GROQ_API_KEY=
 PLATFORMS=kwork,freelance_ru,hh_ru
 SEARCH_BRIEF=мелкие заказы на автоматизацию, ботов, парсеры, скрипты, небольшие сайты. бюджет до 10к. не на постоянку, не крупные проекты
+QUERY_COUNT=3
+PAGES_TO_PARSE=1
 TELEGRAM_TOKEN=
 ADMIN_CHAT_ID=
+TELEGRAM_TRANSPORT=auto
 ```
 
 3. Ключевые переменные:
@@ -143,9 +146,14 @@ ADMIN_CHAT_ID=
 - `PLATFORMS`: активные платформы;
 - `SEARCH_BRIEF`: описание поиска своими словами;
 - `SEARCH_QUERY`: fallback-запросы через `|`, если AI генерация недоступна;
+- `QUERY_COUNT`: сколько AI-запросов генерировать на платформу;
+- `PAGES_TO_PARSE`: сколько страниц парсить по каждому запросу;
 - `TOP_PROJECTS`: сколько лучших проектов обрабатывать в цикле;
 - `CONTINUOUS_MODE` и `CYCLE_INTERVAL`: непрерывный режим;
 - `TELEGRAM_TOKEN`, `ADMIN_CHAT_ID`, `APPROVAL_TIMEOUT`: approval и уведомления;
+- `TELEGRAM_TRANSPORT`: `auto`, `bot_api` или `mtproto`;
+- `TELEGRAM_BOT_API_BASE`: Bot API endpoint, по умолчанию `https://api.telegram.org`;
+- `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`: опциональный MTProto fallback без `api.telegram.org`;
 - `BROWSER_HEADLESS`: headless браузер;
 - `SESSION_HUB_URL`, `SESSION_HUB_REQUIRED`: источник кук;
 - `OSINT_ENABLED` и `OSINT_*`: OSINT и probiv;
@@ -290,9 +298,10 @@ Telegram используется для двух задач:
 В текущей версии:
 
 - approval идёт через inline-кнопки;
-- можно выбрать базовую цену, `+20%`, `+50%`, свою цену или пропуск;
+- можно approve/skip, отложить кандидата, править текст и цену, помечать похожий запрос как полезный;
 - можно отправить новый текст отклика;
 - уведомления отправляются в plain text без markdown-экранирования, чтобы не ломаться на пользовательских строках.
+- доставка уведомлений идёт через прямой Bot API без системных proxy; если задан `TELEGRAM_API_ID`/`TELEGRAM_API_HASH`, включается MTProto fallback через Telegram DC.
 
 ## OSINT и probiv
 
@@ -301,13 +310,13 @@ OSINT включается через:
 ```env
 OSINT_ENABLED=true
 OSINT_PROVIDERS=github,habr,duckduckgo,kwork_profile
-OSINT_PROBIV_PROVIDERS=emailrep,whatsmyname,hibp,leakcheck,intelx
+OSINT_PROBIV_PROVIDERS=
 ```
 
 Поддерживаются:
 
 - публичные провайдеры: GitHub, Habr, DuckDuckGo, профиль Kwork;
-- probiv-провайдеры: EmailRep, WhatsMyName, HIBP, LeakCheck, IntelX;
+- probiv-провайдеры: EmailRep, WhatsMyName, HIBP, LeakCheck, IntelX, но они отключены по умолчанию из-за задержек;
 - извлечение email, телефонов, Telegram и username из текста проекта;
 - кэширование результатов.
 
@@ -339,6 +348,30 @@ Dashboard читает данные из:
 
 - `data/logs.db`
 - `data/proposals.db`
+
+## Desktop / API
+
+В проекте есть локальный FastAPI backend и Electron/React UI:
+
+```powershell
+# API
+.\py.ps1 -m uvicorn src.api.server:app --host 127.0.0.1 --port 7788
+
+# Desktop dev
+cd desktop
+npm ci
+npm run dev
+```
+
+Desktop сам поднимает Python backend при запуске Electron. Кнопка запуска цикла в UI по умолчанию работает в `dry-run`; реальную отправку нужно включать явно.
+Для обычного запуска больше не нужно править `.env`: левая панель Desktop передаёт в backend платформы, описание поиска, `QUERY_COUNT`, `PAGES_TO_PARSE`, `TOP_PROJECTS`, лимит отправок, режим Chrome, Telegram, OSINT, probiv и строгий Session Hub на конкретный цикл.
+
+Важные детали:
+
+- настройки UI читают и пишут проектные `.env` и `config/filters.yaml`;
+- runtime-переключатели в левой панели применяются процессно на время запуска и не перетирают секреты в `.env`;
+- секретные значения в Settings API маскируются и не отдаются в UI открытым текстом;
+- `desktop/node_modules`, `desktop/dist` и `desktop/dist-electron` являются локальными артефактами и не коммитятся.
 
 ## Базы и рабочие файлы
 

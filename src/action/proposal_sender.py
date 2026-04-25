@@ -13,13 +13,14 @@ from loguru import logger
 
 from src.browser.browser_manager import BrowserManager
 from src.paths import SCREENSHOTS_DIR
+from src.platforms.kwork import get_kwork_service
 
 
 class ProposalSender:
     def __init__(self, headless: bool = True, timeout: int = 30):
         self.timeout = timeout
         self.browser_mgr = BrowserManager(headless=headless)
-        self._kwork_api = None
+        self.kwork_service = get_kwork_service()
         self._kwork_web_logged_in = False
 
     async def start(self):
@@ -27,11 +28,7 @@ class ProposalSender:
 
     async def stop(self):
         await self.browser_mgr.stop()
-        if self._kwork_api:
-            try:
-                await self._kwork_api.close()
-            except Exception:
-                pass
+        await self.kwork_service.close()
 
     def _cleanup_screenshots(self, project_id: str):
         """Удалить папку со скриншотами проекта после отправки."""
@@ -115,27 +112,7 @@ class ProposalSender:
         return []
 
     def _get_kwork_api(self):
-        if self._kwork_api is not None:
-            return self._kwork_api
-
-        from kwork import Kwork
-
-        email = os.getenv("KWORK_EMAIL")
-        password = os.getenv("KWORK_PASSWORD")
-        proxy_url = os.getenv("PROXY_URL") or None
-
-        if not email or not password:
-            logger.warning("ProposalSender: нет KWORK_EMAIL/KWORK_PASSWORD — отправка через API недоступна")
-            return None
-
-        self._kwork_api = Kwork(
-            login=email,
-            password=password,
-            timeout=30.0,
-            retry_max_attempts=2,
-            proxy=proxy_url,
-        )
-        return self._kwork_api
+        return self.kwork_service.get_api()
 
     async def _ensure_auth(self, domain: str):
         if not self.browser_mgr._auth_validated.get(domain, False):
@@ -646,7 +623,7 @@ class ProposalSender:
     ) -> Optional[str]:
         platform = platform.lower()
         selector_map = {
-            "kwork": "div.project-description",
+            "kwork": ".wants-card__header-title",
             "freelance_ru": ".proj-comm-card",
         }
         domain_map = {

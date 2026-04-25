@@ -7,7 +7,6 @@ import sqlite3
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 from pathlib import Path
-from loguru import logger
 from src.paths import LOGS_DB_FILE
 
 
@@ -83,6 +82,19 @@ class LogDB:
                     stack_trace TEXT
                 )
             """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS breaker_state (
+                    key TEXT PRIMARY KEY,
+                    state TEXT NOT NULL,
+                    consecutive_failures INTEGER DEFAULT 0,
+                    consecutive_opens INTEGER DEFAULT 0,
+                    paused_seconds_left INTEGER DEFAULT 0,
+                    last_error TEXT,
+                    metrics_json TEXT,
+                    updated_at TEXT NOT NULL
+                )
+            """)
             
             conn.commit()
     
@@ -152,6 +164,63 @@ class LogDB:
                 (datetime.now().isoformat(), module, error_type, message, stack_trace)
             )
             conn.commit()
+
+    def save_breaker_state(self, key: str, snapshot: Dict[str, Any]):
+        """Сохранить persisted snapshot circuit breaker."""
+        import json
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO breaker_state
+                    (key, state, consecutive_failures, consecutive_opens, paused_seconds_left,
+                     last_error, metrics_json, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(key) DO UPDATE SET
+                    state = excluded.state,
+                    consecutive_failures = excluded.consecutive_failures,
+                    consecutive_opens = excluded.consecutive_opens,
+                    paused_seconds_left = excluded.paused_seconds_left,
+                    last_error = excluded.last_error,
+                    metrics_json = excluded.metrics_json,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    key,
+                    snapshot.get("state", "unknown"),
+                    int(snapshot.get("consecutive_failures", 0) or 0),
+                    int(snapshot.get("consecutive_opens", 0) or 0),
+                    int(snapshot.get("paused_seconds_left", 0) or 0),
+                    snapshot.get("last_error"),
+                    json.dumps(snapshot.get("metrics", {}), ensure_ascii=False),
+                    datetime.now().isoformat(),
+                ),
+            )
+            conn.commit()
+
+    def get_breaker_states(self) -> List[Dict[str, Any]]:
+        import json
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+                SELECT key, state, consecutive_failures, consecutive_opens,
+                       paused_seconds_left, last_error, metrics_json, updated_at
+                FROM breaker_state
+                ORDER BY key
+                """
+            ).fetchall()
+
+        out = []
+        for row in rows:
+            item = dict(row)
+            try:
+                item["metrics"] = json.loads(item.pop("metrics_json") or "{}")
+            except Exception:
+                item["metrics"] = {}
+            out.append(item)
+        return out
     
     def get_parse_stats(self, days: int = 7) -> List[Dict[str, Any]]:
         """Статистика парсинга по платформам."""

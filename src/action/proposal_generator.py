@@ -16,6 +16,7 @@ class ProposalGenerator:
 
     def __init__(self, rag_pipeline=None):
         self.rag = rag_pipeline
+        self.last_generation_meta: Dict[str, Any] = {}
 
         # Загружаем портфолио
         self.portfolio = self._load_portfolio()
@@ -150,7 +151,6 @@ RULES (STRICT!):
                            client_data: dict = None, competitor_prices: list = None) -> str:
         """Сборка контекста заказа с профилем, кейсом, данными заказчика и конкуренцией."""
         proj_skills = ", ".join(project.skills) if project.skills else "указанные в описании"
-        budget = f"{project.budget} {project.currency}" if project.budget else "обсуждается"
 
         dev = self.portfolio.get("developer", {})
         my_skills = ", ".join(dev.get("skills", []))
@@ -264,7 +264,7 @@ RULES (STRICT!):
                                          competitor_prices=competitor_prices)
 
         with ensure_parent(LAST_LLM_PROMPT_FILE).open("w", encoding="utf-8") as f:
-            f.write(prompt)
+            f.write(f"SYSTEM:\n{system_prompt.strip()}\n\nUSER:\n{prompt}")
 
         # Получаем роутер с поддержкой всех LLM
         router = get_llm_router()
@@ -288,12 +288,15 @@ RULES (STRICT!):
 
             # Генерируем через роутер (с автоматическим fallback)
             res = await router.generate(
-                prompt=f"{system_prompt}\n\n{prompt}",
+                prompt=prompt,
                 provider=provider if provider != "auto" else None,
                 model=model,
                 temperature=0.75,
                 max_tokens=500,
+                task="proposal_writing",
+                system_prompt=system_prompt,
             )
+            self.last_generation_meta = router.get_last_route()
 
             if res:
                 res = self._clean_llm_response(res)
@@ -303,6 +306,7 @@ RULES (STRICT!):
 
         except Exception as e:
             logger.error(f"LLM Router Error ({provider}): {e}")
+            self.last_generation_meta = {"provider": "template_fallback", "model": "template", "task": "proposal_writing"}
 
         # Fallback на шаблоны
         logger.warning(f"Все LLM недоступны, используем шаблоны для отклика на {project.title}")

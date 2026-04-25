@@ -4,11 +4,10 @@
 """
 
 import os
-import re
-from typing import Optional, List, Dict
+from typing import List, Dict
 from datetime import datetime
 from loguru import logger
-import httpx
+from src.platforms.kwork import get_kwork_service
 
 
 class InboxChecker:
@@ -23,31 +22,11 @@ class KworkInboxChecker(InboxChecker):
     """Проверка входящих сообщений на Kwork через API."""
 
     def __init__(self):
-        self._api = None
+        self.kwork_service = get_kwork_service()
         self._last_check = None
 
     def _get_api(self):
-        if self._api is not None:
-            return self._api
-
-        from kwork import Kwork
-
-        email = os.getenv("KWORK_EMAIL")
-        password = os.getenv("KWORK_PASSWORD")
-        proxy_url = os.getenv("PROXY_URL") or None
-
-        if not email or not password:
-            logger.warning("KworkInbox: нет KWORK_EMAIL/KWORK_PASSWORD")
-            return None
-
-        self._api = Kwork(
-            login=email,
-            password=password,
-            timeout=30.0,
-            retry_max_attempts=2,
-            proxy=proxy_url,
-        )
-        return self._api
+        return self.kwork_service.get_api()
 
     async def check_new_messages(self) -> List[Dict]:
         """Проверить новые сообщения в чатах Kwork."""
@@ -59,26 +38,33 @@ class KworkInboxChecker(InboxChecker):
 
         try:
             # Получаем список диалогов
-            inbox = await api.inbox_get_dialogs()
-            
-            for dialog in inbox.get("data", []):
-                project_id = dialog.get("project_id", "")
-                unread = dialog.get("unread", 0)
-                
-                if unread > 0:
-                    # Есть непрочитанные сообщения
+            inbox = await api.get_all_dialogs()
+
+            # API может вернуть list или dict с ключом "data"
+            dialogs = inbox if isinstance(inbox, list) else inbox.get("data", [])
+
+            for dialog in dialogs:
+                # dialog может быть dict или объект с атрибутами
+                if isinstance(dialog, dict):
+                    project_id = dialog.get("project_id", "")
+                    unread = dialog.get("unread", 0)
                     last_message = dialog.get("last_message", "")
                     project_title = dialog.get("project_name", "Неизвестный проект")
-                    
-                    if last_message:
-                        new_responses.append({
-                            "platform": "kwork",
-                            "project_id": str(project_id),
-                            "project_title": project_title,
-                            "message": last_message,
-                            "timestamp": datetime.now().isoformat(),
-                            "sender": "customer",
-                        })
+                else:
+                    project_id = getattr(dialog, "project_id", "")
+                    unread = getattr(dialog, "unread", 0)
+                    last_message = getattr(dialog, "last_message", "")
+                    project_title = getattr(dialog, "project_name", "Неизвестный проект")
+
+                if unread > 0 and last_message:
+                    new_responses.append({
+                        "platform": "kwork",
+                        "project_id": str(project_id),
+                        "project_title": project_title,
+                        "message": last_message,
+                        "timestamp": datetime.now().isoformat(),
+                        "sender": "customer",
+                    })
 
             logger.info(f"KworkInbox: найдено {len(new_responses)} новых сообщений")
             return new_responses
@@ -88,16 +74,15 @@ class KworkInboxChecker(InboxChecker):
             return []
 
     def close(self):
-        if self._api:
-            try:
-                import asyncio
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    asyncio.ensure_future(self._api.close())
-                else:
-                    loop.run_until_complete(self._api.close())
-            except Exception:
-                pass
+        try:
+            import asyncio
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.ensure_future(self.kwork_service.close())
+            else:
+                loop.run_until_complete(self.kwork_service.close())
+        except Exception:
+            pass
 
 
 class InboxMonitor:

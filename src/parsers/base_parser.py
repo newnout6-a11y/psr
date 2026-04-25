@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any, List
 from src.evolution import TLSClient
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from tenacity import retry, wait_exponential, stop_after_attempt
 
 
@@ -18,11 +18,16 @@ class ProjectItem(BaseModel):
     description: str
     budget: Optional[float] = None
     currency: str = "RUB"
-    skills: List[str] = []
+    skills: List[str] = Field(default_factory=list)
     url: str
     platform: str
     created_at: str
     client_id: Optional[str] = None
+    client_user_id: Optional[str] = None  # user_id заказчика на платформе
+    offers_count: int = 0  # Кол-во откликов конкурентов
+    client_hired_percent: int = 0  # % найма заказчика (0-100)
+    search_query: Optional[str] = None
+    platform_data: Dict[str, Any] = Field(default_factory=dict)
 
 
 class RateLimiter:

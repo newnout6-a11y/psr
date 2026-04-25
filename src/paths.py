@@ -6,13 +6,14 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT_DIR / "data"
+ROOT_DIR = Path(os.getenv("PSR_ROOT") or Path(__file__).resolve().parents[1])
+DATA_DIR = Path(os.getenv("PSR_DATA_DIR") or ROOT_DIR / "data")
 
-REFERENCE_DIR = DATA_DIR / "reference"
+REFERENCE_DIR = Path(os.getenv("PSR_REFERENCE_DIR") or DATA_DIR / "reference")
 RUNTIME_DIR = DATA_DIR / "runtime"
 DEBUG_DIR = DATA_DIR / "debug"
 

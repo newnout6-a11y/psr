@@ -3,7 +3,6 @@
 Использует Shodan, Censys, исторические DNS для обхода WAF.
 """
 
-import hashlib
 import os
 import mmh3
 from typing import Optional, List
@@ -52,7 +51,6 @@ class OriginFinder:
         logger.info(f"Поиск Origin IP для {domain} через favicon hashing...")
         
         try:
-            import requests
             from curl_cffi import requests as curl_requests
             
             # Скачиваем favicon
@@ -91,7 +89,6 @@ class OriginFinder:
         
         try:
             # SecurityTrails API
-            import requests
             from curl_cffi import requests as curl_requests
             
             url = f"https://api.securitytrails.com/v1/history/{domain}/dns/a"

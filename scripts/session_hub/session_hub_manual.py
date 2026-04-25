@@ -28,7 +28,7 @@ def load_cookies():
     try:
         with open(COOKIES_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except Exception:
         return {}
 
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     print("=" * 60)
     print("Session Hub (Manual) - Сервер для хранения кук")
     print("=" * 60)
-    print(f"URL: http://127.0.0.1:8669")
+    print("URL: http://127.0.0.1:8669")
     print(f"Файл кук: {COOKIES_FILE}")
     print("=" * 60)
 

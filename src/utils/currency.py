@@ -3,7 +3,6 @@
 Использует актуальные курсы с открытых API.
 """
 
-import os
 from typing import Dict, Optional
 from loguru import logger
 import httpx
@@ -79,7 +78,7 @@ class CurrencyConverter:
             "UAH": 2.2,
         }
         self._last_update = datetime.now()
-        logger.warning(f"Используем фиксированные курсы валют")
+        logger.warning("Используем фиксированные курсы валют")
 
     async def ensure_rates(self):
         """Убедиться что курсы актуальны."""

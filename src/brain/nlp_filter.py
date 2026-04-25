@@ -4,7 +4,7 @@
 """
 
 import re
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any, List
 from loguru import logger
 
 
@@ -119,8 +119,7 @@ class NLPFilter:
         Анализирует семантическую логичность, ищет скрытые теги.
         """
         description = project.get("description", "")
-        title = project.get("title", "")
-        
+
         # Проверка на скрытые элементы
         honeypot_indicators = [
             '<img src="pixel',  # Невидимые пиксели

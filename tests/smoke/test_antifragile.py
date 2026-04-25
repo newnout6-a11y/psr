@@ -66,7 +66,7 @@ def test_fingerprint_deterministic_by_seed():
     assert f1.user_agent == f2.user_agent
     assert f1.viewport == f2.viewport
     # разный seed — может быть разный (не обязательно, но в этом пуле скорее всего)
-    assert f1 != f3 or f1.user_agent == f3.user_agent  # noqa: допускаем коллизию
+    assert f1 != f3 or f1.user_agent == f3.user_agent
 
 
 def test_fingerprint_browser_args():

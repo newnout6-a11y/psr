@@ -1,143 +1,493 @@
 """
 AI-скоринг релевантности проектов.
-Использует LLM для оценки, подходит ли проект фрилансеру.
-Двухступенчатая фильтрация: сначала keyword-фильтр, потом AI-скоринг.
+
+Новая схема:
+1. Детерминированный heuristic pre-score для всех проектов.
+2. LLM-скоринг только для пограничных кейсов.
+3. Строгий JSON-ответ с repair-попыткой.
+4. Если LLM недоступен или ответ невалиден — остаёмся на heuristic score
+   и помечаем проект как fallback_scored, чтобы он не ушёл в auto-send без контроля.
 """
 
-import os
+from __future__ import annotations
+
 import json
+import os
 import re
-from typing import List, Dict, Any, Tuple, Optional
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
 from loguru import logger
+
 from src.parsers.base_parser import ProjectItem
 from src.paths import PORTFOLIO_FILE
 
 
+@dataclass
+class ScoreResult:
+    project: ProjectItem
+    pre_score: int
+    final_score: int
+    threshold: int
+    source: str
+    summary: str = ""
+    reasons: list[str] = field(default_factory=list)
+    risks: list[str] = field(default_factory=list)
+    project_type: str = "general"
+    fit_label: str = "review"
+    fallback_scored: bool = False
+    llm_attempted: bool = False
+    llm_used: bool = False
+
+    @property
+    def passed(self) -> bool:
+        return self.final_score >= self.threshold
+
+    def as_meta(self) -> dict[str, Any]:
+        return {
+            "pre_score": self.pre_score,
+            "score": self.final_score,
+            "source": self.source,
+            "summary": self.summary,
+            "reasons": list(self.reasons),
+            "risks": list(self.risks),
+            "project_type": self.project_type,
+            "fit_label": self.fit_label,
+            "fallback_scored": self.fallback_scored,
+            "llm_attempted": self.llm_attempted,
+            "llm_used": self.llm_used,
+        }
+
+
 class AIRelevanceScorer:
+    """Гибридный scorer: heuristic сначала, LLM только для спорных кейсов."""
+
+    _SKILL_ALIASES = {
+        "python": {"python", "fastapi", "flask", "django", "celery", "sqlalchemy", "asyncio"},
+        "telegram": {"telegram", "telethon", "aiogram", "бот", "bot"},
+        "parsing": {"parser", "парсер", "scraping", "scraper", "скрейп", "crawl"},
+        "automation": {"automation", "автоматизация", "скрипт", "script", "integration", "интеграция"},
+        "api": {"api", "rest", "webhook", "backend", "бекенд", "микросервис"},
+        "frontend": {"react", "frontend", "javascript", "typescript", "vue", "html", "css"},
+        "data": {"data", "etl", "pandas", "numpy"},
+        "ml": {"ml", "machine learning", "llm", "нейросеть", "нейронка", "data scientist"},
+    }
+
+    _POSITIVE_MARKERS = [
+        "telegram",
+        "бот",
+        "parser",
+        "парсер",
+        "api",
+        "fastapi",
+        "django",
+        "flask",
+        "automation",
+        "автоматизация",
+        "интеграция",
+        "скрипт",
+    ]
+
+    _NEGATIVE_MARKERS = [
+        "designer",
+        "design",
+        "seo",
+        "smm",
+        "figma",
+        "photoshop",
+        "3d",
+        "unity",
+        "blender",
+        "sales",
+        "marketing",
+        "1c",
+        "bitrix24",
+        "wordpress template",
+    ]
+
+    _VACANCY_MARKERS = [
+        "full-time",
+        "full time",
+        "штат",
+        "в офис",
+        "офис",
+        "на постоянную",
+        "на постоянку",
+        "в команду",
+        "оформление по тк",
+        "удаленная работа",
+        "вакансия",
+        "middle",
+        "senior",
+        "junior",
+        "работодатель",
+    ]
 
     def __init__(self, portfolio_path: str = str(PORTFOLIO_FILE)):
         self.portfolio = self._load_portfolio(portfolio_path)
-        self._build_profile_summary()
+        self._profile_summary = self._build_profile_summary()
+        self._developer_skills = self._build_skill_set()
 
-    def _load_portfolio(self, path: str) -> Dict[str, Any]:
+    def _load_portfolio(self, path: str) -> dict[str, Any]:
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
         return {}
 
-    def _build_profile_summary(self):
-        """Собираем краткий профиль для промпта."""
+    def _build_profile_summary(self) -> str:
         dev = self.portfolio.get("developer", {})
         skills = dev.get("skills", [])
         highlights = self.portfolio.get("portfolio_highlights", [])
-
-        self.profile = (
+        return (
             f"Навыки: {', '.join(skills)}. "
             f"Опыт: {dev.get('experience_years', 3)} лет. "
-            f"Примеры работ: {'; '.join(highlights[:3]) if highlights else 'веб-разработка, автоматизация'}."
+            f"Примеры: {'; '.join(highlights[:3]) if highlights else 'автоматизация, боты, API, парсинг'}."
         )
 
-    async def score_projects(
-        self,
-        projects: List[ProjectItem],
-        threshold: int = 6,
-    ) -> List[Tuple[ProjectItem, int]]:
+    def _build_skill_set(self) -> set[str]:
+        raw_skills = self.portfolio.get("developer", {}).get("skills", [])
+        text = " ".join(str(skill).lower() for skill in raw_skills)
+        matched = set()
+        for alias, terms in self._SKILL_ALIASES.items():
+            if any(term in text for term in terms):
+                matched.add(alias)
+        if not matched:
+            matched.update({"python", "automation", "api"})
+        return matched
 
+    async def evaluate_projects(
+        self,
+        projects: list[ProjectItem],
+        threshold: int = 6,
+    ) -> list[ScoreResult]:
         if not projects:
             return []
 
-        scored = []
-        for i in range(0, len(projects), 10):
-            batch = projects[i:i + 10]
-            batch_scores = await self._score_batch(batch)
-            scored.extend(batch_scores)
+        results: list[ScoreResult] = []
+        pending: list[tuple[int, ProjectItem, ScoreResult]] = []
 
-        passed = [(p, score) for p, score in scored if score >= threshold]
-        rejected = [(p, score) for p, score in scored if score < threshold]
+        for project in projects:
+            heuristic = self._heuristic_score(project, threshold)
+            if self._needs_llm_review(heuristic):
+                pending.append((len(results), project, heuristic))
+            results.append(heuristic)
 
+        for i in range(0, len(pending), 8):
+            batch = pending[i:i + 8]
+            llm_results = await self._score_batch_with_llm(batch, threshold)
+            for idx, llm_result in llm_results:
+                results[idx] = llm_result
+
+        passed = sum(1 for item in results if item.passed)
+        fallback_count = sum(1 for item in results if item.fallback_scored)
+        logger.info(
+            f"AIScorer: прошло {passed}/{len(results)}, heuristic-only={len(results) - len(pending)}, "
+            f"fallback_scored={fallback_count}"
+        )
+        return results
+
+    async def score_projects(
+        self,
+        projects: list[ProjectItem],
+        threshold: int = 6,
+    ) -> list[tuple[ProjectItem, int]]:
+        results = await self.evaluate_projects(projects, threshold=threshold)
+        rejected = [item for item in results if not item.passed]
         if rejected:
             logger.info(
-                f"AIScorer: отсеяно {len(rejected)} нерелевантных проектов: "
-                + ", ".join([f"'{p.title[:30]}' ({s}/10)" for p, s in rejected[:5]])
+                "AIScorer: отсеяно "
+                + ", ".join(
+                    f"'{item.project.title[:30]}' ({item.final_score}/10, {item.source})"
+                    for item in rejected[:5]
+                )
             )
+        return [(item.project, item.final_score) for item in results if item.passed]
 
-        logger.info(f"AIScorer: прошло AI-скоринг: {len(passed)}/{len(scored)}")
-        return passed
+    def _heuristic_score(self, project: ProjectItem, threshold: int) -> ScoreResult:
+        text = f"{project.title} {project.description}".lower()
+        normalized_skills = self._extract_skill_aliases(project)
+        project_type = self._classify_project_type(text)
+        reasons: list[str] = []
+        risks: list[str] = []
 
-    async def _score_batch(
-        self, batch: List[ProjectItem]
-    ) -> List[Tuple[ProjectItem, int]]:
-        projects_text = ""
-        for idx, p in enumerate(batch, 1):
-            desc_short = (p.description or "")[:200]
-            skills_str = ", ".join(p.skills[:5]) if p.skills else "не указаны"
-            projects_text += (
-                f"{idx}. [{p.platform}] {p.title}\n"
-                f"   Описание: {desc_short}\n"
-                f"   Навыки: {skills_str}\n"
-                f"   Бюджет: {p.budget or 'не указан'}\n\n"
-            )
+        score = 5.0
 
-        prompt = f"""Ты — ассистент, который оценивает релевантность фриланс-проектов для разработчика.
+        matched_skills = sorted(normalized_skills & self._developer_skills)
+        if matched_skills:
+            score += min(2.5, 0.9 + 0.5 * len(matched_skills))
+            reasons.append(f"совпадают навыки: {', '.join(matched_skills[:4])}")
+        else:
+            score -= 1.0
+            risks.append("неочевидное совпадение по стеку")
 
-ПРОФИЛЬ РАЗРАБОТЧИКА:
-{self.profile}
+        positive_hits = sum(1 for marker in self._POSITIVE_MARKERS if marker in text)
+        if positive_hits:
+            score += min(1.8, positive_hits * 0.45)
+            reasons.append("похоже на прикладной фриланс-заказ")
 
-КРИТЕРИИ ОЦЕНКИ (0-10):
-- 9-10: Идеальное совпадение навыков, это заказ на разработку/автоматизацию, который один человек может выполнить
-- 7-8: Хорошее совпадение, некоторые навыки совпадают, реальный фриланс-заказ
-- 5-6: Частичное совпадение, но заказ сомнительный или слишком крупный для одного человека
-- 3-4: Слабое совпадение, корпоративная вакансия (штатная позиция, а не фриланс)
-- 1-2: Не подходит вообще (научная работа, военка, дизайн, хардвер, не IT)
-- 0: Спам или мусор
+        negative_hits = [marker for marker in self._NEGATIVE_MARKERS if marker in text]
+        if negative_hits:
+            score -= min(3.0, 1.2 + len(negative_hits) * 0.5)
+            risks.append(f"нерелевантные маркеры: {', '.join(negative_hits[:3])}")
 
-ВАЖНО: Штатные вакансии (full-time, офис, "Инженер-интегратор") — это НЕ фриланс. Ставь им 2-3.
-ВАЖНО: "Data Scientist", "ML Engineer" с PhD — это НЕ подходит разработчику на Python/Django. Ставь 1-3.
+        vacancy_hits = [marker for marker in self._VACANCY_MARKERS if marker in text]
+        if vacancy_hits:
+            score -= min(4.5, 2.0 + len(vacancy_hits) * 0.6)
+            project_type = "vacancy"
+            risks.append("похоже на найм в штат, а не проект")
 
-СПИСОК ПРОЕКТОВ:
-{projects_text}
+        if project.platform == "hh_ru":
+            score -= 1.5
+            risks.append("HH.ru чаще содержит вакансии, нужен осторожный фильтр")
 
-Ответь СТРОГО в формате JSON массива, без markdown:
-[{{"id": 1, "score": 8}}, {{"id": 2, "score": 3}}, ...]
-Только JSON, ничего больше!"""
+        if project.budget:
+            if 1000 <= project.budget <= 30000:
+                score += 0.6
+                reasons.append("бюджет выглядит как микро/средний фриланс")
+            elif project.budget > 120000:
+                score -= 1.2
+                risks.append("бюджет похож на крупный или долгий проект")
+            elif project.budget < 500:
+                score -= 0.6
+                risks.append("бюджет подозрительно низкий")
 
-        scores_data = None
+        if project.offers_count > 50:
+            score -= 1.4
+            risks.append(f"высокая конкуренция: {project.offers_count}")
+        elif project.offers_count > 20:
+            score -= 0.8
+            risks.append(f"средняя конкуренция: {project.offers_count}")
+        elif project.offers_count == 0:
+            score += 0.4
+            reasons.append("можно зайти рано, конкуренции нет")
+
+        if any(term in text for term in {"phd", "research", "scientist", "quant"}):
+            score -= 2.0
+            risks.append("похоже на research/ML позицию")
+
+        if project_type in {"automation", "bot", "parser", "api"}:
+            score += 0.7
+            reasons.append(f"тип заказа близок профилю: {project_type}")
+        elif project_type in {"design", "marketing"}:
+            score -= 2.0
+            risks.append(f"тип заказа нерелевантен: {project_type}")
+
+        final_score = max(0, min(10, int(round(score))))
+        fit_label = "strong" if final_score >= 8 else "review" if final_score >= threshold else "weak"
+        summary = self._build_summary(project_type, matched_skills, reasons, risks)
+
+        return ScoreResult(
+            project=project,
+            pre_score=final_score,
+            final_score=final_score,
+            threshold=threshold,
+            source="heuristic",
+            summary=summary,
+            reasons=reasons,
+            risks=risks,
+            project_type=project_type,
+            fit_label=fit_label,
+        )
+
+    def _needs_llm_review(self, result: ScoreResult) -> bool:
+        if result.project_type in {"vacancy", "design", "marketing"} and result.pre_score <= 2:
+            return False
+        return 4 <= result.pre_score <= 8
+
+    async def _score_batch_with_llm(
+        self,
+        batch: list[tuple[int, ProjectItem, ScoreResult]],
+        threshold: int,
+    ) -> list[tuple[int, ScoreResult]]:
+        prompt = self._build_llm_prompt(batch)
+        parsed = None
+        response = ""
 
         try:
             from src.brain.llm_router import get_llm_router
+
             router = get_llm_router()
             response = await router.generate(
                 prompt=prompt,
-                provider=None,  # авто-выбор с fallback
-                temperature=0.1,
-                max_tokens=300,
+                provider=None,
+                task="scoring",
+                temperature=0.15,
+                max_tokens=900,
+                system_prompt=self._scoring_system_prompt(),
             )
-            scores_data = self._parse_scores(response.strip())
+            parsed = self._parse_llm_scores(response)
+
+            if parsed is None:
+                repair_prompt = (
+                    "Исправь ответ ниже в валидный JSON-объект формата "
+                    '{"items":[{"id":1,"score":8,"fit":"good","summary":"...","project_type":"automation","risks":["..."]}]}. '
+                    "Только JSON, никаких пояснений.\n\n"
+                    f"{response}"
+                )
+                repaired = await router.generate(
+                    prompt=repair_prompt,
+                    provider=None,
+                    task="scoring",
+                    temperature=0.0,
+                    max_tokens=900,
+                    system_prompt="Ты исправляешь ответы в валидный JSON. Верни только JSON-объект.",
+                )
+                parsed = self._parse_llm_scores(repaired)
         except Exception as e:
-            logger.warning(f"AIScorer: LLM Router ошибка: {e}")
+            logger.warning(f"AIScorer: LLM scoring error: {e}")
 
-        if scores_data is None:
-            logger.warning("AIScorer: не удалось распарсить скоры, fallback")
-            return [(p, 7) for p in batch]
+        results: list[tuple[int, ScoreResult]] = []
+        parsed_map = {item["id"]: item for item in (parsed or []) if isinstance(item, dict) and "id" in item}
 
-        results = []
-        for idx, project in enumerate(batch):
-            score = 7
-            for item in scores_data:
-                if item.get("id") == idx + 1:
-                    score = max(0, min(10, int(item.get("score", 7))))
-                    break
-            results.append((project, score))
+        for idx, project, heuristic in batch:
+            heuristic.llm_attempted = True
+            item = parsed_map.get(idx + 1)
+            if not item:
+                heuristic.source = "fallback"
+                heuristic.fallback_scored = True
+                heuristic.fit_label = "review" if heuristic.passed else "weak"
+                results.append((idx, heuristic))
+                continue
+
+            score = item.get("score", heuristic.pre_score)
+            try:
+                score = max(0, min(10, int(score)))
+            except Exception:
+                score = heuristic.pre_score
+
+            llm_result = ScoreResult(
+                project=project,
+                pre_score=heuristic.pre_score,
+                final_score=score,
+                threshold=threshold,
+                source="llm",
+                summary=str(item.get("summary") or heuristic.summary).strip(),
+                reasons=list(item.get("reasons") or heuristic.reasons),
+                risks=list(item.get("risks") or heuristic.risks),
+                project_type=str(item.get("project_type") or heuristic.project_type),
+                fit_label=str(item.get("fit") or ("strong" if score >= 8 else "review" if score >= threshold else "weak")),
+                llm_attempted=True,
+                llm_used=True,
+            )
+            results.append((idx, llm_result))
 
         return results
 
-    def _parse_scores(self, response_text: str) -> Optional[List[Dict]]:
-        json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
+    def _scoring_system_prompt(self) -> str:
+        return (
+            "Ты строгий классификатор релевантности фриланс-проектов для Python-разработчика. "
+            "Оценивай только по данным заказа и профиля, агрессивно отсекай вакансии в штат, дизайн, SEO и маркетинг. "
+            "Отвечай только валидным JSON-объектом по заданной схеме."
+        )
+
+    def _build_llm_prompt(self, batch: list[tuple[int, ProjectItem, ScoreResult]]) -> str:
+        lines: list[str] = []
+        for idx, project, heuristic in batch:
+            description = re.sub(r"\s+", " ", project.description or "")[:260]
+            skills = ", ".join(project.skills[:6]) if project.skills else "не указаны"
+            lines.append(
+                "\n".join(
+                    [
+                        f"ID: {idx + 1}",
+                        f"Платформа: {project.platform}",
+                        f"Заголовок: {project.title}",
+                        f"Описание: {description}",
+                        f"Навыки: {skills}",
+                        f"Бюджет: {project.budget or 'не указан'}",
+                        f"Откликов: {project.offers_count}",
+                        f"Heuristic score: {heuristic.pre_score}",
+                        f"Heuristic reasons: {', '.join(heuristic.reasons) if heuristic.reasons else 'нет'}",
+                        f"Heuristic risks: {', '.join(heuristic.risks) if heuristic.risks else 'нет'}",
+                    ]
+                )
+            )
+
+        return f"""Ты оцениваешь релевантность фриланс-проектов для одного Python-разработчика.
+
+ПРОФИЛЬ:
+{self._profile_summary}
+
+ПРАВИЛА:
+- 9-10: очень сильное совпадение, явный фриланс, можно брать.
+- 7-8: хорошее совпадение, но есть отдельные вопросы.
+- 4-6: погранично, нужен ручной review.
+- 0-3: не подходит, вакансия или чужой профиль.
+- Штатные вакансии, офис, full-time и long-term staff role режь агрессивно.
+- Не выдумывай факты. Оцени только по данным заказа.
+
+Ответь СТРОГО JSON-объектом:
+{{
+  "items": [
+    {{
+      "id": 1,
+      "score": 8,
+      "fit": "strong|review|weak",
+      "summary": "коротко почему",
+      "project_type": "automation|bot|parser|api|website|vacancy|general",
+      "reasons": ["совпадает python", "есть telegram"],
+      "risks": ["средняя конкуренция"]
+    }}
+  ]
+}}
+
+ПРОЕКТЫ:
+{chr(10).join(lines)}
+"""
+
+    def _parse_llm_scores(self, response_text: str) -> Optional[list[dict[str, Any]]]:
+        json_match = re.search(r"\{.*\}", response_text, re.DOTALL)
         if not json_match:
-            logger.warning(f"AIScorer: не удалось извлечь JSON: {response_text[:100]}")
             return None
         try:
-            return json.loads(json_match.group())
+            payload = json.loads(json_match.group())
         except json.JSONDecodeError:
-            logger.warning(f"AIScorer: невалидный JSON: {response_text[:100]}")
             return None
+        items = payload.get("items")
+        if not isinstance(items, list):
+            return None
+        out: list[dict[str, Any]] = []
+        for item in items:
+            if not isinstance(item, dict) or "id" not in item:
+                continue
+            out.append(item)
+        return out or None
+
+    def _extract_skill_aliases(self, project: ProjectItem) -> set[str]:
+        parts = [project.title or "", project.description or "", " ".join(project.skills or [])]
+        text = " ".join(parts).lower()
+        matched = set()
+        for alias, terms in self._SKILL_ALIASES.items():
+            if any(term in text for term in terms):
+                matched.add(alias)
+        return matched
+
+    def _classify_project_type(self, text: str) -> str:
+        if any(term in text for term in {"telegram", "бот", "bot"}):
+            return "bot"
+        if any(term in text for term in {"parser", "парсер", "scraping", "скрейп"}):
+            return "parser"
+        if any(term in text for term in {"api", "rest", "webhook", "backend"}):
+            return "api"
+        if any(term in text for term in {"automation", "автоматизация", "script", "скрипт"}):
+            return "automation"
+        if any(term in text for term in {"landing", "лендинг", "frontend", "react", "website", "сайт"}):
+            return "website"
+        if any(term in text for term in {"designer", "design", "figma"}):
+            return "design"
+        if any(term in text for term in {"smm", "seo", "marketing"}):
+            return "marketing"
+        if any(term in text for term in self._VACANCY_MARKERS):
+            return "vacancy"
+        return "general"
+
+    def _build_summary(
+        self,
+        project_type: str,
+        matched_skills: list[str],
+        reasons: list[str],
+        risks: list[str],
+    ) -> str:
+        reasons_part = ", ".join(reasons[:2]) if reasons else "совпадение среднее"
+        risks_part = ", ".join(risks[:2]) if risks else "явных рисков мало"
+        skills_part = f"Навыки: {', '.join(matched_skills[:3])}. " if matched_skills else ""
+        return f"{skills_part}Тип: {project_type}. Плюсы: {reasons_part}. Риски: {risks_part}."

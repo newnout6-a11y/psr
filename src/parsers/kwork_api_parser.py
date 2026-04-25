@@ -4,10 +4,16 @@
 Быстрый, надёжный, без браузера.
 """
 
+import time
+from pathlib import Path
 from typing import Optional, Dict, Any, List
-from .base_parser import BaseParser, ProjectItem
+
+import yaml
 from loguru import logger
-import os
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+from .base_parser import BaseParser, ProjectItem
+from src.platforms.kwork import KworkService, get_kwork_service
 
 
 KWORK_CATEGORIES_MAP = {
@@ -55,31 +61,46 @@ class KworkAPIParser(BaseParser):
 
     def __init__(self, proxy=None, browser_preset="chrome120"):
         super().__init__(proxy=proxy, browser_preset=browser_preset)
-        self._api = None
+        self.service: KworkService = get_kwork_service()
+        self.min_budget, self.max_budget, self.min_hiring, self.max_proposals = self._load_filters()
+
+    def _load_filters(self) -> tuple[int, int, int, int]:
+        try:
+            config = yaml.safe_load(Path("config/filters.yaml").read_text(encoding="utf-8")) or {}
+            min_budget = max(int(config.get("min_budget", 0) or 0), 0)
+            max_budget = max(int(config.get("max_budget", 0) or 0), 0)
+            min_hiring = max(int(config.get("min_client_hiring_percent", 0) or 0), 0)
+            max_proposals = max(int(config.get("max_proposals", 0) or 0), 0)
+            return min_budget, max_budget, min_hiring, max_proposals
+        except Exception as e:
+            logger.warning(f"KworkAPI: не удалось прочитать filters.yaml: {e}")
+            return 0, 0, 0, 0
 
     def _get_api(self):
-        if self._api is not None:
-            return self._api
+        return self.service.get_api()
 
-        from kwork import Kwork
-
-        email = os.getenv("KWORK_EMAIL")
-        password = os.getenv("KWORK_PASSWORD")
-        proxy_url = os.getenv("PROXY_URL") or None
-
-        if not email or not password:
-            logger.error("KworkAPI: нет KWORK_EMAIL/KWORK_PASSWORD в .env! Добавь и перезапусти.")
-            return None
-
-        self._api = Kwork(
-            login=email,
-            password=password,
-            timeout=30.0,
-            retry_max_attempts=2,
-            proxy=proxy_url,
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10), reraise=True)
+    async def _get_projects_with_retry(
+        self,
+        api,
+        *,
+        categories_ids: list[int],
+        page: int,
+        query: str,
+        price_from: int,
+        price_to: int | None,
+        hiring_from: int | None,
+        kworks_filter_to: int | None,
+    ):
+        return await self.service.get_projects(
+            categories_ids=categories_ids,
+            page=page,
+            query=query,
+            price_from=price_from,
+            price_to=price_to,
+            hiring_from=hiring_from,
+            kworks_filter_to=kworks_filter_to,
         )
-        logger.info("KworkAPI: клиент kwork инициализирован")
-        return self._api
 
     def _resolve_categories(self, query: str) -> list:
         """Разрешает категории из поискового запроса.
@@ -120,16 +141,39 @@ class KworkAPIParser(BaseParser):
 
         all_projects = []
         seen_ids = set()
+        price_from = self.min_budget
+        price_to = self.max_budget or None
+        hiring_from = self.min_hiring or None
+        kworks_filter_to = self.max_proposals or None
+        api_failures = 0  # Счётчик подряд идущих ошибок API
 
         for query in queries:
             categories_ids = self._resolve_categories(query)
+            started_at = time.perf_counter()
+
+            # Если API уже падало 3+ раза подряд — сразу fallback на браузер
+            if api_failures >= 3:
+                logger.warning(f"KworkAPI: {api_failures} ошибок подряд, fallback на браузер для '{query}'")
+                try:
+                    browser_projects = await self._fallback_browser(page, per_page, filters)
+                    for p in browser_projects:
+                        if p.id not in seen_ids:
+                            seen_ids.add(p.id)
+                            all_projects.append(p)
+                except Exception as e2:
+                    logger.error(f"KworkAPI: браузерный fallback тоже упал: {e2}")
+                continue
 
             try:
-                raw_projects = await api.get_projects(
+                raw_projects = await self._get_projects_with_retry(
+                    api,
                     categories_ids=categories_ids,
                     page=page,
                     query=query,
-                    price_from=500,
+                    price_from=price_from,
+                    price_to=price_to,
+                    hiring_from=hiring_from,
+                    kworks_filter_to=kworks_filter_to,
                 )
 
                 for p in self._normalize(raw_projects):
@@ -137,9 +181,23 @@ class KworkAPIParser(BaseParser):
                         seen_ids.add(p.id)
                         all_projects.append(p)
 
-                logger.info(f"KworkAPI: запрос='{query}', кат.={categories_ids}, получено {len(raw_projects)} проектов (стр.{page})")
+                api_failures = 0  # Сброс счётчика при успехе
+
+                duration_ms = int((time.perf_counter() - started_at) * 1000)
+                logger.info(
+                    f"KworkAPI: запрос='{query}', кат.={categories_ids}, "
+                    f"price_from={price_from}, price_to={price_to}, hiring_from={hiring_from}, "
+                    f"kworks_to={kworks_filter_to}, получено {len(raw_projects)} проектов "
+                    f"(стр.{page}, {duration_ms}мс)"
+                )
             except Exception as e:
+                api_failures += 1
                 logger.error(f"KworkAPI: ошибка для запроса '{query}': {e}")
+                # Сессия протухла — сбросить клиент, чтобы следующий запрос переавторизовался
+                if "'response'" in str(e) or "response" in str(e).lower():
+                    logger.warning("KworkAPI: сессия протухла, сбрасываем клиент для реавторизации")
+                    self.service.reset_api()
+                    api = self._get_api()
 
         logger.info(f"KworkAPI: итого {len(all_projects)} уникальных проектов по {len(queries)} запросам")
         return all_projects[:per_page]
@@ -177,6 +235,12 @@ class KworkAPIParser(BaseParser):
             elif hasattr(p, "created_at") and p.created_at:
                 created_at = str(p.created_at)
 
+            raw_data = {}
+            if hasattr(p, "model_dump"):
+                raw_data = p.model_dump()
+            elif hasattr(p, "__dict__"):
+                raw_data = dict(p.__dict__)
+
             projects.append(ProjectItem(
                 id=project_id,
                 title=title,
@@ -187,6 +251,14 @@ class KworkAPIParser(BaseParser):
                 created_at=created_at,
                 url=url,
                 platform=self.PLATFORM_NAME,
+                offers_count=int(getattr(p, "offers", 0) or 0),
+                client_hired_percent=int(getattr(p, "user_hired_percent", 0) or 0),
+                client_user_id=str(getattr(p, "user_id", "") or ""),
+                platform_data={
+                    "source": "kwork_mobile_api",
+                    "category_name": getattr(p, "category_name", None),
+                    "raw": raw_data,
+                },
             ))
 
         return projects
@@ -215,15 +287,13 @@ class KworkAPIParser(BaseParser):
             return []
 
     def close(self):
-        if self._api:
-            try:
-                import asyncio
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    asyncio.ensure_future(self._api.close())
-                else:
-                    loop.run_until_complete(self._api.close())
-            except Exception:
-                pass
-            self._api = None
+        try:
+            import asyncio
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.ensure_future(self.service.close())
+            else:
+                loop.run_until_complete(self.service.close())
+        except Exception:
+            pass
         super().close()

@@ -4,7 +4,6 @@ Camoufox - это форк Firefox с улучшенной защитой от �
 """
 
 import os
-import asyncio
 from typing import Optional, Dict, Any
 from loguru import logger
 from src.paths import BROWSER_PROFILES_DIR, SCREENSHOTS_DIR

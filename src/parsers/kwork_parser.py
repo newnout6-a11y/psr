@@ -8,6 +8,7 @@ from typing import Optional, Dict, Any, List
 from bs4 import BeautifulSoup
 from .base_parser import BaseParser, ProjectItem
 from src.browser.browser_manager import BrowserManager
+from src.platforms.kwork import KworkStateDataParser
 from loguru import logger
 import re
 import os
@@ -102,11 +103,14 @@ class KworkParser(BaseParser):
             mgr = self.browser_mgr
             page_tab = await mgr.get_page(url, reuse=True)
 
-            await mgr.wait_for_content(
-                page_tab, "div.project-description", timeout=10
-            )
+            await mgr.wait_for_content(page_tab, "body", timeout=10)
             await page_tab.sleep(2)
             html = await page_tab.get_content()
+
+            state_project = KworkStateDataParser.project_from_html(html, project_id=project_id)
+            if state_project:
+                await mgr.close_page(page_tab)
+                return state_project
 
             soup = BeautifulSoup(html, "lxml")
 
@@ -122,7 +126,7 @@ class KworkParser(BaseParser):
                 skills.append(s.text.strip())
 
             budget = None
-            price_el = soup.find("div", class_="wants-card__header-price")
+            price_el = soup.find("div", class_="wants-card__header-price") or soup.find("div", class_="wants-card__price")
             if not price_el:
                 price_el = soup.find(string=re.compile(r'\d.*[₽руб]'))
                 if price_el:
@@ -164,6 +168,10 @@ class KworkParser(BaseParser):
         super().close()
 
     def _parse_html(self, html_text: str) -> List[ProjectItem]:
+        state_projects = KworkStateDataParser.projects_from_html(html_text)
+        if state_projects:
+            return state_projects
+
         soup = BeautifulSoup(html_text, "lxml")
         cards = soup.select("div.want-card")
 
@@ -185,7 +193,7 @@ class KworkParser(BaseParser):
                 project_id = id_match.group(1)
 
             budget = None
-            price_el = card.find("div", class_="wants-card__header-price")
+            price_el = card.find("div", class_="wants-card__header-price") or card.find("div", class_="wants-card__price")
             if not price_el:
                 price_el = card.find(string=re.compile(r'\d.*[₽руб]'))
                 if price_el:

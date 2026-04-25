@@ -127,7 +127,7 @@ async def main() -> int:
         print("\n  ℹ️  Публичных следов не найдено.")
 
     print("\n" + "=" * 78)
-    print(f"  Резюме для LLM:\n")
+    print("  Резюме для LLM:\n")
     for line in result.summary.splitlines():
         print(f"    {line}")
     print("=" * 78)

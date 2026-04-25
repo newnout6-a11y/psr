@@ -69,8 +69,7 @@ class HHParser(BaseParser):
         normalized = []
         for raw in raw_items:
             salary = raw.get("salary")
-            employer_name = raw.get("employer", {}).get("name", "")
-            
+
             normalized.append(ProjectItem(
                 id=str(raw.get("id", "")),
                 title=raw.get("name", ""),

@@ -5,9 +5,8 @@
 
 import os
 from datetime import datetime, time
-from typing import List, Optional
+from typing import Optional
 import pytz
-from loguru import logger
 
 
 class ScheduleManager:
@@ -84,7 +83,6 @@ class ScheduleManager:
 
     def get_status(self) -> str:
         """Статус расписания для отображения."""
-        now = datetime.now(self.timezone)
         days_names = ["", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
         days_str = ", ".join([days_names[d] for d in self.work_days])
         

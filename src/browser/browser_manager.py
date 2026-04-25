@@ -7,7 +7,7 @@ Singleton — один инстанс на всё приложение, пост
 import os
 import json
 import asyncio
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict
 
 import httpx
 import nodriver as uc
@@ -181,7 +181,7 @@ class BrowserManager:
 
             cookies = data.get("cookies", [])
             if not cookies:
-                logger.warning(f"BrowserManager: Session Hub вернул пустой список кук")
+                logger.warning("BrowserManager: Session Hub вернул пустой список кук")
                 return False
 
             browser = await self.get_browser()
@@ -276,8 +276,8 @@ class BrowserManager:
                 strict = os.getenv("SESSION_HUB_REQUIRED", "false").lower() == "true"
                 if strict:
                     logger.error(
-                        f"BrowserManager: Session Hub недоступен, а SESSION_HUB_REQUIRED=true → отказ. "
-                        f"Запусти Session Hub: python scripts/session_hub/session_hub_manual.py"
+                        "BrowserManager: Session Hub недоступен, а SESSION_HUB_REQUIRED=true → отказ. "
+                        "Запусти Session Hub: python scripts/session_hub/session_hub_manual.py"
                     )
                     self._auth_validated[domain] = False
                     return False
