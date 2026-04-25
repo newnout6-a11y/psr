@@ -8,7 +8,7 @@ type Tab = 'general' | 'platforms' | 'execution' | 'filters' | 'telegram' | 'kwo
 
 const BOOL_KEYS = new Set([
   'OSINT_ENABLED', 'BROWSER_HEADLESS', 'CONTINUOUS_MODE',
-  'SESSION_HUB_REQUIRED', 'OSINT_WMN_FULL',
+  'SESSION_HUB_REQUIRED', 'OSINT_WMN_FULL', 'TELEGRAM_DIGEST_ENABLED',
 ])
 
 function BoolField({
@@ -70,7 +70,7 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
     keys: ['TELEGRAM_TOKEN', 'ADMIN_CHAT_ID', 'TELEGRAM_TRANSPORT',
            'TELEGRAM_BOT_API_BASE', 'TELEGRAM_API_ID', 'TELEGRAM_API_HASH',
            'TELEGRAM_MTPROTO_SESSION', 'APPROVAL_TIMEOUT',
-           'DIGEST_INTERVAL_MIN', 'TELEGRAM_QUEUE_PAGE_SIZE'],
+           'TELEGRAM_DIGEST_ENABLED', 'DIGEST_INTERVAL_MIN', 'TELEGRAM_QUEUE_PAGE_SIZE'],
   },
   kwork: {
     label: 'Kwork Inspector',

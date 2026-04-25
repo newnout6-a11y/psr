@@ -23,6 +23,13 @@ def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _env_bool(key: str, default: bool = False) -> bool:
+    raw = os.getenv(key)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class TelegramNotifier:
     """Telegram-first операторский интерфейс."""
 
@@ -578,7 +585,11 @@ class TelegramNotifier:
     async def maybe_send_digest(self) -> None:
         if not self.admin_id or not self.bot:
             return
+        if not _env_bool("TELEGRAM_DIGEST_ENABLED", False):
+            return
         interval = int(os.getenv("DIGEST_INTERVAL_MIN", "60"))
+        if interval <= 0:
+            return
         last_sent = self.db.get_runtime_state("telegram.digest.last_sent_at")
         if last_sent:
             try:
