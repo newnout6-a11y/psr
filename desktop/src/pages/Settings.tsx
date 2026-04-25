@@ -91,14 +91,34 @@ function EnvField({
   value,
   isSecret,
   onChange,
+  onReveal,
 }: {
   envKey: string
   value: string
   isSecret: boolean
   onChange: (key: string, val: string) => void
+  onReveal?: (key: string) => Promise<void>
 }) {
   const [show, setShow] = useState(!isSecret)
+  const [revealing, setRevealing] = useState(false)
   useEffect(() => { if (isSecret) setShow(false) }, [isSecret])
+
+  async function handleToggleSecret() {
+    if (show) {
+      setShow(false)
+      return
+    }
+    if (value === '********' && onReveal) {
+      setRevealing(true)
+      try {
+        await onReveal(envKey)
+      } finally {
+        setRevealing(false)
+      }
+    }
+    setShow(true)
+  }
+
   return (
     <div>
       <label className="label">{envKey}</label>
@@ -111,8 +131,19 @@ function EnvField({
           placeholder={isSecret ? '••••••••' : ''}
         />
         {isSecret && (
-          <button type="button" onClick={() => setShow((s) => !s)} className="btn btn-ghost py-1.5 px-2">
-            {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          <button
+            type="button"
+            onClick={handleToggleSecret}
+            disabled={revealing}
+            className="btn btn-ghost py-1.5 px-2"
+          >
+            {revealing ? (
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            ) : show ? (
+              <EyeOff className="w-3.5 h-3.5" />
+            ) : (
+              <Eye className="w-3.5 h-3.5" />
+            )}
           </button>
         )}
       </div>
@@ -405,9 +436,15 @@ export default function Settings() {
   const { data: filtersData, refetch: refetchFilters } = useApi(() => api.getFilters(), [])
 
   const [envDraft, setEnvDraft] = useState<Record<string, string>>({})
+  const [revealedEnv, setRevealedEnv] = useState<Record<string, string>>({})
   const secretKeys = new Set(envData?.secret_keys ?? [])
 
-  const envValues = { ...(envData?.values ?? {}), ...envDraft }
+  const envValues = { ...(envData?.values ?? {}), ...revealedEnv, ...envDraft }
+
+  async function revealSecret(key: string) {
+    const result = await api.revealEnvValue(key)
+    setRevealedEnv((prev) => ({ ...prev, [key]: result.value }))
+  }
 
   async function handleSaveEnv() {
     if (Object.keys(envDraft).length === 0) return
@@ -416,6 +453,7 @@ export default function Settings() {
       await api.updateEnv(envDraft)
       setMsg('Настройки сохранены')
       setEnvDraft({})
+      setRevealedEnv({})
       refetchEnv()
       setTimeout(() => setMsg(''), 2500)
     } catch (e) {
@@ -523,6 +561,7 @@ export default function Settings() {
                       value={envValues[key] ?? ''}
                       isSecret={secretKeys.has(key)}
                       onChange={(k, v) => setEnvDraft((prev) => ({ ...prev, [k]: v }))}
+                      onReveal={revealSecret}
                     />
                   )
                 ))}

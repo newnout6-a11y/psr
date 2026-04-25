@@ -171,7 +171,9 @@ export const api = {
   getRuntimeState: () => request<{ execution_mode: string; paused_platforms: string[] }>('/api/dashboard/runtime-state'),
 
   // Settings
-  getEnv: () => request<{ values: Record<string, string>; secret_keys: string[] }>('/api/settings/env'),
+  getEnv: () => request<{ values: Record<string, string>; secret_keys: string[]; mask: string }>('/api/settings/env'),
+  revealEnvValue: (key: string) =>
+    request<{ key: string; value: string }>(`/api/settings/env/reveal/${encodeURIComponent(key)}`),
   updateEnv: (values: Record<string, string>) =>
     request<{ ok: boolean; updated: string[] }>('/api/settings/env', {
       method: 'PUT',

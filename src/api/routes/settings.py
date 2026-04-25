@@ -123,6 +123,16 @@ def get_env():
     return {"values": result, "secret_keys": sorted(_SECRET_KEYS), "mask": SECRET_MASK}
 
 
+@router.get("/env/reveal/{key}")
+def reveal_env_value(key: str):
+    if key not in _ENV_KEYS:
+        raise HTTPException(status_code=404, detail=f"Unknown setting: {key}")
+    if key not in _SECRET_KEYS:
+        raise HTTPException(status_code=400, detail=f"Setting is not secret: {key}")
+    raw = _read_env_file()
+    return {"key": key, "value": raw.get(key, os.getenv(key, ""))}
+
+
 @router.put("/env")
 def update_env(req: EnvUpdateRequest):
     # Only allow updating known keys
