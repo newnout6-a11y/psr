@@ -53,7 +53,7 @@ class GLMClient:
         prompt: str,
         model: str = "glm-4-air",
         temperature: float = 0.7,
-        max_tokens: int = 500,
+        max_tokens: int = 2048,
         system_prompt: Optional[str] = None,
     ) -> str:
         token = self._get_token()
@@ -164,7 +164,7 @@ class LLMRouter:
         provider: Optional[str] = None,
         model: Optional[str] = None,
         temperature: float = 0.75,
-        max_tokens: int = 500,
+        max_tokens: int = 2048,
         task: str = "general",
         system_prompt: Optional[str] = None,
     ) -> str:
@@ -345,6 +345,8 @@ class LLMRouter:
         max_tokens: int,
         system_prompt: Optional[str],
     ) -> str:
+        from google.generativeai.types import HarmCategory, HarmBlockThreshold
+
         genai = self.providers["google"]
         gen_model = (
             genai.GenerativeModel(model, system_instruction=system_prompt)
@@ -357,20 +359,34 @@ class LLMRouter:
                 "temperature": temperature,
                 "max_output_tokens": max_tokens,
             },
+            safety_settings={
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+            }
         )
 
-        text = getattr(response, "text", None)
-        if text:
-            return text
+        try:
+            text = getattr(response, "text", None)
+            if text:
+                return text
+        except Exception as e:
+            logger.warning(f"Google SDK response.text exception: {e}")
 
         candidates = getattr(response, "candidates", None) or []
         if candidates:
-            parts = getattr(candidates[0], "content", None)
+            first_candidate = candidates[0]
+            finish_reason = getattr(first_candidate, "finish_reason", "UNKNOWN")
+            logger.debug(f"Google finish_reason: {finish_reason}")
+            
+            parts = getattr(first_candidate, "content", None)
             if parts and getattr(parts, "parts", None):
                 joined = "".join(part.text for part in parts.parts if getattr(part, "text", None))
                 if joined.strip():
                     return joined
-        raise ValueError("Google вернул пустой ответ")
+                    
+        raise ValueError("Google вернул пустой ответ (возможно, заблокирован safety filters)")
 
     async def _generate_glm(
         self,

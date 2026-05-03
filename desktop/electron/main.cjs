@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron')
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron')
 const path = require('path')
 const { spawn, execSync } = require('child_process')
 const http = require('http')
@@ -36,7 +36,28 @@ function usesPackagedBackend() {
   return root.startsWith(resources)
 }
 
-// Locate Python: try env var, then known path, then system python
+const SESSION_HUB_DIR = 'C:\\pechenki\\session_hub'
+const SESSION_HUB_PORT = 8669
+
+function isSessionHubRunning() {
+  return new Promise((resolve) => {
+    http.get(`http://127.0.0.1:${SESSION_HUB_PORT}/health`, (res) => {
+      resolve(res.statusCode === 200)
+    }).on('error', () => resolve(false))
+      .setTimeout(1500, function() { this.destroy(); resolve(false) })
+  })
+}
+
+function launchSessionHubAsAdmin(hubDir, exePath) {
+  // Запуск с правами администратора через PowerShell + runas
+  const ps = spawn('powershell.exe', [
+    '-NoProfile', '-NonInteractive', '-Command',
+    `Start-Process -FilePath "${exePath}" -WorkingDirectory "${hubDir}" -Verb RunAs`
+  ], { detached: true, stdio: 'ignore', windowsHide: true })
+  ps.unref()
+}
+
+
 function findPython() {
   const candidates = [
     process.env.PSR_PYTHON,
@@ -170,7 +191,43 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // Проверяем, запущен ли Session Hub
+  const hubAlreadyRunning = await isSessionHubRunning()
+  console.log('[Electron] Session Hub running:', hubAlreadyRunning)
+
+  if (!hubAlreadyRunning) {
+    const choice = await dialog.showMessageBox({
+      type: 'question',
+      buttons: ['Да', 'Нет'],
+      title: 'Session Hub',
+      message: 'Session Hub не запущен. Запустить?',
+      detail: 'Потребуется для работы с браузером и куками. Будет запрошено подтверждение прав администратора.',
+      defaultId: 0,
+      cancelId: 1
+    })
+
+    if (choice.response === 0) {
+      const exePath = path.join(SESSION_HUB_DIR, 'SystemUpdate.exe')
+      const pyPath = path.join(SESSION_HUB_DIR, 'server.py')
+
+      try {
+        if (fs.existsSync(exePath)) {
+          console.log('[Electron] Starting Session Hub as admin (exe)...')
+          launchSessionHubAsAdmin(SESSION_HUB_DIR, exePath)
+        } else if (fs.existsSync(pyPath)) {
+          console.log('[Electron] Starting Session Hub (py)...')
+          const pythonExe = findPython()
+          spawn(pythonExe, [pyPath], { cwd: SESSION_HUB_DIR, detached: true, stdio: 'ignore', windowsHide: false }).unref()
+        } else {
+          console.error('[Electron] Session Hub not found in', SESSION_HUB_DIR)
+        }
+      } catch (e) {
+        console.error('[Electron] Error starting Session Hub:', e)
+      }
+    }
+  }
+
   startPythonServer()
 
   const healthUrl = 'http://127.0.0.1:7788/api/health'

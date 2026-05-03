@@ -72,9 +72,15 @@ RULES (STRICT!):
             return ""
 
         # Удаляем "ассистентские" вступления
-        meta = [r"Вот ваш отклик.*", r"Конечно.*", r"Безусловно.*", r"Предлагаю.*", r"Здравствуйте! Вот.*"]
+        meta = [
+            r"^(?:Вот\s|Держите\s)(?:ваш\s|вариант\s|следующий\s)?отклик[^\n]*\n*",
+            r"^Конечно[!,]?\s*(?:вот\s|готово\s|давайте\s)?[^\n]*\n*",
+            r"^Безусловно[!,]?\s*[^\n]*\n*",
+            r"^Здравствуйте! Вот[^\n]*\n*",
+            r"^Предлагаю\s+(?:следующий\s)?вариант[^\n]*\n*"
+        ]
         for p in meta:
-            text = re.sub(p, "", text, flags=re.IGNORECASE | re.DOTALL)
+            text = re.sub(p, "", text.strip(), flags=re.IGNORECASE).strip()
 
         # Удаляем Markdown
         for char in "*#_`>":
@@ -292,7 +298,7 @@ RULES (STRICT!):
                 provider=provider if provider != "auto" else None,
                 model=model,
                 temperature=0.75,
-                max_tokens=500,
+                max_tokens=2048,
                 task="proposal_writing",
                 system_prompt=system_prompt,
             )
