@@ -55,7 +55,7 @@ def _empty(df: pd.DataFrame, text: str = "Нет данных") -> bool:
 st.sidebar.title("PSR vNext")
 page = st.sidebar.radio(
     "Page",
-    ["Overview", "Decision Quality", "System Health"],
+    ["Overview", "Decision Quality", "Conversion", "System Health"],
     label_visibility="collapsed",
 )
 days = st.sidebar.slider("Период, дней", 1, 60, 14)
@@ -197,6 +197,140 @@ elif page == "Decision Quality":
                         "responded_count": "Responded",
                         "skipped_count": "Skipped",
                         "user_preferred": "Preferred",
+                    }
+                ),
+                hide_index=True,
+                width="stretch",
+            )
+
+
+elif page == "Conversion":
+    st.title("Conversion")
+    st.caption(
+        "Phase 3 — фидбек-петля. Считает конверсию `auto_sent`/`manual_sent` "
+        "по replied_at/won/revenue. Источник — таблица candidates."
+    )
+
+    summary = q.conversion_summary(days)
+    sent = summary.get("sent", 0)
+    replied = summary.get("replied", 0)
+    won = summary.get("won", 0)
+    revenue = summary.get("revenue", 0.0)
+    reply_rate = (100.0 * replied / sent) if sent else 0.0
+    win_rate = (100.0 * won / sent) if sent else 0.0
+
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Отправлено", sent)
+    c2.metric("Получено реплаев", replied, f"{reply_rate:.1f} %")
+    c3.metric("Выиграно", won, f"{win_rate:.1f} %")
+    c4.metric("Доход, ₽", f"{revenue:,.0f}".replace(",", " "))
+    c5.metric("Среднее по выигранному, ₽", f"{(revenue / won):,.0f}".replace(",", " ") if won else "—")
+
+    st.markdown("---")
+
+    left, right = st.columns(2)
+    with left:
+        st.subheader("По LLM-провайдеру")
+        provider_df = q.conversion_by_provider(days)
+        if not _empty(provider_df, "Нет данных по провайдерам"):
+            st.dataframe(
+                provider_df.rename(
+                    columns={
+                        "provider": "Provider",
+                        "sent": "Sent",
+                        "replied": "Replied",
+                        "won": "Won",
+                        "revenue": "Revenue",
+                        "reply_rate": "Reply %",
+                        "win_rate": "Win %",
+                    }
+                ),
+                hide_index=True,
+                width="stretch",
+            )
+
+        st.subheader("По нише (search_query)")
+        niche_df = q.conversion_by_niche(days)
+        if not _empty(niche_df, "Нет данных по нишам"):
+            st.dataframe(
+                niche_df.rename(
+                    columns={
+                        "niche": "Niche",
+                        "sent": "Sent",
+                        "replied": "Replied",
+                        "won": "Won",
+                        "reply_rate": "Reply %",
+                    }
+                ),
+                hide_index=True,
+                width="stretch",
+            )
+
+    with right:
+        st.subheader("По позиции в очереди откликов")
+        queue_df = q.conversion_by_queue_position(days)
+        if not _empty(queue_df, "Нет данных по offers_count"):
+            st.dataframe(
+                queue_df.rename(
+                    columns={
+                        "queue_bucket": "Position",
+                        "sent": "Sent",
+                        "replied": "Replied",
+                        "won": "Won",
+                        "reply_rate": "Reply %",
+                    }
+                ),
+                hide_index=True,
+                width="stretch",
+            )
+
+        st.subheader("Время отклика клиента")
+        rt_df = q.conversion_by_response_time(days)
+        if not _empty(rt_df, "Реплаев пока мало"):
+            st.dataframe(
+                rt_df.rename(
+                    columns={
+                        "response_bucket": "Latency",
+                        "replies": "Replies",
+                        "won": "Won",
+                        "win_rate": "Win %",
+                    }
+                ),
+                hide_index=True,
+                width="stretch",
+            )
+
+    st.markdown("---")
+    bottom_left, bottom_right = st.columns(2)
+    with bottom_left:
+        st.subheader("Классификация реплаев")
+        cls_df = q.reply_classification_breakdown(days)
+        if not _empty(cls_df, "Реплаев пока нет"):
+            st.dataframe(
+                cls_df.rename(
+                    columns={
+                        "classification": "Class",
+                        "replies": "Replies",
+                        "won": "Won",
+                        "win_rate": "Win %",
+                    }
+                ),
+                hide_index=True,
+                width="stretch",
+            )
+    with bottom_right:
+        st.subheader("A/B prompt_variant")
+        ab_df = q.conversion_by_prompt_variant(days)
+        if not _empty(ab_df, "A/B не запущен (PROMPT_AB_VARIANTS пуст)"):
+            st.dataframe(
+                ab_df.rename(
+                    columns={
+                        "prompt_variant": "Variant",
+                        "sent": "Sent",
+                        "replied": "Replied",
+                        "won": "Won",
+                        "reply_rate": "Reply %",
+                        "win_rate": "Win %",
                     }
                 ),
                 hide_index=True,

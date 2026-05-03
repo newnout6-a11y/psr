@@ -209,8 +209,16 @@ RULES (STRICT!):
             )
 
     async def generate(self, project: Any, provider: Optional[str] = None,
-                       client_data: dict = None, competitor_prices: list = None) -> str:
-        """Основной метод генерации с использованием LLM Router (Groq/Google/GLM)."""
+                       client_data: dict = None, competitor_prices: list = None,
+                       temperature: Optional[float] = None,
+                       prompt_variant: Optional[str] = None) -> str:
+        """Основной метод генерации с использованием LLM Router (Groq/Google/GLM).
+
+        `temperature` и `prompt_variant` — опциональные параметры для
+        Phase 3 A/B-тестирования. Если не заданы, поведение прежнее.
+        Метаданные варианта попадают в `last_generation_meta`, чтобы
+        orchestrator мог сохранить их на кандидате.
+        """
         from src.brain.llm_router import get_llm_router
 
         lang = "ru"
@@ -242,17 +250,22 @@ RULES (STRICT!):
             else:
                 model = None  # auto
 
+            effective_temperature = 0.75 if temperature is None else float(temperature)
             # Генерируем через роутер (с автоматическим fallback)
             res = await router.generate(
                 prompt=prompt,
                 provider=provider if provider != "auto" else None,
                 model=model,
-                temperature=0.75,
+                temperature=effective_temperature,
                 max_tokens=2048,
                 task="proposal_writing",
                 system_prompt=system_prompt,
             )
-            self.last_generation_meta = router.get_last_route()
+            meta = dict(router.get_last_route() or {})
+            meta["temperature"] = effective_temperature
+            if prompt_variant:
+                meta["prompt_variant"] = prompt_variant
+            self.last_generation_meta = meta
 
             if res:
                 res = self._clean_llm_response(res)
