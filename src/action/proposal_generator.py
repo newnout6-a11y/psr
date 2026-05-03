@@ -8,7 +8,7 @@ import re
 from loguru import logger
 from typing import Dict, Any, Optional
 from .proposal_templates import generate_proposal as generate_template_proposal
-from src.paths import CASES_FILE, LAST_LLM_PROMPT_FILE, LAST_LLM_RESPONSE_FILE, PORTFOLIO_FILE, ensure_parent
+from src.paths import LAST_LLM_PROMPT_FILE, LAST_LLM_RESPONSE_FILE, PORTFOLIO_FILE, ensure_parent
 
 
 class ProposalGenerator:
@@ -111,48 +111,6 @@ RULES (STRICT!):
         text = re.sub(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", "", text)
         return re.sub(r"\s+", " ", text).strip()
 
-    def _load_cases(self) -> list:
-        """Загрузка кейсов из cases.json."""
-        if CASES_FILE.exists():
-            try:
-                with CASES_FILE.open("r", encoding="utf-8") as f:
-                    return json.load(f)
-            except Exception:
-                pass
-        return []
-
-    def _pick_best_case(self, project: Any, cases: list) -> str:
-        """Выбор наиболее релевантного кейса по пересечению технологий."""
-        if not cases:
-            return ""
-
-        proj_text = f"{project.title} {project.description}".lower()
-        proj_skills_set = set(s.lower() for s in (project.skills or []))
-
-        best_case = None
-        best_score = -1
-
-        for case in cases:
-            case_tech = set(t.lower() for t in case.get("tech", []))
-            # Пересечение навыков проекта и кейса
-            overlap = len(proj_skills_set & case_tech)
-            # Совпадение слов в описании
-            desc_words = set(case.get("description", "").lower().split())
-            text_overlap = sum(1 for w in desc_words if len(w) > 4 and w in proj_text)
-            score = overlap * 3 + text_overlap
-
-            if score > best_score:
-                best_score = score
-                best_case = case
-
-        if best_case and best_score > 0:
-            return (
-                f"Релевантный кейс: {best_case['title']}. "
-                f"{best_case.get('description', '')} "
-                f"Результат: {best_case.get('result', '')}"
-            )
-        return ""
-
     def _build_user_prompt(self, project: Any, lang: str = "ru",
                            client_data: dict = None, competitor_prices: list = None) -> str:
         """Сборка контекста заказа с профилем, кейсом, данными заказчика и конкуренцией."""
@@ -179,10 +137,6 @@ RULES (STRICT!):
             highlights = self.portfolio.get("portfolio_highlights", [])
             highlights_text = "; ".join(highlights[:3]) if highlights else "парсинг, автоматизация, веб-разработка"
             rag_context = f"Стек: {my_skills}. Опыт: {exp_years} лет. Примеры: {highlights_text}"
-
-        # Лучший кейс из портфолио
-        cases = self._load_cases()
-        best_case = self._pick_best_case(project, cases)
 
         # Профиль заказчика (если есть из API)
         client_context = ""
@@ -234,25 +188,21 @@ RULES (STRICT!):
         desc_safe = self._sanitize_text(project.description)
 
         if lang == "en":
-            case_section = f"\nMY BEST MATCH: {best_case}" if best_case else ""
             return (
                 f"PROJECT: {title_safe}\n"
                 f"DESC: {desc_safe}\n"
                 f"SKILLS NEEDED: {proj_skills}\n"
                 f"MY PROFILE: {rag_context}"
-                f"{case_section}"
                 f"{client_context}"
                 f"{competition_context}\n"
                 f"Write a proposal with a concrete approach and technical question."
             )
         else:
-            case_section = f"\nМОЙ РЕЛЕВАНТНЫЙ КЕЙС: {best_case}" if best_case else ""
             return (
                 f"ЗАКАЗ: {title_safe}\n"
                 f"ОПИСАНИЕ: {desc_safe}\n"
                 f"НАВЫКИ ЗАКАЗЧИКА: {proj_skills}\n"
                 f"МОЙ ПРОФИЛЬ: {rag_context}"
-                f"{case_section}"
                 f"{client_context}"
                 f"{competition_context}\n"
                 f"Напиши отклик с конкретным подходом к решению и техническим вопросом."

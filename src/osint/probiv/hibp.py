@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import aiohttp
@@ -64,7 +64,7 @@ class HIBPProvider(ProbivProvider):
             return []
 
         findings: list[ProbivFinding] = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         recent_count = 0
         total_pwn = 0
         for b in breaches or []:
@@ -73,7 +73,7 @@ class HIBPProvider(ProbivProvider):
             total_pwn += pwn_count
             age_years = 99
             try:
-                bd = datetime.strptime(breach_date, "%Y-%m-%d")
+                bd = datetime.strptime(breach_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
                 age_years = (now - bd).days / 365
                 if age_years <= 2:
                     recent_count += 1

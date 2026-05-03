@@ -167,15 +167,37 @@ class ProposalSender:
     ) -> bool:
         logger.info(f"Kwork: отправка отклика на проект {project_id}")
 
-        numeric_price = 500
-        if price:
-            try:
-                numeric_price = int(float(price))
-                if numeric_price < 500:
-                    logger.warning(f"Kwork: цена {numeric_price} ниже минимума. Устанавливаю 500.")
-                    numeric_price = 500
-            except Exception:
-                numeric_price = 500
+        kwork_min_price = int(os.getenv("KWORK_MIN_PRICE", "500"))
+
+        # Цена ОБЯЗАТЕЛЬНА. Тихо отправлять отклик за минимальные 500₽ нельзя:
+        # на проекте с бюджетом 50 000 это убивает шансы и выглядит как демпинг.
+        # Цена должна прийти из orchestrator (chosen_price → candidate.budget →
+        # медиана конкурентов). Если не пришла — это явный bug в апстриме.
+        if price is None or str(price).strip() == "":
+            logger.error(
+                f"Kwork: цена не вычислена для проекта {project_id} — "
+                f"отказ от отправки. Проверьте chosen_price/budget кандидата."
+            )
+            return False
+
+        try:
+            numeric_price = int(float(price))
+        except (TypeError, ValueError):
+            logger.error(f"Kwork: некорректная цена '{price}' для проекта {project_id} — отказ от отправки.")
+            return False
+
+        if numeric_price <= 0:
+            logger.error(f"Kwork: цена {numeric_price} ≤ 0 для проекта {project_id} — отказ от отправки.")
+            return False
+
+        # Платформенный минимум Kwork — 500₽. Если запрошенная цена ниже,
+        # поднимаем до минимума: иначе API/форма отклонит отправку.
+        if numeric_price < kwork_min_price:
+            logger.warning(
+                f"Kwork: цена {numeric_price} ниже минимума {kwork_min_price}. "
+                f"Поднимаю до минимума."
+            )
+            numeric_price = kwork_min_price
 
         if dry_run:
             logger.info("Kwork: [DRY-RUN] браузерная демонстрация без отправки")
