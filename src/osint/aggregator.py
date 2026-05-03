@@ -124,10 +124,15 @@ class OSINTAggregator:
 
     @staticmethod
     def _default_probiv_providers() -> list[ProbivProvider]:
-        """Пробив включается только явным списком в OSINT_PROBIV_PROVIDERS."""
+        """Пробив-провайдеры. По умолчанию ВКЛЮЧЕНЫ бесплатные emailrep+whatsmyname:
+        они работают без ключа и дают полезные сигналы (утечки, аккаунты на других
+        сервисах). Платные (hibp/leakcheck/intelx) добавляйте явным списком в
+        OSINT_PROBIV_PROVIDERS — без API-ключа они тихо отвалятся всё равно.
+        Пустая строка `OSINT_PROBIV_PROVIDERS=` полностью выключает пробив.
+        """
         enabled = os.getenv(
             "OSINT_PROBIV_PROVIDERS",
-            "",
+            "emailrep,whatsmyname",
         )
         active = {name.strip().lower() for name in enabled.split(",") if name.strip()}
         mapping = {
