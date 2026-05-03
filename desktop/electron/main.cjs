@@ -49,11 +49,11 @@ function isSessionHubRunning() {
 }
 
 function launchSessionHubAsAdmin(hubDir, exePath) {
-  // Запуск с правами администратора через PowerShell + runas
+  // Запускаем через cmd /c start — это заставляет Windows показать UAC нормально
   const ps = spawn('powershell.exe', [
     '-NoProfile', '-NonInteractive', '-Command',
-    `Start-Process -FilePath "${exePath}" -WorkingDirectory "${hubDir}" -Verb RunAs`
-  ], { detached: true, stdio: 'ignore', windowsHide: true })
+    `Start-Process -FilePath "${exePath}" -WorkingDirectory "${hubDir}" -Verb RunAs -WindowStyle Normal`
+  ], { detached: true, stdio: 'ignore', windowsHide: false })
   ps.unref()
 }
 
