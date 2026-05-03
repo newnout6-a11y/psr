@@ -7,11 +7,18 @@
   - malicious / suspicious activity
   - возраст домена
 Лимит: 1 req/sec для анонимных. С ключом EMAILREP_KEY — выше.
+
+Глобальный троттлинг (class-level Lock + last-call timestamp) гарантирует
+что мы не превышаем 1 RPS даже когда несколько emails из одного описания
+бросаются в gather() одновременно — иначе первый запрос проходит,
+остальные ловят 429 и тихо отбрасывались.
 """
 
 from __future__ import annotations
 
+import asyncio
 import os
+import time
 from typing import Any
 
 import aiohttp
@@ -25,6 +32,27 @@ class EmailRepProvider(ProbivProvider):
     requires_key = False
     accepts = ("email",)
     BASE = "https://emailrep.io"
+
+    # Глобальная сериализация запросов: 1 RPS даже при параллельных вызовах.
+    _rate_lock: asyncio.Lock | None = None
+    _last_call_ts: float = 0.0
+    _MIN_INTERVAL_SEC: float = 1.05  # +5% запаса от лимита 1 RPS
+
+    @classmethod
+    def _get_lock(cls) -> asyncio.Lock:
+        if cls._rate_lock is None:
+            cls._rate_lock = asyncio.Lock()
+        return cls._rate_lock
+
+    @classmethod
+    async def _throttle(cls) -> None:
+        """Сериализуем вызовы, чтобы между запросами было ≥ 1.05с."""
+        async with cls._get_lock():
+            elapsed = time.monotonic() - cls._last_call_ts
+            wait = cls._MIN_INTERVAL_SEC - elapsed
+            if wait > 0:
+                await asyncio.sleep(wait)
+            cls._last_call_ts = time.monotonic()
 
     async def lookup(
         self,
@@ -42,6 +70,8 @@ class EmailRepProvider(ProbivProvider):
         api_key = os.getenv("EMAILREP_KEY", "").strip()
         if api_key:
             headers["Key"] = api_key
+
+        await self._throttle()
 
         timeout = aiohttp.ClientTimeout(total=self.timeout_sec)
         try:
