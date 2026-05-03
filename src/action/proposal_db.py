@@ -184,8 +184,25 @@ class ProposalDB:
 
             for column, ddl in [
                 ("platform_data", "TEXT"),
+                # Phase 3 — feedback loop fields. Все nullable / с defaults,
+                # чтобы старые БД мигрировали идемпотентно.
+                ("client_username", "TEXT"),
+                ("replied_at", "TEXT"),
+                ("reply_text", "TEXT"),
+                ("reply_classification", "TEXT"),
+                ("reply_classified_at", "TEXT"),
+                ("won", "INTEGER DEFAULT 0"),
+                ("revenue", "REAL"),
+                ("prompt_variant", "TEXT"),
             ]:
                 self._ensure_column(conn, "candidates", column, ddl)
+
+            # Индекс для быстрого поиска кандидатов по нику клиента
+            # (используется reply_linker, может тащить большие выборки).
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_candidates_client_username "
+                "ON candidates(platform, client_username)"
+            )
 
             conn.commit()
 
@@ -351,6 +368,163 @@ class ProposalDB:
                 (project_id, platform),
             ).fetchone()
             return self._row_to_candidate(row) if row else None
+
+    # ------------------------------------------------------------------
+    # Phase 3 — feedback loop helpers
+    # ------------------------------------------------------------------
+
+    # Статусы, при которых имеет смысл связывать входящее сообщение с
+    # кандидатом: отклик ушёл/готовится, либо мы уже в переписке.
+    _REPLY_LINKABLE_STATUSES = (
+        "auto_sent",
+        "manual_sent",
+        "draft",
+        "queued",
+        "auto_ready",
+        "snoozed",
+    )
+
+    def find_candidate_for_reply(
+        self,
+        platform: str,
+        username: str,
+        project_id: Optional[str] = None,
+    ) -> Optional[dict[str, Any]]:
+        """Найти кандидата для авто-связки реплая.
+
+        Стратегия (от наиболее точного к наименее):
+            1. (platform, project_id, client_username);
+            2. (platform, client_username) среди отправленных/queued, latest first.
+
+        Возвращает None если ни одного не нашлось — вызывающий должен
+        корректно деградировать (например, оставить только notify).
+        """
+        username = (username or "").strip()
+        if not platform or not username:
+            return None
+
+        placeholders = ", ".join("?" for _ in self._REPLY_LINKABLE_STATUSES)
+        with self._connect() as conn:
+            if project_id:
+                row = conn.execute(
+                    f"""
+                    SELECT * FROM candidates
+                    WHERE platform = ? AND project_id = ? AND client_username = ?
+                          AND status IN ({placeholders})
+                    ORDER BY updated_at DESC LIMIT 1
+                    """,
+                    (platform, project_id, username, *self._REPLY_LINKABLE_STATUSES),
+                ).fetchone()
+                if row:
+                    return self._row_to_candidate(row)
+
+            row = conn.execute(
+                f"""
+                SELECT * FROM candidates
+                WHERE platform = ? AND client_username = ?
+                      AND status IN ({placeholders})
+                ORDER BY
+                    CASE WHEN sent_at IS NOT NULL THEN 0 ELSE 1 END,
+                    sent_at DESC,
+                    updated_at DESC
+                LIMIT 1
+                """,
+                (platform, username, *self._REPLY_LINKABLE_STATUSES),
+            ).fetchone()
+            return self._row_to_candidate(row) if row else None
+
+    def link_reply_to_candidate(
+        self,
+        candidate_id: int,
+        *,
+        reply_text: str,
+        replied_at: Optional[str] = None,
+        actor: str = "inbox_monitor",
+        record_action: bool = True,
+        overwrite: bool = False,
+    ) -> bool:
+        """Сохранить факт реплая клиента на кандидате.
+
+        По умолчанию НЕ перетирает уже сохранённый первый реплай —
+        мы хотим зафиксировать именно «первое касание». Возвращает
+        True если поля действительно были обновлены.
+        """
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT replied_at, reply_text FROM candidates WHERE candidate_id = ?",
+                (candidate_id,),
+            ).fetchone()
+            if not row:
+                return False
+            already_linked = bool(row["replied_at"] or row["reply_text"])
+            if already_linked and not overwrite:
+                return False
+
+        ts = replied_at or _now()
+        text = (reply_text or "").strip()[:4000]
+        self.update_candidate(
+            candidate_id,
+            replied_at=ts,
+            reply_text=text,
+        )
+        if record_action:
+            self.record_candidate_action(
+                candidate_id,
+                "customer_replied",
+                actor=actor,
+                payload={"reply_text": text[:280], "replied_at": ts},
+            )
+        return True
+
+    def set_reply_classification(
+        self,
+        candidate_id: int,
+        classification: str,
+        *,
+        actor: str = "reply_classifier",
+        record_action: bool = True,
+    ) -> None:
+        classification = (classification or "").strip().lower()
+        if not classification:
+            return
+        self.update_candidate(
+            candidate_id,
+            reply_classification=classification,
+            reply_classified_at=_now(),
+        )
+        if record_action:
+            self.record_candidate_action(
+                candidate_id,
+                "reply_classified",
+                actor=actor,
+                payload={"classification": classification},
+            )
+
+    def set_candidate_outcome(
+        self,
+        candidate_id: int,
+        *,
+        won: Optional[bool] = None,
+        revenue: Optional[float] = None,
+        actor: str = "system",
+        record_action: bool = True,
+    ) -> None:
+        """Зафиксировать финальный исход (взяли/не взяли, доход)."""
+        fields: dict[str, Any] = {}
+        if won is not None:
+            fields["won"] = 1 if won else 0
+        if revenue is not None:
+            fields["revenue"] = float(revenue)
+        if not fields:
+            return
+        self.update_candidate(candidate_id, **fields)
+        if record_action:
+            self.record_candidate_action(
+                candidate_id,
+                "outcome_recorded",
+                actor=actor,
+                payload={"won": won, "revenue": revenue},
+            )
 
     def get_candidates_by_status(
         self,
@@ -717,4 +891,5 @@ class ProposalDB:
         item["auto_eligible"] = bool(item.get("auto_eligible", 0))
         item["vet_passed"] = bool(item.get("vet_passed", 0))
         item["dry_run"] = bool(item.get("dry_run", 0))
+        item["won"] = bool(item.get("won", 0))
         return item
