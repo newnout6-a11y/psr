@@ -170,6 +170,9 @@ export const api = {
   getErrors: (limit = 50) => request<ErrorRow[]>(`/api/dashboard/errors?limit=${limit}`),
   getRuntimeState: () => request<{ execution_mode: string; paused_platforms: string[] }>('/api/dashboard/runtime-state'),
 
+  // Conversion (Phase 3 feedback loop)
+  getConversion: (days = 30) => request<ConversionAggregate>(`/api/dashboard/conversion?days=${days}`),
+
   // Settings
   getEnv: () => request<{ values: Record<string, string>; secret_keys: string[]; mask: string }>('/api/settings/env'),
   revealEnvValue: (key: string) =>
@@ -350,4 +353,80 @@ export interface OSINTFinding {
   snippet?: string
   confidence?: number
   meta?: Record<string, unknown>
+}
+
+// ── Conversion (Phase 3 feedback loop) ───────────────────────────────────────
+//
+// Бэкенд гарантирует, что строки с `reply_rate` / `win_rate` уже
+// округлены до 2 знаков; десятичные значения revenue приходят как
+// number, потому что бэкенд кастит к float перед сериализацией.
+
+export interface ConversionSummary {
+  days: number
+  sent: number
+  replied: number
+  won: number
+  revenue: number
+  reply_rate: number
+  win_rate: number
+}
+
+export interface ConversionByProviderRow {
+  provider: string
+  sent: number
+  replied: number
+  won: number
+  revenue: number
+  reply_rate: number
+  win_rate: number
+}
+
+export interface ConversionByNicheRow {
+  niche: string
+  sent: number
+  replied: number
+  won: number
+  reply_rate: number
+}
+
+export interface ConversionByQueuePositionRow {
+  queue_bucket: string
+  sent: number
+  replied: number
+  won: number
+  reply_rate: number
+}
+
+export interface ConversionByResponseTimeRow {
+  response_bucket: string
+  replies: number
+  won: number
+  win_rate: number
+}
+
+export interface ConversionByPromptVariantRow {
+  prompt_variant: string
+  sent: number
+  replied: number
+  won: number
+  reply_rate: number
+  win_rate: number
+}
+
+export interface ConversionClassificationRow {
+  classification: string
+  replies: number
+  won: number
+  win_rate: number
+}
+
+export interface ConversionAggregate {
+  days: number
+  summary: ConversionSummary
+  by_provider: ConversionByProviderRow[]
+  by_niche: ConversionByNicheRow[]
+  by_queue_position: ConversionByQueuePositionRow[]
+  by_response_time: ConversionByResponseTimeRow[]
+  by_prompt_variant: ConversionByPromptVariantRow[]
+  classification_breakdown: ConversionClassificationRow[]
 }

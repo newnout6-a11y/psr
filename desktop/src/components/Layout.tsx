@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ListChecks, Settings, ScrollText,
   Search, Play, Square, ChevronDown, Globe2,
   AlertCircle, CheckCircle2, Loader2, Asterisk, Monitor, ShieldCheck,
-  Activity
+  Activity, TrendingUp
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
@@ -39,11 +39,12 @@ interface RunConfig {
 }
 
 const NAV = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Панель' },
-  { to: '/queue',     icon: ListChecks,      label: 'Очередь' },
-  { to: '/settings',  icon: Settings,        label: 'Настройки' },
-  { to: '/logs',      icon: ScrollText,      label: 'Логи' },
-  { to: '/osint',     icon: Search,          label: 'OSINT' },
+  { to: '/dashboard',  icon: LayoutDashboard, label: 'Панель' },
+  { to: '/conversion', icon: TrendingUp,      label: 'Конверсия' },
+  { to: '/queue',      icon: ListChecks,      label: 'Очередь' },
+  { to: '/settings',   icon: Settings,        label: 'Настройки' },
+  { to: '/logs',       icon: ScrollText,      label: 'Логи' },
+  { to: '/osint',      icon: Search,          label: 'OSINT' },
 ]
 
 const MODES = ['auto', 'semi_auto', 'manual', 'paused']
