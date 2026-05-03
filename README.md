@@ -310,13 +310,15 @@ OSINT включается через:
 ```env
 OSINT_ENABLED=true
 OSINT_PROVIDERS=github,habr,duckduckgo,kwork_profile
-OSINT_PROBIV_PROVIDERS=
+OSINT_PROBIV_PROVIDERS=emailrep,whatsmyname
 ```
 
 Поддерживаются:
 
 - публичные провайдеры: GitHub, Habr, DuckDuckGo, профиль Kwork;
-- probiv-провайдеры: EmailRep, WhatsMyName, HIBP, LeakCheck, IntelX, но они отключены по умолчанию из-за задержек;
+- probiv-провайдеры: EmailRep, WhatsMyName (бесплатные, **включены по умолчанию**), HIBP, LeakCheck, IntelX (платные, добавляй явным списком — без API-ключа всё равно отключатся);
+- EmailRep троттлится глобально 1 RPS, чтобы не ловить 429 при множестве email из одного описания;
+- профиль Kwork парсится из `window.stateData` JSON (структурированно, без хрупких регулярок); если страница вернула пустой SPA-каркас, провайдер ничего не возвращает (раньше эмитил мусорные «отзывы» с произвольной тональностью);
 - извлечение email, телефонов, Telegram и username из текста проекта;
 - кэширование результатов.
 
