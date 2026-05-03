@@ -194,6 +194,12 @@ class ProposalDB:
                 ("won", "INTEGER DEFAULT 0"),
                 ("revenue", "REAL"),
                 ("prompt_variant", "TEXT"),
+                # Денормализуем счётчики проекта на момент upsert,
+                # чтобы dashboard-запросы (по позиции в очереди /
+                # «горячести» клиента) не тащили JOIN с proposals
+                # на каждом GROUP BY.
+                ("offers_count", "INTEGER DEFAULT 0"),
+                ("client_hired_percent", "INTEGER DEFAULT 0"),
             ]:
                 self._ensure_column(conn, "candidates", column, ddl)
 
@@ -272,6 +278,8 @@ class ProposalDB:
             "created_at": project.created_at,
             "search_query": getattr(project, "search_query", None),
             "platform_data": _to_json(getattr(project, "platform_data", None)),
+            "offers_count": int(getattr(project, "offers_count", 0) or 0),
+            "client_hired_percent": int(getattr(project, "client_hired_percent", 0) or 0),
             "updated_at": _now(),
         }
         for key, value in fields.items():
