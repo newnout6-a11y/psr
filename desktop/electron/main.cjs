@@ -48,13 +48,13 @@ function isSessionHubRunning() {
   })
 }
 
-function launchSessionHubAsAdmin(hubDir, exePath) {
-  // Запускаем через cmd /c start — это заставляет Windows показать UAC нормально
-  const ps = spawn('powershell.exe', [
-    '-NoProfile', '-NonInteractive', '-Command',
-    `Start-Process -FilePath "${exePath}" -WorkingDirectory "${hubDir}" -Verb RunAs -WindowStyle Normal`
-  ], { detached: true, stdio: 'ignore', windowsHide: false })
-  ps.unref()
+async function launchSessionHubAsAdmin(exePath) {
+  // shell.openPath использует ShellExecute — единственный способ на Windows
+  // корректно триггернуть UAC для exe с requireAdministrator manifest
+  const err = await shell.openPath(exePath)
+  if (err) {
+    console.error('[Electron] shell.openPath failed:', err)
+  }
 }
 
 
@@ -214,7 +214,7 @@ app.whenReady().then(async () => {
       try {
         if (fs.existsSync(exePath)) {
           console.log('[Electron] Starting Session Hub as admin (exe)...')
-          launchSessionHubAsAdmin(SESSION_HUB_DIR, exePath)
+          await launchSessionHubAsAdmin(exePath)
         } else if (fs.existsSync(pyPath)) {
           console.log('[Electron] Starting Session Hub (py)...')
           const pythonExe = findPython()
