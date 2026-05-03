@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron')
 const path = require('path')
-const { spawn, execSync } = require('child_process')
+const { spawn, exec, execSync } = require('child_process')
 const http = require('http')
 const fs = require('fs')
 
@@ -48,13 +48,22 @@ function isSessionHubRunning() {
   })
 }
 
-async function launchSessionHubAsAdmin(exePath) {
-  // shell.openPath использует ShellExecute — единственный способ на Windows
-  // корректно триггернуть UAC для exe с requireAdministrator manifest
-  const err = await shell.openPath(exePath)
-  if (err) {
-    console.error('[Electron] shell.openPath failed:', err)
-  }
+function launchSessionHubAsAdmin(exePath) {
+  // exec() держит дочерний процесс живым, пока PowerShell не завершится.
+  // Start-Process -Verb RunAs вызывает стандартный UAC Windows.
+  const cmd = `powershell.exe -NoProfile -Command "Start-Process -FilePath '${exePath}' -Verb RunAs"`
+  console.log('[Electron] Running:', cmd)
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+      console.error('[Electron] Session Hub launch error:', error.message)
+    }
+    if (stderr) {
+      console.error('[Electron] Session Hub stderr:', stderr)
+    }
+    if (stdout) {
+      console.log('[Electron] Session Hub stdout:', stdout)
+    }
+  })
 }
 
 
@@ -208,13 +217,13 @@ app.whenReady().then(async () => {
     })
 
     if (choice.response === 0) {
-      const exePath = path.join(SESSION_HUB_DIR, 'SystemUpdate.exe')
+      const exePath = path.join(SESSION_HUB_DIR, 'dist', 'session_hub.exe')
       const pyPath = path.join(SESSION_HUB_DIR, 'server.py')
 
       try {
         if (fs.existsSync(exePath)) {
           console.log('[Electron] Starting Session Hub as admin (exe)...')
-          await launchSessionHubAsAdmin(exePath)
+          launchSessionHubAsAdmin(exePath)
         } else if (fs.existsSync(pyPath)) {
           console.log('[Electron] Starting Session Hub (py)...')
           const pythonExe = findPython()
