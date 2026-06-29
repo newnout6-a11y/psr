@@ -69,11 +69,9 @@ def _admin_chat_id() -> str:
 
 
 def _bot_api_base() -> str:
-    return (
-        os.getenv("TELEGRAM_BOT_API_BASE")
-        or os.getenv("TELEGRAM_API_BASE")
-        or "https://api.telegram.org"
-    ).rstrip("/")
+    return (os.getenv("TELEGRAM_BOT_API_BASE") or os.getenv("TELEGRAM_API_BASE") or "https://api.telegram.org").rstrip(
+        "/"
+    )
 
 
 def _normalize_chat_id(chat_id: str | int | None) -> str:
@@ -219,6 +217,7 @@ async def bot_api_send_document(
         data["reply_markup"] = json.dumps(markup, ensure_ascii=False)
 
     import mimetypes
+
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
 
     url = f"{_bot_api_base()}/bot{token}/sendDocument"
@@ -259,6 +258,7 @@ async def bot_api_send_media_group(
     url = f"{_bot_api_base()}/bot{token}/sendMediaGroup"
     try:
         import json as _json
+
         data = {
             "chat_id": target,
             "media": _json.dumps(media, ensure_ascii=False),

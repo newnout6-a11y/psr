@@ -268,25 +268,39 @@ class KworkAPIParser(BaseParser):
             elif hasattr(p, "__dict__"):
                 raw_data = dict(p.__dict__)
 
-            projects.append(ProjectItem(
-                id=project_id,
-                title=title,
-                description=description,
-                budget=budget,
-                currency="RUB",
-                skills=skills,
-                created_at=created_at,
-                url=url,
-                platform=self.PLATFORM_NAME,
-                offers_count=int(getattr(p, "offers", 0) or 0),
-                client_hired_percent=int(getattr(p, "user_hired_percent", 0) or 0),
-                client_user_id=str(getattr(p, "user_id", "") or ""),
-                platform_data={
-                    "source": "kwork_mobile_api",
-                    "category_name": getattr(p, "category_name", None),
-                    "raw": raw_data,
-                },
-            ))
+            projects.append(
+                ProjectItem(
+                    id=project_id,
+                    title=title,
+                    description=description,
+                    budget=budget,
+                    currency="RUB",
+                    skills=skills,
+                    created_at=created_at,
+                    url=url,
+                    platform=self.PLATFORM_NAME,
+                    offers_count=int(getattr(p, "offers", 0) or 0),
+                    client_hired_percent=int(getattr(p, "user_hired_percent", 0) or 0),
+                    client_user_id=str(getattr(p, "user_id", "") or ""),
+                    platform_data={
+                        "source": "kwork_mobile_api",
+                        "category_id": raw_data.get("category_id") or getattr(p, "category_id", None),
+                        "parent_category_id": raw_data.get("parent_category_id")
+                        or getattr(p, "parent_category_id", None),
+                        "category_name": getattr(p, "category_name", None) or raw_data.get("category_name"),
+                        "available_durations": raw_data.get("availableDurations")
+                        or raw_data.get("available_durations")
+                        or [],
+                        "possible_price_limit": raw_data.get("possiblePriceLimit")
+                        or raw_data.get("possible_price_limit"),
+                        "allow_higher_price": raw_data.get("allowHigherPrice") or raw_data.get("allow_higher_price"),
+                        "already_work": raw_data.get("alreadyWork") or raw_data.get("already_work"),
+                        "files": raw_data.get("files") or [],
+                        "date_create": raw_data.get("date_create") or raw_data.get("dateCreate"),
+                        "raw": raw_data,
+                    },
+                )
+            )
 
         return projects
 
@@ -295,6 +309,7 @@ class KworkAPIParser(BaseParser):
 
     async def _fallback_browser_details(self, project_id: str) -> Optional[ProjectItem]:
         from .kwork_parser import KworkParser
+
         logger.info(f"KworkAPI: fallback на браузерный парсер для проекта {project_id}...")
         browser_parser = KworkParser()
         try:
@@ -305,6 +320,7 @@ class KworkAPIParser(BaseParser):
 
     async def _fallback_browser(self, page, per_page, filters):
         from .kwork_parser import KworkParser
+
         logger.info("KworkAPI: fallback на браузерный KworkParser...")
         browser_parser = KworkParser()
         try:
@@ -316,6 +332,7 @@ class KworkAPIParser(BaseParser):
     def close(self):
         try:
             import asyncio
+
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 asyncio.ensure_future(self.service.close())

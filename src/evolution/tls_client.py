@@ -13,25 +13,45 @@ class TLSClient:
     HTTP-клиент с подменой TLS-отпечатков (JA3/JA4) и HTTP/2 фингерпринтов.
     Эмулирует Chrome 120 для обхода Cloudflare, DataDome, PerimeterX.
     """
-    
+
     # Пресеты браузеров для curl_cffi (динамически определяем доступные)
     BROWSER_PRESETS = {}
     _available_browsers = [
-        "chrome142", "chrome136", "chrome133a", "chrome131", "chrome124",
-        "chrome123", "chrome120", "chrome119", "chrome116", "chrome110",
-        "chrome107", "chrome104", "chrome101", "chrome100", "chrome99",
-        "firefox144", "firefox135", "firefox133", "firefox124", "firefox120",
-        "safari18_0", "safari17_0", "safari15_5", "safari153",
-        "edge101", "edge99",
+        "chrome142",
+        "chrome136",
+        "chrome133a",
+        "chrome131",
+        "chrome124",
+        "chrome123",
+        "chrome120",
+        "chrome119",
+        "chrome116",
+        "chrome110",
+        "chrome107",
+        "chrome104",
+        "chrome101",
+        "chrome100",
+        "chrome99",
+        "firefox144",
+        "firefox135",
+        "firefox133",
+        "firefox124",
+        "firefox120",
+        "safari18_0",
+        "safari17_0",
+        "safari15_5",
+        "safari153",
+        "edge101",
+        "edge99",
     ]
-    
+
     for _name in _available_browsers:
         BROWSER_PRESETS[_name] = _name
-    
+
     # Fallback если ни один браузер не найден
     if not BROWSER_PRESETS:
         BROWSER_PRESETS = {"default": "chrome120"}
-    
+
     def __init__(
         self,
         browser: str = "chrome120",
@@ -44,12 +64,12 @@ class TLSClient:
         if browser_normalized not in self.BROWSER_PRESETS:
             logger.warning(f"Неизвестный браузер: {browser}, используем chrome120")
             browser_normalized = "chrome120"
-        
+
         self.browser_name = browser_normalized
         self.proxy = proxy
         self.timeout = timeout
         self.impersonate = impersonate
-        
+
         # Создаём сессию с подменой отпечатков
         self.session = curl_requests.Session(
             impersonate=browser_normalized,
@@ -57,16 +77,16 @@ class TLSClient:
             timeout=timeout,
             verify=True,
         )
-        
+
         logger.info(f"TLSClient инициализирован: {browser_normalized}, прокси: {proxy or 'нет'}")
-    
+
     def get(
         self,
         url: str,
         headers: Optional[Dict[str, str]] = None,
         params: Optional[Dict[str, Any]] = None,
         allow_redirects: bool = True,
-        **kwargs
+        **kwargs,
     ) -> curl_requests.Response:
         """GET-запрос с подменой TLS-отпечатка."""
         try:
@@ -75,37 +95,33 @@ class TLSClient:
                 headers=headers or self._default_headers(),
                 params=params,
                 allow_redirects=allow_redirects,
-                **kwargs
+                **kwargs,
             )
             logger.debug(f"GET {url} → {response.status_code}")
             return response
         except Exception as e:
             logger.error(f"Ошибка GET {url}: {e}")
             raise
-    
+
     def post(
         self,
         url: str,
         headers: Optional[Dict[str, str]] = None,
         json: Optional[Dict[str, Any]] = None,
         data: Optional[Any] = None,
-        **kwargs
+        **kwargs,
     ) -> curl_requests.Response:
         """POST-запрос с подменой TLS-отпечатка."""
         try:
             response = self.session.post(
-                url,
-                headers=headers or self._default_headers(),
-                json=json,
-                data=data,
-                **kwargs
+                url, headers=headers or self._default_headers(), json=json, data=data, **kwargs
             )
             logger.debug(f"POST {url} → {response.status_code}")
             return response
         except Exception as e:
             logger.error(f"Ошибка POST {url}: {e}")
             raise
-    
+
     def graphql_query(
         self,
         url: str,
@@ -118,32 +134,34 @@ class TLSClient:
             "query": query,
             "variables": variables or {},
         }
-        
+
         graphql_headers = self._default_headers()
-        graphql_headers.update({
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        })
+        graphql_headers.update(
+            {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
         if headers:
             graphql_headers.update(headers)
-        
+
         return self.post(url, json=payload, headers=graphql_headers)
-    
+
     def update_proxy(self, proxy: str):
         """Обновить прокси (для IPv6 ротации)."""
         self.proxy = proxy
         self.session.proxies = {"http": proxy, "https": proxy}
         logger.debug(f"Прокси обновлён: {proxy}")
-    
+
     def get_cookies(self) -> Dict[str, str]:
         """Получить cookies сессии."""
         return dict(self.session.cookies)
-    
+
     def set_cookies(self, cookies: Dict[str, str]):
         """Установить cookies."""
         for name, value in cookies.items():
             self.session.cookies.set(name, value)
-    
+
     def _default_headers(self) -> Dict[str, str]:
         """Заголовки по умолчанию (Chrome 120)."""
         return {
@@ -158,7 +176,7 @@ class TLSClient:
             "Sec-Fetch-User": "?1",
             "Upgrade-Insecure-Requests": "1",
         }
-    
+
     def close(self):
         """Закрыть сессию."""
         self.session.close()

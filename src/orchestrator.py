@@ -41,9 +41,16 @@ ACTIVE_PROCESSING_STATUSES = {"parsed", "filtered", "scored", "vetted", "auto_re
 BLOCKING_STATUSES = {"queued", "snoozed", "manual_sent", "auto_sent", "draft", "skipped", "sending"}
 
 _BUSINESS_REJECTION_MARKERS = {
-    "project closed", "закрыт", "already responded", "уже отправл",
-    "too short", "слишком коротк", "минимальная цена", "min price",
-    "not enough connects", "недостаточно connect",
+    "project closed",
+    "закрыт",
+    "already responded",
+    "уже отправл",
+    "too short",
+    "слишком коротк",
+    "минимальная цена",
+    "min price",
+    "not enough connects",
+    "недостаточно connect",
 }
 
 
@@ -55,6 +62,8 @@ def _is_business_rejection(error_msg: str) -> bool:
     """
     msg_lower = (error_msg or "").lower()
     return any(marker in msg_lower for marker in _BUSINESS_REJECTION_MARKERS)
+
+
 REPROCESS_RESET_FIELDS: dict[str, Any] = {
     "ai_pre_score": None,
     "ai_score": None,
@@ -106,7 +115,7 @@ def _route_provider_from_env(task: str) -> str:
         provider = _normalize_route_provider(os.getenv("PARSER_LLM_PROVIDER"))
         if provider:
             return provider
-    return (os.getenv("LLM_PROVIDER", "auto").strip().lower() or "auto")
+    return os.getenv("LLM_PROVIDER", "auto").strip().lower() or "auto"
 
 
 def _model_compatible_with_provider(provider: str, model: str) -> bool:
@@ -129,10 +138,12 @@ def _provider_model_from_env(provider: str, *, task: str | None = None) -> str:
 
     candidate_keys: list[str] = []
     if task_key:
-        candidate_keys.extend([
-            f"{provider_key}_MODEL_{task_key}",
-            f"{task_key}_MODEL_{provider_key}",
-        ])
+        candidate_keys.extend(
+            [
+                f"{provider_key}_MODEL_{task_key}",
+                f"{task_key}_MODEL_{provider_key}",
+            ]
+        )
         parser_provider = _normalize_route_provider(os.getenv("PARSER_LLM_PROVIDER"))
         if task in {"query_generation", "scoring"} and parser_provider == provider:
             candidate_keys.append("PARSER_LLM_MODEL")
@@ -156,7 +167,9 @@ def _provider_model_from_env(provider: str, *, task: str | None = None) -> str:
     return "auto"
 
 
-def _limit_payloads_per_platform(payloads: list[dict[str, Any]], limit_per_platform: int) -> tuple[list[dict[str, Any]], int]:
+def _limit_payloads_per_platform(
+    payloads: list[dict[str, Any]], limit_per_platform: int
+) -> tuple[list[dict[str, Any]], int]:
     limit = max(1, int(limit_per_platform or 1))
     counts: dict[str, int] = {}
     selected: list[dict[str, Any]] = []
@@ -200,11 +213,10 @@ class FreelanceOrchestrator:
         async def _on_breaker_open(key: str, state: str, seconds: int, error: str):
             logger.warning(f"Breaker alert: {key} {state} for {seconds}s: {error}")
             if self.notifier:
-                await self.notifier.send_text(
-                    f"BREAKER: {key} → {state} на {seconds}s\nПричина: {error}"
-                )
+                await self.notifier.send_text(f"BREAKER: {key} → {state} на {seconds}s\nПричина: {error}")
 
         from src.utils.circuit_breaker import CircuitBreaker
+
         CircuitBreaker._on_state_change = _on_breaker_open
 
         self.notifier = TelegramNotifier(db=self.db)
@@ -436,7 +448,7 @@ class FreelanceOrchestrator:
 
         # Enrich candidate with files from platform_data if missing
         platform_data = candidate.get("platform_data")
-        if (not platform_data or not isinstance(platform_data, dict) or not platform_data.get("files")):
+        if not platform_data or not isinstance(platform_data, dict) or not platform_data.get("files"):
             # Try to get files from project's platform_data
             proj_pd = getattr(project, "platform_data", None)
             if isinstance(proj_pd, dict) and proj_pd.get("files"):
@@ -570,7 +582,9 @@ class FreelanceOrchestrator:
                 price=str(price) if price is not None else None,
                 dry_run=False,
                 attachments=proposal_attachments,
-                platform_data=candidate.get("platform_data") if isinstance(candidate.get("platform_data"), dict) else None,
+                platform_data=candidate.get("platform_data")
+                if isinstance(candidate.get("platform_data"), dict)
+                else None,
             )
         except Exception as e:
             error_str = str(e)
@@ -607,7 +621,7 @@ class FreelanceOrchestrator:
             from src.platforms.kwork_ext import get_connects_monitor
 
             monitor = get_connects_monitor()
-            monitor._cache["free_amount"] = max(0, monitor.free_amount - 1)
+            monitor.decrement(1)
         self.db.save_proposal(
             project_id=project_id,
             platform=platform,
@@ -676,11 +690,46 @@ class FreelanceOrchestrator:
             f"fallback={fallback_provider}/{_provider_model_from_env(fallback_provider)}"
         )
         self.db.requeue_due_candidates()
+        self.db.recover_stale_sending()
         self.search_strategy.invalidate_cache()
+
+        try:
+            from src.utils.schedule import get_schedule_manager
+
+            sched = get_schedule_manager()
+            if not sched.is_work_time():
+                logger.info("Вне рабочих часов — цикл пропущен")
+                return {
+                    "parsed": 0,
+                    "active": 0,
+                    "filtered": 0,
+                    "ai_passed": 0,
+                    "vetted": 0,
+                    "proposal_selected": 0,
+                    "proposal_limited": 0,
+                    "queued": 0,
+                    "auto_ready": 0,
+                    "sent": 0,
+                    "per_platform": {},
+                    "discovery": {},
+                    "skipped_reason": "outside_work_hours",
+                }
+        except Exception:
+            pass
         for parser in self.parsers:
             service = getattr(parser, "service", None)
             if service is not None and hasattr(service, "reset_cycle"):
                 service.reset_cycle()
+
+        if os.getenv("PLATFORMS", "kwork").lower().find("kwork") >= 0:
+            try:
+                from src.platforms.kwork import get_kwork_service
+
+                kwork_svc = get_kwork_service()
+                await kwork_svc.check_connects()
+                await kwork_svc.check_success_rate()
+            except Exception as e:
+                logger.debug(f"Health check (connects/rate) failed: {e}")
 
         try:
             responses = await self.inbox_monitor.check_all()
@@ -811,6 +860,11 @@ class FreelanceOrchestrator:
             if self._is_blocked_existing_candidate(existing):
                 status = str(existing.get("status") or "unknown") if existing else "unknown"
                 blocked_existing[status] = blocked_existing.get(status, 0) + 1
+                continue
+            client_uid = str(getattr(project, "client_user_id", "") or "")
+            if client_uid and self.db.is_client_blacklisted(client_uid, project.platform):
+                logger.info(f"Клиент {client_uid} в чёрном списке — пропуск проекта {project.id}")
+                blocked_existing["blacklisted"] = blocked_existing.get("blacklisted", 0) + 1
                 continue
             candidate_id = self._stage_candidate(project, "parsed", "parsed", dry_run=1 if dry_run else 0)
             candidate_ids[self._project_key(project)] = candidate_id
@@ -1094,7 +1148,8 @@ class FreelanceOrchestrator:
                         actor="system",
                         reason="cycle auto-send limit reached",
                     )
-                    await self._notify_candidate(candidate_id, project)
+                    with suppress(Exception):
+                        await self._notify_candidate(candidate_id, project)
                     queued_count += 1
                     continue
 
@@ -1102,12 +1157,14 @@ class FreelanceOrchestrator:
                 self._record_query_signal(project, "auto_ready")
                 auto_ready_count += 1
                 auto_send_counts[project.platform] = auto_send_counts.get(project.platform, 0) + 1
-                await self._notify_candidate(candidate_id, project)
+                with suppress(Exception):
+                    await self._notify_candidate(candidate_id, project)
                 continue
 
             self.db.update_candidate_status(candidate_id, "queued", actor="system", reason=decision.reason)
             queued_count += 1
-            await self._notify_candidate(candidate_id, project)
+            with suppress(Exception):
+                await self._notify_candidate(candidate_id, project)
 
         await self.notifier.maybe_send_digest()
 

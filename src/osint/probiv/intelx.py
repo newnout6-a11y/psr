@@ -37,14 +37,14 @@ from .base import ProbivFinding, ProbivProvider
 # Buckets, доступные на free-tier и полезные для пробива.
 # Полный список: https://intelx.io/integrations → API → Buckets.
 _DEFAULT_BUCKETS = [
-    "leaks.public",        # публичные утечки — главное
+    "leaks.public",  # публичные утечки — главное
     "leaks.public.general",
-    "darknet.tor",         # .onion
+    "darknet.tor",  # .onion
     "darknet.i2p",
-    "pastes",              # pastebin-подобные
-    "dumpster",            # все file-drops
-    "whois",               # whois-записи
-    "usenet",              # newsgroups
+    "pastes",  # pastebin-подобные
+    "dumpster",  # все file-drops
+    "whois",  # whois-записи
+    "usenet",  # newsgroups
 ]
 
 
@@ -60,10 +60,7 @@ class IntelXProvider(ProbivProvider):
         # платные аккаунты должны явно переопределить INTELX_BASE_URL=https://2.intelx.io
         self.base = os.getenv("INTELX_BASE_URL", "https://free.intelx.io").rstrip("/")
         buckets_env = os.getenv("INTELX_BUCKETS", "").strip()
-        self.buckets = (
-            [b.strip() for b in buckets_env.split(",") if b.strip()]
-            if buckets_env else _DEFAULT_BUCKETS
-        )
+        self.buckets = [b.strip() for b in buckets_env.split(",") if b.strip()] if buckets_env else _DEFAULT_BUCKETS
         try:
             self.max_results = int(os.getenv("INTELX_MAX_RESULTS", "25"))
         except ValueError:
@@ -99,16 +96,14 @@ class IntelXProvider(ProbivProvider):
                     "buckets": self.buckets,
                     "lookuplevel": 0,
                     "maxresults": self.max_results,
-                    "timeout": 5,            # сек на стороне IntelX
+                    "timeout": 5,  # сек на стороне IntelX
                     "datefrom": "",
                     "dateto": "",
-                    "sort": 4,               # по дате, свежие первыми
-                    "media": 0,              # любые типы файлов
+                    "sort": 4,  # по дате, свежие первыми
+                    "media": 0,  # любые типы файлов
                     "terminate": [],
                 }
-                async with s.post(
-                    f"{self.base}/intelligent/search", json=search_body
-                ) as r:
+                async with s.post(f"{self.base}/intelligent/search", json=search_body) as r:
                     if r.status == 402:
                         logger.warning("IntelX: закончились search-кредиты")
                         return []

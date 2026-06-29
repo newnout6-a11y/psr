@@ -292,20 +292,12 @@ class BrowserManager:
         except Exception:
             return False
 
-        html_lower = html.lower() if html else ""
-        if any(marker in html_lower for marker in ["cf-challenge", "just a moment", "checking your browser", "verify you are human"]):
-            logger.warning(f"BrowserManager: Cloudflare challenge blocking auth for {domain}")
-            if hasattr(page, "cf_verify"):
-                try:
-                    await page.cf_verify()
-                    await page.sleep(5)
-                    html = await page.get_content()
-                except Exception:
-                    pass
-            if "cf-challenge" in (html or "").lower():
-                logger.error(f"BrowserManager: Cloudflare challenge not solved, auth impossible for {domain}")
-                self._auth_validated[domain] = False
-                return False
+        await self._check_cloudflare(page, f"https://{domain}/")
+        html = await page.get_content()
+        if html and "cf-challenge" in html.lower():
+            logger.error(f"BrowserManager: Cloudflare challenge not solved, auth impossible for {domain}")
+            self._auth_validated[domain] = False
+            return False
 
         is_auth = self._check_auth_markers(domain, html)
 
@@ -372,9 +364,7 @@ class BrowserManager:
         browser = await self.get_browser()
         try:
             result = {}
-            cookies = await browser.send(
-                uc.cdp.network.get_cookies()
-            )
+            cookies = await browser.send(uc.cdp.network.get_cookies())
             for cookie in cookies:
                 if domain in (cookie.domain or ""):
                     result[cookie.name] = cookie.value
@@ -393,7 +383,9 @@ class BrowserManager:
             logger.debug(f"BrowserManager: не удалось экспортировать куки: {e}")
             return {}
 
-    async def take_screenshot(self, page: uc.Tab, project_id: str, step_name: str, full_page: bool = False) -> Optional[str]:
+    async def take_screenshot(
+        self, page: uc.Tab, project_id: str, step_name: str, full_page: bool = False
+    ) -> Optional[str]:
         try:
             folder = os.path.join(str(SCREENSHOTS_DIR), str(project_id))
             os.makedirs(folder, exist_ok=True)

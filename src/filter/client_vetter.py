@@ -32,6 +32,7 @@ class ClientVetter:
     def _load_config(self, config_path: str):
         try:
             import yaml
+
             with open(config_path, "r", encoding="utf-8") as f:
                 config = yaml.safe_load(f) or {}
             self.min_client_score = int(config.get("min_client_score", 30))
@@ -59,15 +60,11 @@ class ClientVetter:
             score, reasons, red_flags = self._vet_from_api(client_data, score, reasons, red_flags)
 
         # 2. Анализ по описанию проекта (всегда доступно)
-        score, reasons, red_flags = self._vet_from_description(
-            project, score, reasons, red_flags
-        )
+        score, reasons, red_flags = self._vet_from_description(project, score, reasons, red_flags)
 
         # 3. OSINT-сигналы (GitHub, Habr, открытые упоминания, отзывы)
         if osint_result is not None:
-            score, reasons, red_flags = self._vet_from_osint(
-                osint_result, score, reasons, red_flags
-            )
+            score, reasons, red_flags = self._vet_from_osint(osint_result, score, reasons, red_flags)
 
         passed = score >= self.min_client_score
 
@@ -88,9 +85,7 @@ class ClientVetter:
 
         return result
 
-    def _vet_from_api(
-        self, data: Dict, score: int, reasons: list, red_flags: list
-    ) -> tuple:
+    def _vet_from_api(self, data: Dict, score: int, reasons: list, red_flags: list) -> tuple:
         """Анализ данных заказчика из API (рейтинг, отзывы, история)."""
 
         # Рейтинг
@@ -185,6 +180,7 @@ class ClientVetter:
         if reg_date:
             try:
                 import time
+
                 reg_ts = int(reg_date) if str(reg_date).isdigit() else 0
                 if reg_ts > 0:
                     days_old = (int(time.time()) - reg_ts) // 86400
@@ -199,9 +195,7 @@ class ClientVetter:
 
         return score, reasons, red_flags
 
-    def _vet_from_description(
-        self, project: ProjectItem, score: int, reasons: list, red_flags: list
-    ) -> tuple:
+    def _vet_from_description(self, project: ProjectItem, score: int, reasons: list, red_flags: list) -> tuple:
         """Анализ качества описания проекта — косвенный индикатор заказчика."""
 
         desc = (project.description or "").strip()
@@ -222,10 +216,7 @@ class ClientVetter:
             r"\b(автоматиз|интеграц|deploy|docker)\b",
             r"\b(срок|дедлайн|deadline|бюджет|сроки)\b",
         ]
-        specific_count = sum(
-            1 for pattern in specificity_markers
-            if re.search(pattern, desc.lower())
-        )
+        specific_count = sum(1 for pattern in specificity_markers if re.search(pattern, desc.lower()))
         if specific_count >= 2:
             score += 10
             reasons.append("конкретное ТЗ — заказчик знает что хочет")

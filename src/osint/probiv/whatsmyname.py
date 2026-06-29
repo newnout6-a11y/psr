@@ -35,13 +35,24 @@ from src.paths import WMN_SITES_FILE
 # Официальный репо WhatsMyName
 _WMN_URL = "https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json"
 _CACHE_FILE = WMN_SITES_FILE
-_CACHE_TTL_SECONDS = 7 * 24 * 3600    # неделя
+_CACHE_TTL_SECONDS = 7 * 24 * 3600  # неделя
 
 # Популярные категории для быстрого режима (по умолчанию)
 _POPULAR_CATEGORIES = {
-    "social", "social networking", "video", "images", "blog",
-    "coding", "dev", "gaming", "messaging", "news", "tech",
-    "russian", "finance", "shopping",
+    "social",
+    "social networking",
+    "video",
+    "images",
+    "blog",
+    "coding",
+    "dev",
+    "gaming",
+    "messaging",
+    "news",
+    "tech",
+    "russian",
+    "finance",
+    "shopping",
 }
 
 
@@ -59,11 +70,7 @@ class WhatsMyNameProvider(ProbivProvider):
     ) -> None:
         self.concurrency = concurrency
         self.per_site_timeout = per_site_timeout
-        self.full_scan = (
-            full_scan
-            if full_scan is not None
-            else os.getenv("OSINT_WMN_FULL", "false").lower() == "true"
-        )
+        self.full_scan = full_scan if full_scan is not None else os.getenv("OSINT_WMN_FULL", "false").lower() == "true"
 
     # ---------- список сайтов ----------
 
@@ -119,17 +126,14 @@ class WhatsMyNameProvider(ProbivProvider):
             return []
 
         if not self.full_scan:
-            sites = [
-                s for s in sites
-                if (s.get("cat") or "").lower() in _POPULAR_CATEGORIES
-            ]
+            sites = [s for s in sites if (s.get("cat") or "").lower() in _POPULAR_CATEGORIES]
         logger.debug(f"WhatsMyName: проверяем {username!r} на {len(sites)} сайтах")
 
         sem = asyncio.Semaphore(self.concurrency)
         timeout = aiohttp.ClientTimeout(total=self.per_site_timeout)
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                          "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Accept-Language": "en-US,en;q=0.9",
         }
 

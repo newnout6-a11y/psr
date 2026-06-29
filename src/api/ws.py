@@ -1,4 +1,5 @@
 """WebSocket endpoints for real-time logs and status updates."""
+
 from __future__ import annotations
 
 import asyncio
@@ -43,9 +44,7 @@ async def ws_status(websocket: WebSocket):
     app_state.status_queues.add(q)
     # Send current status immediately on connect
     try:
-        await websocket.send_text(
-            json.dumps({"type": "status", **app_state.to_status_dict()})
-        )
+        await websocket.send_text(json.dumps({"type": "status", **app_state.to_status_dict()}))
         while True:
             try:
                 msg = await asyncio.wait_for(q.get(), timeout=30.0)

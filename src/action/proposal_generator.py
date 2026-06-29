@@ -114,8 +114,18 @@ RULES (STRICT!):
         text = re.sub(r"\s+", " ", text)
         return text.strip()
 
+    def _enforce_length(self, text: str, max_sentences: int = 7, max_chars: int = 1000) -> str:
+        """Truncate proposal to max_sentences and max_chars."""
+        if not text:
+            return text
+        if len(text) > max_chars:
+            text = text[: max_chars - 3] + "..."
+        sentences = re.split(r"(?<=[.!?])\s+", text)
+        if len(sentences) > max_sentences:
+            text = " ".join(sentences[:max_sentences])
+        return text.strip()
+
     def _sanitize_text(self, text: str) -> str:
-        """Очистка от анти-спам ловушек и трекеров (honeypots)."""
         if not text:
             return ""
         text = re.sub(r"[A-Za-z0-9+/]{15,}={0,2}", "", text)
@@ -239,16 +249,13 @@ RULES (STRICT!):
         if competitor_prices:
             prices = [p["price"] for p in competitor_prices if "price" in p]
             if prices:
-                competition_context += f"\nЦЕНЫ КОНКУРЕНТОВ: мин {min(prices)}₽, макс {max(prices)}₽, среднее {sum(prices)//len(prices)}₽"
+                competition_context += f"\nЦЕНЫ КОНКУРЕНТОВ: мин {min(prices)}₽, макс {max(prices)}₽, среднее {sum(prices) // len(prices)}₽"
 
         title_safe = self._sanitize_text(project.title)
         desc_safe = self._sanitize_text(project.description)
         attachment_section = ""
         if attachment_context:
-            attachment_section = (
-                "\nATTACHMENT BRIEF: "
-                f"{attachment_context}"
-            )
+            attachment_section = f"\nATTACHMENT BRIEF: {attachment_context}"
 
         if lang == "en":
             return (
@@ -408,7 +415,7 @@ RULES (STRICT!):
         text = f"{project.title or ''} {project.description or ''}"
         if not text.strip():
             return "ru"
-        cyrillic = sum(1 for c in text if "\u0400" <= c <= "\u04FF")
+        cyrillic = sum(1 for c in text if "\u0400" <= c <= "\u04ff")
         latin = sum(1 for c in text if c.isascii() and c.isalpha())
         if latin > cyrillic * 2 and cyrillic < 10:
             return "en"
@@ -429,9 +436,14 @@ RULES (STRICT!):
             return "\nТОН ОТКЛИКА (настройка по репутации): " + "; ".join(hints)
         return ""
 
-    async def generate(self, project: Any, provider: Optional[str] = None,
-                       client_data: dict = None, competitor_prices: list = None,
-                       osint_result: Any = None) -> str:
+    async def generate(
+        self,
+        project: Any,
+        provider: Optional[str] = None,
+        client_data: dict = None,
+        competitor_prices: list = None,
+        osint_result: Any = None,
+    ) -> str:
         """Основной метод генерации с использованием LLM Router."""
         from src.brain.llm_router import get_llm_router
 
@@ -441,10 +453,14 @@ RULES (STRICT!):
         system_prompt = self.system_prompt_en if lang == "en" else self.system_prompt_ru
         attachment_context = await self._build_attachment_context(project)
         tone_hint = self._build_tone_hint(osint_result, client_data)
-        prompt = self._build_user_prompt(project, lang, client_data=client_data,
-                                          competitor_prices=competitor_prices,
-                                          attachment_context=attachment_context,
-                                          tone_hint=tone_hint)
+        prompt = self._build_user_prompt(
+            project,
+            lang,
+            client_data=client_data,
+            competitor_prices=competitor_prices,
+            attachment_context=attachment_context,
+            tone_hint=tone_hint,
+        )
 
         with ensure_parent(LAST_LLM_PROMPT_FILE).open("w", encoding="utf-8") as f:
             f.write(f"SYSTEM:\n{system_prompt.strip()}\n\nUSER:\n{prompt}")
@@ -479,13 +495,18 @@ RULES (STRICT!):
 
             if res:
                 res = self._clean_llm_response(res)
+                res = self._enforce_length(res)
                 with ensure_parent(LAST_LLM_RESPONSE_FILE).open("w", encoding="utf-8") as f:
                     f.write(res)
                 return res
 
         except Exception as e:
             logger.error(f"LLM Router Error ({provider}): {e}")
-            self.last_generation_meta = {"provider": "template_fallback", "model": "template", "task": "proposal_writing"}
+            self.last_generation_meta = {
+                "provider": "template_fallback",
+                "model": "template",
+                "task": "proposal_writing",
+            }
 
         # Fallback на шаблоны
         logger.warning(f"Все LLM недоступны, используем шаблоны для отклика на {project.title}")
@@ -493,4 +514,3 @@ RULES (STRICT!):
             {"title": project.title, "found_skills": project.skills, "budget": project.budget}, self.portfolio
         )
         return self._clean_llm_response(template_text)
-

@@ -175,11 +175,7 @@ class OpenAICompatibleClient:
             if isinstance(content, str) and content.strip():
                 return content
             if isinstance(content, list):
-                joined = "".join(
-                    item.get("text", "")
-                    for item in content
-                    if isinstance(item, dict)
-                )
+                joined = "".join(item.get("text", "") for item in content if isinstance(item, dict))
                 if joined.strip():
                     return joined
 
@@ -347,9 +343,7 @@ class LLMRouter:
                 )
 
         # Requirement 10.3: если все провайдеры вернули ошибку — исключение с task и ошибкой последнего
-        raise ValueError(
-            f"Все LLM провайдеры недоступны для task={task}: {last_error}"
-        )
+        raise ValueError(f"Все LLM провайдеры недоступны для task={task}: {last_error}")
 
     async def _generate_once(
         self,
@@ -361,7 +355,9 @@ class LLMRouter:
         system_prompt: Optional[str],
     ) -> str:
         if provider in {"openai", "deepseek"}:
-            return await self._generate_openai_compatible(provider, prompt, model, temperature, max_tokens, system_prompt)
+            return await self._generate_openai_compatible(
+                provider, prompt, model, temperature, max_tokens, system_prompt
+            )
         if provider == "groq":
             return await self._generate_groq(prompt, model, temperature, max_tokens, system_prompt)
         raise ValueError(f"Неизвестный провайдер: {provider}")
@@ -442,9 +438,7 @@ class LLMRouter:
             value = os.getenv(env_key)
             if value:
                 if env_key == "PARSER_LLM_MODEL" and not self._is_model_compatible(provider, value):
-                    logger.warning(
-                        f"LLMRouter: skip incompatible PARSER_LLM_MODEL={value!r} for provider={provider}"
-                    )
+                    logger.warning(f"LLMRouter: skip incompatible PARSER_LLM_MODEL={value!r} for provider={provider}")
                     continue
                 return self._normalize_model(provider, value)
 
@@ -596,10 +590,7 @@ class LLMRouter:
         - tasks: статистика по задачам {task: {success, failure}}
         - health_score: вычисленный health-score
         """
-        return {
-            name: health.to_dict()
-            for name, health in self.health.items()
-        }
+        return {name: health.to_dict() for name, health in self.health.items()}
 
     def get_last_route(self) -> dict[str, Any]:
         return dict(self._last_route)

@@ -131,8 +131,20 @@ class AIRelevanceScorer:
         "automation": {"automation", "автоматизация", "скрипт", "script", "integration", "интеграция"},
         "api": {"api", "rest", "webhook", "backend", "бекенд", "микросервис"},
         "frontend": {
-            "react", "frontend", "фронтенд", "javascript", "typescript", "vue",
-            "html", "css", "tailwind", "next", "верстка", "вёрстка", "лендинг", "сайт",
+            "react",
+            "frontend",
+            "фронтенд",
+            "javascript",
+            "typescript",
+            "vue",
+            "html",
+            "css",
+            "tailwind",
+            "next",
+            "верстка",
+            "вёрстка",
+            "лендинг",
+            "сайт",
         },
         "design": {"design", "дизайн", "дизай", "figma", "ui", "ux"},
         "data": {"data", "etl", "pandas", "numpy"},
@@ -252,7 +264,7 @@ class AIRelevanceScorer:
             results.append(heuristic)
 
         for i in range(0, len(pending), batch_size):
-            batch = pending[i:i + batch_size]
+            batch = pending[i : i + batch_size]
             llm_results = await self._score_batch_with_llm(batch, threshold)
             for idx, llm_result in llm_results:
                 results[idx] = llm_result
@@ -277,8 +289,7 @@ class AIRelevanceScorer:
             logger.info(
                 "AIScorer: отсеяно "
                 + ", ".join(
-                    f"'{item.project.title[:30]}' ({item.final_score}/10, {item.source})"
-                    for item in rejected[:5]
+                    f"'{item.project.title[:30]}' ({item.final_score}/10, {item.source})" for item in rejected[:5]
                 )
             )
         return [(item.project, item.final_score) for item in results if item.passed]
@@ -307,7 +318,8 @@ class AIRelevanceScorer:
 
         allowed_design_markers = {"designer", "design", "figma", "photoshop"}
         negative_hits = [
-            marker for marker in self._NEGATIVE_MARKERS
+            marker
+            for marker in self._NEGATIVE_MARKERS
             if marker in text and not (_brief_allows_frontend_design() and marker in allowed_design_markers)
         ]
         if negative_hits:
@@ -331,6 +343,7 @@ class AIRelevanceScorer:
                 try:
                     from src.utils.currency import get_converter
                     import asyncio
+
                     converter = get_converter()
                     if asyncio.get_event_loop().is_running():
                         budget_rub = project.budget
@@ -340,10 +353,10 @@ class AIRelevanceScorer:
                         )
                 except Exception:
                     budget_rub = project.budget
-            if 1000 <= budget_rub <= 30000:
+            if 1000 <= budget_rub <= 50000:
                 score += 0.6
                 reasons.append("бюджет выглядит как микро/средний фриланс")
-            elif budget_rub > 120000:
+            elif budget_rub > 200000:
                 score -= 1.2
                 risks.append("бюджет похож на крупный или долгий проект")
             elif budget_rub < 500:
@@ -481,7 +494,9 @@ class AIRelevanceScorer:
                 reasons=list(item.get("reasons") or heuristic.reasons),
                 risks=list(item.get("risks") or heuristic.risks),
                 project_type=str(item.get("project_type") or heuristic.project_type),
-                fit_label=str(item.get("fit") or ("strong" if score >= 8 else "review" if score >= threshold else "weak")),
+                fit_label=str(
+                    item.get("fit") or ("strong" if score >= 8 else "review" if score >= threshold else "weak")
+                ),
                 llm_attempted=True,
                 llm_used=True,
             )
@@ -603,7 +618,10 @@ class AIRelevanceScorer:
             return "automation"
         if any(term in text for term in {"designer", "design", "figma", "дизайн", "дизай", "ui", "ux"}):
             return "design"
-        if any(term in text for term in {"landing", "лендинг", "frontend", "фронтенд", "react", "website", "сайт", "верстка", "вёрстка"}):
+        if any(
+            term in text
+            for term in {"landing", "лендинг", "frontend", "фронтенд", "react", "website", "сайт", "верстка", "вёрстка"}
+        ):
             return "website"
         if any(term in text for term in {"smm", "seo", "marketing"}):
             return "marketing"

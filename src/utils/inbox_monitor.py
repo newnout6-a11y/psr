@@ -121,6 +121,7 @@ class KworkInboxChecker(InboxChecker):
     def close(self):
         try:
             import asyncio
+
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 asyncio.ensure_future(self.kwork_service.close())
@@ -182,6 +183,7 @@ class InboxMonitor:
                 await asyncio.sleep(interval)
 
         import asyncio as _asyncio
+
         self._fast_polling_task = _asyncio.create_task(_poll_loop())
 
     async def stop_fast_polling(self) -> None:
@@ -221,6 +223,7 @@ class InboxMonitor:
                         if resp.get("dialog_id") and resp["platform"] == "kwork":
                             try:
                                 from src.platforms.kwork import get_kwork_service as _get_svc
+
                                 _svc = _get_svc()
                                 dialog_id = int(resp["dialog_id"])
                                 await _svc.mark_inbox_read(dialog_id)
@@ -275,19 +278,25 @@ class InboxMonitor:
                 order_id = str(order.get("id", order.get("order_id", "")))
                 created_at = str(order.get("date_create", order.get("created_at", "")))
 
-                if order_status in {"new", "assigned", "pending", "wait_payment", "wait_confirm"} and created_at and created_at > last_check:
+                if (
+                    order_status in {"new", "assigned", "pending", "wait_payment", "wait_confirm"}
+                    and created_at
+                    and created_at > last_check
+                ):
                     project_title = order.get("project_name", order.get("title", "Неизвестный проект"))
                     project_id = str(order.get("project_id", order.get("want_id", "")))
                     deadline = order.get("date_deadline", order.get("deadline", ""))
 
-                    new_assignments.append({
-                        "order_id": order_id,
-                        "project_id": project_id,
-                        "project_title": project_title,
-                        "status": order_status,
-                        "deadline": str(deadline),
-                        "created_at": created_at,
-                    })
+                    new_assignments.append(
+                        {
+                            "order_id": order_id,
+                            "project_id": project_id,
+                            "project_title": project_title,
+                            "status": order_status,
+                            "deadline": str(deadline),
+                            "created_at": created_at,
+                        }
+                    )
 
             if new_assignments:
                 auto_approve = os.getenv("KWORK_AUTO_APPROVE_ORDERS", "false").lower() in {"1", "true", "yes", "on"}
@@ -349,12 +358,14 @@ class InboxMonitor:
                         project_title = conv.get("project_title", "Без названия")
                         platform = conv.get("platform", "kwork")
                         project_id = conv.get("project_id", "")
-                        slow_responses.append({
-                            "title": project_title,
-                            "platform": platform,
-                            "project_id": project_id,
-                            "elapsed_hours": round(elapsed, 1),
-                        })
+                        slow_responses.append(
+                            {
+                                "title": project_title,
+                                "platform": platform,
+                                "project_id": project_id,
+                                "elapsed_hours": round(elapsed, 1),
+                            }
+                        )
                 except Exception:
                     continue
 
@@ -373,8 +384,8 @@ class InboxMonitor:
 
                 await self.notifier.send_text(
                     f"SLOW RESPONSE: {len(slow_responses)} диалогов без ответа >{threshold_hours}ч!\n"
-                    + "\n".join(lines) +
-                    "\nОтветьте в чате Kwork чтобы избежать 'упущенных заказов'."
+                    + "\n".join(lines)
+                    + "\nОтветьте в чате Kwork чтобы избежать 'упущенных заказов'."
                 )
                 self.db.set_runtime_state("inbox.response_alert_ts", now.strftime("%Y-%m-%d %H:%M:%S"))
                 logger.warning(f"InboxMonitor: {len(slow_responses)} диалогов с медленным ответом")
@@ -426,11 +437,13 @@ class InboxMonitor:
                     sent_dt = datetime.fromisoformat(sent_at.replace(" ", "T"))
                     elapsed_hours = (now - sent_dt).total_seconds() / 3600
                     if elapsed_hours > 24:
-                        pending.append({
-                            "candidate_id": row["candidate_id"],
-                            "title": row["title"][:50],
-                            "hours": round(elapsed_hours),
-                        })
+                        pending.append(
+                            {
+                                "candidate_id": row["candidate_id"],
+                                "title": row["title"][:50],
+                                "hours": round(elapsed_hours),
+                            }
+                        )
                 except Exception:
                     continue
 
@@ -438,8 +451,8 @@ class InboxMonitor:
                 lines = [f"  #{p['candidate_id']} {p['title']} — {p['hours']}ч назад" for p in pending[:5]]
                 await self.notifier.send_text(
                     f"REVIEW REMINDER: {len(pending)} завершённых заказов без отзыва!\n"
-                    + "\n".join(lines) +
-                    "\nОтзывы = главный фактор ранкинга на Kwork.\n"
+                    + "\n".join(lines)
+                    + "\nОтзывы = главный фактор ранкинга на Kwork.\n"
                     "Используй /complete <id> для авто-отзыва."
                 )
                 self.db.set_runtime_state("inbox.review_alert_ts", now.strftime("%Y-%m-%d %H:%M:%S"))
@@ -477,17 +490,19 @@ class InboxMonitor:
             )
 
             if is_new and candidate_id:
-                self.db.update_candidate_status(
-                    candidate_id,
-                    candidate["status"],
-                    actor="inbox",
-                    reason="client responded",
-                    record_action=True,
-                )
+                current_status = candidate["status"]
+                if current_status in ("auto_sent", "manual_sent", "queued", "auto_ready"):
+                    self.db.update_candidate_status(
+                        candidate_id,
+                        "responded",
+                        actor="inbox",
+                        reason="client responded",
+                        record_action=True,
+                    )
             return is_new
         except Exception as e:
             logger.debug(f"InboxMonitor: не удалось сохранить сообщение в БД: {e}")
-            return True
+            return False
 
     def close(self):
         for checker in self.checkers.values():

@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import {
   LayoutDashboard, ListChecks, Settings, ScrollText,
   Search, Play, Square, ChevronDown, Globe2,
+  Wallet, HeartPulse,
   AlertCircle, CheckCircle2, Loader2, Asterisk, Monitor, ShieldCheck,
   Activity
 } from 'lucide-react'
@@ -43,6 +44,8 @@ interface RunConfig {
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Панель' },
   { to: '/queue',     icon: ListChecks,      label: 'Очередь' },
+  { to: '/earnings',  icon: Wallet,          label: 'Доход' },
+  { to: '/health',    icon: HeartPulse,      label: 'Статус' },
   { to: '/settings',  icon: Settings,        label: 'Настройки' },
   { to: '/logs',      icon: ScrollText,      label: 'Логи' },
   { to: '/osint',     icon: Search,          label: 'Сигналы' },

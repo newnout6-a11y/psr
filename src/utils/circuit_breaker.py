@@ -32,7 +32,7 @@ class CircuitState(str, Enum):
 
 @dataclass
 class CircuitConfig:
-    failure_threshold: int = 3     # сколько провалов подряд → OPEN
+    failure_threshold: int = 3  # сколько провалов подряд → OPEN
     recovery_seconds: float = 120  # базовый таймаут до HALF_OPEN
     max_recovery_seconds: float = 1800  # потолок (30 мин)
 
@@ -42,13 +42,11 @@ class _Circuit:
     key: str
     state: CircuitState = CircuitState.CLOSED
     consecutive_failures: int = 0
-    open_until: float = 0.0           # epoch
-    consecutive_opens: int = 0        # для экспоненциального backoff
+    open_until: float = 0.0  # epoch
+    consecutive_opens: int = 0  # для экспоненциального backoff
     last_error: str = ""
-    half_open_used: bool = False      # в HALF_OPEN разрешён ровно один вызов
-    metrics: dict[str, int] = field(
-        default_factory=lambda: {"allow": 0, "deny": 0, "success": 0, "failure": 0}
-    )
+    half_open_used: bool = False  # в HALF_OPEN разрешён ровно один вызов
+    metrics: dict[str, int] = field(default_factory=lambda: {"allow": 0, "deny": 0, "success": 0, "failure": 0})
 
 
 class CircuitBreaker:
@@ -93,9 +91,7 @@ class CircuitBreaker:
                     c.metrics["allow"] += 1
                     return True
                 remaining = int(c.open_until - now)
-                logger.debug(
-                    f"CircuitBreaker[{key}]: OPEN, отказ (осталось {remaining}s)"
-                )
+                logger.debug(f"CircuitBreaker[{key}]: OPEN, отказ (осталось {remaining}s)")
                 c.metrics["deny"] += 1
                 return False
             # HALF_OPEN — разрешаем ровно один вызов
@@ -135,8 +131,7 @@ class CircuitBreaker:
             if c.state == CircuitState.HALF_OPEN:
                 # Пробный вызов не прошёл — снова OPEN, с большим backoff
                 logger.warning(
-                    f"CircuitBreaker[{c.key}]: HALF_OPEN → OPEN "
-                    f"(пробный вызов провалился: {c.last_error[:80]})"
+                    f"CircuitBreaker[{c.key}]: HALF_OPEN → OPEN (пробный вызов провалился: {c.last_error[:80]})"
                 )
                 c.half_open_used = False
                 self._trip(c)

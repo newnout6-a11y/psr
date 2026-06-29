@@ -72,8 +72,8 @@ class BaseParser(ABC):
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10), reraise=True)
     def _safe_get(self, url: str, **kwargs):
-        if 'headers' not in kwargs:
-            kwargs['headers'] = self.headers
+        if "headers" not in kwargs:
+            kwargs["headers"] = self.headers
 
         try:
             response = self.client.get(url, **kwargs)
@@ -100,12 +100,12 @@ class BaseParser(ABC):
     ) -> List[ProjectItem]:
         """Получить список проектов/заказов."""
         pass
-    
+
     @abstractmethod
     async def get_project_details(self, project_id: str) -> Optional[ProjectItem]:
         """Получить детали проекта."""
         pass
-    
+
     def authenticate(self, token: str, token_type: str = "bearer"):
         """Установить токен авторизации."""
         if token_type == "bearer":
@@ -114,21 +114,21 @@ class BaseParser(ABC):
             self.headers["Authorization"] = f"Bearer {token}"
         elif token_type == "cookie":
             self.client.set_cookies({"session": token})
-        
+
         self.auth_token = token
         logger.info(f"Авторизация установлена для {self.PLATFORM_NAME}")
-    
+
     def set_csrf_token(self, token: str):
         """Установить CSRF-токен."""
         self.csrf_token = token
         self.headers["X-CSRF-Token"] = token
         self.headers["X-Requested-With"] = "XMLHttpRequest"
-    
+
     def update_proxy(self, proxy: str):
         """Обновить прокси (для IPv6 ротации)."""
         self.client.update_proxy(proxy)
         logger.debug(f"Прокси обновлён для {self.PLATFORM_NAME}: {proxy}")
-    
+
     def _default_headers(self) -> Dict[str, str]:
         """Заголовки по умолчанию."""
         return {
@@ -136,7 +136,7 @@ class BaseParser(ABC):
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
         }
-    
+
     def close(self):
         """Закрыть сессию."""
         self.client.close()

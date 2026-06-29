@@ -6,6 +6,7 @@ Run:
 or:
     uvicorn src.api.server:app --host 127.0.0.1 --port 7788 --reload
 """
+
 from __future__ import annotations
 
 import sys
@@ -17,6 +18,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from fastapi import FastAPI
@@ -74,6 +76,7 @@ def health():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "src.api.server:app",
         host="127.0.0.1",

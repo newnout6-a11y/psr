@@ -36,9 +36,7 @@ class OSINTCache:
 
     def get(self, key: str) -> dict[str, Any] | None:
         with sqlite3.connect(self.db_path) as conn:
-            row = conn.execute(
-                "SELECT data, updated_at FROM osint_results WHERE key = ?", (key,)
-            ).fetchone()
+            row = conn.execute("SELECT data, updated_at FROM osint_results WHERE key = ?", (key,)).fetchone()
         if not row:
             return None
         try:

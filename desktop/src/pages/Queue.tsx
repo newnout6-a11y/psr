@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import {
   CheckCircle2, XCircle, Clock, Pencil, ExternalLink,
-  RefreshCw, Filter, ChevronDown, ChevronUp, Send, DollarSign, Paperclip
+  RefreshCw, Filter, ChevronDown, ChevronUp, Send, DollarSign, Paperclip,
+  UserCheck, UserX, PackageCheck, Wallet
 } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { api, Candidate, PlatformData } from '../lib/api'
@@ -232,6 +233,57 @@ function CandidateDetail({
           <Send className="w-3.5 h-3.5" /> Отправить
         </button>
       </div>
+
+      {(c.status === 'manual_sent' || c.status === 'auto_sent' || c.status === 'responded') && (
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => (api as any).hireCandidate(c.candidate_id).then(() => { setMsg('Нанят'); refetch?.() })}
+            className="btn btn-success text-xs"
+          >
+            <UserCheck className="w-3.5 h-3.5" /> Нанят
+          </button>
+          <button
+            onClick={() => (api as any).declineCandidate(c.candidate_id).then(() => { setMsg('Отклонён'); refetch?.() })}
+            className="btn btn-ghost text-xs"
+          >
+            <UserX className="w-3.5 h-3.5" /> Отклонить
+          </button>
+        </div>
+      )}
+
+      {c.status === 'hired' && (
+        <div className="flex gap-2">
+          <button
+            onClick={() => (api as any).completeCandidate(c.candidate_id).then(() => { setMsg('Завершён'); refetch?.() })}
+            className="btn btn-success text-xs flex-1"
+          >
+            <PackageCheck className="w-3.5 h-3.5" /> Работа сдана
+          </button>
+        </div>
+      )}
+
+      {c.status === 'completed' && (
+        <div className="flex gap-2">
+          <input
+            type="number"
+            placeholder="Сумма (₽)"
+            className="input flex-1 text-sm"
+            id={`earn-amount-${c.candidate_id}`}
+          />
+          <button
+            onClick={() => {
+              const el = document.getElementById(`earn-amount-${c.candidate_id}`) as HTMLInputElement
+              const amount = parseFloat(el?.value || '0')
+              if (amount > 0) {
+                (api as any).recordEarning(c.candidate_id, amount).then(() => { setMsg('Доход записан'); refetch?.() })
+              }
+            }}
+            className="btn btn-ghost text-xs"
+          >
+            <Wallet className="w-3.5 h-3.5" /> Записать доход
+          </button>
+        </div>
+      )}
     </div>
   )
 }

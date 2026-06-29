@@ -126,8 +126,7 @@ class ProposalSender:
             )
             if competitor_prices:
                 prices_str = ", ".join(
-                    f"{p['price']}₽" + (f" ({p['name']})" if p.get('name') else "")
-                    for p in competitor_prices[:10]
+                    f"{p['price']}₽" + (f" ({p['name']})" if p.get("name") else "") for p in competitor_prices[:10]
                 )
                 logger.info(f"Kwork: конкурентные цены: [{prices_str}]")
                 self.last_competitor_prices = competitor_prices
@@ -201,7 +200,9 @@ class ProposalSender:
     def _kwork_web_error_message(result: dict) -> str:
         payload = result.get("json")
         if isinstance(payload, dict):
-            return str(payload.get("message") or payload.get("error") or payload.get("response") or "неизвестная ошибка")
+            return str(
+                payload.get("message") or payload.get("error") or payload.get("response") or "неизвестная ошибка"
+            )
         text = str(result.get("text") or "")
         return text[:300] if text else "неизвестная ошибка"
 
@@ -222,7 +223,9 @@ class ProposalSender:
             logger.info("Kwork: attachments prepared but upload flow is not confirmed; sending text only")
             attachments = []
         elif attachments:
-            logger.warning("Kwork: attachment upload is marked confirmed, but API helper has no file upload path yet; sending text only")
+            logger.warning(
+                "Kwork: attachment upload is marked confirmed, but API helper has no file upload path yet; sending text only"
+            )
             attachments = []
 
         numeric_price = 500
@@ -270,6 +273,7 @@ class ProposalSender:
                     if cat_id:
                         try:
                             from src.platforms.kwork import get_kwork_service
+
                             svc = get_kwork_service()
                             cats = await svc.get_all_categories()
                             for cat in cats:
@@ -286,20 +290,26 @@ class ProposalSender:
                             pass
 
                 from src.platforms.kwork_ext import KworkExtensions
+
                 is_flagged = await KworkExtensions.is_text_template_flagged(api, int(project_id), proposal_text)
                 if is_flagged:
-                    logger.warning(f"Kwork: proposal text flagged as TEMPLATE by check_is_template for project {project_id}")
+                    logger.warning(
+                        f"Kwork: proposal text flagged as TEMPLATE by check_is_template for project {project_id}"
+                    )
                     if not dry_run:
                         logger.error("Kwork: отправка отклика отменена — текст помечен как шаблонный")
                         return False
 
                 from src.action.proposal_db import ProposalDB
+
                 db = ProposalDB()
                 recent_texts = db.get_recent_proposal_texts(limit=20)
                 for prev_text in recent_texts:
                     similarity = _text_similarity(proposal_text, prev_text)
                     if similarity > 0.8:
-                        logger.warning(f"Kwork: proposal text {similarity:.0%} similar to a recent proposal — high duplicate risk")
+                        logger.warning(
+                            f"Kwork: proposal text {similarity:.0%} similar to a recent proposal — high duplicate risk"
+                        )
                         if similarity > 0.9 and not dry_run:
                             logger.error("Kwork: отправка отменена — текст почти идентичен предыдущему отклику")
                             return False
@@ -437,8 +447,7 @@ class ProposalSender:
             )
             if competitor_prices:
                 prices_str = ", ".join(
-                    f"{p['price']}₽" + (f" ({p['name']})" if p.get('name') else "")
-                    for p in competitor_prices[:10]
+                    f"{p['price']}₽" + (f" ({p['name']})" if p.get("name") else "") for p in competitor_prices[:10]
                 )
                 logger.info(f"Kwork: конкурентные цены: [{prices_str}]")
                 self.last_competitor_prices = competitor_prices
@@ -491,7 +500,9 @@ class ProposalSender:
                 if readback and isinstance(readback, dict):
                     filled = readback.get("editorText", "") or readback.get("textareaValue", "")
                     if len(filled) < 40:
-                        logger.warning(f"Kwork: Trumbowyg readback короткий ({len(filled)} chars), возможна пустая отправка")
+                        logger.warning(
+                            f"Kwork: Trumbowyg readback короткий ({len(filled)} chars), возможна пустая отправка"
+                        )
             else:
                 textarea = await page.find("textarea[name='description']", timeout=2)
                 if textarea:
@@ -823,9 +834,13 @@ class ProposalSender:
 
         cleaned_text, violations = filter_proposal_text(proposal_text)
         if violations and not dry_run:
-            logger.warning(f"ProposalSender: PII/stop-word фильтр сработал для {platform}/{project_id}: {'; '.join(violations)}")
+            logger.warning(
+                f"ProposalSender: PII/stop-word фильтр сработал для {platform}/{project_id}: {'; '.join(violations)}"
+            )
         if len(cleaned_text) < 40 and not dry_run:
-            logger.error(f"ProposalSender: после PII-фильтра текст слишком короткий ({len(cleaned_text)} chars), отправка отменена")
+            logger.error(
+                f"ProposalSender: после PII-фильтра текст слишком короткий ({len(cleaned_text)} chars), отправка отменена"
+            )
             return False
 
         if platform == "kwork":

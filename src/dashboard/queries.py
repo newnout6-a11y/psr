@@ -457,7 +457,14 @@ def earnings_summary() -> dict[str, Any]:
         """,
     )
     if df.empty:
-        return {"total": 0, "paid_count": 0, "pending_count": 0, "paid_amount": 0.0, "pending_amount": 0.0, "total_amount": 0.0}
+        return {
+            "total": 0,
+            "paid_count": 0,
+            "pending_count": 0,
+            "paid_amount": 0.0,
+            "pending_amount": 0.0,
+            "total_amount": 0.0,
+        }
     row = df.iloc[0]
     return {
         "total": int(row["total"] or 0),

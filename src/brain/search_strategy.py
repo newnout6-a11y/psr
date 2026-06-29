@@ -147,8 +147,11 @@ class SearchStrategy:
             if time.time() - cached_ts < 1800:
                 return cached
 
-        # 1. Определяем описание пользователя (SEARCH_BRIEF приоритет)
+        # 1. Определяем описание пользователя (SEARCH_BRIEF приоритет, per-platform override)
         search_brief = os.getenv("SEARCH_BRIEF", "").strip()
+        platform_brief = os.getenv(f"SEARCH_BRIEF_{platform.upper().replace('.', '_').replace('-', '_')}", "").strip()
+        if platform_brief:
+            search_brief = platform_brief
         search_query_raw = os.getenv("SEARCH_QUERY", "").strip()
 
         if search_brief:
@@ -182,7 +185,9 @@ class SearchStrategy:
             from src.brain.llm_router import get_llm_router
 
             router = get_llm_router()
-            prompt = self._build_prompt(platform, count, user_brief, preferred_queries, learned_queries, negative_queries)
+            prompt = self._build_prompt(
+                platform, count, user_brief, preferred_queries, learned_queries, negative_queries
+            )
             response = await router.generate(
                 prompt=prompt,
                 provider=None,
@@ -227,9 +232,7 @@ class SearchStrategy:
 
         self._cached_queries[cache_key] = merged
         self._cached_queries_ts[cache_key] = time.time()
-        logger.info(
-            f"SearchStrategy[{platform}]: brief='{user_brief[:50]}' -> {merged}"
-        )
+        logger.info(f"SearchStrategy[{platform}]: brief='{user_brief[:50]}' -> {merged}")
         return merged
 
     def _system_prompt(self) -> str:
@@ -348,7 +351,10 @@ class SearchStrategy:
             return "telegram_bot"
         if any(marker in text for marker in ("figma", "design", "дизай", "ui", "ux")):
             return "design"
-        if any(marker in text for marker in ("frontend", "фронт", "react", "vue", "html", "css", "верст", "tailwind", "next js")):
+        if any(
+            marker in text
+            for marker in ("frontend", "фронт", "react", "vue", "html", "css", "верст", "tailwind", "next js")
+        ):
             return "frontend"
         if any(marker in text for marker in ("n8n", "make.com", "zapier")):
             return "no_code_automation"
@@ -409,9 +415,7 @@ class SearchStrategy:
         topic_limit = 4 if brief_topics else 1 if count <= 10 else 2
 
         # Нормализуем negative для корректного сравнения
-        normalized_negatives = {
-            SearchStrategy._normalize_query(q) for q in negative_queries
-        }
+        normalized_negatives = {SearchStrategy._normalize_query(q) for q in negative_queries}
 
         def append_query(normalized: str) -> None:
             seen.add(normalized)
@@ -447,7 +451,12 @@ class SearchStrategy:
             fallback = PLATFORM_FALLBACK_QUERIES.get(platform, ["python", "automation", "bot", "api", "script"])
         add_many(fallback)
 
-        if len(out) < count and os.getenv("SEARCH_ALLOW_TOPIC_DUPLICATES", "false").lower() in {"1", "true", "yes", "on"}:
+        if len(out) < count and os.getenv("SEARCH_ALLOW_TOPIC_DUPLICATES", "false").lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }:
             add_many(deferred, enforce_topics=False)
 
         return out[:count]
@@ -456,7 +465,10 @@ class SearchStrategy:
     def _brief_topic_keys(user_brief: str) -> set[str]:
         text = SearchStrategy._normalize_query(user_brief)
         topics: set[str] = set()
-        if any(marker in text for marker in ("фронт", "frontend", "react", "vue", "html", "css", "верст", "tailwind", "next")):
+        if any(
+            marker in text
+            for marker in ("фронт", "frontend", "react", "vue", "html", "css", "верст", "tailwind", "next")
+        ):
             topics.add("frontend")
         if any(marker in text for marker in ("дизай", "design", "figma", "ui", "ux")):
             topics.add("design")
@@ -516,10 +528,7 @@ class SearchStrategy:
         2. Иначе — встроенный платформенный список
         """
         if search_query_raw:
-            queries = [
-                SearchStrategy._normalize_query(q)
-                for q in search_query_raw.split("|")
-            ]
+            queries = [SearchStrategy._normalize_query(q) for q in search_query_raw.split("|")]
             result = [q for q in queries if q]
             if result:
                 return result

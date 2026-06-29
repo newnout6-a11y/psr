@@ -15,7 +15,6 @@ TEMPLATES = [
 По срокам: ориентируюсь на {timeline}. По бюджету — укладываюсь в {budget}.
 
 Если готовы обсудить детали — напишите, задам уточняющие вопросы по ТЗ.""",
-
     # Шаблон 2: С акцентом на опыт
     """Здравствуйте! Ваш проект «{title}» попал в мою зону компетенции.
 
@@ -25,7 +24,6 @@ TEMPLATES = [
 - Последний похожий: {case_example}
 
 Предлагаю начать с короткого созвона/переписки — обсудим нюансы. Если задача интересна, возьмусь на этой неделе.""",
-
     # Шаблон 3: Короткий и по делу
     """Привет. Вижу задачу: {title}. Это как раз мой профиль — {skills}.
 
@@ -34,7 +32,6 @@ TEMPLATES = [
 - {case_2}
 
 Бюджет и сроки обсуждаемы. Жду ответа.""",
-
     # Шаблон 4: С вопросом
     """Добрый день! Заинтересовал ваш проект «{title}».
 
@@ -45,7 +42,6 @@ TEMPLATES = [
 О себе: {skills} — основной стек, {years} лет опыта. Последний проект в этой области — {case_example}.
 
 Готов обсудить после того, как проясним эти моменты.""",
-
     # Шаблон 5: Технический
     """Приветствую. По проекту «{title}»:
 
@@ -60,19 +56,22 @@ TEMPLATES = [
 ]
 
 QUESTIONS = {
-    "python": ["Есть ли готовое ТЗ или обсуждаем архитектуру?", "Какой фреймворк предпочтителен — Django, FastAPI, Flask?"],
+    "python": [
+        "Есть ли готовое ТЗ или обсуждаем архитектуру?",
+        "Какой фреймворк предпочтителен — Django, FastAPI, Flask?",
+    ],
     "javascript": ["Нужен фронтенд или fullstack?", "React/Vue или чистый JS?"],
-    "wordpress": ["Это кастомная тема или готовая с доработками?", "Нужна интеграция с чем-то?"] ,
-    "api": ["Есть документация API?", "REST или GraphQL?"] ,
-    "telegram bot": ["Какой функционал ожидается?", "Есть сервер или нужен хостинг?"] ,
-    "html": ["Это лендинг или многостраничник?", "Дизайн готовый или тоже нужен?"] ,
-    "css": ["Есть макет в Figma/PSD?", "Нужна адаптивная вёрстка?"] ,
-    "sql": ["Какая СУБД?", "Нужна оптимизация или разработка с нуля?"] ,
-    "docker": ["Это контейнеризация существующего приложения?", "Нужен docker-compose или оркестрация?"] ,
-    "devops": ["Какая текущая инфраструктура?", "Нужен CI/CD или только настройка серверов?"] ,
-    "android": ["Native или кроссплатформа?", "Есть дизайн/макеты?"] ,
-    "ai": ["Какая модель/фреймворк?", "Есть обучающие данные?"] ,
-    "default": ["Есть ли готовое ТЗ?", "Когда планируете стартовать?"] ,
+    "wordpress": ["Это кастомная тема или готовая с доработками?", "Нужна интеграция с чем-то?"],
+    "api": ["Есть документация API?", "REST или GraphQL?"],
+    "telegram bot": ["Какой функционал ожидается?", "Есть сервер или нужен хостинг?"],
+    "html": ["Это лендинг или многостраничник?", "Дизайн готовый или тоже нужен?"],
+    "css": ["Есть макет в Figma/PSD?", "Нужна адаптивная вёрстка?"],
+    "sql": ["Какая СУБД?", "Нужна оптимизация или разработка с нуля?"],
+    "docker": ["Это контейнеризация существующего приложения?", "Нужен docker-compose или оркестрация?"],
+    "devops": ["Какая текущая инфраструктура?", "Нужен CI/CD или только настройка серверов?"],
+    "android": ["Native или кроссплатформа?", "Есть дизайн/макеты?"],
+    "ai": ["Какая модель/фреймворк?", "Есть обучающие данные?"],
+    "default": ["Есть ли готовое ТЗ?", "Когда планируете стартовать?"],
 }
 
 APPROACHES = {
@@ -103,14 +102,14 @@ def generate_proposal(project: Dict[str, Any], portfolio: Dict[str, Any]) -> str
     skills = project.get("found_skills", [])
     budget = project.get("budget")
     complexity = project.get("complexity", "medium")
-    
+
     dev_info = portfolio.get("developer", {})
     cases = portfolio.get("cases", portfolio.get("portfolio_highlights", []))
     years = dev_info.get("experience_years", 5)
-    
+
     # Форматируем навыки
     skills_str = ", ".join(skills[:3]) if skills else "указанный стек"
-    
+
     # Берём случайный кейс
     if isinstance(cases, list) and len(cases) > 0:
         case_example = cases[0].get("title", "аналогичный проект") if isinstance(cases[0], dict) else str(cases[0])
@@ -120,13 +119,13 @@ def generate_proposal(project: Dict[str, Any], portfolio: Dict[str, Any]) -> str
         case_example = "аналогичный проект"
         case_1 = "портфолио доступно по запросу"
         case_2 = ""
-    
+
     # Бюджет
     budget_str = f"{budget} {project.get('currency', '')}" if budget else "обсуждаемо"
-    
+
     # Сроки
     timeline = TIMELINES.get(complexity, "1-2 недели")
-    
+
     # Вопросы
     matched_questions = QUESTIONS.get("default", [])
     for skill in skills:
@@ -135,17 +134,17 @@ def generate_proposal(project: Dict[str, Any], portfolio: Dict[str, Any]) -> str
             break
     question_1 = matched_questions[0] if len(matched_questions) > 0 else "Есть ли ТЗ?"
     question_2 = matched_questions[1] if len(matched_questions) > 1 else "Когда планируете старт?"
-    
+
     # Подход
     approach = APPROACHES.get("default")
     for skill in skills:
         if skill in APPROACHES:
             approach = APPROACHES[skill]
             break
-    
+
     # Выбираем случайный шаблон
     template = random.choice(TEMPLATES)
-    
+
     # Подставляем значения
     result = template.format(
         title=title[:80],
@@ -161,5 +160,5 @@ def generate_proposal(project: Dict[str, Any], portfolio: Dict[str, Any]) -> str
         question_2=question_2,
         approach=approach,
     )
-    
+
     return result

@@ -1,4 +1,5 @@
 """Global mutable application state shared across API routes."""
+
 from __future__ import annotations
 
 import asyncio
@@ -24,6 +25,7 @@ class AppState:
         if self._orchestrator is None:
             from src.orchestrator import FreelanceOrchestrator
             from src.paths import ensure_layout
+
             ensure_layout()
             self._orchestrator = FreelanceOrchestrator()
         return self._orchestrator

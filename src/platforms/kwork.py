@@ -357,10 +357,7 @@ class KworkService:
             elif hasattr(api, "session") and api.session is not None:
                 api.session.cookie_jar.update_cookies(cookie_dict)
 
-            logger.info(
-                f"KworkService: API-клиент инициализирован через Session Hub "
-                f"({len(cookie_dict)} кук)"
-            )
+            logger.info(f"KworkService: API-клиент инициализирован через Session Hub ({len(cookie_dict)} кук)")
             return api
 
         except Exception as e:
@@ -412,7 +409,9 @@ class KworkService:
                 proxy=proxy,
                 relogin_on_auth_error=True,
             )
-            logger.info(f"KworkService: API-клиент инициализирован через email/password (proxy={'yes' if proxy else 'no'})")
+            logger.info(
+                f"KworkService: API-клиент инициализирован через email/password (proxy={'yes' if proxy else 'no'})"
+            )
             return api
         except Exception as e:
             logger.warning(f"KworkService: ошибка авторизации email/password: {e}")
@@ -513,7 +512,9 @@ class KworkService:
         response = data.get("response") if isinstance(data, dict) else None
         if response is None:
             if isinstance(data, dict) and data.get("success") is True and "paging" in data:
-                logger.debug(f"Kwork /projects returned no response list; treating as empty ({self._payload_summary(data)})")
+                logger.debug(
+                    f"Kwork /projects returned no response list; treating as empty ({self._payload_summary(data)})"
+                )
                 return []
             summary = self._payload_summary(data) if isinstance(data, dict) else f"type={type(data).__name__}"
             payload = data if isinstance(data, dict) else None
@@ -521,10 +522,7 @@ class KworkService:
 
         if isinstance(response, dict):
             response = (
-                response.get("data")
-                or response.get("items")
-                or response.get("wants")
-                or response.get("projects")
+                response.get("data") or response.get("items") or response.get("wants") or response.get("projects")
             )
         if not isinstance(response, list):
             summary = self._payload_summary(data) if isinstance(data, dict) else f"type={type(data).__name__}"
@@ -639,6 +637,7 @@ class KworkService:
         if not api:
             return {}
         from src.platforms.kwork_ext import get_connects_monitor
+
         return await get_connects_monitor().check(api)
 
     async def check_success_rate(self) -> dict[str, Any]:
@@ -647,11 +646,13 @@ class KworkService:
         if not api:
             return {}
         from src.platforms.kwork_ext import get_success_rate_monitor
+
         return await get_success_rate_monitor().check(api)
 
     def can_send_proposal(self) -> bool:
         """Проверить, достаточно ли connects и success rate для отправки отклика."""
         from src.platforms.kwork_ext import get_connects_monitor, get_success_rate_monitor
+
         return get_connects_monitor().can_send() and get_success_rate_monitor().can_send()
 
     async def get_raw_projects(
@@ -719,7 +720,9 @@ class KworkService:
             return []
         return await KworkExtensions.get_order_files(api, order_id)
 
-    async def create_review(self, order_id: int, rating: int = 5, text: str = "", body: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    async def create_review(
+        self, order_id: int, rating: int = 5, text: str = "", body: dict[str, Any] | None = None
+    ) -> dict[str, Any] | None:
         api = await self.get_api()
         if not api:
             return None
@@ -871,6 +874,7 @@ class KworkService:
         if not api:
             return {}
         from src.platforms.kwork_ext import get_account_health_monitor
+
         return await get_account_health_monitor().check(api)
 
     async def auto_review_completed(self, order_id: int, rating: int = 5, text: str = "") -> dict[str, Any] | None:

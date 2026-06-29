@@ -19,12 +19,13 @@ class ProbivFinding:
       - "leak"        — запись в даркнете / файловой утечке
       - "risk"        — обобщённый красный флаг
     """
-    source: str                      # "hibp", "leakcheck", "emailrep", ...
+
+    source: str  # "hibp", "leakcheck", "emailrep", ...
     kind: str
     title: str
     snippet: str = ""
     url: str = ""
-    severity: str = "info"           # info | low | medium | high | critical
+    severity: str = "info"  # info | low | medium | high | critical
     confidence: float = 0.7
     meta: dict[str, Any] = field(default_factory=dict)
 
@@ -37,11 +38,11 @@ class ProbivProvider(ABC):
     """
 
     name: str = "base"
-    requires_key: bool = False       # если True — регистрируется только при наличии ключа
+    requires_key: bool = False  # если True — регистрируется только при наличии ключа
     timeout_sec: float = 12.0
 
     # Какие поля контакта провайдер умеет принимать.
-    accepts: tuple[str, ...] = ()    # например ("email",) или ("email", "phone", "username")
+    accepts: tuple[str, ...] = ()  # например ("email",) или ("email", "phone", "username")
 
     @abstractmethod
     async def lookup(

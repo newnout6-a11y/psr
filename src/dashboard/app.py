@@ -177,8 +177,8 @@ elif page == "Decision Quality":
         by_hour = q.proposals_by_hour()
         if not _empty(by_hour, "Пока мало данных по часу отправки"):
             by_hour["response_rate"] = (
-                by_hour["responded"] / by_hour["sent"].replace({0: pd.NA}) * 100
-            ).fillna(0).round(1)
+                (by_hour["responded"] / by_hour["sent"].replace({0: pd.NA}) * 100).fillna(0).round(1)
+            )
             st.line_chart(by_hour.set_index("hour")["response_rate"])
 
     with lower_right:

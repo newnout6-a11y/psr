@@ -8,11 +8,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
+from loguru import logger
+
 from src.paths import PROPOSALS_DB_FILE
 
 
 def _now() -> str:
     from datetime import datetime, timezone
+
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -220,6 +223,18 @@ class ProposalDB:
                 ON earnings(candidate_id) WHERE status IN ('pending', 'paid') AND candidate_id IS NOT NULL
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS client_blacklist (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    client_user_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    reason TEXT,
+                    created_at TEXT NOT NULL,
+                    UNIQUE(client_user_id, platform)
+                )
+                """
+            )
 
             for column, ddl in [
                 ("candidate_id", "INTEGER"),
@@ -315,7 +330,14 @@ class ProposalDB:
             "updated_at": _now(),
         }
         for key, value in fields.items():
-            if key in {"skills", "vet_reasons", "vet_red_flags", "competitor_prices", "client_context", "platform_data"}:
+            if key in {
+                "skills",
+                "vet_reasons",
+                "vet_red_flags",
+                "competitor_prices",
+                "client_context",
+                "platform_data",
+            }:
                 payload[key] = _to_json(value)
             else:
                 payload[key] = value
@@ -343,7 +365,14 @@ class ProposalDB:
             return
         prepared = {}
         for key, value in fields.items():
-            if key in {"skills", "vet_reasons", "vet_red_flags", "competitor_prices", "client_context", "platform_data"}:
+            if key in {
+                "skills",
+                "vet_reasons",
+                "vet_red_flags",
+                "competitor_prices",
+                "client_context",
+                "platform_data",
+            }:
                 prepared[key] = _to_json(value)
             else:
                 prepared[key] = value
@@ -490,6 +519,65 @@ class ProposalDB:
             conn.commit()
             return cur.rowcount or 0
 
+    def recover_stale_sending(self, max_age_minutes: int = 10) -> int:
+        """Re-queue candidates stuck in 'sending' status for too long.
+
+        If the process crashes after claim_candidate_for_sending but before
+        the status is moved to a terminal value, the candidate is stranded.
+        This method recovers them by setting status back to 'queued'.
+        """
+        from datetime import datetime, timedelta, timezone
+
+        cutoff = (datetime.now(timezone.utc) - timedelta(minutes=max_age_minutes)).strftime("%Y-%m-%d %H:%M:%S")
+        with self._connect() as conn:
+            cur = conn.execute(
+                "UPDATE candidates SET status = 'queued', updated_at = ? WHERE status = 'sending' AND updated_at <= ?",
+                (_now(), cutoff),
+            )
+            conn.commit()
+            recovered = cur.rowcount or 0
+            if recovered:
+                logger.warning(f"ProposalDB: восстановлено {recovered} кандидатов из stale 'sending'")
+            return recovered
+
+    def blacklist_client(self, client_user_id: str, platform: str, reason: str = "") -> bool:
+        """Add client to blacklist."""
+        try:
+            with self._connect() as conn:
+                conn.execute(
+                    "INSERT OR IGNORE INTO client_blacklist (client_user_id, platform, reason, created_at) VALUES (?, ?, ?, ?)",
+                    (str(client_user_id), platform, reason, _now()),
+                )
+                conn.commit()
+                return True
+        except Exception:
+            return False
+
+    def is_client_blacklisted(self, client_user_id: str, platform: str) -> bool:
+        """Check if client is blacklisted."""
+        if not client_user_id:
+            return False
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT id FROM client_blacklist WHERE client_user_id = ? AND platform = ?",
+                (str(client_user_id), platform),
+            ).fetchone()
+            return row is not None
+
+    def get_blacklisted_clients(self) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute("SELECT * FROM client_blacklist ORDER BY created_at DESC").fetchall()
+            return [dict(r) for r in rows]
+
+    def remove_from_blacklist(self, client_user_id: str, platform: str) -> bool:
+        with self._connect() as conn:
+            conn.execute(
+                "DELETE FROM client_blacklist WHERE client_user_id = ? AND platform = ?",
+                (str(client_user_id), platform),
+            )
+            conn.commit()
+            return True
+
     def snooze_candidate(self, candidate_id: int, minutes: int, actor: str = "telegram") -> None:
         until = datetime.now().timestamp() + max(minutes, 1) * 60
         snoozed_until = datetime.fromtimestamp(until).strftime("%Y-%m-%d %H:%M:%S")
@@ -503,9 +591,7 @@ class ProposalDB:
 
     def get_candidate_status_counts(self) -> dict[str, int]:
         with self._connect() as conn:
-            rows = conn.execute(
-                "SELECT status, COUNT(*) AS total FROM candidates GROUP BY status"
-            ).fetchall()
+            rows = conn.execute("SELECT status, COUNT(*) AS total FROM candidates GROUP BY status").fetchall()
             return {row["status"]: int(row["total"]) for row in rows}
 
     def get_candidate_actions_since(self, since_ts: str, limit: int = 100) -> list[dict[str, Any]]:
@@ -796,7 +882,9 @@ class ProposalDB:
     # Conversations
     # ------------------------------------------------------------------
 
-    def get_or_create_conversation(self, project_id: str, platform: str, *, candidate_id: int | None = None, project_title: str = "") -> int:
+    def get_or_create_conversation(
+        self, project_id: str, platform: str, *, candidate_id: int | None = None, project_title: str = ""
+    ) -> int:
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT conversation_id FROM conversations WHERE project_id = ? AND platform = ?",
@@ -815,7 +903,9 @@ class ProposalDB:
             conn.commit()
             return int(cursor.lastrowid)
 
-    def add_conversation_message(self, conversation_id: int, *, sender: str, message_text: str, platform_message_id: str | None = None) -> bool:
+    def add_conversation_message(
+        self, conversation_id: int, *, sender: str, message_text: str, platform_message_id: str | None = None
+    ) -> bool:
         """Добавить сообщение в диалог. Возвращает True если новое, False если дубликат."""
         now = _now()
         with self._connect() as conn:
@@ -980,7 +1070,14 @@ class ProposalDB:
                 """
             ).fetchone()
             if not row:
-                return {"total": 0, "paid_count": 0, "pending_count": 0, "paid_amount": 0, "pending_amount": 0, "total_amount": 0}
+                return {
+                    "total": 0,
+                    "paid_count": 0,
+                    "pending_count": 0,
+                    "paid_amount": 0,
+                    "pending_amount": 0,
+                    "total_amount": 0,
+                }
             return {
                 "total": int(row["total"] or 0),
                 "paid_count": int(row["paid_count"] or 0),
@@ -1014,7 +1111,7 @@ class ProposalDB:
     def get_conversion_funnel(self, days: int = 30) -> dict[str, int]:
         with self._connect() as conn:
             sent = conn.execute(
-                "SELECT COUNT(*) AS n FROM candidates WHERE status IN ('auto_sent', 'manual_sent') AND sent_at IS NOT NULL"
+                "SELECT COUNT(*) AS n FROM candidates WHERE status IN ('auto_sent', 'manual_sent', 'hired', 'declined', 'completed') AND sent_at IS NOT NULL"
             ).fetchone()
             responded = conn.execute(
                 """
@@ -1025,15 +1122,9 @@ class ProposalDB:
                   AND conv.status != 'new'
                 """
             ).fetchone()
-            hired = conn.execute(
-                "SELECT COUNT(*) AS n FROM candidates WHERE status = 'hired'"
-            ).fetchone()
-            completed = conn.execute(
-                "SELECT COUNT(*) AS n FROM candidates WHERE status = 'completed'"
-            ).fetchone()
-            paid = conn.execute(
-                "SELECT COUNT(*) AS n FROM earnings WHERE status = 'paid'"
-            ).fetchone()
+            hired = conn.execute("SELECT COUNT(*) AS n FROM candidates WHERE status = 'hired'").fetchone()
+            completed = conn.execute("SELECT COUNT(*) AS n FROM candidates WHERE status = 'completed'").fetchone()
+            paid = conn.execute("SELECT COUNT(*) AS n FROM earnings WHERE status = 'paid'").fetchone()
             return {
                 "sent": int(sent["n"] or 0) if sent else 0,
                 "responded": int(responded["n"] or 0) if responded else 0,

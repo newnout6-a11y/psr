@@ -31,7 +31,7 @@ class KworkProfileProvider(OSINTProvider):
         url = f"{self.BASE_URL}/{username}"
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                          "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept-Language": "ru,en;q=0.8",
         }
         timeout = aiohttp.ClientTimeout(total=self.timeout_sec)
@@ -117,12 +117,8 @@ class KworkProfileProvider(OSINTProvider):
         ):
             block = m.group(1)
             # Тональность: ищем пометки positive/negative/thumb
-            is_positive = bool(
-                re.search(r'(positive|thumb[_-]?up|rating[_-]?good|\+)', block, re.IGNORECASE)
-            )
-            is_negative = bool(
-                re.search(r'(negative|thumb[_-]?down|rating[_-]?bad|\-[^\d])', block, re.IGNORECASE)
-            )
+            is_positive = bool(re.search(r"(positive|thumb[_-]?up|rating[_-]?good|\+)", block, re.IGNORECASE))
+            is_negative = bool(re.search(r"(negative|thumb[_-]?down|rating[_-]?bad|\-[^\d])", block, re.IGNORECASE))
             text = self._clean(block)
             if len(text) < 20:
                 continue

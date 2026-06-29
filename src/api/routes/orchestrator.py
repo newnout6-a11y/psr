@@ -1,4 +1,5 @@
 """Orchestrator control: start/stop cycle, mode, platform pause."""
+
 from __future__ import annotations
 
 import asyncio
@@ -26,7 +27,7 @@ class ModeRequest(BaseModel):
 
 
 class CycleRequest(BaseModel):
-    dry_run: bool = False
+    dry_run: bool = True
     limit: int = 1
     continuous: bool = False
     platforms: list[str] | None = None
@@ -156,14 +157,17 @@ async def _reset_runtime_instances() -> None:
 
     with suppress(Exception):
         from src.browser.browser_manager import BrowserManager
+
         BrowserManager.reset()
 
     with suppress(Exception):
         from src.utils.notifier import TelegramNotifier
+
         TelegramNotifier._instance = None
 
     with suppress(Exception):
         import src.brain.llm_router as llm_router_module
+
         llm_router_module.llm_router = None
 
 
@@ -173,6 +177,7 @@ def get_status():
     paused_platforms: list[str] = []
     try:
         from src.action.proposal_db import ProposalDB
+
         db = ProposalDB()
         db_mode = db.get_runtime_mode()
         paused_platforms = db.get_paused_platforms()
@@ -275,6 +280,7 @@ def set_mode(req: ModeRequest):
         raise HTTPException(status_code=400, detail=f"mode must be one of {allowed}")
     try:
         from src.action.proposal_db import ProposalDB
+
         ProposalDB().set_runtime_mode(req.mode)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -286,6 +292,7 @@ def set_mode(req: ModeRequest):
 def pause_platform(platform: str):
     try:
         from src.action.proposal_db import ProposalDB
+
         ProposalDB().set_platform_paused(platform, True)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -296,6 +303,7 @@ def pause_platform(platform: str):
 def resume_platform(platform: str):
     try:
         from src.action.proposal_db import ProposalDB
+
         ProposalDB().set_platform_paused(platform, False)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

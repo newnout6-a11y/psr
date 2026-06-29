@@ -36,12 +36,13 @@ from .providers import (
 @dataclass
 class OSINTResult:
     """Результат агрегации по одному заказчику."""
+
     username: str
     findings: list[OSINTFinding] = field(default_factory=list)
     probiv_findings: list[ProbivFinding] = field(default_factory=list)
     contacts: dict[str, list[str]] = field(default_factory=dict)
-    summary: str = ""                      # короткое резюме для LLM
-    reputation_score: int = 50             # 0-100, для веттинга
+    summary: str = ""  # короткое резюме для LLM
+    reputation_score: int = 50  # 0-100, для веттинга
     red_flags: list[str] = field(default_factory=list)
     positive_signals: list[str] = field(default_factory=list)
 
@@ -239,7 +240,7 @@ class OSINTAggregator:
             accepted = provider.accepts
             # email
             if "email" in accepted:
-                for em in contacts.emails[:3]:   # лимит чтобы не сжечь платный API
+                for em in contacts.emails[:3]:  # лимит чтобы не сжечь платный API
                     yield self._run_probiv(provider, email=em)
             # phone
             if "phone" in accepted:
@@ -258,9 +259,7 @@ class OSINTAggregator:
 
     async def _run_probiv(self, provider: ProbivProvider, **kwargs) -> list[ProbivFinding]:
         try:
-            return await asyncio.wait_for(
-                provider.lookup(**kwargs), timeout=provider.timeout_sec
-            )
+            return await asyncio.wait_for(provider.lookup(**kwargs), timeout=provider.timeout_sec)
         except asyncio.TimeoutError:
             logger.debug(f"Probiv[{provider.name}] timeout для {kwargs}")
             return []
@@ -268,14 +267,10 @@ class OSINTAggregator:
             logger.debug(f"Probiv[{provider.name}] ошибка: {e}")
             return []
 
-    async def _run_provider(
-        self, provider: OSINTProvider, username: str, ctx: dict[str, Any]
-    ) -> list[OSINTFinding]:
+    async def _run_provider(self, provider: OSINTProvider, username: str, ctx: dict[str, Any]) -> list[OSINTFinding]:
         """Запуск провайдера с таймаутом и подавлением исключений."""
         try:
-            return await asyncio.wait_for(
-                provider.search(username, **ctx), timeout=provider.timeout_sec
-            )
+            return await asyncio.wait_for(provider.search(username, **ctx), timeout=provider.timeout_sec)
         except asyncio.TimeoutError:
             logger.debug(f"OSINT[{provider.name}] timeout для {username}")
             return []

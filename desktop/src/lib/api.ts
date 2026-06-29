@@ -384,3 +384,78 @@ export interface OSINTFinding {
   confidence?: number
   meta?: Record<string, unknown>
 }
+
+// ── Earnings ────────────────────────────────────────────────────────────────
+
+export interface EarningsSummary {
+  total: number
+  paid_count: number
+  pending_count: number
+  paid_amount: number
+  pending_amount: number
+  total_amount: number
+}
+
+export interface EarningRow {
+  earning_id: number
+  candidate_id?: number
+  project_id: string
+  platform: string
+  amount: number
+  currency: string
+  status: string
+  paid_at?: string
+  created_at: string
+}
+
+// ── Funnel ──────────────────────────────────────────────────────────────────
+
+export interface FunnelData {
+  sent: number
+  responded: number
+  hired: number
+  completed: number
+  paid: number
+  response_rate: number
+  hire_rate: number
+  completion_rate: number
+  payment_rate: number
+}
+
+// ── Health ──────────────────────────────────────────────────────────────────
+
+export interface HealthData {
+  connects_free: number
+  connects_total: number
+  success_rate: number
+  completed: number
+  cancelled: number
+  active_orders: number
+  busy_risk: boolean
+  captcha_required: boolean
+  unread_notifications: number
+  username: string
+  level: string
+  rating: number
+  reviews_count: number
+  paused_kworks: number[]
+}
+
+// ── API methods (appended to existing api object) ───────────────────────────
+
+// Earnings
+;(api as any).getEarnings = () => request<EarningsSummary>('/api/dashboard/earnings')
+;(api as any).getEarningsList = (limit = 50) => request<EarningRow[]>(`/api/dashboard/earnings/list?limit=${limit}`)
+// Funnel
+;(api as any).getFunnel = (days = 30) => request<FunnelData>(`/api/dashboard/funnel?days=${days}`)
+// Health
+;(api as any).getHealth = () => request<HealthData>('/api/dashboard/health')
+// Lifecycle
+;(api as any).hireCandidate = (id: number) => request<{ ok: boolean }>(`/api/candidates/${id}/hire`, { method: 'POST' })
+;(api as any).declineCandidate = (id: number) => request<{ ok: boolean }>(`/api/candidates/${id}/decline`, { method: 'POST' })
+;(api as any).completeCandidate = (id: number) => request<{ ok: boolean }>(`/api/candidates/${id}/complete`, { method: 'POST' })
+;(api as any).recordEarning = (id: number, amount: number, currency = 'RUB') =>
+  request<{ ok: boolean; earning_id: number }>(`/api/candidates/${id}/earn`, {
+    method: 'POST',
+    body: JSON.stringify({ amount, currency }),
+  })

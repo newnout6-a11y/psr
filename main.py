@@ -126,12 +126,12 @@ async def main():
         pass
 
     try:
-        cycle_interval = int(os.getenv("CYCLE_INTERVAL", "1200"))
+        cycle_interval = int(os.getenv("CYCLE_INTERVAL", "1800"))
         if cycle_interval < 60:
             cycle_interval = 60
     except (ValueError, TypeError):
-        logger.warning("CYCLE_INTERVAL невалидный, используем 1200")
-        cycle_interval = 1200
+        logger.warning("CYCLE_INTERVAL невалидный, используем 1800")
+        cycle_interval = 1800
     continuous = args.continuous or os.getenv("CONTINUOUS_MODE", "false").lower() == "true"
 
     try:

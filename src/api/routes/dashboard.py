@@ -1,4 +1,5 @@
 """Dashboard metrics endpoints — thin wrappers around src/dashboard/queries."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Query
@@ -83,6 +84,15 @@ def runtime_state():
     return q.runtime_state_snapshot()
 
 
+@router.get("/health")
+async def kwork_health():
+    """Полный health check аккаунта Kwork."""
+    from src.platforms.kwork import get_kwork_service
+
+    service = get_kwork_service()
+    return await service.check_account_health()
+
+
 @router.get("/funnel")
 def funnel(days: int = Query(30, ge=1, le=90)):
     return q.conversion_funnel(days)
@@ -96,6 +106,7 @@ def earnings():
 @router.get("/earnings/list")
 def earnings_list(limit: int = Query(50, ge=1, le=200)):
     from src.action.proposal_db import ProposalDB
+
     return ProposalDB().get_earnings(limit=limit)
 
 

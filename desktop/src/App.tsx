@@ -5,6 +5,8 @@ import Queue from './pages/Queue'
 import Settings from './pages/Settings'
 import Logs from './pages/Logs'
 import OsintPage from './pages/Osint'
+import Earnings from './pages/Earnings'
+import Health from './pages/Health'
 
 export default function App() {
   return (
@@ -13,6 +15,8 @@ export default function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="queue" element={<Queue />} />
+        <Route path="earnings" element={<Earnings />} />
+        <Route path="health" element={<Health />} />
         <Route path="settings" element={<Settings />} />
         <Route path="logs" element={<Logs />} />
         <Route path="osint" element={<OsintPage />} />

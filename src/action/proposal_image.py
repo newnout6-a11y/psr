@@ -117,8 +117,7 @@ class ProposalImageGenerator:
             )
             elapsed_ms = int((time.perf_counter() - started_at) * 1000)
             logger.info(
-                f"ProposalImage: project={project.id} status={status} "
-                f"attachable={attachable} elapsed={elapsed_ms}ms"
+                f"ProposalImage: project={project.id} status={status} attachable={attachable} elapsed={elapsed_ms}ms"
             )
             return asset
         except Exception as exc:
@@ -200,7 +199,7 @@ class ProposalImageGenerator:
         image_b64 = base64.b64encode(path.read_bytes()).decode("ascii")
         prompt = (
             "Check whether this generated proposal image is safe to attach to a Kwork response. "
-            "Return strict JSON only: {\"ok\":true|false,\"reason\":\"...\"}. "
+            'Return strict JSON only: {"ok":true|false,"reason":"..."}. '
             "Reject if it has broken text, random text, logos, third-party brands, unrealistic promises, "
             "or does not match the project.\n\n"
             f"Project: {project.title}\n"

@@ -60,16 +60,12 @@ class KworkParser(BaseParser):
         page_tab = await browser.get(url)
 
         try:
-            loaded = await mgr.wait_for_content(
-                page_tab, "div.want-card", timeout=10
-            )
+            loaded = await mgr.wait_for_content(page_tab, "div.want-card", timeout=10)
             if not loaded:
                 await page_tab.sleep(4)
 
             try:
-                await page_tab.evaluate(
-                    "window.scrollTo(0, document.body.scrollHeight / 2)"
-                )
+                await page_tab.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
             except Exception:
                 pass
             await page_tab.sleep(2)
@@ -126,14 +122,16 @@ class KworkParser(BaseParser):
                 skills.append(s.text.strip())
 
             budget = None
-            price_el = soup.find("div", class_="wants-card__header-price") or soup.find("div", class_="wants-card__price")
+            price_el = soup.find("div", class_="wants-card__header-price") or soup.find(
+                "div", class_="wants-card__price"
+            )
             if not price_el:
-                price_el = soup.find(string=re.compile(r'\d.*[₽руб]'))
+                price_el = soup.find(string=re.compile(r"\d.*[₽руб]"))
                 if price_el:
                     price_el = price_el.parent
             if price_el:
                 price_text = price_el.text.strip().replace(" ", "").replace("\xa0", "")
-                num_match = re.search(r'(\d+)', price_text)
+                num_match = re.search(r"(\d+)", price_text)
                 if num_match:
                     budget = float(num_match.group(1))
 
@@ -158,6 +156,7 @@ class KworkParser(BaseParser):
         """Закрыть сессию и остановить браузер."""
         try:
             import asyncio
+
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 asyncio.ensure_future(self.browser_mgr.stop())
@@ -188,19 +187,21 @@ class KworkParser(BaseParser):
                 link = f"{self.BASE_URL}{link}"
 
             project_id = ""
-            id_match = re.search(r'/projects/(\d+)', link)
+            id_match = re.search(r"/projects/(\d+)", link)
             if id_match:
                 project_id = id_match.group(1)
 
             budget = None
-            price_el = card.find("div", class_="wants-card__header-price") or card.find("div", class_="wants-card__price")
+            price_el = card.find("div", class_="wants-card__header-price") or card.find(
+                "div", class_="wants-card__price"
+            )
             if not price_el:
-                price_el = card.find(string=re.compile(r'\d.*[₽руб]'))
+                price_el = card.find(string=re.compile(r"\d.*[₽руб]"))
                 if price_el:
                     price_el = price_el.parent
             if price_el:
                 price_text = price_el.text.strip().replace(" ", "").replace("\xa0", "")
-                num_match = re.search(r'(\d+)', price_text)
+                num_match = re.search(r"(\d+)", price_text)
                 if num_match:
                     budget = float(num_match.group(1))
 
@@ -209,16 +210,18 @@ class KworkParser(BaseParser):
                 desc_el = card.find("div", class_=lambda c: c and "description" in c if isinstance(c, str) else False)
             desc = desc_el.text.strip() if desc_el else ""
 
-            normalized.append(ProjectItem(
-                id=project_id,
-                title=title,
-                description=desc,
-                budget=budget,
-                currency="RUB",
-                skills=[],
-                created_at="",
-                url=link,
-                platform=self.PLATFORM_NAME,
-            ))
+            normalized.append(
+                ProjectItem(
+                    id=project_id,
+                    title=title,
+                    description=desc,
+                    budget=budget,
+                    currency="RUB",
+                    skills=[],
+                    created_at="",
+                    url=link,
+                    platform=self.PLATFORM_NAME,
+                )
+            )
 
         return normalized

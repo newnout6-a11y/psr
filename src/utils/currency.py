@@ -25,10 +25,7 @@ class CurrencyConverter:
         try:
             # Пробуем ЦБ РФ (самый точный для рублей)
             async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    "https://www.cbr-xml-daily.ru/daily_json.js",
-                    timeout=10.0
-                )
+                response = await client.get("https://www.cbr-xml-daily.ru/daily_json.js", timeout=10.0)
                 if response.status_code == 200:
                     data = response.json()
                     rates = {"RUB": 1.0}
@@ -47,8 +44,7 @@ class CurrencyConverter:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                    f"https://api.exchangerate-api.com/v4/latest/{self._base_currency}",
-                    timeout=10.0
+                    f"https://api.exchangerate-api.com/v4/latest/{self._base_currency}", timeout=10.0
                 )
                 if response.status_code == 200:
                     data = response.json()

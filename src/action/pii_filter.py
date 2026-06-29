@@ -32,10 +32,24 @@ _PII_PATTERNS: list[tuple[str, str, re.Pattern[str]]] = [
 
 _STOP_WORD_PATTERNS: list[tuple[str, str, re.Pattern[str]]] = [
     ("commission", "Комиссия", re.compile(r"\b(?:комисси[яюей]|процент\s*площадк|плата\s*площадк)\b", re.IGNORECASE)),
-    ("direct_payment", "Оплата напрямую", re.compile(r"\b(?:на\s+прямую|напрямую\s+оплач|на\s+карту|перевод\s+на\s+карт|кинь\s+карт)\b", re.IGNORECASE)),
-    ("off_platform", "Вне платформы", re.compile(r"\b(?:вне\s+бирж[иу]|без\s+бирж[иу]|вне\s+платформ)\b", re.IGNORECASE)),
+    (
+        "direct_payment",
+        "Оплата напрямую",
+        re.compile(r"\b(?:на\s+прямую|напрямую\s+оплач|на\s+карту|перевод\s+на\s+карт|кинь\s+карт)\b", re.IGNORECASE),
+    ),
+    (
+        "off_platform",
+        "Вне платформы",
+        re.compile(r"\b(?:вне\s+бирж[иу]|без\s+бирж[иу]|вне\s+платформ)\b", re.IGNORECASE),
+    ),
     ("telegram_word", "Слово telegram", re.compile(r"\b(?:телеграм|telegram|тг|tg)\b", re.IGNORECASE)),
-    ("personal_contact", "Личные контакты", re.compile(r"\b(?:напишите\s+в\s+лс|напиши\s+в\s+личк|в\s+личные\s+сообщения|свяжитесь\s+лично)\b", re.IGNORECASE)),
+    (
+        "personal_contact",
+        "Личные контакты",
+        re.compile(
+            r"\b(?:напишите\s+в\s+лс|напиши\s+в\s+личк|в\s+личные\s+сообщения|свяжитесь\s+лично)\b", re.IGNORECASE
+        ),
+    ),
     ("free_work", "Бесплатное тестовое", re.compile(r"\b(?:бесплатно\s+тестов|бесплатное\s+тест)\b", re.IGNORECASE)),
 ]
 

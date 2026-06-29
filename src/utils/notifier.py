@@ -70,6 +70,7 @@ class TelegramNotifier:
         proxy_url = os.getenv("TELEGRAM_PROXY_URL")
         if proxy_url:
             from aiogram.client.session.aiohttp import AiohttpSession
+
             self.bot = Bot(token=self.token, session=AiohttpSession(proxy=proxy_url))
         else:
             self.bot = Bot(token=self.token)
@@ -80,6 +81,7 @@ class TelegramNotifier:
         if not self.db:
             return
         import json as _json
+
         state = {
             "text_edit": {k: v for k, v in self._awaiting_text_edit.items()},
             "price_edit": {k: v for k, v in self._awaiting_price_edit.items()},
@@ -93,6 +95,7 @@ class TelegramNotifier:
         if not self.db:
             return
         import json as _json
+
         raw = self.db.get_runtime_state("telegram.awaiting_state")
         if not raw:
             return
@@ -101,7 +104,9 @@ class TelegramNotifier:
             self._awaiting_text_edit = {k: int(v) for k, v in state.get("text_edit", {}).items()}
             self._awaiting_price_edit = {k: int(v) for k, v in state.get("price_edit", {}).items()}
             self._awaiting_price_apply = {k: bool(v) for k, v in state.get("price_apply", {}).items()}
-            self._awaiting_reply = {k: tuple(v) for k, v in state.get("reply", {}).items() if isinstance(v, list) and len(v) == 2}
+            self._awaiting_reply = {
+                k: tuple(v) for k, v in state.get("reply", {}).items() if isinstance(v, list) and len(v) == 2
+            }
             self._awaiting_msg = {k: int(v) for k, v in state.get("msg", {}).items()}
             if any([self._awaiting_text_edit, self._awaiting_price_edit, self._awaiting_reply, self._awaiting_msg]):
                 logger.info("TelegramNotifier: восстановлено состояние awaiting из БД")
@@ -228,10 +233,7 @@ class TelegramNotifier:
                 return
             arg = self._command_arg(message)
             if not arg:
-                await message.answer(
-                    "Использование: /reply <project_id> <платформа>\n"
-                    "Затем напиши текст ответа."
-                )
+                await message.answer("Использование: /reply <project_id> <платформа>\nЗатем напиши текст ответа.")
                 return
             parts = arg.split(maxsplit=1)
             if len(parts) < 2:
@@ -299,22 +301,47 @@ class TelegramNotifier:
                 await message.answer(f"Кандидат #{candidate_id} не найден.")
                 return
             self.db.mark_candidate_completed(candidate_id, actor="telegram")
-            if os.getenv("KWORK_AUTO_REVIEW", "false").lower() in {"1", "true", "yes", "on"} and candidate["platform"] == "kwork":
-                from src.platforms.kwork import get_kwork_service
-                service = get_kwork_service()
-                review_text = os.getenv("KWORK_AUTO_REVIEW_TEXT", "Спасибо за заказ! Буду рад сотрудничеству в будущем.")
-                rating = int(os.getenv("KWORK_AUTO_REVIEW_RATING", "5"))
-                result = await service.auto_review_completed(candidate_id, rating=rating, text=review_text)
-                if result:
-                    await message.answer(
-                        f"Кандидат #{candidate_id} отмечен как completed.\n"
-                        f"Отзыв автоматически оставлен (рейтинг {rating})."
+            if (
+                os.getenv("KWORK_AUTO_REVIEW", "false").lower() in {"1", "true", "yes", "on"}
+                and candidate["platform"] == "kwork"
+            ):
+                try:
+                    from src.platforms.kwork import get_kwork_service
+
+                    service = get_kwork_service()
+                    review_text = os.getenv(
+                        "KWORK_AUTO_REVIEW_TEXT", "Спасибо за заказ! Буду рад сотрудничеству в будущем."
                     )
-                else:
-                    await message.answer(
-                        f"Кандидат #{candidate_id} отмечен как completed.\n"
-                        f"Не удалось оставить отзыв автоматически."
-                    )
+                    rating = int(os.getenv("KWORK_AUTO_REVIEW_RATING", "5"))
+
+                    orders = await service.get_worker_orders(status_filter="all")
+                    order_id = None
+                    for o in orders:
+                        if isinstance(o, dict) and str(o.get("project_id", "")) == str(candidate.get("project_id", "")):
+                            order_id = o.get("id")
+                            break
+
+                    if order_id:
+                        result = await service.auto_review_completed(int(order_id), rating=rating, text=review_text)
+                    else:
+                        logger.warning(
+                            f"TelegramNotifier: order not found for project {candidate.get('project_id')}, review skipped"
+                        )
+                        result = None
+
+                    if result:
+                        await message.answer(
+                            f"Кандидат #{candidate_id} отмечен как completed.\n"
+                            f"Отзыв автоматически оставлен (рейтинг {rating})."
+                        )
+                    else:
+                        await message.answer(
+                            f"Кандидат #{candidate_id} отмечен как completed.\n"
+                            f"Не удалось оставить отзыв автоматически (заказ не найден)."
+                        )
+                except Exception as e:
+                    logger.error(f"TelegramNotifier: auto_review error: {e}")
+                    await message.answer(f"Кандидат #{candidate_id} отмечен как completed.\nОшибка авто-отзыва: {e}")
             else:
                 await message.answer(
                     f"Кандидат #{candidate_id} отмечен как completed (работа сдана).\n"
@@ -573,10 +600,17 @@ class TelegramNotifier:
                     actor="telegram",
                     payload={"chosen_price": price},
                 )
-                confirm_kb = InlineKeyboardMarkup(inline_keyboard=[
-                    [InlineKeyboardButton(text=f"Отправить за {price} руб.", callback_data=f"candidate:{candidate_id}:confirm_send:{price}"),
-                     InlineKeyboardButton(text="Отмена", callback_data=f"candidate:{candidate_id}:cancel_send")],
-                ])
+                confirm_kb = InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text=f"Отправить за {price} руб.",
+                                callback_data=f"candidate:{candidate_id}:confirm_send:{price}",
+                            ),
+                            InlineKeyboardButton(text="Отмена", callback_data=f"candidate:{candidate_id}:cancel_send"),
+                        ],
+                    ]
+                )
                 await callback.message.edit_reply_markup(reply_markup=confirm_kb)
                 await callback.answer(f"Подтверди отправку за {price} руб.")
                 return
@@ -597,9 +631,11 @@ class TelegramNotifier:
 
             if action == "skip":
                 candidate = self.db.get_candidate(candidate_id)
-                undo_kb = InlineKeyboardMarkup(inline_keyboard=[
-                    [InlineKeyboardButton(text="↩️ Восстановить", callback_data=f"candidate:{candidate_id}:unskip")],
-                ])
+                undo_kb = InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [InlineKeyboardButton(text="↩️ Восстановить", callback_data=f"candidate:{candidate_id}:unskip")],
+                    ]
+                )
                 self.db.update_candidate_status(
                     candidate_id,
                     "skipped",
@@ -633,6 +669,7 @@ class TelegramNotifier:
                 return
 
             if action == "edit_text":
+                await callback.message.edit_reply_markup(reply_markup=None)
                 self._awaiting_text_edit[str(callback.from_user.id)] = candidate_id
                 await callback.answer("Пришли новый текст")
                 await callback.message.answer(
@@ -645,9 +682,7 @@ class TelegramNotifier:
                 self._awaiting_price_edit[chat_key] = candidate_id
                 self._awaiting_price_apply[chat_key] = action == "custom_price"
                 await callback.answer("Пришли цену числом")
-                await callback.message.answer(
-                    f"Пришли цену для #{candidate_id} числом, например 3000."
-                )
+                await callback.message.answer(f"Пришли цену для #{candidate_id} числом, например 3000.")
                 return
 
             if action == "snooze":
@@ -728,7 +763,9 @@ class TelegramNotifier:
                 if result is not None:
                     conv = self.db.get_conversation(candidate["project_id"], candidate["platform"])
                     if conv:
-                        self.db.add_conversation_message(conv["conversation_id"], sender="freelancer", message_text=text)
+                        self.db.add_conversation_message(
+                            conv["conversation_id"], sender="freelancer", message_text=text
+                        )
                     await message.answer(f"Сообщение отправлено клиенту (user_id={user_id_str}) через Kwork чат.")
                 else:
                     await message.answer(
@@ -737,7 +774,9 @@ class TelegramNotifier:
                     )
                     conv = self.db.get_conversation(candidate["project_id"], candidate["platform"])
                     if conv:
-                        self.db.add_conversation_message(conv["conversation_id"], sender="freelancer", message_text=text)
+                        self.db.add_conversation_message(
+                            conv["conversation_id"], sender="freelancer", message_text=text
+                        )
                 return
 
             candidate_id = self._awaiting_text_edit.pop(chat_id, None)
@@ -862,7 +901,13 @@ class TelegramNotifier:
                 ]
             )
         else:
-            buttons.append([InlineKeyboardButton(text="Отправить", callback_data=f"candidate:{candidate_id}:approve")])
+            buttons.append(
+                [
+                    InlineKeyboardButton(
+                        text="Отправить (без цены)", callback_data=f"candidate:{candidate_id}:confirm_send:none"
+                    )
+                ]
+            )
 
         buttons.append(
             [
@@ -890,6 +935,32 @@ class TelegramNotifier:
         if not hired_percent and isinstance(client_data, dict):
             hired_percent = client_data.get("order_done_repeat_persent") or 0
 
+        ai_score = candidate.get("ai_score")
+        vet_score = candidate.get("vet_score")
+        risk_level = candidate.get("risk_level") or ""
+        status = candidate.get("status") or ""
+        is_dry_run = bool(candidate.get("dry_run"))
+
+        confidence = ""
+        if status == "auto_ready":
+            confidence = "🟢 Высокая уверенность"
+        elif status == "queued":
+            confidence = "🟡 На проверку"
+        if risk_level == "high":
+            confidence = "🔴 Высокий риск"
+        elif risk_level == "medium" and confidence:
+            confidence += " ⚠️"
+
+        scores_line = ""
+        if ai_score is not None:
+            scores_line += f"AI: {ai_score}/10"
+        if vet_score is not None:
+            scores_line += f"  Vet: {vet_score}/100"
+        if risk_level:
+            scores_line += f"  Риск: {risk_level}"
+
+        dry_run_prefix = "🧪 DRY-RUN " if is_dry_run else ""
+
         competition = ""
         if offers:
             competition += f"\n👥 Конкуренция: {offers} откликов"
@@ -909,16 +980,22 @@ class TelegramNotifier:
                 competition += "\n💰 Цены конкурентов: " + ", ".join(f"{price}₽" for price in prices)
 
         header = (
-            f"🔔 Новый проект ({platform})\n\n"
+            f"{dry_run_prefix}🔔 Новый проект ({platform})\n\n"
             f"📌 {candidate.get('title', 'Без названия')}\n"
             f"🆔 ID: {project_id}\n"
             f"💰 Бюджет: {budget_str}"
-            f"{competition}\n\n"
+            f"{competition}\n"
         )
-        footer = "\n\nВыбери цену:"
+        if confidence:
+            header += f"\n{confidence}"
+        if scores_line:
+            header += f"\n{scores_line}"
+        header += "\n\n"
+
+        footer = "\n\nВыбери цену:" if not is_dry_run else "\n\nВыбери цену (draft — не будет отправлен):"
         available_for_proposal = 1024 - len(header) - len(footer)
         if len(proposal) > available_for_proposal:
-            proposal = proposal[:available_for_proposal - 3] + "..."
+            proposal = proposal[: available_for_proposal - 3] + "..."
         text = f"{header}📝 Текст отклика:\n{proposal}{footer}"
         return self._truncate_caption(text)
 
@@ -939,9 +1016,7 @@ class TelegramNotifier:
             except asyncio.CancelledError:
                 raise
             except Exception as e:
-                logger.warning(
-                    f"TelegramNotifier: polling недоступен ({e}), повтор через {retry_delay} сек."
-                )
+                logger.warning(f"TelegramNotifier: polling недоступен ({e}), повтор через {retry_delay} сек.")
                 await asyncio.sleep(retry_delay)
                 retry_delay = min(retry_delay * 2, 120)
 
@@ -1015,7 +1090,9 @@ class TelegramNotifier:
             if not isinstance(file_info, dict):
                 continue
             url = str(file_info.get("url") or "").strip()
-            name = str(file_info.get("fname") or file_info.get("name") or file_info.get("filename") or "attachment").strip()
+            name = str(
+                file_info.get("fname") or file_info.get("name") or file_info.get("filename") or "attachment"
+            ).strip()
             if not url:
                 continue
 
@@ -1024,7 +1101,9 @@ class TelegramNotifier:
                 if downloaded_path and Path(downloaded_path).exists():
                     file_size = Path(downloaded_path).stat().st_size
                     if file_size < 100:
-                        logger.warning(f"TelegramNotifier: файл {name} слишком маленький ({file_size} bytes), возможно ошибка")
+                        logger.warning(
+                            f"TelegramNotifier: файл {name} слишком маленький ({file_size} bytes), возможно ошибка"
+                        )
                         continue
                     if file_size > 50_000_000:
                         logger.warning(f"TelegramNotifier: файл {name} слишком большой ({file_size} bytes), пропуск")
@@ -1091,7 +1170,9 @@ class TelegramNotifier:
             safe_name = re.sub(r"[^\w.\-() ]", "_", name)
             file_path = tmp_dir / safe_name
 
-            async with httpx.AsyncClient(timeout=60, follow_redirects=True, trust_env=False, cookies=cookies, headers=headers) as client:
+            async with httpx.AsyncClient(
+                timeout=60, follow_redirects=True, trust_env=False, cookies=cookies, headers=headers
+            ) as client:
                 resp = await client.get(url)
                 if resp.status_code == 200:
                     ct = resp.headers.get("content-type", "")
@@ -1217,8 +1298,7 @@ class TelegramNotifier:
         mode = self.db.get_runtime_mode(os.getenv("EXECUTION_MODE", "semi_auto"))
         platform_stats = self.db.get_platform_stats()
         platform_lines = [
-            f"{item['platform']}: sent={item['total']}, replied={item['responded']}"
-            for item in platform_stats
+            f"{item['platform']}: sent={item['total']}, replied={item['responded']}" for item in platform_stats
         ] or ["нет данных по платформам"]
 
         text = (
@@ -1260,11 +1340,7 @@ class TelegramNotifier:
         """
         if not self.bot or not self.admin_id:
             return
-        msg = (
-            "URGENT: Заказ назначен вам!\n\n"
-            f"Проект: {project_title}\n"
-            f"Заказ #{order_id}\n"
-        )
+        msg = f"URGENT: Заказ назначен вам!\n\nПроект: {project_title}\nЗаказ #{order_id}\n"
         if deadline:
             msg += f"Дедлайн: {deadline}\n"
         msg += (

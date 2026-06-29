@@ -45,7 +45,9 @@ class HabrProvider(OSINTProvider):
         fullname = self._extract(html, r'<h1[^>]*class="[^"]*tm-user-card__nickname[^"]*"[^>]*>([^<]+)</h1>')
         specialization = self._extract(html, r'class="[^"]*tm-user-card__specialization[^"]*"[^>]*>([^<]+)<')
         # Карма и рейтинг — формат Habr динамический, делаем бест-эффорт
-        karma = self._extract(html, r'"karma":\s*"?([-\d.]+)"?') or self._extract(html, r'Карма</div>\s*<div[^>]*>([-\d.]+)')
+        karma = self._extract(html, r'"karma":\s*"?([-\d.]+)"?') or self._extract(
+            html, r"Карма</div>\s*<div[^>]*>([-\d.]+)"
+        )
         rating = self._extract(html, r'"rating":\s*"?([-\d.]+)"?')
 
         snippet = " · ".join(

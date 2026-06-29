@@ -1,4 +1,5 @@
 """Candidate queue management: list, approve, skip, snooze, edit."""
+
 from __future__ import annotations
 
 from typing import Optional
@@ -30,6 +31,7 @@ class ApproveRequest(BaseModel):
 
 def _db():
     from src.action.proposal_db import ProposalDB
+
     return ProposalDB()
 
 
@@ -78,6 +80,7 @@ def list_candidates(
 
     items = []
     import json
+
     for row in rows:
         d = dict(row)
         for key in ("skills", "vet_reasons", "vet_red_flags", "competitor_prices", "client_context", "platform_data"):
@@ -118,9 +121,7 @@ def skip_candidate(candidate_id: int):
     candidate = db.get_candidate(candidate_id)
     if not candidate:
         raise HTTPException(status_code=404, detail="Not found")
-    db.update_candidate_status(
-        candidate_id, "skipped", actor="ui", reason="skipped by operator", manual_override=True
-    )
+    db.update_candidate_status(candidate_id, "skipped", actor="ui", reason="skipped by operator", manual_override=True)
     return {"ok": True}
 
 

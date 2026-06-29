@@ -141,9 +141,7 @@ class RAGPipeline:
             for index, case in enumerate(analysis["matched_cases"], 1):
                 tech = ", ".join(case.get("tech", [])[:5])
                 result = case.get("result", "")
-                lines.append(
-                    f"{index}. {case.get('title', '')} | стек: {tech} | результат: {result}"
-                )
+                lines.append(f"{index}. {case.get('title', '')} | стек: {tech} | результат: {result}")
                 description = str(case.get("description") or "").strip()
                 if description:
                     lines.append(f"   {description[:180]}")
@@ -207,7 +205,10 @@ class RAGPipeline:
             case_text = self._case_text(case).lower()
             case_terms = self._term_set(case_text)
             overlap = len(project_terms & case_terms)
-            tech_overlap = len(set(self._find_relevant_skills([], text)) & set(self._find_relevant_skills(case.get("tech", []), case_text)))
+            tech_overlap = len(
+                set(self._find_relevant_skills([], text))
+                & set(self._find_relevant_skills(case.get("tech", []), case_text))
+            )
             score = overlap + tech_overlap * 3
             if score <= 0:
                 continue
@@ -217,11 +218,7 @@ class RAGPipeline:
         return ranked[:2]
 
     def _term_set(self, text: str) -> set[str]:
-        return {
-            token
-            for token in re.split(r"[^0-9a-zа-яё+#]+", text.lower())
-            if len(token) >= 3
-        }
+        return {token for token in re.split(r"[^0-9a-zа-яё+#]+", text.lower()) if len(token) >= 3}
 
     def _case_text(self, case: dict[str, Any]) -> str:
         tech = " ".join(case.get("tech", []))

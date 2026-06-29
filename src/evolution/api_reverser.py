@@ -14,30 +14,30 @@ class APIReverser:
     Реверс-инжиниринг API через анализ HAR-дампов и DevTools.
     Автоматическое извлечение эндпоинтов, токенов, CSRF.
     """
-    
+
     def __init__(self):
         self.endpoints = {}
         self.auth_tokens = {}
         self.csrf_tokens = {}
-    
+
     def analyze_har(self, har_file: str) -> Dict[str, Any]:
         """
         Анализ HAR-файла (экспорт из DevTools/mitmproxy).
         Извлекает все API-вызовы, авторизацию, параметры.
         """
         logger.info(f"Анализ HAR-файла: {har_file}")
-        
+
         with open(har_file, "r", encoding="utf-8") as f:
             har_data = json.load(f)
-        
+
         entries = har_data.get("log", {}).get("entries", [])
         api_calls = []
-        
+
         for entry in entries:
             request = entry.get("request", {})
             url = request.get("url", "")
             method = request.get("method", "")
-            
+
             # Фильтруем только API-вызовы
             if self._is_api_call(url):
                 api_call = {
@@ -49,90 +49,91 @@ class APIReverser:
                     "response_status": entry.get("response", {}).get("status"),
                 }
                 api_calls.append(api_call)
-        
+
         logger.info(f"Найдено {len(api_calls)} API-вызовов")
         self.endpoints = self._group_endpoints(api_calls)
         return self.endpoints
-    
+
     def extract_csrf_tokens(self, html_content: str) -> Dict[str, str]:
         """
         Извлечение CSRF/CSRF-токенов из HTML.
         Ищет в <meta> тегах, скрытых <input>, JavaScript-переменных.
         """
         from bs4 import BeautifulSoup
-        
+
         soup = BeautifulSoup(html_content, "lxml")
         tokens = {}
-        
+
         # <meta name="csrf-token" content="...">
         csrf_meta = soup.find("meta", attrs={"name": "csrf-token"})
         if csrf_meta:
             tokens["csrf_token"] = csrf_meta.get("content", "")
-        
+
         # <input type="hidden" name="_token" value="...">
         csrf_input = soup.find("input", attrs={"name": lambda x: x and "token" in x.lower()})
         if csrf_input:
             tokens["hidden_token"] = csrf_input.get("value", "")
-        
+
         # JavaScript-переменные (window.CSRF_TOKEN = "...")
         import re
+
         script_tags = soup.find_all("script")
         for script in script_tags:
             if script.string:
                 match = re.search(r'(?:csrf|token|secret)["\s:=]+["\']([^"\']{10,})["\']', script.string, re.IGNORECASE)
                 if match:
                     tokens["js_token"] = match.group(1)
-        
+
         self.csrf_tokens = tokens
         logger.info(f"Извлечено CSRF-токенов: {len(tokens)}")
         return tokens
-    
+
     def extract_dynamic_tokens(self, html_content: str) -> Dict[str, str]:
         """
         Извлечение динамических токенов из JavaScript (JWT, Bearer, session).
         """
         import re
-        
+
         tokens = {}
-        
+
         # JWT токены
         jwt_pattern = r'["\']?token["\']?\s*:\s*["\']([eyJ][a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)["\']'
         matches = re.findall(jwt_pattern, html_content)
         if matches:
             tokens["jwt"] = matches[0]
-        
+
         # Bearer токены
         bearer_pattern = r'["\']?(?:bearer|api_key|authorization)["\']?\s*:\s*["\']([a-zA-Z0-9_-]{20,})["\']'
         matches = re.findall(bearer_pattern, html_content, re.IGNORECASE)
         if matches:
             tokens["bearer"] = matches[0]
-        
+
         # Session ID
         session_pattern = r'["\']?(?:session|sid|session_id)["\']?\s*:\s*["\']([a-zA-Z0-9]{16,})["\']'
         matches = re.findall(session_pattern, html_content, re.IGNORECASE)
         if matches:
             tokens["session"] = matches[0]
-        
+
         self.auth_tokens = tokens
         logger.info(f"Извлечено динамических токенов: {len(tokens)}")
         return tokens
-    
+
     def generate_client(self, platform: str, output_dir: str = "src/api"):
         """
         Генерация Python-клиента для API на основе извлечённых данных.
         """
         logger.info(f"Генерация API клиента для {platform}...")
-        
+
         client_code = self._build_client_template(platform)
         output_path = Path(output_dir) / f"{platform}_client.py"
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(client_code)
-        
+
         logger.info(f"Клиент сохранён: {output_path}")
         return output_path
-    
+
     def _is_api_call(self, url: str) -> bool:
         """Определить, является ли URL API-вызовом."""
         api_indicators = [
@@ -147,26 +148,27 @@ class APIReverser:
             ".json",
         ]
         return any(indicator in url.lower() for indicator in api_indicators)
-    
+
     def _parse_query_string(self, qs_list: List[Dict]) -> Dict[str, str]:
         """Парсинг query string."""
         return {item["name"]: item.get("value", "") for item in qs_list}
-    
+
     def _group_endpoints(self, api_calls: List[Dict]) -> Dict[str, List[Dict]]:
         """Группировка эндпоинтов по базовому URL."""
         grouped = {}
         for call in api_calls:
             # Извлекаем базовый URL (домена + первый путь)
             from urllib.parse import urlparse
+
             parsed = urlparse(call["url"])
-            base = f"{parsed.netloc}{parsed.path.split('/')[1]}" if len(parsed.path.split('/')) > 1 else parsed.netloc
-            
+            base = f"{parsed.netloc}{parsed.path.split('/')[1]}" if len(parsed.path.split("/")) > 1 else parsed.netloc
+
             if base not in grouped:
                 grouped[base] = []
             grouped[base].append(call)
-        
+
         return grouped
-    
+
     def _build_client_template(self, platform: str) -> str:
         """Генерация шаблона API-клиента."""
         platform_class = platform.title().replace("_", "")

@@ -1,4 +1,5 @@
 """OSINT manual client check endpoint."""
+
 from __future__ import annotations
 
 from typing import Optional
@@ -23,6 +24,7 @@ async def check_client(req: OSINTCheckRequest):
         raise HTTPException(status_code=400, detail="username is required")
     try:
         from src.osint import OSINTAggregator
+
         agg = OSINTAggregator()
         result = await agg.gather(
             req.username.strip(),

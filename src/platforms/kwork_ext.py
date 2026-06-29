@@ -176,6 +176,11 @@ class ConnectsMonitor:
         free = int(self._cache.get("free_amount", 999) or 999)
         return free > self.block_threshold
 
+    def decrement(self, amount: int = 1) -> None:
+        """Decrement connects by amount, clamped at 0."""
+        current = int(self._cache.get("free_amount", 0) or 0)
+        self._cache["free_amount"] = max(0, current - amount)
+
     @property
     def free_amount(self) -> int:
         return int(self._cache.get("free_amount", 0) or 0)
@@ -708,7 +713,13 @@ class KworkExtensions:
                 return [], paging
 
             if isinstance(response, dict):
-                response = response.get("data") or response.get("items") or response.get("wants") or response.get("projects") or []
+                response = (
+                    response.get("data")
+                    or response.get("items")
+                    or response.get("wants")
+                    or response.get("projects")
+                    or []
+                )
 
             if not isinstance(response, list):
                 return [], paging
@@ -786,7 +797,9 @@ class KworkExtensions:
     # ------------------------------------------------------------------
 
     @staticmethod
-    async def create_review(api: Any, order_id: int, rating: int = 5, text: str = "", body: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    async def create_review(
+        api: Any, order_id: int, rating: int = 5, text: str = "", body: dict[str, Any] | None = None
+    ) -> dict[str, Any] | None:
         """Оставить отзыв клиенту. Отзывы = главный фактор ранкинга."""
         try:
             review_body = body or {"id": order_id, "rating": rating, "text": text or "Спасибо за заказ!"}
@@ -1259,24 +1272,40 @@ def apply_kwork_patches() -> None:
 
         KworkClient.get_categories_raw = lambda self: KworkExtensions.get_categories_raw(self)
         KworkClient.get_all_category_ids = lambda self: KworkExtensions.get_all_category_ids(self)
-        KworkClient.get_project_details_raw = lambda self, project_id: KworkExtensions.get_project_details(self, project_id)
-        KworkClient.send_message_to_client = lambda self, user_id, text: KworkExtensions.send_message_to_client(self, user_id, text)
+        KworkClient.get_project_details_raw = lambda self, project_id: KworkExtensions.get_project_details(
+            self, project_id
+        )
+        KworkClient.send_message_to_client = lambda self, user_id, text: KworkExtensions.send_message_to_client(
+            self, user_id, text
+        )
         KworkClient.get_dialog_history_raw = lambda self, username: KworkExtensions.get_dialog_history(self, username)
-        KworkClient.get_worker_orders_raw = lambda self, status_filter="all": KworkExtensions.get_worker_orders(self, status_filter)
+        KworkClient.get_worker_orders_raw = lambda self, status_filter="all": KworkExtensions.get_worker_orders(
+            self, status_filter
+        )
         KworkClient.get_notifications_raw = lambda self: KworkExtensions.get_notifications(self)
         KworkClient.get_connects_info = lambda self: KworkExtensions.get_connects_info(self)
         KworkClient.get_raw_projects = lambda self, **kw: KworkExtensions.get_raw_projects(self, **kw)
-        KworkClient.upload_file_to_offer = lambda self, project_id, file_path, **kw: KworkExtensions.upload_file_to_offer(self, project_id, file_path, **kw)
+        KworkClient.upload_file_to_offer = lambda self, project_id, file_path, **kw: (
+            KworkExtensions.upload_file_to_offer(self, project_id, file_path, **kw)
+        )
 
         KworkClient.approve_order_raw = lambda self, order_id: KworkExtensions.approve_order(self, order_id)
-        KworkClient.cancel_order_raw = lambda self, order_id, reason="": KworkExtensions.cancel_order_by_worker(self, order_id, reason)
+        KworkClient.cancel_order_raw = lambda self, order_id, reason="": KworkExtensions.cancel_order_by_worker(
+            self, order_id, reason
+        )
         KworkClient.get_order_details_raw = lambda self, order_id: KworkExtensions.get_order_details(self, order_id)
         KworkClient.get_order_header_raw = lambda self, order_id: KworkExtensions.get_order_header(self, order_id)
         KworkClient.get_order_files_raw = lambda self, order_id: KworkExtensions.get_order_files(self, order_id)
-        KworkClient.create_review_raw = lambda self, order_id, rating=5, text="", body=None: KworkExtensions.create_review(self, order_id, rating, text, body)
-        KworkClient.get_kwork_reviews_raw = lambda self, kwork_id, page=1: KworkExtensions.get_kwork_reviews(self, kwork_id, page)
+        KworkClient.create_review_raw = lambda self, order_id, rating=5, text="", body=None: (
+            KworkExtensions.create_review(self, order_id, rating, text, body)
+        )
+        KworkClient.get_kwork_reviews_raw = lambda self, kwork_id, page=1: KworkExtensions.get_kwork_reviews(
+            self, kwork_id, page
+        )
         KworkClient.inbox_read_raw = lambda self, message_id: KworkExtensions.inbox_read(self, message_id)
-        KworkClient.mark_inbox_read_raw = lambda self, dialog_id: KworkExtensions.mark_inbox_tracks_as_read(self, dialog_id)
+        KworkClient.mark_inbox_read_raw = lambda self, dialog_id: KworkExtensions.mark_inbox_tracks_as_read(
+            self, dialog_id
+        )
         KworkClient.set_typing_raw = lambda self, recipient_id: KworkExtensions.set_typing(self, recipient_id)
         KworkClient.is_dialog_allowed_raw = lambda self, user_id: KworkExtensions.is_dialog_allow(self, user_id)
         KworkClient.get_wants_count_raw = lambda self, **kw: KworkExtensions.get_wants_count(self, **kw)
@@ -1287,7 +1316,9 @@ def apply_kwork_patches() -> None:
         KworkClient.upload_file_raw = lambda self, file_path: KworkExtensions.upload_file(self, file_path)
         KworkClient.get_user_info_raw = lambda self, user_id: KworkExtensions.get_user_info(self, user_id)
         KworkClient.get_kwork_details_raw = lambda self, kwork_id: KworkExtensions.get_kwork_details(self, kwork_id)
-        KworkClient.get_kworks_list_raw = lambda self, category_id, page=1: KworkExtensions.get_kworks_list(self, category_id, page)
+        KworkClient.get_kworks_list_raw = lambda self, category_id, page=1: KworkExtensions.get_kworks_list(
+            self, category_id, page
+        )
         KworkClient.get_kworks_status_raw = lambda self: KworkExtensions.get_kworks_status_list(self)
         KworkClient.pause_kwork_raw = lambda self, kwork_id: KworkExtensions.pause_kwork(self, kwork_id)
         KworkClient.get_badges_info_raw = lambda self: KworkExtensions.get_badges_info(self)

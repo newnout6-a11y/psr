@@ -19,6 +19,7 @@ if os.getenv("PSR_DATA_DIR"):
         pass
     elif not DATA_DIR.exists():
         import warnings
+
         warnings.warn(
             f"PSR_DATA_DIR={DATA_DIR} не существует — будет создана пустая директория. "
             "Если это ошибка, проверьте переменную окружения.",

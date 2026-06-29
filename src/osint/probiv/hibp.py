@@ -51,7 +51,7 @@ class HIBPProvider(ProbivProvider):
                     params={"truncateResponse": "false"},
                 ) as r:
                     if r.status == 404:
-                        return []            # чисто — никаких утечек
+                        return []  # чисто — никаких утечек
                     if r.status == 401:
                         logger.warning("HIBP: invalid api-key")
                         return []

@@ -26,9 +26,22 @@ class DuckDuckGoProvider(OSINTProvider):
 
     # Полезные сайты для кросс-сверки
     OSINT_DOMAINS = (
-        "linkedin.com", "vk.com", "facebook.com", "twitter.com", "t.me", "telegram.me",
-        "github.com", "habr.com", "stackoverflow.com", "medium.com", "dev.to",
-        "upwork.com", "freelancer.com", "kwork.ru", "fl.ru", "workzilla.com",
+        "linkedin.com",
+        "vk.com",
+        "facebook.com",
+        "twitter.com",
+        "t.me",
+        "telegram.me",
+        "github.com",
+        "habr.com",
+        "stackoverflow.com",
+        "medium.com",
+        "dev.to",
+        "upwork.com",
+        "freelancer.com",
+        "kwork.ru",
+        "fl.ru",
+        "workzilla.com",
     )
 
     async def search(self, query: str, **ctx: Any) -> list[OSINTFinding]:
@@ -42,7 +55,7 @@ class DuckDuckGoProvider(OSINTProvider):
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                          "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept-Language": "ru,en;q=0.7",
         }
         timeout = aiohttp.ClientTimeout(total=self.timeout_sec)
