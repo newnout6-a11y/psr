@@ -434,6 +434,28 @@ class FreelanceOrchestrator:
         if getattr(project, "search_query", None):
             self.db.record_query_signal(project.platform, project.search_query, signal, amount=amount)
 
+    def _log_skip(
+        self,
+        skipped_log: list[dict[str, str]],
+        project: ProjectItem | None = None,
+        *,
+        stage: str,
+        reason: str,
+        project_id: str = "",
+        title: str = "",
+        budget: float | int | None = None,
+    ) -> None:
+        entry: dict[str, str] = {"stage": stage, "reason": reason}
+        if project is not None:
+            entry["project_id"] = str(project.id)
+            entry["title"] = project.title[:80]
+            entry["budget"] = str(getattr(project, "budget", "") or "")
+        else:
+            entry["project_id"] = str(project_id)
+            entry["title"] = title[:80]
+            entry["budget"] = str(budget) if budget is not None else ""
+        skipped_log.append(entry)
+
     def _write_generated_proposal(self, project: ProjectItem, proposal_text: str) -> None:
         with GENERATED_PROPOSALS_FILE.open("a", encoding="utf-8") as f:
             f.write(f"=== Проект: {project.title} ({project.platform}) ===\n")
@@ -781,6 +803,7 @@ class FreelanceOrchestrator:
             "deduped": 0,
             "new_candidates": 0,
         }
+        skipped_log: list[dict[str, str]] = []
         for parser in self.parsers:
             queries = search_queries_map.get(parser.PLATFORM_NAME, ["python"])
             if wide_mode and parser.PLATFORM_NAME == "kwork":
@@ -860,11 +883,13 @@ class FreelanceOrchestrator:
             if self._is_blocked_existing_candidate(existing):
                 status = str(existing.get("status") or "unknown") if existing else "unknown"
                 blocked_existing[status] = blocked_existing.get(status, 0) + 1
+                self._log_skip(skipped_log, project, stage="existing", reason=f"already {status}")
                 continue
             client_uid = str(getattr(project, "client_user_id", "") or "")
             if client_uid and self.db.is_client_blacklisted(client_uid, project.platform):
                 logger.info(f"Клиент {client_uid} в чёрном списке — пропуск проекта {project.id}")
                 blocked_existing["blacklisted"] = blocked_existing.get("blacklisted", 0) + 1
+                self._log_skip(skipped_log, project, stage="blacklisted", reason="client blacklisted")
                 continue
             candidate_id = self._stage_candidate(project, "parsed", "parsed", dry_run=1 if dry_run else 0)
             candidate_ids[self._project_key(project)] = candidate_id
@@ -892,6 +917,7 @@ class FreelanceOrchestrator:
                 reason = decision.reason if decision else "keyword filter"
                 self.db.update_candidate_status(candidate_id, "skipped", reason=reason, actor="system")
                 self._record_query_signal(project, "skipped")
+                self._log_skip(skipped_log, project, stage="keyword", reason=reason)
 
         logger.info(f"Прошло keyword-фильтр: {len(filtered_projects)}")
         log_db.log_filter("keyword", len(active_projects), len(filtered_projects), "Keyword-фильтр")
@@ -908,6 +934,7 @@ class FreelanceOrchestrator:
                 candidate_id = candidate_ids[self._project_key(project)]
                 self.db.update_candidate_status(candidate_id, "skipped", reason="honeypot", actor="system")
                 self._record_query_signal(project, "skipped")
+                self._log_skip(skipped_log, project, stage="honeypot", reason="honeypot")
                 continue
 
             analysis = self.nlp.analyze_project(project_dict)
@@ -915,12 +942,14 @@ class FreelanceOrchestrator:
                 candidate_id = candidate_ids[self._project_key(project)]
                 self.db.update_candidate_status(candidate_id, "skipped", reason="nlp spam", actor="system")
                 self._record_query_signal(project, "skipped")
+                self._log_skip(skipped_log, project, stage="nlp_spam", reason="nlp spam")
                 continue
 
             if not analysis.get("is_relevant", True):
                 candidate_id = candidate_ids[self._project_key(project)]
                 self.db.update_candidate_status(candidate_id, "skipped", reason="nlp irrelevant", actor="system")
                 self._record_query_signal(project, "skipped")
+                self._log_skip(skipped_log, project, stage="nlp_irrelevant", reason="nlp irrelevant")
                 continue
 
             if analysis["tech_stack"] and not project.skills:
@@ -959,6 +988,12 @@ class FreelanceOrchestrator:
                 self._record_query_signal(project, "shortlisted")
             else:
                 self._record_query_signal(project, "skipped")
+                self._log_skip(
+                    skipped_log,
+                    project,
+                    stage="ai_score",
+                    reason=f"score {result.final_score}/{result.threshold}: {result.summary[:120]}",
+                )
 
         rejected_scores = [result for result in score_results if not result.passed]
         if rejected_scores:
@@ -1029,6 +1064,13 @@ class FreelanceOrchestrator:
                 )
             else:
                 self._record_query_signal(project, "skipped")
+                vet_reasons_str = "; ".join(vet_result.get("reasons", []))[:120]
+                self._log_skip(
+                    skipped_log,
+                    project,
+                    stage="vetting",
+                    reason=f"vet score {vet_result['score']}: {vet_reasons_str}",
+                )
 
         logger.info(f"Прошло веттинг заказчиков: {len(vetted_payloads)}/{len(scored_passed)}")
         log_db.log_filter("vetting", len(scored_passed), len(vetted_payloads), "Веттинг заказчиков")
@@ -1138,6 +1180,7 @@ class FreelanceOrchestrator:
             if decision.status == "skipped":
                 self.db.update_candidate_status(candidate_id, "skipped", actor="system", reason=decision.reason)
                 self._record_query_signal(project, "skipped")
+                self._log_skip(skipped_log, project, stage="decision", reason=decision.reason[:120])
                 continue
 
             if decision.status == "auto_ready":
@@ -1171,9 +1214,27 @@ class FreelanceOrchestrator:
         sent_count = self._cycle_sent_count
         sent_per_platform = dict(self._cycle_sent_per_platform)
 
+        if skipped_log:
+            by_stage: dict[str, int] = {}
+            for entry in skipped_log:
+                by_stage[entry["stage"]] = by_stage.get(entry["stage"], 0) + 1
+            stages_summary = ", ".join(f"{s}={c}" for s, c in sorted(by_stage.items()))
+            logger.info(f"Пропущено проектов: {len(skipped_log)} ({stages_summary})")
+            for entry in skipped_log[:30]:
+                logger.info(
+                    f"  ПРОПУСК [{entry['stage']}] id={entry['project_id']} "
+                    f"budget={entry['budget']} title='{entry['title']}' "
+                    f"reason: {entry['reason']}"
+                )
+            if len(skipped_log) > 30:
+                logger.info(f"  ... и ещё {len(skipped_log) - 30} пропусков")
+            with suppress(Exception):
+                await self.notifier.notify_skipped(skipped_log)
+
         logger.info(
             f"=== ЦИКЛ ЗАВЕРШЕН. parsed={len(all_projects)} active={len(active_projects)} "
-            f"queued={queued_count} auto_ready={auto_ready_count} sent={sent_count} ==="
+            f"queued={queued_count} auto_ready={auto_ready_count} sent={sent_count} "
+            f"skipped={len(skipped_log)} ==="
         )
         log_db.log_filter("total", len(all_projects), sent_count + queued_count + auto_ready_count, "Общий итог цикла")
 
@@ -1188,6 +1249,8 @@ class FreelanceOrchestrator:
             "queued": queued_count,
             "auto_ready": auto_ready_count,
             "sent": sent_count,
+            "skipped": len(skipped_log),
+            "skipped_details": skipped_log,
             "per_platform": sent_per_platform,
             "discovery": discovery_stats,
         }

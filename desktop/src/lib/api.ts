@@ -66,7 +66,7 @@ export const api = {
       cycle_running: boolean
       execution_mode: string
       paused_platforms: string[]
-      last_cycle_stats: Record<string, number> | null
+      last_cycle_stats: Record<string, any> | null
       last_error: string | null
       runtime_config?: RuntimeConfig
     }>('/api/orchestrator/status'),
@@ -458,4 +458,56 @@ export interface HealthData {
   request<{ ok: boolean; earning_id: number }>(`/api/candidates/${id}/earn`, {
     method: 'POST',
     body: JSON.stringify({ amount, currency }),
+  })
+
+// ── AI Chat ──────────────────────────────────────────────────────────────────
+
+export interface ProviderInfo {
+  name: string
+  configured: boolean
+  base_url: string
+  wire_api: string
+  model: string
+  key_count: number
+}
+
+export interface ChatMessage {
+  role: string
+  content: string
+}
+
+export interface ChatSendResult {
+  ok: boolean
+  reply: string
+  provider: string
+  model: string
+  error?: string
+}
+
+export interface ChatTestResult {
+  ok: boolean
+  provider: string
+  model: string
+  reply?: string
+  latency_ms: number
+  error?: string
+}
+
+;(api as any).getChatProviders = () => request<ProviderInfo[]>('/api/chat/providers')
+;(api as any).testChatProvider = (provider: string, model = '') =>
+  request<ChatTestResult>('/api/chat/test', {
+    method: 'POST',
+    body: JSON.stringify({ provider, model, messages: [] }),
+  })
+;(api as any).sendChatMessage = (
+  provider: string,
+  messages: ChatMessage[],
+  model = '',
+  systemPrompt = '',
+  temperature = 0.7,
+  maxTokens = 2048,
+) =>
+  request<ChatSendResult>('/api/chat/send', {
+    method: 'POST',
+    body: JSON.stringify({ provider, model, messages, system_prompt: systemPrompt, temperature, max_tokens: maxTokens }),
   })

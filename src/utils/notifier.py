@@ -1369,3 +1369,32 @@ class TelegramNotifier:
 
     async def notify_new_project_with_prices(self, *args, **kwargs) -> None:
         logger.warning("TelegramNotifier.notify_new_project_with_prices устарел: используется queue-driven flow")
+
+    async def notify_skipped(self, skipped_log: list[dict[str, str]], chat_id: Optional[str] = None) -> None:
+        target = chat_id or self.admin_id
+        if not target or not self.bot:
+            return
+        if not skipped_log:
+            return
+
+        by_stage: dict[str, int] = {}
+        for entry in skipped_log:
+            stage = entry.get("stage", "?")
+            by_stage[stage] = by_stage.get(stage, 0) + 1
+        stages_summary = ", ".join(f"{s}={c}" for s, c in sorted(by_stage.items()))
+
+        max_show = 15
+        lines: list[str] = []
+        for entry in skipped_log[:max_show]:
+            title = entry.get("title", "")[:50]
+            pid = entry.get("project_id", "")[:12]
+            stage = entry.get("stage", "?")
+            reason = entry.get("reason", "")[:80]
+            budget = entry.get("budget", "")
+            budget_str = f" 💰{budget}" if budget else ""
+            lines.append(f"❌ [{stage}] {title}{budget_str}\n   id={pid} | {reason}")
+        if len(skipped_log) > max_show:
+            lines.append(f"… и ещё {len(skipped_log) - max_show}")
+
+        text = f"📋 Пропущено {len(skipped_log)} заказов ({stages_summary}):\n\n" + "\n\n".join(lines)
+        await self._safe_send_message(target, text)

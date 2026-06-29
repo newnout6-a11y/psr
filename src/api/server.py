@@ -19,7 +19,7 @@ if str(ROOT) not in sys.path:
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,7 +27,7 @@ from loguru import logger
 
 from src.api.log_sink import make_ws_sink
 from src.api.state import app_state
-from src.api.routes import orchestrator, candidates, settings, dashboard, osint, telegram, kwork, logs
+from src.api.routes import orchestrator, candidates, settings, dashboard, osint, telegram, kwork, logs, chat
 from src.api import ws as ws_module
 from src.paths import ensure_layout
 from src.action.proposal_db import ProposalDB
@@ -66,6 +66,7 @@ app.include_router(osint.router)
 app.include_router(telegram.router)
 app.include_router(kwork.router)
 app.include_router(logs.router)
+app.include_router(chat.router)
 app.include_router(ws_module.router)
 
 

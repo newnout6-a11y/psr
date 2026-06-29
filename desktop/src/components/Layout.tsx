@@ -5,7 +5,7 @@ import {
   Search, Play, Square, ChevronDown, Globe2,
   Wallet, HeartPulse,
   AlertCircle, CheckCircle2, Loader2, Asterisk, Monitor, ShieldCheck,
-  Activity
+  Activity, MessageSquare
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
@@ -17,7 +17,7 @@ interface OrchestratorStatus {
   cycle_running: boolean
   execution_mode: string
   paused_platforms: string[]
-  last_cycle_stats: Record<string, number> | null
+  last_cycle_stats: Record<string, any> | null
   last_error: string | null
   runtime_config?: {
     platforms?: string[]
@@ -46,6 +46,7 @@ const NAV = [
   { to: '/queue',     icon: ListChecks,      label: 'Очередь' },
   { to: '/earnings',  icon: Wallet,          label: 'Доход' },
   { to: '/health',    icon: HeartPulse,      label: 'Статус' },
+  { to: '/chat',      icon: MessageSquare,   label: 'Чат ИИ' },
   { to: '/settings',  icon: Settings,        label: 'Настройки' },
   { to: '/logs',      icon: ScrollText,      label: 'Логи' },
   { to: '/osint',     icon: Search,          label: 'Сигналы' },
@@ -648,6 +649,12 @@ export default function Layout() {
               <Activity className="mr-1.5 h-3.5 w-3.5 text-brand-300" />
               спарсено {lastStats.parsed ?? 0}
             </span>
+            {lastStats.skipped != null && (
+              <span className="badge border-white/10 bg-white/[0.03] text-stone-300 max-xl:hidden">
+                <span className="text-zinc-500 mr-1.5">пропуск</span>
+                {lastStats.skipped}
+              </span>
+            )}
             <span className="badge border-white/10 bg-white/[0.03] text-stone-300">
               TG {telegramConfigured ? 'готов' : 'не задан'}
             </span>

@@ -237,12 +237,32 @@ def update_env(req: EnvUpdateRequest):
         return {"ok": True, "updated": []}
     try:
         _write_env_file(safe)
-        # Also update current process env
+        # Also update current process env (override=True semantics)
         for k, v in safe.items():
             os.environ[k] = v
+        # Reset cached singletons so they pick up new values
+        _reset_caches()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
     return {"ok": True, "updated": list(safe.keys())}
+
+
+def _reset_caches() -> None:
+    """Reset singletons that cache env-derived config (LLMRouter, etc.)."""
+    from contextlib import suppress
+
+    with suppress(Exception):
+        import src.brain.llm_router as llm_router_module
+
+        llm_router_module.llm_router = None
+    with suppress(Exception):
+        from src.utils.notifier import TelegramNotifier
+
+        TelegramNotifier._instance = None
+    with suppress(Exception):
+        from src.browser.browser_manager import BrowserManager
+
+        BrowserManager.reset()
 
 
 @router.get("/filters")

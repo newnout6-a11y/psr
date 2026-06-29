@@ -7,6 +7,7 @@ import Logs from './pages/Logs'
 import OsintPage from './pages/Osint'
 import Earnings from './pages/Earnings'
 import Health from './pages/Health'
+import Chat from './pages/Chat'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="queue" element={<Queue />} />
         <Route path="earnings" element={<Earnings />} />
         <Route path="health" element={<Health />} />
+        <Route path="chat" element={<Chat />} />
         <Route path="settings" element={<Settings />} />
         <Route path="logs" element={<Logs />} />
         <Route path="osint" element={<OsintPage />} />
