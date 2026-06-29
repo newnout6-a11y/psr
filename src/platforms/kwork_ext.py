@@ -173,6 +173,8 @@ class ConnectsMonitor:
             return {}
 
     def can_send(self) -> bool:
+        if not self._cache:
+            return True
         free = int(self._cache.get("free_amount", 999) or 999)
         return free > self.block_threshold
 
@@ -225,13 +227,24 @@ class SuccessRateMonitor:
         if now - self._last_check < self._cache_ttl and self._cache:
             return self._cache
         try:
-            done_orders = await KworkExtensions.get_worker_orders(api, status_filter="done")
-            cancelled_orders = await KworkExtensions.get_worker_orders(api, status_filter="cancelled")
-            active_orders = await KworkExtensions.get_worker_orders(api, status_filter="active")
+            all_orders = await KworkExtensions.get_worker_orders(api, status_filter="all")
 
-            done_count = len(done_orders) if isinstance(done_orders, list) else 0
-            cancelled_count = len(cancelled_orders) if isinstance(cancelled_orders, list) else 0
-            active_count = len(active_orders) if isinstance(active_orders, list) else 0
+            done_count = 0
+            cancelled_count = 0
+            active_count = 0
+
+            if isinstance(all_orders, list):
+                for o in all_orders:
+                    if not isinstance(o, dict):
+                        continue
+                    status = str(o.get("status", "")).lower()
+                    if status in ("done", "completed", "finished"):
+                        done_count += 1
+                    elif status in ("cancelled", "expired", "canceled", "failed"):
+                        cancelled_count += 1
+                    elif status in ("new", "active", "assigned", "pending", "wait_payment", "wait_confirm", "in_progress", "processing"):
+                        active_count += 1
+
             total = done_count + cancelled_count
 
             if total == 0:
@@ -268,6 +281,8 @@ class SuccessRateMonitor:
             return {"success_rate": 100.0, "completed": 0, "cancelled": 0, "active": 0, "total": 0}
 
     def can_send(self) -> bool:
+        if not self._cache:
+            return True
         rate = float(self._cache.get("success_rate", 100.0) or 100.0)
         return rate >= self.block_rate
 
@@ -380,8 +395,10 @@ class AccountHealthMonitor:
             }
             self._last_check = now
 
-            if captcha:
+            if captcha and success_monitor.completed + success_monitor.cancelled > 0:
                 logger.error("KworkExt: CAPTCHA требуется — аккаунт под подозрением!")
+            elif captcha:
+                logger.debug("KworkExt: getCaptchaStatus=true (вероятно нет заказов — игнорируем)")
             if is_busy_risk:
                 logger.warning(f"KworkExt: {active_count} активных заказов — риск 'Занят' статуса")
 

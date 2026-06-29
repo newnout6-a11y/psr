@@ -353,12 +353,12 @@ class AIRelevanceScorer:
                         )
                 except Exception:
                     budget_rub = project.budget
-            if 1000 <= budget_rub <= 50000:
+            if 500 <= budget_rub <= 5000:
                 score += 0.6
-                reasons.append("бюджет выглядит как микро/средний фриланс")
-            elif budget_rub > 200000:
+                reasons.append("бюджет выглядит как нормальный фриланс")
+            elif budget_rub > 15000:
                 score -= 1.2
-                risks.append("бюджет похож на крупный или долгий проект")
+                risks.append("бюджет слишком большой для микро-фриланса")
             elif budget_rub < 500:
                 score -= 0.6
                 risks.append("бюджет подозрительно низкий")

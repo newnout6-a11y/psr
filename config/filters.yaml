@@ -1,5 +1,5 @@
 max_age_hours: 72
-max_budget: 50000
+max_budget: 5000
 max_proposals: 0
 min_budget: 500
 min_client_score: 30
