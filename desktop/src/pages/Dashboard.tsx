@@ -3,139 +3,10 @@ import {
   AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, Legend
 } from 'recharts'
-import { RefreshCw, TrendingUp, ChevronDown, ChevronUp, XCircle } from 'lucide-react'
+import { RefreshCw, TrendingUp } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
-import { api, TimelineItem, StatusRow, SkippedCandidate } from '../lib/api'
+import { api, TimelineItem, StatusRow } from '../lib/api'
 import { fmtTs, fmtNum, STATUS_LABEL } from '../lib/utils'
-import { cn } from '../lib/utils'
-
-const REASON_LABELS: Record<string, string> = {
-  'keyword filter': 'ключевые слова',
-  'honeypot': 'honeypot',
-  'nlp spam': 'NLP спам',
-  'nlp irrelevant': 'NLP нерелевант',
-  'already sent': 'уже отправлен',
-  'already queued': 'уже в очереди',
-  'already auto_sent': 'уже авто-отправлен',
-  'already manual_sent': 'уже отправлен вручную',
-  'already draft': 'черновик',
-  'already sending': 'отправляется',
-  'already scored': 'оценён',
-  'already vetted': 'проветтирован',
-  'already auto_ready': 'auto_ready',
-  'already filtered': 'отфильтрован',
-  'already parsed': 'распарсен',
-  'client blacklisted': 'ЧС клиента',
-  'cycle auto-send limit reached': 'лимит откликов',
-  'outside_work_hours': 'вне рабочих часов',
-}
-
-function reasonLabel(reason: string): string {
-  if (!reason) return '—'
-  const lower = reason.toLowerCase()
-  for (const [key, label] of Object.entries(REASON_LABELS)) {
-    if (lower.includes(key)) return label
-  }
-  if (lower.startsWith('score ')) return 'AI-скоринг'
-  if (lower.startsWith('vet score')) return 'веттинг'
-  return reason.slice(0, 60)
-}
-
-function reasonColor(reason: string): string {
-  const lower = (reason || '').toLowerCase()
-  if (lower.includes('blacklist')) return 'text-red-400'
-  if (lower.includes('keyword') || lower.includes('honeypot')) return 'text-orange-400'
-  if (lower.includes('nlp') || lower.includes('spam')) return 'text-yellow-400'
-  if (lower.startsWith('score') || lower.includes('ai')) return 'text-blue-400'
-  if (lower.includes('vet')) return 'text-purple-400'
-  if (lower.includes('already')) return 'text-zinc-400'
-  if (lower.includes('limit') || lower.includes('hours')) return 'text-amber-400'
-  return 'text-zinc-400'
-}
-
-function SkippedPanel({ items }: { items: SkippedCandidate[] }) {
-  const [expanded, setExpanded] = useState(true)
-  const [reasonFilter, setReasonFilter] = useState<string>('')
-
-  if (!items || items.length === 0) return null
-
-  const byReason: Record<string, number> = {}
-  for (const e of items) {
-    const label = reasonLabel(e.decision_reason)
-    byReason[label] = (byReason[label] || 0) + 1
-  }
-
-  const filtered = reasonFilter ? items.filter(e => reasonLabel(e.decision_reason) === reasonFilter) : items
-  const reasons = Object.keys(byReason).sort((a, b) => byReason[b] - byReason[a])
-
-  return (
-    <div className="card">
-      <button
-        onClick={() => setExpanded(v => !v)}
-        className="flex w-full items-center justify-between"
-      >
-        <div className="flex items-center gap-2">
-          <XCircle className="h-4 w-4 text-zinc-500" />
-          <h2 className="text-sm font-medium text-zinc-300">Пропущенные заказы</h2>
-          <span className="badge border-white/10 bg-white/[0.03] text-stone-300">{items.length}</span>
-        </div>
-        {expanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
-      </button>
-
-      {expanded && (
-        <div className="mt-3 space-y-2">
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => setReasonFilter('')}
-              className={cn(
-                'rounded-md border px-2 py-0.5 text-xs transition-colors',
-                !reasonFilter ? 'border-brand-500/40 bg-brand-600/15 text-white' : 'border-surface-600 text-zinc-400 hover:text-white'
-              )}
-            >
-              все ({items.length})
-            </button>
-            {reasons.map(r => (
-              <button
-                key={r}
-                onClick={() => setReasonFilter(r)}
-                className={cn(
-                  'rounded-md border px-2 py-0.5 text-xs transition-colors',
-                  reasonFilter === r ? 'border-brand-500/40 bg-brand-600/15 text-white' : 'border-surface-600 text-zinc-400 hover:text-white'
-                )}
-              >
-                {r} ({byReason[r]})
-              </button>
-            ))}
-          </div>
-
-          <div className="max-h-80 overflow-y-auto space-y-1.5">
-            {filtered.map((entry) => (
-              <div
-                key={entry.candidate_id}
-                className="rounded-md border border-white/5 bg-black/20 px-3 py-2 text-xs"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className={cn('font-medium', reasonColor(entry.decision_reason))}>
-                    {reasonLabel(entry.decision_reason)}
-                  </span>
-                  <div className="flex items-center gap-2 text-zinc-500">
-                    {entry.ai_score != null && <span>AI: {entry.ai_score}</span>}
-                    {entry.budget && <span>{entry.budget}₽</span>}
-                  </div>
-                </div>
-                <div className="mt-0.5 text-zinc-300 truncate">{entry.title || '—'}</div>
-                <div className="mt-0.5 text-zinc-500">
-                  id={entry.project_id.slice(0, 16)} · {entry.platform}
-                  {entry.search_query && ` · "${entry.search_query}"`}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 function MetricCard({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
   const display = typeof value === 'number' ? fmtNum(value) : String(value)
@@ -183,15 +54,13 @@ export default function Dashboard() {
   const { data: parseStats } = useApi(() => api.getParseStats(days), [days])
   const { data: activity } = useApi(() => api.getActivity(), [days])
   const { data: statusData } = useApi(() => api.getStatus(), [])
-  const { data: skippedData, refetch: refetchSkipped } = useApi(() => (api as any).getSkipped(100), [])
 
   const chartData = timeline ? timelineToChartData(timeline) : []
   const actions = timeline
     ? [...new Set(timeline.map((t) => t.action))].filter((a) => a !== 'day')
     : []
 
-  const skippedItems: SkippedCandidate[] = skippedData?.items ?? []
-  const skippedCount = skippedItems.length
+  const skippedCount: number = statusData?.last_cycle_stats?.skipped ?? 0
 
   return (
     <div className="space-y-6 p-6 max-lg:p-4">
@@ -227,9 +96,6 @@ export default function Dashboard() {
         <MetricCard label="Ответы" value={overview?.responses ?? 0} />
         <MetricCard label="Пропущено" value={skippedCount} sub="за последний цикл" />
       </div>
-
-      {/* Skipped orders panel */}
-      {skippedCount > 0 && <SkippedPanel items={skippedItems} />}
 
       {/* Charts row */}
       <div className="grid grid-cols-3 gap-4 max-xl:grid-cols-1">

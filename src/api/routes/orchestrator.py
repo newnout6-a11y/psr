@@ -103,7 +103,7 @@ def _runtime_env_from_request(req: CycleRequest) -> dict[str, str]:
     if req.max_projects_per_cycle is not None:
         updates["MAX_PROJECTS_PER_CYCLE"] = str(_clamp(req.max_projects_per_cycle, 20, 2000))
     if req.max_parse_seconds is not None:
-        updates["MAX_PARSE_SECONDS"] = str(_clamp(req.max_parse_seconds, 10, 600))
+        updates["MAX_PARSE_SECONDS"] = str(_clamp(req.max_parse_seconds, 10, 900))
     if req.ai_score_mode is not None:
         mode = req.ai_score_mode.strip().lower()
         updates["AI_SCORE_MODE"] = mode if mode in {"hybrid", "fast_full"} else "fast_full"
@@ -195,7 +195,7 @@ def get_status():
             "discovery_mode": os.getenv("DISCOVERY_MODE", "wide"),
             "max_pages_per_query": _env_int("MAX_PAGES_PER_QUERY", 50),
             "max_projects_per_cycle": _env_int("MAX_PROJECTS_PER_CYCLE", 500),
-            "max_parse_seconds": _env_int("MAX_PARSE_SECONDS", 90),
+            "max_parse_seconds": _env_int("MAX_PARSE_SECONDS", 300),
             "ai_score_mode": os.getenv("AI_SCORE_MODE", "fast_full"),
             "ai_score_batch_size": _env_int("AI_SCORE_BATCH_SIZE", 20),
             "ai_score_max_candidates": _env_int("AI_SCORE_MAX_CANDIDATES", 300),

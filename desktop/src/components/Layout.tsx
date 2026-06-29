@@ -5,7 +5,7 @@ import {
   Search, Play, Square, ChevronDown, Globe2,
   Wallet, HeartPulse,
   AlertCircle, CheckCircle2, Loader2, Asterisk, Monitor, ShieldCheck,
-  Activity, MessageSquare
+  Activity, MessageSquare, Ban
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
@@ -44,6 +44,7 @@ interface RunConfig {
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Панель' },
   { to: '/queue',     icon: ListChecks,      label: 'Очередь' },
+  { to: '/skipped',   icon: Ban,             label: 'Пропуски' },
   { to: '/earnings',  icon: Wallet,          label: 'Доход' },
   { to: '/health',    icon: HeartPulse,      label: 'Статус' },
   { to: '/chat',      icon: MessageSquare,   label: 'Чат ИИ' },
@@ -66,7 +67,7 @@ const DEFAULT_RUN_CONFIG: RunConfig = {
   query_count: 8,
   pages_to_parse: 50,
   max_projects_per_cycle: 500,
-  max_parse_seconds: 90,
+  max_parse_seconds: 300,
   top_projects: 0,
   limit: 1,
   browser_headless: false,
@@ -117,7 +118,7 @@ function readStoredRunConfig(): RunConfig {
         20,
         2000
       ),
-      max_parse_seconds: clampConfigNumber(saved.max_parse_seconds, DEFAULT_RUN_CONFIG.max_parse_seconds, 10, 600),
+      max_parse_seconds: clampConfigNumber(saved.max_parse_seconds, DEFAULT_RUN_CONFIG.max_parse_seconds, 10, 900),
       top_projects: clampConfigNumber(saved.top_projects, DEFAULT_RUN_CONFIG.top_projects, 0, 50),
       limit: clampConfigNumber(saved.limit, DEFAULT_RUN_CONFIG.limit, 1, 20),
       browser_headless: typeof saved.browser_headless === 'boolean'

@@ -78,7 +78,7 @@ def get_pacer() -> RatePacer:
     if _pacer is None:
         min_d = float(os.getenv("KWORK_PACE_MIN", "1.5"))
         max_d = float(os.getenv("KWORK_PACE_MAX", "4.0"))
-        burst = int(os.getenv("KWORK_BURST_LIMIT", "8"))
+        burst = int(os.getenv("KWORK_BURST_LIMIT", "15"))
         window = float(os.getenv("KWORK_BURST_WINDOW", "60"))
         _pacer = RatePacer(min_delay=min_d, max_delay=max_d, burst_limit=burst, burst_window=window)
     return _pacer
@@ -242,7 +242,16 @@ class SuccessRateMonitor:
                         done_count += 1
                     elif status in ("cancelled", "expired", "canceled", "failed"):
                         cancelled_count += 1
-                    elif status in ("new", "active", "assigned", "pending", "wait_payment", "wait_confirm", "in_progress", "processing"):
+                    elif status in (
+                        "new",
+                        "active",
+                        "assigned",
+                        "pending",
+                        "wait_payment",
+                        "wait_confirm",
+                        "in_progress",
+                        "processing",
+                    ):
                         active_count += 1
 
             total = done_count + cancelled_count
