@@ -102,6 +102,40 @@ def _env_int(name: str, default: int, *, low: int | None = None, high: int | Non
     return value
 
 
+def _calc_parse_time_limit(queries: int, pages_per_query: int) -> int:
+    """Динамический расчёт лимита времени парсинга по объёму работы.
+
+    Формула учитывает:
+    - среднюю задержку между запросами (min_delay + max_delay) / 2
+    - burst pacing: каждые burst_limit запросов — пауза до конца burst_window
+    - запас безопасности: растёт с объёмом, но ограничен
+
+    Примеры:
+      5 запросов × 2 страницы  =  10 вызовов →  ~63с
+     20 запросов × 2 страницы  =  40 вызовов → ~192с
+     20 запросов × 5 страниц   = 100 вызовов → ~450с
+     20 запросов × 50 страниц  = 1000 вызовов → ~4120с
+    """
+    total_calls = max(queries, 1) * max(pages_per_query, 1)
+
+    avg_delay = 2.75  # (1.5 + 4.0) / 2
+    burst_limit = int(os.getenv("KWORK_BURST_LIMIT", "15"))
+    burst_window = float(os.getenv("KWORK_BURST_WINDOW", "60"))
+
+    # Эффективное время на один вызов с учётом burst-пауз
+    if avg_delay * burst_limit < burst_window:
+        effective_per_call = burst_window / burst_limit
+    else:
+        effective_per_call = avg_delay
+
+    base_time = total_calls * effective_per_call
+
+    # Запас безопасности: 20с базовые + 0.3с на вызов, максимум 120с
+    safety = min(20 + total_calls * 0.3, 120)
+
+    return int(base_time + safety)
+
+
 def _normalize_route_provider(value: str | None) -> str:
     provider = (value or "").strip().lower()
     return "" if provider == "auto" else provider
@@ -849,8 +883,21 @@ class FreelanceOrchestrator:
             high=100,
         )
         max_projects_per_cycle = _env_int("MAX_PROJECTS_PER_CYCLE", 500, low=20, high=2000)
-        max_parse_seconds = _env_int("MAX_PARSE_SECONDS", 180, low=10, high=600)
         per_page = getattr(self.filter, "per_page", 20)
+
+        # Динамический расчёт лимита времени парсинга
+        all_queries = [search_queries_map.get(p.PLATFORM_NAME, ["python"]) for p in self.parsers]
+        total_queries = sum(len(q) for q in all_queries)
+        env_override = os.getenv("MAX_PARSE_SECONDS", "").strip()
+        if env_override:
+            max_parse_seconds = _env_int("MAX_PARSE_SECONDS", 180, low=10, high=3600)
+        else:
+            max_parse_seconds = _calc_parse_time_limit(total_queries, max_pages_per_query)
+        logger.info(
+            f"Лимит времени парсинга: {max_parse_seconds}s "
+            f"(queries={total_queries} pages/query={max_pages_per_query} "
+            f"~{total_queries * max_pages_per_query} API вызовов)"
+        )
         tasks = []
         results = []
         discovery_stats: dict[str, Any] = {

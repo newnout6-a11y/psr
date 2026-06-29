@@ -67,7 +67,7 @@ const DEFAULT_RUN_CONFIG: RunConfig = {
   query_count: 8,
   pages_to_parse: 50,
   max_projects_per_cycle: 500,
-  max_parse_seconds: 300,
+  max_parse_seconds: 0,
   top_projects: 0,
   limit: 1,
   browser_headless: false,
@@ -118,7 +118,7 @@ function readStoredRunConfig(): RunConfig {
         20,
         2000
       ),
-      max_parse_seconds: clampConfigNumber(saved.max_parse_seconds, DEFAULT_RUN_CONFIG.max_parse_seconds, 10, 900),
+      max_parse_seconds: clampConfigNumber(saved.max_parse_seconds, DEFAULT_RUN_CONFIG.max_parse_seconds, 0, 3600),
       top_projects: clampConfigNumber(saved.top_projects, DEFAULT_RUN_CONFIG.top_projects, 0, 50),
       limit: clampConfigNumber(saved.limit, DEFAULT_RUN_CONFIG.limit, 1, 20),
       browser_headless: typeof saved.browser_headless === 'boolean'
@@ -269,7 +269,7 @@ export default function Layout() {
         pages_to_parse: runConfig.pages_to_parse,
         max_pages_per_query: runConfig.pages_to_parse,
         max_projects_per_cycle: runConfig.max_projects_per_cycle,
-        max_parse_seconds: runConfig.max_parse_seconds,
+        max_parse_seconds: runConfig.max_parse_seconds || undefined,
         query_count: runConfig.query_count,
         top_projects: runConfig.top_projects,
         ai_score_mode: 'fast_full',
