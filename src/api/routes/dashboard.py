@@ -166,3 +166,29 @@ async def kwork_connects_check():
         "warn_threshold": monitor.warn_threshold,
         "block_threshold": monitor.block_threshold,
     }
+
+
+@router.get("/skipped")
+def skipped_candidates(limit: int = Query(50, ge=1, le=200)):
+    """Скипнутые кандидаты из БД с причиной пропуска."""
+    from src.action.proposal_db import ProposalDB
+
+    rows = ProposalDB().get_candidates_by_status(["skipped"], limit=limit)
+    result = []
+    for r in rows:
+        result.append(
+            {
+                "candidate_id": r.get("candidate_id"),
+                "project_id": str(r.get("project_id", "")),
+                "platform": r.get("platform", ""),
+                "title": r.get("title", "")[:80],
+                "budget": str(r.get("budget", "") or ""),
+                "status": r.get("status", ""),
+                "decision_reason": r.get("decision_reason", "")[:120],
+                "ai_score": r.get("ai_score"),
+                "ai_score_source": r.get("ai_score_source", ""),
+                "updated_at": r.get("updated_at", ""),
+                "search_query": r.get("search_query", ""),
+            }
+        )
+    return {"items": result, "total": len(result)}

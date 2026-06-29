@@ -441,6 +441,22 @@ export interface HealthData {
   paused_kworks: number[]
 }
 
+// ── Skipped ─────────────────────────────────────────────────────────────────
+
+export interface SkippedCandidate {
+  candidate_id: number
+  project_id: string
+  platform: string
+  title: string
+  budget: string
+  status: string
+  decision_reason: string
+  ai_score?: number | null
+  ai_score_source?: string
+  updated_at: string
+  search_query?: string
+}
+
 // ── API methods (appended to existing api object) ───────────────────────────
 
 // Earnings
@@ -450,6 +466,7 @@ export interface HealthData {
 ;(api as any).getFunnel = (days = 30) => request<FunnelData>(`/api/dashboard/funnel?days=${days}`)
 // Health
 ;(api as any).getHealth = () => request<HealthData>('/api/dashboard/health')
+;(api as any).getSkipped = (limit = 50) => request<{ items: SkippedCandidate[]; total: number }>(`/api/dashboard/skipped?limit=${limit}`)
 // Lifecycle
 ;(api as any).hireCandidate = (id: number) => request<{ ok: boolean }>(`/api/candidates/${id}/hire`, { method: 'POST' })
 ;(api as any).declineCandidate = (id: number) => request<{ ok: boolean }>(`/api/candidates/${id}/decline`, { method: 'POST' })
