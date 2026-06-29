@@ -34,6 +34,7 @@ from src.utils.circuit_breaker import get_breaker
 from src.utils.inbox_monitor import InboxMonitor
 from src.utils.log_db import get_log_db
 from src.utils.notifier import TelegramNotifier
+from src.utils.reply_linker import classify_and_persist_reply, link_inbox_response
 
 
 AUTO_SEND_PLATFORMS = {"kwork", "freelance_ru"}
@@ -401,6 +402,40 @@ class FreelanceOrchestrator:
             }
         return payload
 
+    def _assign_prompt_variant(self, candidate_id: int) -> tuple[str | None, float | None]:
+        """Phase 3 A/B: детерминированное назначение варианта промпта.
+
+        Управляется env-переменной `PROMPT_AB_VARIANTS`. Формат:
+            "control:0.65,warm:0.85"
+        Имя варианта — произвольное, число — temperature для генерации.
+        Если переменная не задана или формат битый — A/B отключён,
+        возвращаем (None, None) и вызывающий просто использует дефолты.
+
+        Назначение детерминированное по `candidate_id % len(variants)`,
+        чтобы повторный прогон того же проекта не «перебирал» варианты
+        и распределение выборки было воспроизводимым.
+        """
+        spec = (os.getenv("PROMPT_AB_VARIANTS") or "").strip()
+        if not spec:
+            return None, None
+        variants: list[tuple[str, float]] = []
+        for chunk in spec.split(","):
+            chunk = chunk.strip()
+            if not chunk or ":" not in chunk:
+                continue
+            name, raw_temp = chunk.split(":", 1)
+            name = name.strip()
+            try:
+                temp = float(raw_temp.strip())
+            except ValueError:
+                continue
+            if name and 0.0 <= temp <= 2.0:
+                variants.append((name, temp))
+        if not variants:
+            return None, None
+        idx = max(int(candidate_id), 0) % len(variants)
+        return variants[idx]
+
     def _client_hint_from_project(self, project: ProjectItem) -> dict[str, Any] | None:
         """Build a weak buyer profile from Kwork stateData before API enrichment."""
         platform_data = getattr(project, "platform_data", {}) or {}
@@ -756,8 +791,32 @@ class FreelanceOrchestrator:
         try:
             responses = await self.inbox_monitor.check_all()
             for response in responses:
+                # 1) Старый путь — обновляет `proposals.response`, чтобы не
+                #    ломать аналитику, которая опирается на этот столбец.
                 if response.get("project_id") and response.get("message"):
                     self.db.mark_response(response["project_id"], response["message"])
+
+                # 2) Новый путь — Phase 3 feedback loop.
+                #    Линкер находит кандидата по (platform, username[, project_id])
+                #    и пишет replied_at/reply_text. Дальше зовём LLM-классификатор,
+                #    но уже фоном: его падение не должно валить остальной цикл.
+                try:
+                    link_result = link_inbox_response(self.db, response)
+                except Exception as link_err:
+                    logger.debug(f"ReplyLinker: не удалось привязать реплай: {link_err}")
+                    continue
+
+                if not link_result.linked or link_result.candidate_id is None:
+                    continue
+
+                try:
+                    await classify_and_persist_reply(
+                        self.db,
+                        link_result.candidate_id,
+                        response.get("message", ""),
+                    )
+                except Exception as cls_err:
+                    logger.debug(f"ReplyClassifier: классификация не удалась: {cls_err}")
         except Exception as e:
             logger.debug(f"Ошибка проверки входящих: {e}")
 
@@ -1040,6 +1099,7 @@ class FreelanceOrchestrator:
                 osint_result=osint_result,
             )
             client_context = self._safe_client_context(client_data, osint_result, vet_result)
+            client_username = ((client_data or {}).get("username") or "").strip() or None
             self.db.update_candidate(
                 candidate_id,
                 stage="vetted",
@@ -1049,6 +1109,7 @@ class FreelanceOrchestrator:
                 vet_reasons=vet_result["reasons"],
                 vet_red_flags=vet_result["red_flags"],
                 client_context=client_context,
+                client_username=client_username,
             )
 
             if vet_result["passed"]:
@@ -1117,12 +1178,15 @@ class FreelanceOrchestrator:
 
             generation_started_at = time.perf_counter()
             requested_provider = os.getenv("PROPOSAL_WRITING_PROVIDER", "auto").lower()
+            variant_name, variant_temp = self._assign_prompt_variant(candidate_id)
             try:
                 proposal_text = await self.generator.generate(
                     project,
                     provider=requested_provider,
                     client_data=client_data,
                     competitor_prices=competitor_prices,
+                    temperature=variant_temp,
+                    prompt_variant=variant_name,
                 )
                 generation_ms = int((time.perf_counter() - generation_started_at) * 1000)
                 provider_meta = dict(self.generator.last_generation_meta or {})
@@ -1132,6 +1196,7 @@ class FreelanceOrchestrator:
                     proposal_text=proposal_text,
                     provider=provider_name,
                     competitor_prices=competitor_prices,
+                    prompt_variant=variant_name,
                 )
                 self._write_generated_proposal(project, proposal_text)
                 log_db.log_generation(project.platform, project.id, provider_name, "success", duration_ms=generation_ms)
