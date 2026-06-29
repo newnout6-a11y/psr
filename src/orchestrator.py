@@ -553,7 +553,7 @@ class FreelanceOrchestrator:
                 f"Пауза ещё {status.get('paused_seconds_left', 0)} сек."
             )
 
-        if platform == "kwork":
+        if platform == "kwork" and not dry_run:
             from src.platforms.kwork import get_kwork_service
             from src.platforms.kwork_ext import get_connects_monitor, get_success_rate_monitor
 
