@@ -29,8 +29,6 @@ PSR это Python-проект для автоматизации цикла по
   поиск через публичное API, используется как источник вакансий/заказов для мониторинга, без авто-отправки;
 - `Groq`:
   основной и фактически рабочий LLM-провайдер в текущем коде;
-- `Google/Gemini` и `GLM`:
-  заготовки в коде есть, но в текущем runtime отключены.
 
 ## Структура проекта
 
@@ -108,7 +106,7 @@ C:\Program Files\nodejs
 - сетевой слой: `requests`, `curl_cffi`, `httpx`, `aiohttp`;
 - браузер: `nodriver`, `playwright`;
 - парсинг: `lxml`, `parsel`, `beautifulsoup4`, `pydantic`;
-- LLM/NLP: `groq`, `google-generativeai`, `sentence-transformers`, `faiss-cpu`;
+- LLM/NLP: `groq`, `sentence-transformers`, `faiss-cpu`;
 - Telegram и утилиты: `aiogram`, `telethon`, `python-dotenv`, `pyyaml`, `loguru`, `tenacity`, `rich`;
 - наблюдаемость: `streamlit`, `pandas`.
 
@@ -424,7 +422,7 @@ Desktop сам поднимает Python backend при запуске Electron.
 
 ## Ограничения и текущее состояние
 
-- основной LLM сейчас это `Groq`; `Google` и `GLM` не используются в фактическом рантайме;
+- основные LLM сейчас: `DeepSeek`, `OpenAI-compatible` и резервно `Groq`;
 - `hh_ru` не отправляет отклики автоматически;
 - `platforms.yaml` не является главным runtime-конфигом; рабочие настройки берутся из `.env` и `config/filters.yaml`;
 - browser automation зависит от актуальных кук;

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import random
 import re
 from contextlib import suppress
 from datetime import datetime
@@ -56,6 +57,9 @@ class TelegramNotifier:
         self._awaiting_text_edit: dict[str, int] = {}
         self._awaiting_price_edit: dict[str, int] = {}
         self._awaiting_price_apply: dict[str, bool] = {}
+        self._awaiting_reply: dict[str, tuple[str, str]] = {}
+        self._awaiting_msg: dict[str, int] = {}
+        self._restore_awaiting_state()
 
         if not self.token:
             logger.error("TelegramNotifier: TELEGRAM_TOKEN не найден в .env")
@@ -71,6 +75,38 @@ class TelegramNotifier:
             self.bot = Bot(token=self.token)
         self.dp = Dispatcher()
         self._setup_handlers()
+
+    def _save_awaiting_state(self) -> None:
+        if not self.db:
+            return
+        import json as _json
+        state = {
+            "text_edit": {k: v for k, v in self._awaiting_text_edit.items()},
+            "price_edit": {k: v for k, v in self._awaiting_price_edit.items()},
+            "price_apply": {k: v for k, v in self._awaiting_price_apply.items()},
+            "reply": {k: list(v) for k, v in self._awaiting_reply.items()},
+            "msg": {k: v for k, v in self._awaiting_msg.items()},
+        }
+        self.db.set_runtime_state("telegram.awaiting_state", _json.dumps(state, ensure_ascii=False))
+
+    def _restore_awaiting_state(self) -> None:
+        if not self.db:
+            return
+        import json as _json
+        raw = self.db.get_runtime_state("telegram.awaiting_state")
+        if not raw:
+            return
+        try:
+            state = _json.loads(raw)
+            self._awaiting_text_edit = {k: int(v) for k, v in state.get("text_edit", {}).items()}
+            self._awaiting_price_edit = {k: int(v) for k, v in state.get("price_edit", {}).items()}
+            self._awaiting_price_apply = {k: bool(v) for k, v in state.get("price_apply", {}).items()}
+            self._awaiting_reply = {k: tuple(v) for k, v in state.get("reply", {}).items() if isinstance(v, list) and len(v) == 2}
+            self._awaiting_msg = {k: int(v) for k, v in state.get("msg", {}).items()}
+            if any([self._awaiting_text_edit, self._awaiting_price_edit, self._awaiting_reply, self._awaiting_msg]):
+                logger.info("TelegramNotifier: восстановлено состояние awaiting из БД")
+        except Exception:
+            pass
 
     def bind_runtime(
         self,
@@ -90,7 +126,8 @@ class TelegramNotifier:
             self._save_id_to_env(self.admin_id)
             await message.answer(
                 "Операторский режим PSR подключен.\n"
-                "Доступны команды: /queue /digest /stats /mode /pause /resume /rules"
+                "Команды: /queue /chats /reply /msg /orders /offers /status /rate /health /connects /digest /stats /mode /pause /resume /rules\n"
+                "Конверсия: /hire /decline /complete /earn /paid /earnings"
             )
 
         @self.dp.message(Command("queue"))
@@ -166,6 +203,331 @@ class TelegramNotifier:
                 "Без красных флагов, валидный текст отклика, отправка не на паузе."
             )
 
+        @self.dp.message(Command("chats"))
+        async def cmd_chats(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            if not self.db:
+                await message.answer("БД недоступна.")
+                return
+            convs = self.db.get_active_conversations(limit=10)
+            if not convs:
+                await message.answer("Активных диалогов нет.")
+                return
+            lines = []
+            for c in convs:
+                lines.append(
+                    f"#{c['conversation_id']} [{c['platform']}] {c.get('project_title', 'Без названия')}"
+                    f"\n  статус: {c['status']}, последнее: {c.get('last_message_at', '?')}"
+                )
+            await message.answer("Активные диалоги:\n\n" + "\n\n".join(lines[:10]))
+
+        @self.dp.message(Command("reply"))
+        async def cmd_reply(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            arg = self._command_arg(message)
+            if not arg:
+                await message.answer(
+                    "Использование: /reply <project_id> <платформа>\n"
+                    "Затем напиши текст ответа."
+                )
+                return
+            parts = arg.split(maxsplit=1)
+            if len(parts) < 2:
+                await message.answer("Укажи project_id и платформу: /reply 12345 kwork")
+                return
+            project_id, platform = parts[0].strip(), parts[1].strip().lower()
+            self._awaiting_reply[str(message.chat.id)] = (project_id, platform)
+            await message.answer(
+                f"Пришли текст ответа для проекта {project_id} ({platform}).\n"
+                "Сообщение будет сохранено в историю диалога."
+            )
+
+        @self.dp.message(Command("hire"))
+        async def cmd_hire(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            arg = self._command_arg(message)
+            if not arg or not arg.isdigit():
+                await message.answer("Использование: /hire <candidate_id>")
+                return
+            candidate_id = int(arg)
+            if not self.db:
+                return
+            candidate = self.db.get_candidate(candidate_id)
+            if not candidate:
+                await message.answer(f"Кандидат #{candidate_id} не найден.")
+                return
+            self.db.mark_candidate_hired(candidate_id, actor="telegram")
+            await message.answer(
+                f"Кандидат #{candidate_id} отмечен как hired.\n"
+                "Используй /earn <candidate_id> <сумма> для записи заработка."
+            )
+
+        @self.dp.message(Command("decline"))
+        async def cmd_decline(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            arg = self._command_arg(message)
+            if not arg or not arg.isdigit():
+                await message.answer("Использование: /decline <candidate_id>")
+                return
+            candidate_id = int(arg)
+            if not self.db:
+                return
+            candidate = self.db.get_candidate(candidate_id)
+            if not candidate:
+                await message.answer(f"Кандидат #{candidate_id} не найден.")
+                return
+            self.db.mark_candidate_declined(candidate_id, actor="telegram", reason="declined by operator")
+            await message.answer(f"Кандидат #{candidate_id} отмечен как declined.")
+
+        @self.dp.message(Command("complete"))
+        async def cmd_complete(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            arg = self._command_arg(message)
+            if not arg or not arg.isdigit():
+                await message.answer("Использование: /complete <candidate_id>")
+                return
+            candidate_id = int(arg)
+            if not self.db:
+                return
+            candidate = self.db.get_candidate(candidate_id)
+            if not candidate:
+                await message.answer(f"Кандидат #{candidate_id} не найден.")
+                return
+            self.db.mark_candidate_completed(candidate_id, actor="telegram")
+            if os.getenv("KWORK_AUTO_REVIEW", "false").lower() in {"1", "true", "yes", "on"} and candidate["platform"] == "kwork":
+                from src.platforms.kwork import get_kwork_service
+                service = get_kwork_service()
+                review_text = os.getenv("KWORK_AUTO_REVIEW_TEXT", "Спасибо за заказ! Буду рад сотрудничеству в будущем.")
+                rating = int(os.getenv("KWORK_AUTO_REVIEW_RATING", "5"))
+                result = await service.auto_review_completed(candidate_id, rating=rating, text=review_text)
+                if result:
+                    await message.answer(
+                        f"Кандидат #{candidate_id} отмечен как completed.\n"
+                        f"Отзыв автоматически оставлен (рейтинг {rating})."
+                    )
+                else:
+                    await message.answer(
+                        f"Кандидат #{candidate_id} отмечен как completed.\n"
+                        f"Не удалось оставить отзыв автоматически."
+                    )
+            else:
+                await message.answer(
+                    f"Кандидат #{candidate_id} отмечен как completed (работа сдана).\n"
+                    "Не забудьте оставить отзыв клиенту!"
+                )
+
+        @self.dp.message(Command("earn"))
+        async def cmd_earn(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            arg = self._command_arg(message)
+            parts = arg.split()
+            if len(parts) < 2 or not parts[0].isdigit():
+                await message.answer("Использование: /earn <candidate_id> <сумма> [валюта]")
+                return
+            candidate_id = int(parts[0])
+            try:
+                amount = float(parts[1])
+            except ValueError:
+                await message.answer("Сумма должна быть числом, например: /earn 42 15000")
+                return
+            currency = parts[2].upper() if len(parts) > 2 else "RUB"
+            if not self.db:
+                return
+            candidate = self.db.get_candidate(candidate_id)
+            if not candidate:
+                await message.answer(f"Кандидат #{candidate_id} не найден.")
+                return
+            self.db.record_earning(
+                candidate_id=candidate_id,
+                project_id=candidate["project_id"],
+                platform=candidate["platform"],
+                amount=amount,
+                currency=currency,
+                status="pending",
+            )
+            await message.answer(
+                f"Заработок записан: {amount} {currency} для #{candidate_id} (статус pending).\n"
+                "Используй /paid <earning_id> после получения оплаты."
+            )
+
+        @self.dp.message(Command("paid"))
+        async def cmd_paid(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            arg = self._command_arg(message)
+            if not arg or not arg.isdigit():
+                await message.answer("Использование: /paid <earning_id>")
+                return
+            earning_id = int(arg)
+            if not self.db:
+                return
+            self.db.update_earning_status(earning_id, "paid")
+            await message.answer(f"Заработок #{earning_id} отмечен как оплаченный.")
+
+        @self.dp.message(Command("earnings"))
+        async def cmd_earnings(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            if not self.db:
+                return
+            summary = self.db.get_earnings_summary()
+            text = (
+                f"Заработок:\n"
+                f"  Всего: {summary['total_amount']:.0f} ₽ ({summary['total']} записей)\n"
+                f"  Оплачено: {summary['paid_amount']:.0f} ₽ ({summary['paid_count']})\n"
+                f"  Ожидает: {summary['pending_amount']:.0f} ₽ ({summary['pending_count']})\n"
+            )
+            await message.answer(text)
+
+        @self.dp.message(Command("connects"))
+        async def cmd_connects(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            from src.platforms.kwork import get_kwork_service
+            from src.platforms.kwork_ext import get_connects_monitor
+
+            service = get_kwork_service()
+            info = await service.check_connects()
+            monitor = get_connects_monitor()
+            free = monitor.free_amount
+            can_send = "да" if monitor.can_send() else "нет"
+            text = (
+                f"Connects:\n"
+                f"  Свободно: {free}\n"
+                f"  Отправка возможна: {can_send}\n"
+                f"  Предупреждение при: {monitor.warn_threshold}\n"
+                f"  Блокировка при: {monitor.block_threshold}\n"
+            )
+            if info:
+                text += f"  Всего: {info.get('total_amount', '?')}\n"
+                text += f"  Валюта: {info.get('currency', '?')}\n"
+            await message.answer(text)
+
+        @self.dp.message(Command("orders"))
+        async def cmd_orders(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            from src.platforms.kwork import get_kwork_service
+
+            service = get_kwork_service()
+            orders = await service.get_worker_orders(status_filter="all")
+            if not orders:
+                await message.answer("Заказов не найдено.")
+                return
+            lines = []
+            for o in orders[:10]:
+                if isinstance(o, dict):
+                    lines.append(
+                        f"#{o.get('id', '?')} {o.get('status', '?')} — {o.get('project_name', o.get('title', '?'))[:50]}"
+                    )
+            await message.answer("Заказы:\n\n" + "\n".join(lines))
+
+        @self.dp.message(Command("offers"))
+        async def cmd_offers(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            from src.platforms.kwork import get_kwork_service
+
+            service = get_kwork_service()
+            offers = await service.get_offers()
+            if not offers:
+                await message.answer("Откликов не найдено.")
+                return
+            lines = []
+            for o in offers[:10]:
+                if isinstance(o, dict):
+                    lines.append(
+                        f"#{o.get('id', '?')} {o.get('status', '?')} — {o.get('want_name', o.get('title', '?'))[:50]}"
+                    )
+            await message.answer("Отклики:\n\n" + "\n".join(lines))
+
+        @self.dp.message(Command("health"))
+        async def cmd_health(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            from src.platforms.kwork import get_kwork_service
+
+            service = get_kwork_service()
+            captcha = await service.get_captcha_status()
+            badges = await service.get_badges_info()
+            versions = await service.get_current_versions()
+            exchange = await service.exchange_info()
+
+            text = (
+                f"Kwork Health:\n"
+                f"  Капча требуется: {'да' if captcha else 'нет'}\n"
+                f"  Непрочитанных уведомлений: {badges.get('notifications', '?')}\n"
+                f"  Биржа активна: {'да' if exchange else 'неизвестно'}\n"
+            )
+            if versions:
+                text += f"  Версия API: {versions.get('android_version', versions.get('version', '?'))}\n"
+            await message.answer(text)
+
+        @self.dp.message(Command("rate"))
+        async def cmd_rate(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            from src.platforms.kwork import get_kwork_service
+            from src.platforms.kwork_ext import get_success_rate_monitor
+
+            service = get_kwork_service()
+            await service.check_success_rate()
+            monitor = get_success_rate_monitor()
+            can_send = "да" if monitor.can_send() else "нет"
+            throttle = "да" if monitor.should_throttle() else "нет"
+            text = (
+                f"Success Rate:\n"
+                f"  Рейтинг: {monitor.success_rate:.1f}%\n"
+                f"  Завершено: {monitor.completed}\n"
+                f"  Отменено: {monitor.cancelled}\n"
+                f"  Активных: {monitor.active_orders}\n"
+                f"  Отправка возможна: {can_send}\n"
+                f"  Throttle активен: {throttle}\n"
+            )
+            await message.answer(text)
+
+        @self.dp.message(Command("status"))
+        async def cmd_status(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            from src.platforms.kwork import get_kwork_service
+            from src.platforms.kwork_ext import get_account_health_monitor
+
+            service = get_kwork_service()
+            await service.check_account_health()
+            monitor = get_account_health_monitor()
+            await message.answer(monitor.get_summary_text())
+
+        @self.dp.message(Command("msg"))
+        async def cmd_msg(message: types.Message):
+            if not self._is_admin_message(message):
+                return
+            arg = self._command_arg(message)
+            if not arg or not arg.isdigit():
+                await message.answer("Использование: /msg <candidate_id>\nЗатем напиши текст сообщения клиенту.")
+                return
+            candidate_id = int(arg)
+            if not self.db:
+                return
+            candidate = self.db.get_candidate(candidate_id)
+            if not candidate:
+                await message.answer(f"Кандидат #{candidate_id} не найден.")
+                return
+            if candidate["platform"] != "kwork":
+                await message.answer("Отправка сообщений поддерживается только для Kwork.")
+                return
+            self._awaiting_msg[str(message.chat.id)] = candidate_id
+            await message.answer(
+                f"Пришли текст сообщения для клиента по проекту #{candidate_id}.\n"
+                "Сообщение будет отправлено через Kwork чат."
+            )
+
         @self.dp.callback_query(F.data.startswith("candidate:"))
         async def handle_candidate_action(callback: CallbackQuery):
             if self.admin_id and str(callback.from_user.id) != str(self.admin_id):
@@ -211,13 +573,33 @@ class TelegramNotifier:
                     actor="telegram",
                     payload={"chosen_price": price},
                 )
-                await callback.answer(f"Принято: {price} руб.")
-                message = await self._run_candidate_executor(candidate_id, "approve")
+                confirm_kb = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text=f"Отправить за {price} руб.", callback_data=f"candidate:{candidate_id}:confirm_send:{price}"),
+                     InlineKeyboardButton(text="Отмена", callback_data=f"candidate:{candidate_id}:cancel_send")],
+                ])
+                await callback.message.edit_reply_markup(reply_markup=confirm_kb)
+                await callback.answer(f"Подтверди отправку за {price} руб.")
+                return
+
+            if action == "confirm_send":
+                price = parts[3] if len(parts) > 3 else None
+                await callback.answer("Отправляю...")
+                payload = {"chosen_price": price} if price else None
+                message = await self._run_candidate_executor(candidate_id, "approve", payload)
                 await callback.message.edit_reply_markup(reply_markup=None)
                 await callback.message.answer(message)
                 return
 
+            if action == "cancel_send":
+                await callback.message.edit_reply_markup(reply_markup=None)
+                await callback.answer("Отменено")
+                return
+
             if action == "skip":
+                candidate = self.db.get_candidate(candidate_id)
+                undo_kb = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text="↩️ Восстановить", callback_data=f"candidate:{candidate_id}:unskip")],
+                ])
                 self.db.update_candidate_status(
                     candidate_id,
                     "skipped",
@@ -227,8 +609,20 @@ class TelegramNotifier:
                 )
                 if candidate.get("search_query"):
                     self.db.record_query_signal(candidate["platform"], candidate["search_query"], "skipped")
-                await callback.answer("Пропущено")
+                await callback.message.edit_reply_markup(reply_markup=undo_kb)
+                await callback.answer("Пропущено (можно восстановить)")
+                return
+
+            if action == "unskip":
+                self.db.update_candidate(
+                    candidate_id,
+                    status="queued",
+                    manual_override=False,
+                    last_actor="telegram",
+                    reason="restored by operator",
+                )
                 await callback.message.edit_reply_markup(reply_markup=None)
+                await callback.answer("Восстановлен в очередь")
                 return
 
             if action == "prefer":
@@ -273,6 +667,79 @@ class TelegramNotifier:
             chat_id = str(message.chat.id)
             text = (message.text or "").strip()
 
+            reply_target = self._awaiting_reply.pop(chat_id, None)
+            if reply_target:
+                project_id, platform = reply_target
+                if not self.db:
+                    await message.answer("БД недоступна.")
+                    return
+                if len(text) < 10:
+                    await message.answer("Сообщение слишком короткое.")
+                    self._awaiting_reply[chat_id] = reply_target
+                    return
+                conv = self.db.get_conversation(project_id, platform)
+                if not conv:
+                    conv_id = self.db.get_or_create_conversation(project_id, platform, project_title="")
+                else:
+                    conv_id = conv["conversation_id"]
+                self.db.add_conversation_message(conv_id, sender="freelancer", message_text=text)
+                await message.answer(
+                    f"Ответ сохранён в диалог для проекта {project_id} ({platform}).\n"
+                    "Отправь ответ на платформе вручную или используй /msg для отправки через API."
+                )
+                return
+
+            msg_candidate_id = self._awaiting_msg.pop(chat_id, None)
+            if msg_candidate_id is not None:
+                if not self.db:
+                    await message.answer("БД недоступна.")
+                    return
+                if len(text) < 10:
+                    await message.answer("Сообщение слишком короткое.")
+                    self._awaiting_msg[chat_id] = msg_candidate_id
+                    return
+                candidate = self.db.get_candidate(msg_candidate_id)
+                if not candidate:
+                    await message.answer(f"Кандидат #{msg_candidate_id} не найден.")
+                    return
+                client_context = candidate.get("client_context") or {}
+                client_data = client_context.get("client") if isinstance(client_context, dict) else {}
+                user_id_str = ""
+                if isinstance(client_data, dict):
+                    user_id_str = str(client_data.get("user_id", client_data.get("USERID", "")))
+                if not user_id_str or not user_id_str.isdigit():
+                    platform_data = candidate.get("platform_data") or {}
+                    if isinstance(platform_data, dict):
+                        user_obj = platform_data.get("user") or {}
+                        if isinstance(user_obj, dict):
+                            user_id_str = str(user_obj.get("USERID", user_obj.get("id", "")))
+                if not user_id_str or not user_id_str.isdigit():
+                    await message.answer(
+                        "Не удалось определить user_id клиента для #{msg_candidate_id}.\n"
+                        "Используй /reply для сохранения ответа в историю без отправки."
+                    )
+                    return
+                from src.platforms.kwork import get_kwork_service
+
+                service = get_kwork_service()
+                await service.set_typing(int(user_id_str))
+                await asyncio.sleep(random.uniform(1, 3))
+                result = await service.send_message(int(user_id_str), text)
+                if result is not None:
+                    conv = self.db.get_conversation(candidate["project_id"], candidate["platform"])
+                    if conv:
+                        self.db.add_conversation_message(conv["conversation_id"], sender="freelancer", message_text=text)
+                    await message.answer(f"Сообщение отправлено клиенту (user_id={user_id_str}) через Kwork чат.")
+                else:
+                    await message.answer(
+                        "Не удалось отправить сообщение через Kwork API.\n"
+                        "Ответ сохранён в историю. Отправь вручную на платформе."
+                    )
+                    conv = self.db.get_conversation(candidate["project_id"], candidate["platform"])
+                    if conv:
+                        self.db.add_conversation_message(conv["conversation_id"], sender="freelancer", message_text=text)
+                return
+
             candidate_id = self._awaiting_text_edit.pop(chat_id, None)
             if candidate_id:
                 if len(text) < 40:
@@ -286,7 +753,15 @@ class TelegramNotifier:
                     last_actor="telegram",
                 )
                 self.db.record_candidate_action(candidate_id, "edit_text", actor="telegram")
-                await message.answer(f"Текст отклика для #{candidate_id} обновлён.")
+                candidate = self.db.get_candidate(candidate_id)
+                if candidate:
+                    keyboard = self._candidate_keyboard(candidate)
+                    await message.answer(
+                        f"Текст отклика для #{candidate_id} обновлён.\nВыбери цену:",
+                        reply_markup=keyboard,
+                    )
+                else:
+                    await message.answer(f"Текст отклика для #{candidate_id} обновлён.")
                 return
 
             candidate_id = self._awaiting_price_edit.pop(chat_id, None)
@@ -433,15 +908,18 @@ class TelegramNotifier:
             if prices:
                 competition += "\n💰 Цены конкурентов: " + ", ".join(f"{price}₽" for price in prices)
 
-        text = (
+        header = (
             f"🔔 Новый проект ({platform})\n\n"
             f"📌 {candidate.get('title', 'Без названия')}\n"
             f"🆔 ID: {project_id}\n"
             f"💰 Бюджет: {budget_str}"
             f"{competition}\n\n"
-            f"📝 Текст отклика:\n{proposal}\n\n"
-            f"Выбери цену:"
         )
+        footer = "\n\nВыбери цену:"
+        available_for_proposal = 1024 - len(header) - len(footer)
+        if len(proposal) > available_for_proposal:
+            proposal = proposal[:available_for_proposal - 3] + "..."
+        text = f"{header}📝 Текст отклика:\n{proposal}{footer}"
         return self._truncate_caption(text)
 
     async def start(self) -> None:
@@ -493,14 +971,142 @@ class TelegramNotifier:
         text = self._candidate_message(candidate)
         keyboard = self._candidate_keyboard(candidate)
         screenshot_path = candidate.get("screenshot_path") or self._find_project_screenshot(candidate)
+
+        # Скриншот страницы проекта
         if screenshot_path and Path(str(screenshot_path)).exists():
             if await self._safe_send_photo(target, str(screenshot_path), text, reply_markup=keyboard):
-                return
-        await self._safe_send_message(
-            target,
-            text,
-            reply_markup=keyboard,
-        )
+                pass
+            else:
+                await self._safe_send_message(target, text, reply_markup=keyboard)
+        else:
+            await self._safe_send_message(target, text, reply_markup=keyboard)
+
+        # Прикреплённые файлы проекта
+        await self._send_project_attachments(target, candidate)
+
+    async def _send_project_attachments(self, target: str, candidate: dict[str, Any]) -> None:
+        """Отправить файлы проекта (фото, PDF, документы) в Telegram."""
+        platform_data = candidate.get("platform_data") or {}
+        if not isinstance(platform_data, dict):
+            return
+
+        files = platform_data.get("files") or []
+        if not isinstance(files, list) or not files:
+            return
+
+        from src.utils.telegram_transport import bot_api_send_document
+
+        _MIME_FIXES = {
+            ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            ".pdf": "application/pdf",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".zip": "application/zip",
+            ".rar": "application/vnd.rar",
+        }
+
+        sent_count = 0
+        max_files = int(os.getenv("TG_MAX_ATTACHMENTS", "5"))
+
+        for file_info in files[:max_files]:
+            if not isinstance(file_info, dict):
+                continue
+            url = str(file_info.get("url") or "").strip()
+            name = str(file_info.get("fname") or file_info.get("name") or file_info.get("filename") or "attachment").strip()
+            if not url:
+                continue
+
+            try:
+                downloaded_path = await self._download_attachment(url, name, candidate.get("platform", "kwork"))
+                if downloaded_path and Path(downloaded_path).exists():
+                    file_size = Path(downloaded_path).stat().st_size
+                    if file_size < 100:
+                        logger.warning(f"TelegramNotifier: файл {name} слишком маленький ({file_size} bytes), возможно ошибка")
+                        continue
+                    if file_size > 50_000_000:
+                        logger.warning(f"TelegramNotifier: файл {name} слишком большой ({file_size} bytes), пропуск")
+                        continue
+
+                    # Fix MIME type based on extension
+                    ext = Path(downloaded_path).suffix.lower()
+                    correct_mime = _MIME_FIXES.get(ext)
+                    if correct_mime:
+                        logger.debug(f"TelegramNotifier: MIME fix for {ext} → {correct_mime}")
+
+                    caption = f"📎 {name}"
+                    result = await bot_api_send_document(downloaded_path, caption=caption, chat_id=target)
+                    if result.ok:
+                        sent_count += 1
+                        logger.info(f"TelegramNotifier: файл {name} отправлен в Telegram ({file_size} bytes)")
+                    else:
+                        logger.warning(f"TelegramNotifier: не удалось отправить файл {name}: {result.detail}")
+                else:
+                    logger.warning(f"TelegramNotifier: файл {name} не скачан")
+            except Exception as e:
+                logger.debug(f"TelegramNotifier: ошибка отправки файла {name}: {e}")
+
+        if sent_count > 0:
+            logger.info(f"TelegramNotifier: отправлено {sent_count} файлов проекта в Telegram")
+
+    async def _download_attachment(self, url: str, name: str, platform: str) -> Optional[str]:
+        """Скачать файл проекта для отправки в Telegram.
+
+        Cookies берутся из Session Hub (не из aiohttp session — там только API cookies,
+        а файлы лежат на web-домене kwork.ru и требуют web-сессию).
+        """
+        try:
+            import tempfile
+            import httpx
+
+            # Получаем cookies из Session Hub
+            cookies = {}
+            if platform == "kwork":
+                hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
+                try:
+                    async with httpx.AsyncClient(timeout=10) as client:
+                        resp = await client.get(f"{hub_url}?domain=kwork.ru")
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            for ck in data.get("cookies", []):
+                                cookies[ck.get("name", "")] = ck.get("value", "")
+                except Exception as e:
+                    logger.debug(f"TelegramNotifier: Session Hub недоступен для cookies: {e}")
+
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/139.0.0.0 Safari/537.36",
+            }
+            if platform == "kwork":
+                headers["Referer"] = "https://kwork.ru/projects"
+
+            # Делаем URL абсолютным
+            if url.startswith("/"):
+                url = f"https://kwork.ru{url}"
+
+            tmp_dir = Path(tempfile.gettempdir()) / "psr_attachments"
+            tmp_dir.mkdir(parents=True, exist_ok=True)
+
+            safe_name = re.sub(r"[^\w.\-() ]", "_", name)
+            file_path = tmp_dir / safe_name
+
+            async with httpx.AsyncClient(timeout=60, follow_redirects=True, trust_env=False, cookies=cookies, headers=headers) as client:
+                resp = await client.get(url)
+                if resp.status_code == 200:
+                    ct = resp.headers.get("content-type", "")
+                    if "text/html" in ct:
+                        logger.warning(f"TelegramNotifier: файл {name} вернул HTML (auth fail)")
+                        return None
+                    file_path.write_bytes(resp.content)
+                    logger.info(f"TelegramNotifier: файл {name} скачан ({len(resp.content)} bytes, type={ct})")
+                    return str(file_path)
+                else:
+                    logger.warning(f"TelegramNotifier: не удалось скачать {url}: HTTP {resp.status_code}")
+            return None
+        except Exception as e:
+            logger.debug(f"TelegramNotifier: ошибка скачивания файла {name}: {e}")
+            return None
 
     async def _safe_send_message(self, target: str, text: str, **kwargs) -> bool:
         if not target:
@@ -626,14 +1232,45 @@ class TelegramNotifier:
         )
         await self._safe_send_message(target, text)
 
-    async def notify_response(self, project_title: str, platform: str, response_text: str):
+    async def notify_response(
+        self,
+        project_title: str,
+        platform: str,
+        response_text: str,
+        *,
+        project_id: str = "",
+    ):
+        if not self.bot or not self.admin_id:
+            return
+        header = f"Ответ от заказчика\n\nПроект: {project_title}\nПлатформа: {platform}"
+        if project_id:
+            header += f"\nID: {project_id}"
+        msg = f"{header}\n\n{response_text[:1200]}"
+        await self._safe_send_message(self.admin_id, msg)
+
+    async def notify_assignment(
+        self,
+        project_title: str,
+        order_id: str,
+        deadline: str = "",
+    ):
+        """Urgent alert: клиент назначил заказ. У вас 24 часа на подтверждение.
+
+        Отказ = -50% рейтинга, потеря всех connects.
+        """
         if not self.bot or not self.admin_id:
             return
         msg = (
-            f"Ответ от заказчика\n\n"
+            "URGENT: Заказ назначен вам!\n\n"
             f"Проект: {project_title}\n"
-            f"Платформа: {platform}\n\n"
-            f"{response_text[:1200]}"
+            f"Заказ #{order_id}\n"
+        )
+        if deadline:
+            msg += f"Дедлайн: {deadline}\n"
+        msg += (
+            "\nУ вас 24 часа на подтверждение.\n"
+            "Отказ = -50% рейтинга + потеря connects.\n"
+            "Подтвердите заказ на kwork.ru прямо сейчас!"
         )
         await self._safe_send_message(self.admin_id, msg)
 

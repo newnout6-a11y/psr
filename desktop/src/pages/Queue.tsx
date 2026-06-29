@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   CheckCircle2, XCircle, Clock, Pencil, ExternalLink,
-  RefreshCw, Filter, ChevronDown, ChevronUp, Send, DollarSign
+  RefreshCw, Filter, ChevronDown, ChevronUp, Send, DollarSign, Paperclip
 } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
-import { api, Candidate } from '../lib/api'
+import { api, Candidate, PlatformData } from '../lib/api'
 import { cn, STATUS_BG, STATUS_LABEL, PLATFORM_LABEL, RISK_COLOR, RISK_LABEL, fmtTs } from '../lib/utils'
 
 const QUEUE_STATUSES = 'queued,auto_ready,snoozed'
@@ -116,6 +116,12 @@ function CandidateDetail({
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
 
+  useEffect(() => {
+    setText(c.proposal_text ?? '')
+    setPrice(c.chosen_price ?? String(c.budget ?? ''))
+    setMsg('')
+  }, [c.candidate_id, c.proposal_text, c.chosen_price, c.budget])
+
   async function handleSaveText() {
     setSaving(true)
     try {
@@ -164,6 +170,29 @@ function CandidateDetail({
           {c.vet_red_flags.map((f, i) => (
             <span key={i} className="text-zinc-300">{f}{i < c.vet_red_flags!.length - 1 ? ', ' : ''}</span>
           ))}
+        </div>
+      )}
+
+      {/* Attached files */}
+      {c.platform_data?.files && c.platform_data.files.length > 0 && (
+        <div className="text-xs">
+          <span className="text-brand-400 font-medium flex items-center gap-1 mb-1">
+            <Paperclip className="w-3 h-3" /> Файлы ({c.platform_data.files.length}):
+          </span>
+          <div className="flex flex-wrap gap-1">
+            {c.platform_data.files.map((f, i) => (
+              <a
+                key={i}
+                href={f.url?.startsWith('/') ? `https://kwork.ru${f.url}` : f.url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-700/50 text-zinc-300 hover:text-brand-400 text-xs"
+              >
+                <Paperclip className="w-2.5 h-2.5" />
+                {f.fname || f.name || `file_${i}`}
+              </a>
+            ))}
+          </div>
         </div>
       )}
 
@@ -358,6 +387,7 @@ export default function Queue() {
       {selected && (
         <div className="w-96 shrink-0 border-l border-surface-600 p-3 overflow-y-auto max-xl:w-80">
           <CandidateDetail
+            key={selected.candidate_id}
             c={selected}
             onApprove={handleApprove}
             onClose={() => setSelected(null)}

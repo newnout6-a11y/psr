@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import random
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -44,6 +45,7 @@ class _Circuit:
     open_until: float = 0.0           # epoch
     consecutive_opens: int = 0        # для экспоненциального backoff
     last_error: str = ""
+    half_open_used: bool = False      # в HALF_OPEN разрешён ровно один вызов
     metrics: dict[str, int] = field(
         default_factory=lambda: {"allow": 0, "deny": 0, "success": 0, "failure": 0}
     )
@@ -51,6 +53,8 @@ class _Circuit:
 
 class CircuitBreaker:
     """Thread-safe хранилище цепей по ключам (обычно — имя платформы)."""
+
+    _on_state_change = None
 
     def __init__(self, config: CircuitConfig | None = None):
         self.cfg = config or CircuitConfig()
@@ -78,28 +82,47 @@ class CircuitBreaker:
                 return True
             if c.state == CircuitState.OPEN:
                 if now >= c.open_until:
+                    pause_duration = now - (c.open_until - self._get_backoff(c))
                     c.state = CircuitState.HALF_OPEN
-                    logger.info(f"CircuitBreaker[{key}]: OPEN → HALF_OPEN (пробный вызов)")
+                    logger.info(
+                        f"CircuitBreaker[{key}]: OPEN → HALF_OPEN "
+                        f"(пауза длилась {int(pause_duration)}s, пробный вызов разрешён)"
+                    )
                     self._persist(c)
+                    c.half_open_used = True
                     c.metrics["allow"] += 1
                     return True
+                remaining = int(c.open_until - now)
+                logger.debug(
+                    f"CircuitBreaker[{key}]: OPEN, отказ (осталось {remaining}s)"
+                )
                 c.metrics["deny"] += 1
                 return False
-            # HALF_OPEN — пропускаем ровно один вызов
-            c.metrics["allow"] += 1
-            return True
+            # HALF_OPEN — разрешаем ровно один вызов
+            if not c.half_open_used:
+                c.half_open_used = True
+                c.metrics["allow"] += 1
+                return True
+            # Уже был пробный вызов, ждём результат
+            c.metrics["deny"] += 1
+            return False
 
     def record_success(self, key: str) -> None:
         c = self._get(key)
         with self._lock:
             c.metrics["success"] += 1
-            if c.state != CircuitState.CLOSED:
-                logger.info(f"CircuitBreaker[{key}]: восстановление → CLOSED")
+            prev_state = c.state
+            if prev_state != CircuitState.CLOSED:
+                logger.info(
+                    f"CircuitBreaker[{key}]: {prev_state.value.upper()} → CLOSED "
+                    f"(восстановление после успешного вызова)"
+                )
             c.state = CircuitState.CLOSED
             c.consecutive_failures = 0
             c.consecutive_opens = 0
             c.open_until = 0.0
             c.last_error = ""
+            c.half_open_used = False
             self._persist(c)
 
     def record_failure(self, key: str, error: str = "") -> None:
@@ -111,18 +134,37 @@ class CircuitBreaker:
 
             if c.state == CircuitState.HALF_OPEN:
                 # Пробный вызов не прошёл — снова OPEN, с большим backoff
+                logger.warning(
+                    f"CircuitBreaker[{c.key}]: HALF_OPEN → OPEN "
+                    f"(пробный вызов провалился: {c.last_error[:80]})"
+                )
+                c.half_open_used = False
                 self._trip(c)
                 return
             if c.consecutive_failures >= self.cfg.failure_threshold:
+                logger.warning(
+                    f"CircuitBreaker[{c.key}]: CLOSED → OPEN "
+                    f"(достигнут порог: {c.consecutive_failures} последовательных ошибок)"
+                )
                 self._trip(c)
 
-    def _trip(self, c: _Circuit) -> None:
-        c.consecutive_opens += 1
-        # Экспоненциальный бэкофф: T, 2T, 4T ... ≤ max
-        backoff = min(
+    def _get_backoff(self, c: _Circuit) -> float:
+        """Вычислить текущий backoff для цепи (для логирования длительности паузы)."""
+        if c.consecutive_opens <= 0:
+            return self.cfg.recovery_seconds
+        return min(
             self.cfg.recovery_seconds * (2 ** (c.consecutive_opens - 1)),
             self.cfg.max_recovery_seconds,
         )
+
+    def _trip(self, c: _Circuit) -> None:
+        c.consecutive_opens += 1
+        base_backoff = min(
+            self.cfg.recovery_seconds * (2 ** (c.consecutive_opens - 1)),
+            self.cfg.max_recovery_seconds,
+        )
+        jitter = base_backoff * random.uniform(-0.2, 0.2)
+        backoff = max(self.cfg.recovery_seconds * 0.5, base_backoff + jitter)
         c.state = CircuitState.OPEN
         c.open_until = time.time() + backoff
         logger.warning(
@@ -130,6 +172,11 @@ class CircuitBreaker:
             f"(провалов: {c.consecutive_failures}, причина: {c.last_error[:80]})"
         )
         self._persist(c)
+        if CircuitBreaker._on_state_change:
+            try:
+                CircuitBreaker._on_state_change(c.key, "OPEN", int(backoff), c.last_error[:80])
+            except Exception:
+                pass
 
     # ----- diagnostics -----
 

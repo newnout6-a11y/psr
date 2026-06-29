@@ -3,6 +3,7 @@
 Использует Shodan, Censys, исторические DNS для обхода WAF.
 """
 
+import base64
 import os
 import mmh3
 from typing import Optional, List
@@ -100,7 +101,10 @@ class OriginFinder:
                 data = response.json()
                 ips = []
                 for record in data.get('records', []):
-                    ips.extend(record.get('values', []))
+                    for val in record.get('values', []):
+                        ip = val.get('ip') if isinstance(val, dict) else val
+                        if isinstance(ip, str) and ip:
+                            ips.append(ip)
                 
                 logger.info(f"Найдено {len(ips)} IP через исторические DNS")
                 return list(set(ips))
@@ -158,9 +162,13 @@ class OriginFinder:
         return working
     
     def _mm3_hash(self, data: bytes) -> int:
-        """Вычислить MurmurHash3 для favicon (как у Shodan)."""
-        h = mmh3.hash(data)
-        return h
+        """Вычислить MurmurHash3 для favicon (как у Shodan).
+
+        Shodan хеширует не raw bytes, а base64-кодированное содержимое
+        с переносом строк каждые 76 символов (RFC 2045).
+        """
+        b64 = base64.encodebytes(data)
+        return mmh3.hash(b64)
     
     def request_with_origin(
         self,

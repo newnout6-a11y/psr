@@ -10,7 +10,7 @@ from typing import Any
 @dataclass
 class OSINTFinding:
     """Единица данных, найденная провайдером."""
-    source: str                # "github", "habr", "google", "kwork_profile", ...
+    source: str                # "github", "habr", "duckduckgo", "kwork_profile", ...
     kind: str                  # "profile", "repo", "article", "comment", "mention"
     title: str                 # короткое описание находки
     url: str = ""

@@ -2,6 +2,8 @@
 Единый менеджер браузера Nodriver.
 Singleton — один инстанс на всё приложение, постоянный профиль,
 валидация авторизации, экспорт кук для curl_cffi.
+Cloudflare Turnstile detection + cf_verify + cf_clearance persistence.
+Browser proxy support for IP reputation management.
 """
 
 import os
@@ -82,12 +84,18 @@ class BrowserManager:
             )
 
             try:
+                proxy_url = os.getenv("PROXY_URL") or os.getenv("KWORK_PROXY_LIST", "").split(",")[0].strip() or None
+                browser_args = fp.browser_args()
+                if proxy_url:
+                    browser_args.append(f"--proxy-server={proxy_url}")
+                    logger.info("BrowserManager: прокси активен для браузера")
+
                 self.browser = await uc.start(
                     headless=self.headless,
-                    browser_args=fp.browser_args(),
+                    browser_args=browser_args,
                     user_data_dir=self.profile_dir,
                 )
-                logger.info("BrowserManager: ✅ браузер запущен (единый инстанс)")
+                logger.info("BrowserManager: браузер запущен (единый инстанс)")
                 return self.browser
             except Exception as e:
                 logger.error(f"BrowserManager: ошибка запуска браузера: {e}")
@@ -117,11 +125,63 @@ class BrowserManager:
 
         try:
             page = await browser.get(url)
+            await self._check_cloudflare(page, url)
             return page
         except Exception as e:
             logger.warning(f"BrowserManager: ошибка загрузки страницы, реконнект: {e}")
             browser = await self.ensure_browser()
-            return await browser.get(url)
+            page = await browser.get(url)
+            await self._check_cloudflare(page, url)
+            return page
+
+    async def _check_cloudflare(self, page: uc.Tab, url: str) -> None:
+        """Detect Cloudflare challenge and attempt to solve it.
+
+        Cloudflare Turnstile / Managed Challenge detection:
+        - Look for cf-challenge, turnstile iframe, "Verify you are human"
+        - If detected: try tab.cf_verify() (nodriver built-in)
+        - Wait for cf_clearance cookie to appear
+        - Alert if challenge cannot be solved
+        """
+        try:
+            await page.sleep(2)
+            html = await page.get_content()
+            html_lower = html.lower() if html else ""
+
+            cf_markers = [
+                "cf-challenge",
+                "cf-turnstile",
+                "cf_chl_opt",
+                "just a moment",
+                "checking your browser",
+                "verify you are human",
+                "challenge-platform",
+                "cf-mitigated",
+            ]
+
+            is_cf_challenge = any(marker in html_lower for marker in cf_markers)
+
+            if not is_cf_challenge:
+                return
+
+            logger.warning(f"BrowserManager: Cloudflare challenge detected for {url}")
+
+            if hasattr(page, "cf_verify"):
+                try:
+                    logger.info("BrowserManager: attempting cf_verify()...")
+                    await page.cf_verify()
+                    await page.sleep(5)
+                except Exception as cf_err:
+                    logger.warning(f"BrowserManager: cf_verify() failed: {cf_err}")
+
+            html_after = await page.get_content()
+            if html_after and "cf-challenge" in html_after.lower():
+                logger.error(f"BrowserManager: Cloudflare challenge NOT solved for {url}")
+            else:
+                logger.info("BrowserManager: Cloudflare challenge passed")
+
+        except Exception as e:
+            logger.debug(f"BrowserManager: Cloudflare check error: {e}")
 
     async def set_cookies_from_env(self, domain: str):
         """
@@ -232,6 +292,21 @@ class BrowserManager:
         except Exception:
             return False
 
+        html_lower = html.lower() if html else ""
+        if any(marker in html_lower for marker in ["cf-challenge", "just a moment", "checking your browser", "verify you are human"]):
+            logger.warning(f"BrowserManager: Cloudflare challenge blocking auth for {domain}")
+            if hasattr(page, "cf_verify"):
+                try:
+                    await page.cf_verify()
+                    await page.sleep(5)
+                    html = await page.get_content()
+                except Exception:
+                    pass
+            if "cf-challenge" in (html or "").lower():
+                logger.error(f"BrowserManager: Cloudflare challenge not solved, auth impossible for {domain}")
+                self._auth_validated[domain] = False
+                return False
+
         is_auth = self._check_auth_markers(domain, html)
 
         if is_auth:
@@ -297,6 +372,15 @@ class BrowserManager:
         browser = await self.get_browser()
         try:
             result = {}
+            cookies = await browser.send(
+                uc.cdp.network.get_cookies()
+            )
+            for cookie in cookies:
+                if domain in (cookie.domain or ""):
+                    result[cookie.name] = cookie.value
+            if "cf_clearance" in result:
+                logger.info(f"BrowserManager: cf_clearance cookie present for {domain}")
+            return result
             for page in browser.targets:
                 if page.type_ == "page" and domain in page.url:
                     cookies_data = await page.send(uc.cdp.network.get_cookies())
@@ -309,12 +393,17 @@ class BrowserManager:
             logger.debug(f"BrowserManager: не удалось экспортировать куки: {e}")
             return {}
 
-    async def take_screenshot(self, page: uc.Tab, project_id: str, step_name: str) -> Optional[str]:
+    async def take_screenshot(self, page: uc.Tab, project_id: str, step_name: str, full_page: bool = False) -> Optional[str]:
         try:
             folder = os.path.join(str(SCREENSHOTS_DIR), str(project_id))
             os.makedirs(folder, exist_ok=True)
             path = os.path.join(folder, f"{step_name}.png")
-            await page.save_screenshot(path)
+            if full_page:
+                await page.evaluate("window.scrollTo(0, 0)")
+                await page.sleep(0.5)
+                await page.save_screenshot(path, full_page=True)
+            else:
+                await page.save_screenshot(path)
             logger.debug(f"Скриншот сохранён: {path}")
             return path
         except Exception as e:
@@ -342,10 +431,8 @@ class BrowserManager:
 
     async def close_page(self, page: uc.Tab):
         try:
-            # Чтобы не закрывался весь процесс Chromium,
-            # мы не закрываем саму вкладку, если она потенциально единственная.
-            # Вместо этого мы можем редиректить или оставлять как есть (get_page её переиспользует).
-            pass
+            if self.browser and len(self.browser.targets) > 2:
+                await page.close()
         except Exception:
             pass
 

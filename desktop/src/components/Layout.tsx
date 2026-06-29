@@ -29,6 +29,8 @@ interface RunConfig {
   search_brief: string
   query_count: number
   pages_to_parse: number
+  max_projects_per_cycle: number
+  max_parse_seconds: number
   top_projects: number
   limit: number
   browser_headless: boolean
@@ -43,7 +45,7 @@ const NAV = [
   { to: '/queue',     icon: ListChecks,      label: 'Очередь' },
   { to: '/settings',  icon: Settings,        label: 'Настройки' },
   { to: '/logs',      icon: ScrollText,      label: 'Логи' },
-  { to: '/osint',     icon: Search,          label: 'OSINT' },
+  { to: '/osint',     icon: Search,          label: 'Сигналы' },
 ]
 
 const MODES = ['auto', 'semi_auto', 'manual', 'paused']
@@ -57,21 +59,88 @@ const PLATFORM_OPTIONS: { id: PlatformId; label: string }[] = [
 const DEFAULT_RUN_CONFIG: RunConfig = {
   platforms: ['kwork'],
   search_brief: 'мелкие заказы на автоматизацию, ботов, парсеры, скрипты, небольшие сайты. бюджет до 10к. не на постоянку',
-  query_count: 2,
-  pages_to_parse: 1,
-  top_projects: 1,
+  query_count: 8,
+  pages_to_parse: 50,
+  max_projects_per_cycle: 500,
+  max_parse_seconds: 90,
+  top_projects: 0,
   limit: 1,
   browser_headless: false,
   telegram_enabled: true,
-  osint_enabled: true,
+  osint_enabled: false,
   probiv_enabled: false,
   session_hub_required: true,
+}
+
+const RUN_CONFIG_STORAGE_KEY = 'psr.runConfig.v1'
+
+function isPlatformId(value: unknown): value is PlatformId {
+  return value === 'kwork' || value === 'freelance_ru' || value === 'hh_ru'
 }
 
 function clampNumber(raw: string, min: number, max: number) {
   const parsed = Number(raw)
   if (!Number.isFinite(parsed)) return min
   return Math.max(min, Math.min(max, Math.trunc(parsed)))
+}
+
+function clampConfigNumber(value: unknown, fallback: number, min: number, max: number) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.max(min, Math.min(max, Math.trunc(parsed)))
+}
+
+function readStoredRunConfig(): RunConfig {
+  try {
+    const raw = window.localStorage.getItem(RUN_CONFIG_STORAGE_KEY)
+    if (!raw) return DEFAULT_RUN_CONFIG
+    const saved = JSON.parse(raw) as Partial<RunConfig>
+    const platforms = Array.isArray(saved.platforms)
+      ? saved.platforms.filter(isPlatformId)
+      : DEFAULT_RUN_CONFIG.platforms
+
+    return {
+      ...DEFAULT_RUN_CONFIG,
+      platforms: platforms.length ? platforms : DEFAULT_RUN_CONFIG.platforms,
+      search_brief: typeof saved.search_brief === 'string'
+        ? saved.search_brief
+        : DEFAULT_RUN_CONFIG.search_brief,
+      query_count: clampConfigNumber(saved.query_count, DEFAULT_RUN_CONFIG.query_count, 1, 50),
+      pages_to_parse: clampConfigNumber(saved.pages_to_parse, DEFAULT_RUN_CONFIG.pages_to_parse, 1, 100),
+      max_projects_per_cycle: clampConfigNumber(
+        saved.max_projects_per_cycle,
+        DEFAULT_RUN_CONFIG.max_projects_per_cycle,
+        20,
+        2000
+      ),
+      max_parse_seconds: clampConfigNumber(saved.max_parse_seconds, DEFAULT_RUN_CONFIG.max_parse_seconds, 10, 600),
+      top_projects: clampConfigNumber(saved.top_projects, DEFAULT_RUN_CONFIG.top_projects, 0, 50),
+      limit: clampConfigNumber(saved.limit, DEFAULT_RUN_CONFIG.limit, 1, 20),
+      browser_headless: typeof saved.browser_headless === 'boolean'
+        ? saved.browser_headless
+        : DEFAULT_RUN_CONFIG.browser_headless,
+      telegram_enabled: typeof saved.telegram_enabled === 'boolean'
+        ? saved.telegram_enabled
+        : DEFAULT_RUN_CONFIG.telegram_enabled,
+      osint_enabled: typeof saved.osint_enabled === 'boolean'
+        ? saved.osint_enabled
+        : DEFAULT_RUN_CONFIG.osint_enabled,
+      probiv_enabled: typeof saved.probiv_enabled === 'boolean'
+        ? saved.probiv_enabled
+        : DEFAULT_RUN_CONFIG.probiv_enabled,
+      session_hub_required: typeof saved.session_hub_required === 'boolean'
+        ? saved.session_hub_required
+        : DEFAULT_RUN_CONFIG.session_hub_required,
+    }
+  } catch {
+    return DEFAULT_RUN_CONFIG
+  }
+}
+
+function storeRunConfig(config: RunConfig) {
+  try {
+    window.localStorage.setItem(RUN_CONFIG_STORAGE_KEY, JSON.stringify(config))
+  } catch {}
 }
 
 function NumberField({
@@ -153,7 +222,7 @@ export default function Layout() {
   const [starting, setStarting] = useState(false)
   const [stopping, setStopping] = useState(false)
   const [dryRun, setDryRun] = useState(true)
-  const [runConfig, setRunConfig] = useState<RunConfig>(DEFAULT_RUN_CONFIG)
+  const [runConfig, setRunConfig] = useState<RunConfig>(() => readStoredRunConfig())
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
 
   const refreshStatus = useCallback(async () => {
@@ -168,6 +237,10 @@ export default function Layout() {
     const id = setInterval(refreshStatus, 10_000)
     return () => clearInterval(id)
   }, [refreshStatus])
+
+  useEffect(() => {
+    storeRunConfig(runConfig)
+  }, [runConfig])
 
   useWebSocket('ws://127.0.0.1:7788/ws/status', (msg) => {
     if (msg.type === 'status') {
@@ -187,9 +260,16 @@ export default function Layout() {
         dry_run: dryRun,
         limit: runConfig.limit,
         platforms: runConfig.platforms,
+        discovery_mode: 'wide',
         pages_to_parse: runConfig.pages_to_parse,
+        max_pages_per_query: runConfig.pages_to_parse,
+        max_projects_per_cycle: runConfig.max_projects_per_cycle,
+        max_parse_seconds: runConfig.max_parse_seconds,
         query_count: runConfig.query_count,
         top_projects: runConfig.top_projects,
+        ai_score_mode: 'fast_full',
+        ai_score_batch_size: 20,
+        ai_score_max_candidates: 300,
         search_brief: runConfig.search_brief,
         browser_headless: runConfig.browser_headless,
         telegram_enabled: runConfig.telegram_enabled,
@@ -404,13 +484,47 @@ export default function Layout() {
                 <NumberField
                   label="Запросов"
                   min={1}
+                  max={50}
+                  value={runConfig.query_count}
+                  disabled={disabledControls}
+                  onChange={(value) => updateConfig('query_count', value)}
+                />
+                <NumberField
+                  label="Макс. страниц"
+                  min={1}
+                  max={100}
+                  value={runConfig.pages_to_parse}
+                  disabled={disabledControls}
+                  onChange={(value) => updateConfig('pages_to_parse', value)}
+                />
+                <NumberField
+                  label="Кандидатов"
+                  min={20}
+                  max={2000}
+                  value={runConfig.max_projects_per_cycle}
+                  disabled={disabledControls}
+                  onChange={(value) => updateConfig('max_projects_per_cycle', value)}
+                />
+                <NumberField
+                  label="Откликов"
+                  min={1}
+                  max={20}
+                  value={runConfig.limit}
+                  disabled={disabledControls}
+                  onChange={(value) => updateConfig('limit', value)}
+                />
+              </div>
+              <div className="hidden">
+                <NumberField
+                  label="Запросов"
+                  min={1}
                   max={20}
                   value={runConfig.query_count}
                   disabled={disabledControls}
                   onChange={(value) => updateConfig('query_count', value)}
                 />
                 <NumberField
-                  label="Страниц"
+                  label="Глубина"
                   min={1}
                   max={10}
                   value={runConfig.pages_to_parse}
@@ -418,7 +532,7 @@ export default function Layout() {
                   onChange={(value) => updateConfig('pages_to_parse', value)}
                 />
                 <NumberField
-                  label="Топ"
+                  label="В работу"
                   min={0}
                   max={50}
                   value={runConfig.top_projects}
@@ -426,7 +540,7 @@ export default function Layout() {
                   onChange={(value) => updateConfig('top_projects', value)}
                 />
                 <NumberField
-                  label="Лимит"
+                  label="Откликов"
                   min={1}
                   max={20}
                   value={runConfig.limit}
@@ -512,15 +626,18 @@ export default function Layout() {
       {/* Main content */}
       <main className="workspace flex-1 flex min-w-0 flex-col overflow-hidden">
         <header
-          className="topline flex h-14 shrink-0 items-center justify-between px-6 select-none max-lg:hidden"
+          className="topline flex h-14 shrink-0 items-center justify-between pl-6 pr-48 select-none max-lg:hidden"
           style={{ WebkitAppRegion: 'drag' } as CSSProperties}
         >
           <div>
             <div className="page-kicker">операции агента</div>
             <div className="text-sm text-stone-300">Единая панель запуска, очереди, Telegram и проверок</div>
           </div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="badge border-white/10 bg-white/[0.03] text-stone-300">
+          <div
+            className="flex max-w-[460px] items-center justify-end gap-2 overflow-hidden text-xs"
+            style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+          >
+            <span className="badge border-white/10 bg-white/[0.03] text-stone-300 max-xl:hidden">
               <span className={cn('status-dot mr-2', status.cycle_running && 'active')} />
               {status.cycle_running ? 'цикл идет' : 'готов'}
             </span>

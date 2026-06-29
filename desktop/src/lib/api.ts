@@ -19,6 +19,13 @@ export interface RuntimeConfig {
   pages_to_parse?: number
   query_count?: number
   top_projects?: number
+  discovery_mode?: string
+  max_pages_per_query?: number
+  max_projects_per_cycle?: number
+  max_parse_seconds?: number
+  ai_score_mode?: string
+  ai_score_batch_size?: number
+  ai_score_max_candidates?: number
   browser_headless?: boolean
   osint_enabled?: boolean
   probiv_enabled?: boolean
@@ -34,6 +41,13 @@ export interface StartCycleParams {
   pages_to_parse?: number
   query_count?: number
   top_projects?: number
+  discovery_mode?: string
+  max_pages_per_query?: number
+  max_projects_per_cycle?: number
+  max_parse_seconds?: number
+  ai_score_mode?: string
+  ai_score_batch_size?: number
+  ai_score_max_candidates?: number
   search_brief?: string
   browser_headless?: boolean
   osint_enabled?: boolean
@@ -44,6 +58,7 @@ export interface StartCycleParams {
 
 export const api = {
   health: () => request<{ status: string }>('/api/health'),
+  clearLogs: () => request<{ ok: boolean }>('/api/logs', { method: 'DELETE' }),
 
   // Orchestrator
   getStatus: () =>
@@ -196,6 +211,24 @@ export const api = {
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
+export interface ProjectFile {
+  fname?: string
+  name?: string
+  url?: string
+  size?: number
+}
+
+export interface PlatformData {
+  files?: ProjectFile[]
+  category_id?: number
+  possible_price_limit?: number
+  allow_higher_price?: boolean
+  available_durations?: number[]
+  date_create?: string
+  source?: string
+  [key: string]: unknown
+}
+
 export interface Candidate {
   candidate_id: number
   project_id: string
@@ -220,7 +253,7 @@ export interface Candidate {
   vet_reasons?: string[]
   vet_red_flags?: string[]
   client_context?: Record<string, unknown>
-  platform_data?: Record<string, unknown>
+  platform_data?: PlatformData
   search_query?: string
   updated_at?: string
   created_at?: string

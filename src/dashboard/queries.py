@@ -14,6 +14,15 @@ LOGS_DB = str(LOGS_DB_FILE)
 PROPOSALS_DB = str(PROPOSALS_DB_FILE)
 
 
+def _ensure_proposals_schema() -> None:
+    try:
+        from src.action.proposal_db import ProposalDB
+
+        ProposalDB()
+    except Exception:
+        pass
+
+
 def _read_sql(db_path: str, query: str, params: tuple = ()) -> pd.DataFrame:
     if not Path(db_path).exists():
         return pd.DataFrame()
@@ -106,6 +115,7 @@ def runtime_state_snapshot() -> dict[str, Any]:
 
 
 def queue_snapshot(limit: int = 20) -> pd.DataFrame:
+    _ensure_proposals_schema()
     return _read_sql(
         PROPOSALS_DB,
         """
@@ -119,6 +129,8 @@ def queue_snapshot(limit: int = 20) -> pd.DataFrame:
             risk_level,
             priority,
             offers_count,
+            client_hired_percent,
+            proposal_text,
             search_query,
             updated_at,
             status
@@ -345,7 +357,153 @@ def last_activity() -> dict[str, Any]:
         ("last_proposal", PROPOSALS_DB, "SELECT MAX(sent_at) FROM proposals"),
         ("last_candidate", PROPOSALS_DB, "SELECT MAX(updated_at) FROM candidates"),
         ("last_error", LOGS_DB, "SELECT MAX(timestamp) FROM errors"),
+        ("last_conversation", PROPOSALS_DB, "SELECT MAX(updated_at) FROM conversations"),
+        ("last_earning", PROPOSALS_DB, "SELECT MAX(updated_at) FROM earnings"),
     ]:
         df = _read_sql(db_path, query)
         out[label] = df.iloc[0, 0] if not df.empty and df.iloc[0, 0] else None
     return out
+
+
+def conversion_funnel(days: int = 30) -> dict[str, Any]:
+    _ensure_proposals_schema()
+    funnel: dict[str, Any] = {
+        "sent": 0,
+        "responded": 0,
+        "hired": 0,
+        "completed": 0,
+        "paid": 0,
+        "response_rate": 0.0,
+        "hire_rate": 0.0,
+        "completion_rate": 0.0,
+        "payment_rate": 0.0,
+    }
+
+    sent_df = _read_sql(
+        PROPOSALS_DB,
+        """
+        SELECT COUNT(*) AS n FROM candidates
+        WHERE status IN ('auto_sent', 'manual_sent', 'hired', 'declined', 'completed')
+        AND sent_at IS NOT NULL AND sent_at >= datetime('now', ?)
+        """,
+        (f"-{days} days",),
+    )
+    if not sent_df.empty:
+        funnel["sent"] = int(sent_df.iloc[0]["n"] or 0)
+
+    responded_df = _read_sql(
+        PROPOSALS_DB,
+        """
+        SELECT COUNT(DISTINCT c.candidate_id) AS n
+        FROM candidates c
+        JOIN conversations conv ON conv.candidate_id = c.candidate_id
+        WHERE c.sent_at IS NOT NULL AND c.sent_at >= datetime('now', ?)
+          AND conv.status NOT IN ('new')
+        """,
+        (f"-{days} days",),
+    )
+    if not responded_df.empty:
+        funnel["responded"] = int(responded_df.iloc[0]["n"] or 0)
+
+    hired_df = _read_sql(
+        PROPOSALS_DB,
+        "SELECT COUNT(*) AS n FROM candidates WHERE status IN ('hired', 'completed') AND sent_at >= datetime('now', ?)",
+        (f"-{days} days",),
+    )
+    if not hired_df.empty:
+        funnel["hired"] = int(hired_df.iloc[0]["n"] or 0)
+
+    completed_df = _read_sql(
+        PROPOSALS_DB,
+        "SELECT COUNT(*) AS n FROM candidates WHERE status = 'completed' AND sent_at >= datetime('now', ?)",
+        (f"-{days} days",),
+    )
+    if not completed_df.empty:
+        funnel["completed"] = int(completed_df.iloc[0]["n"] or 0)
+
+    paid_df = _read_sql(
+        PROPOSALS_DB,
+        "SELECT COUNT(*) AS n FROM earnings WHERE status = 'paid' AND created_at >= datetime('now', ?)",
+        (f"-{days} days",),
+    )
+    if not paid_df.empty:
+        funnel["paid"] = int(paid_df.iloc[0]["n"] or 0)
+
+    if funnel["sent"] > 0:
+        funnel["response_rate"] = round(100.0 * funnel["responded"] / funnel["sent"], 1)
+    if funnel["responded"] > 0:
+        funnel["hire_rate"] = round(100.0 * funnel["hired"] / funnel["responded"], 1)
+    if funnel["hired"] > 0:
+        funnel["completion_rate"] = round(100.0 * funnel["completed"] / funnel["hired"], 1)
+    if funnel["completed"] > 0:
+        funnel["payment_rate"] = round(100.0 * funnel["paid"] / funnel["completed"], 1)
+
+    return funnel
+
+
+def earnings_summary() -> dict[str, Any]:
+    _ensure_proposals_schema()
+    df = _read_sql(
+        PROPOSALS_DB,
+        """
+        SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) AS paid_count,
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+            COALESCE(SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END), 0) AS paid_amount,
+            COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) AS pending_amount,
+            COALESCE(SUM(amount), 0) AS total_amount
+        FROM earnings
+        """,
+    )
+    if df.empty:
+        return {"total": 0, "paid_count": 0, "pending_count": 0, "paid_amount": 0.0, "pending_amount": 0.0, "total_amount": 0.0}
+    row = df.iloc[0]
+    return {
+        "total": int(row["total"] or 0),
+        "paid_count": int(row["paid_count"] or 0),
+        "pending_count": int(row["pending_count"] or 0),
+        "paid_amount": float(row["paid_amount"] or 0),
+        "pending_amount": float(row["pending_amount"] or 0),
+        "total_amount": float(row["total_amount"] or 0),
+    }
+
+
+def active_conversations(limit: int = 20) -> list[dict[str, Any]]:
+    _ensure_proposals_schema()
+    df = _read_sql(
+        PROPOSALS_DB,
+        """
+        SELECT
+            c.conversation_id,
+            c.project_id,
+            c.platform,
+            c.project_title,
+            c.status,
+            c.last_message_at,
+            c.updated_at,
+            (SELECT COUNT(*) FROM conversation_messages cm WHERE cm.conversation_id = c.conversation_id) AS message_count
+        FROM conversations c
+        WHERE c.status NOT IN ('completed', 'declined')
+        ORDER BY c.updated_at DESC
+        LIMIT ?
+        """,
+        (limit,),
+    )
+    return df.to_dict(orient="records") if not df.empty else []
+
+
+def conversation_history(project_id: str, platform: str) -> list[dict[str, Any]]:
+    _ensure_proposals_schema()
+    df = _read_sql(
+        PROPOSALS_DB,
+        """
+        SELECT cm.sender, cm.message_text, cm.created_at
+        FROM conversation_messages cm
+        JOIN conversations c ON c.conversation_id = cm.conversation_id
+        WHERE c.project_id = ? AND c.platform = ?
+        ORDER BY cm.created_at ASC
+        """,
+        (project_id, platform),
+    )
+    return df.to_dict(orient="records") if not df.empty else []

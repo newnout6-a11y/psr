@@ -8,11 +8,13 @@ export function useWebSocket(
   enabled = true,
 ) {
   const wsRef = useRef<WebSocket | null>(null)
+  const reconnectTimerRef = useRef<number | null>(null)
+  const shouldReconnectRef = useRef(false)
   const cbRef = useRef(onMessage)
   cbRef.current = onMessage
 
   const connect = useCallback(() => {
-    if (!enabled) return
+    if (!enabled || !shouldReconnectRef.current) return
     const ws = new WebSocket(url)
     wsRef.current = ws
 
@@ -24,9 +26,11 @@ export function useWebSocket(
     }
 
     ws.onclose = () => {
+      if (!shouldReconnectRef.current) return
       // Auto-reconnect after 3 seconds
-      setTimeout(() => {
-        if (enabled) connect()
+      reconnectTimerRef.current = window.setTimeout(() => {
+        reconnectTimerRef.current = null
+        if (shouldReconnectRef.current) connect()
       }, 3000)
     }
 
@@ -36,9 +40,16 @@ export function useWebSocket(
   }, [url, enabled])
 
   useEffect(() => {
+    shouldReconnectRef.current = enabled
     connect()
     return () => {
+      shouldReconnectRef.current = false
+      if (reconnectTimerRef.current !== null) {
+        window.clearTimeout(reconnectTimerRef.current)
+        reconnectTimerRef.current = null
+      }
       wsRef.current?.close()
+      wsRef.current = null
     }
-  }, [connect])
+  }, [connect, enabled])
 }

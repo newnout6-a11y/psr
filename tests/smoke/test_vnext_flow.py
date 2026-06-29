@@ -63,8 +63,38 @@ def test_decision_policy_auto_ready():
     )
     decision = policy.evaluate(ExecutionMode.SEMI_AUTO.value, ctx)
     assert decision.status == "auto_ready"
-    assert decision.auto_send is True
+    assert decision.auto_send is False
     assert decision.auto_eligible is True
+    assert decision.reason == "ready for explicit approval"
+
+
+def test_decision_policy_priority_is_not_risk_score():
+    policy = DecisionPolicy(auto_send_platforms={"kwork"})
+    low_risk = CandidateDecisionContext(
+        platform="kwork",
+        ai_score=8,
+        ai_score_source="llm",
+        vet_score=80,
+        offers_count=0,
+        budget=500,
+        red_flags=[],
+    )
+    high_risk = CandidateDecisionContext(
+        platform="kwork",
+        ai_score=8,
+        ai_score_source="fallback_scored",
+        vet_score=20,
+        offers_count=100,
+        budget=500,
+        red_flags=["risk"],
+    )
+
+    low_decision = policy.evaluate(ExecutionMode.MANUAL.value, low_risk)
+    high_decision = policy.evaluate(ExecutionMode.MANUAL.value, high_risk)
+
+    assert low_decision.risk_level == "low"
+    assert high_decision.risk_level == "high"
+    assert low_decision.priority > high_decision.priority
 
 
 def test_decision_policy_blocks_fallback_auto_send():
@@ -161,6 +191,8 @@ def test_ai_scorer_heuristic_and_fallback():
 if __name__ == "__main__":
     test_decision_policy_auto_ready()
     print("[ok] decision policy auto_ready")
+    test_decision_policy_priority_is_not_risk_score()
+    print("[ok] decision policy priority is not risk score")
     test_decision_policy_blocks_fallback_auto_send()
     print("[ok] decision policy blocks fallback auto-send")
     test_query_memory_and_runtime_state()

@@ -190,6 +190,93 @@ async def bot_api_send_photo(
         return TelegramAttempt("bot_api", False, f"{type(e).__name__}: {e}")
 
 
+async def bot_api_send_document(
+    document_path: str | Path,
+    caption: str = "",
+    *,
+    chat_id: str | int | None = None,
+    reply_markup: Any = None,
+) -> TelegramAttempt:
+    """Send a document (any file type) to a Telegram chat via Bot API."""
+    token = _token()
+    if not token:
+        return TelegramAttempt("bot_api", False, "TELEGRAM_TOKEN is empty")
+
+    target = _normalize_chat_id(chat_id)
+    if not target:
+        return TelegramAttempt("bot_api", False, "ADMIN_CHAT_ID is empty")
+
+    path = Path(document_path)
+    if not path.exists():
+        return TelegramAttempt("bot_api", False, f"File not found: {path}")
+
+    data: dict[str, str] = {
+        "chat_id": target,
+        "caption": caption[:1024],
+    }
+    markup = _normalize_markup(reply_markup)
+    if markup is not None:
+        data["reply_markup"] = json.dumps(markup, ensure_ascii=False)
+
+    import mimetypes
+    mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+
+    url = f"{_bot_api_base()}/bot{token}/sendDocument"
+    try:
+        with path.open("rb") as file:
+            async with httpx.AsyncClient(timeout=60, trust_env=False) as client:
+                response = await client.post(
+                    url,
+                    data=data,
+                    files={"document": (path.name, file, mime)},
+                )
+        try:
+            payload = response.json()
+        except Exception:
+            payload = {"raw": response.text[:500]}
+
+        ok = response.status_code == 200 and bool(payload.get("ok"))
+        detail = "ok" if ok else str(payload.get("description") or payload)[:500]
+        return TelegramAttempt("bot_api", ok, detail, response.status_code, payload)
+    except Exception as e:
+        return TelegramAttempt("bot_api", False, f"{type(e).__name__}: {e}")
+
+
+async def bot_api_send_media_group(
+    media: list[dict[str, Any]],
+    *,
+    chat_id: str | int | None = None,
+) -> TelegramAttempt:
+    """Send multiple photos/documents as a media group."""
+    token = _token()
+    if not token:
+        return TelegramAttempt("bot_api", False, "TELEGRAM_TOKEN is empty")
+
+    target = _normalize_chat_id(chat_id)
+    if not target:
+        return TelegramAttempt("bot_api", False, "ADMIN_CHAT_ID is empty")
+
+    url = f"{_bot_api_base()}/bot{token}/sendMediaGroup"
+    try:
+        import json as _json
+        data = {
+            "chat_id": target,
+            "media": _json.dumps(media, ensure_ascii=False),
+        }
+        async with httpx.AsyncClient(timeout=60, trust_env=False) as client:
+            response = await client.post(url, data=data)
+        try:
+            payload = response.json()
+        except Exception:
+            payload = {"raw": response.text[:500]}
+
+        ok = response.status_code == 200 and bool(payload.get("ok"))
+        detail = "ok" if ok else str(payload.get("description") or payload)[:500]
+        return TelegramAttempt("bot_api", ok, detail, response.status_code, payload)
+    except Exception as e:
+        return TelegramAttempt("bot_api", False, f"{type(e).__name__}: {e}")
+
+
 def mtproto_configured() -> bool:
     return bool(_token() and os.getenv("TELEGRAM_API_ID") and os.getenv("TELEGRAM_API_HASH"))
 

@@ -70,7 +70,8 @@ class DecisionPolicy:
         if normalized_mode not in {m.value for m in ExecutionMode}:
             normalized_mode = ExecutionMode.SEMI_AUTO.value
 
-        risk_level, priority = self._risk_profile(ctx)
+        risk_level = self._risk_level(ctx)
+        priority = self._priority(ctx, risk_level)
 
         if not ctx.valid_proposal:
             return CandidateDecision("error", False, "proposal text is invalid", "high", 0, False)
@@ -89,7 +90,7 @@ class DecisionPolicy:
 
         auto_eligible = self._is_auto_eligible(ctx)
         if auto_eligible:
-            return CandidateDecision("auto_ready", True, "semi-auto eligible", risk_level, priority, True)
+            return CandidateDecision("auto_ready", False, "ready for explicit approval", risk_level, priority, True)
 
         if ctx.ai_score < max(self.auto_send_score_min - 2, 1) and ctx.vet_score < max(self.auto_send_vet_min - 10, 1):
             return CandidateDecision("skipped", False, "low confidence after scoring", risk_level, 0, False)
@@ -115,7 +116,7 @@ class DecisionPolicy:
             return False
         return True
 
-    def _risk_profile(self, ctx: CandidateDecisionContext) -> tuple[str, int]:
+    def _risk_level(self, ctx: CandidateDecisionContext) -> str:
         risk = 0
         if ctx.ai_score_source == "fallback_scored":
             risk += 2
@@ -129,7 +130,30 @@ class DecisionPolicy:
             risk += 1
 
         if risk >= 4:
-            return "high", 9
+            return "high"
         if risk >= 2:
-            return "medium", 6
-        return "low", 3
+            return "medium"
+        return "low"
+
+    def _priority(self, ctx: CandidateDecisionContext, risk_level: str) -> int:
+        """Higher priority means "show this earlier", not "more dangerous"."""
+        value = ctx.ai_score * 10 + min(max(ctx.vet_score, 0), 100) // 5
+
+        if ctx.offers_count == 0:
+            value += 12
+        elif ctx.offers_count <= self.auto_send_max_offers:
+            value += 6
+        elif ctx.offers_count > self.auto_send_max_offers * 2:
+            value -= 12
+        else:
+            value -= 6
+
+        if risk_level == "high":
+            value -= 25
+        elif risk_level == "medium":
+            value -= 10
+
+        if ctx.ai_score_source == "fallback_scored":
+            value -= 10
+
+        return max(0, min(100, int(value)))

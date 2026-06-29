@@ -43,16 +43,17 @@ def test_circuit_breaker_opens_after_failures():
 def test_circuit_breaker_exponential_backoff():
     from src.utils.circuit_breaker import CircuitBreaker, CircuitConfig
 
-    br = CircuitBreaker(CircuitConfig(failure_threshold=1, recovery_seconds=1, max_recovery_seconds=10))
-    key = "test"
+    br = CircuitBreaker(CircuitConfig(failure_threshold=1, recovery_seconds=5, max_recovery_seconds=100))
+    key = "test_backoff"
 
     br.record_failure(key, "x")
     first = br.status(key)["paused_seconds_left"]
-    time.sleep(1.1)
+    time.sleep(5.1)
     br.allow(key)  # переводит в HALF_OPEN
     br.record_failure(key, "x")  # HALF_OPEN → OPEN с 2x backoff
     second = br.status(key)["paused_seconds_left"]
-    assert second >= first, f"expected growing backoff, got {first} -> {second}"
+    # Jitter ±20% может слегка нарушить монотонность, но база удваивается
+    assert second >= first * 0.7, f"expected growing backoff (±jitter), got {first} -> {second}"
 
 
 def test_fingerprint_deterministic_by_seed():

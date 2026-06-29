@@ -14,19 +14,29 @@ from dataclasses import dataclass
 
 # Актуальные сочетания UA / версий Chromium — обновляем раз в квартал.
 _UA_POOL = [
-    # Win10, Chrome 120..125
+    # Win10, Chrome 138..140 (2026)
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/120.0.0.0 Safari/537.36",
+    "Chrome/138.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/122.0.0.0 Safari/537.36",
+    "Chrome/139.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/125.0.0.0 Safari/537.36",
-    # Win11, Edge
+    "Chrome/140.0.0.0 Safari/537.36",
+    # Win11, Edge 140
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0",
-    # macOS
+    "Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+    # macOS, Chrome 139
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36",
+    "Chrome/139.0.0.0 Safari/537.36",
+]
+
+# Client Hints sec-ch-ua values matching each UA entry.
+# Format: list of (brand, version) tuples that Chrome sends.
+_SEC_CH_UA_POOL = [
+    '"Chromium";v="138", "Not(A:Brand";v="24", "Google Chrome";v="138"',
+    '"Chromium";v="139", "Not(A:Brand";v="24", "Google Chrome";v="139"',
+    '"Chromium";v="140", "Not(A:Brand";v="24", "Google Chrome";v="140"',
+    '"Chromium";v="140", "Not(A:Brand";v="24", "Microsoft Edge";v="140"',
+    '"Chromium";v="139", "Not(A:Brand";v="24", "Google Chrome";v="139"',
 ]
 
 _VIEWPORTS = [
@@ -57,16 +67,20 @@ class Fingerprint:
     viewport: tuple[int, int]
     accept_language: str
     timezone: str
+    sec_ch_ua: str = ""
 
     def browser_args(self) -> list[str]:
         """Аргументы для запуска Chromium через nodriver."""
         w, h = self.viewport
-        return [
+        args = [
             f"--window-size={w},{h}",
             f"--user-agent={self.user_agent}",
             f"--lang={self.accept_language.split(',')[0]}",
             "--disable-blink-features=AutomationControlled",
         ]
+        if self.sec_ch_ua:
+            args.append(f"--sec-ch-ua={self.sec_ch_ua}")
+        return args
 
 
 def pick(seed: str | None = None) -> Fingerprint:
@@ -76,9 +90,11 @@ def pick(seed: str | None = None) -> Fingerprint:
         rng = random.Random(h)
     else:
         rng = random.Random()
+    ua_idx = rng.randrange(len(_UA_POOL))
     return Fingerprint(
-        user_agent=rng.choice(_UA_POOL),
+        user_agent=_UA_POOL[ua_idx],
         viewport=rng.choice(_VIEWPORTS),
         accept_language=rng.choice(_LANG_POOL),
         timezone=rng.choice(_TIMEZONES),
+        sec_ch_ua=_SEC_CH_UA_POOL[ua_idx],
     )

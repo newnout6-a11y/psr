@@ -9,6 +9,15 @@ import os
 import signal
 import sys
 
+# Принудительно устанавливаем UTF-8 для консоли Windows
+if sys.platform == "win32":
+    os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from dotenv import load_dotenv
 from loguru import logger
 from rich.console import Console
@@ -85,13 +94,17 @@ async def main():
 
     parser = argparse.ArgumentParser(description="Автономный фрилансер.")
     parser.add_argument("--continuous", action="store_true", help="Режим 24/7")
-    parser.add_argument("--dry-run", action="store_true", help="Парсинг + LLM, без реальной отправки")
+    parser.add_argument("--dry-run", action="store_true", default=True, help="Парсинг + LLM, без реальной отправки (по умолчанию)")
+    parser.add_argument("--live", action="store_true", help="Реальная отправка откликов (переопределяет --dry-run)")
     parser.add_argument("--limit", type=int, default=5, help="Лимит откликов на одну платформу за цикл")
     parser.add_argument("--search", type=str, default=None, help="Описание поиска своими словами (AI сгенерирует запросы)")
     parser.add_argument("--top", type=int, default=None, help="Кол-во топ-проектов для обработки (default: 3)")
     args = parser.parse_args()
 
-    logger.add(str(LOGS_TXT_FILE), mode="w", encoding="utf-8")
+    logger.remove()
+    logger.add(sys.stderr, level="INFO",
+               format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>")
+    logger.add(str(LOGS_TXT_FILE), mode="w", encoding="utf-8", level="DEBUG")
     GENERATED_PROPOSALS_FILE.write_text("", encoding="utf-8")
 
     if args.search:
@@ -112,13 +125,19 @@ async def main():
     except asyncio.TimeoutError:
         pass
 
-    cycle_interval = int(os.getenv("CYCLE_INTERVAL", "1800"))
+    try:
+        cycle_interval = int(os.getenv("CYCLE_INTERVAL", "1200"))
+        if cycle_interval < 60:
+            cycle_interval = 60
+    except (ValueError, TypeError):
+        logger.warning("CYCLE_INTERVAL невалидный, используем 1200")
+        cycle_interval = 1200
     continuous = args.continuous or os.getenv("CONTINUOUS_MODE", "false").lower() == "true"
 
     try:
         while not stop_event.is_set():
             console.print("\n[bold cyan]=== Запуск цикла Orchestrator ===[/bold cyan]")
-            stats = await orchestrator.run_cycle(dry_run=args.dry_run, limit_per_platform=args.limit)
+            stats = await orchestrator.run_cycle(dry_run=(args.dry_run and not args.live), limit_per_platform=args.limit)
 
             table = Table(title="Итоги цикла")
             table.add_column("Метрика", style="magenta")
@@ -136,9 +155,12 @@ async def main():
             if not continuous or stop_event.is_set():
                 break
 
-            console.print(f"[dim]Спим {cycle_interval} секунд до следующего цикла...[/dim]")
+            import random as _random
+            jitter = int(cycle_interval * _random.uniform(-0.15, 0.15))
+            sleep_time = max(300, cycle_interval + jitter)
+            console.print(f"[dim]Спим {sleep_time} секунд до следующего цикла...[/dim]")
             try:
-                await asyncio.wait_for(stop_event.wait(), timeout=cycle_interval)
+                await asyncio.wait_for(stop_event.wait(), timeout=sleep_time)
             except asyncio.TimeoutError:
                 pass
     except (KeyboardInterrupt, asyncio.CancelledError):

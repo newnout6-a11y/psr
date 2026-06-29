@@ -1,0 +1,11 @@
+{
+    "schema_version": 1,
+    "commit": "",
+    "indexed_at": "2026-06-27T17:58:05Z",
+    "project": "C-psr",
+    "nodes": 7028,
+    "edges": 16891,
+    "original_size": 11075584,
+    "compressed_size": 2509658,
+    "compression_level": 9
+}

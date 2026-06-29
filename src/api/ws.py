@@ -16,6 +16,12 @@ async def ws_logs(websocket: WebSocket):
     await websocket.accept()
     q: asyncio.Queue = asyncio.Queue(maxsize=500)
     app_state.log_queues.add(q)
+    await websocket.send_text(
+        json.dumps(
+            {"type": "logs_snapshot", "items": app_state.log_snapshot()},
+            ensure_ascii=False,
+        )
+    )
     try:
         while True:
             try:

@@ -13,7 +13,7 @@ from loguru import logger
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from .base_parser import BaseParser, ProjectItem
-from src.platforms.kwork import KworkService, get_kwork_service
+from src.platforms.kwork import KworkAPIResponseError, KworkService, get_kwork_service
 
 
 KWORK_CATEGORIES_MAP = {
@@ -76,8 +76,8 @@ class KworkAPIParser(BaseParser):
             logger.warning(f"KworkAPI: не удалось прочитать filters.yaml: {e}")
             return 0, 0, 0, 0
 
-    def _get_api(self):
-        return self.service.get_api()
+    async def _get_api(self):
+        return await self.service.get_api()
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10), reraise=True)
     async def _get_projects_with_retry(
@@ -104,22 +104,29 @@ class KworkAPIParser(BaseParser):
 
     def _resolve_categories(self, query: str) -> list:
         """Разрешает категории из поискового запроса.
-        Поддерживает составные запросы: 'python бот' → [11] + [11] = [11]
-        'сайт api' → [79] + [11] = [11, 79]
+
+        Если в запросе есть "all"/"все" — возвращает ["all"] для поиска по всем рубрикам.
+        Иначе использует маппинг ключевых слов на ID категорий.
+        Динамические категории загружаются при первом вызове через KworkExtensions.
         """
         query_lower = query.lower().strip()
+
+        # Явный "all" / "все" → поиск по всем категориям
+        if query_lower in {"all", "все", "любые"}:
+            return []
+
         words = query_lower.replace(",", " ").split()
 
         all_cats = set()
         for word in words:
             for key, cats in KWORK_CATEGORIES_MAP.items():
-                if key == "all":
+                if key in {"all", "все"}:
                     continue
                 if key in word or word in key:
                     all_cats.update(cats)
 
-        # Если ничего не нашли — дефолт на скрипты (11)
-        return sorted(all_cats) if all_cats else [11]
+        # Если ничего не нашли — ищем по всем категориям вместо дефолта на cat 11
+        return sorted(all_cats) if all_cats else []
 
     async def get_projects(
         self,
@@ -127,7 +134,7 @@ class KworkAPIParser(BaseParser):
         per_page: int = 20,
         filters: Optional[Dict[str, Any]] = None,
     ) -> List[ProjectItem]:
-        api = self._get_api()
+        api = await self._get_api()
         if not api:
             logger.warning("KworkAPI: API недоступен, fallback на браузер")
             return await self._fallback_browser(page, per_page, filters)
@@ -194,13 +201,15 @@ class KworkAPIParser(BaseParser):
                 api_failures += 1
                 logger.error(f"KworkAPI: ошибка для запроса '{query}': {e}")
                 # Сессия протухла — сбросить клиент, чтобы следующий запрос переавторизовался
-                if "'response'" in str(e) or "response" in str(e).lower():
+                if self.service.is_auth_error(e):
                     logger.warning("KworkAPI: сессия протухла, сбрасываем клиент для реавторизации")
                     self.service.reset_api()
-                    api = self._get_api()
+                    api = await self._get_api()
+                elif isinstance(e, KworkAPIResponseError):
+                    logger.warning("KworkAPI: unexpected /projects response shape; continuing without session reset")
 
         logger.info(f"KworkAPI: итого {len(all_projects)} уникальных проектов по {len(queries)} запросам")
-        return all_projects[:per_page]
+        return all_projects
 
     def _normalize(self, raw_projects) -> List[ProjectItem]:
         from bs4 import BeautifulSoup
@@ -219,18 +228,36 @@ class KworkAPIParser(BaseParser):
             budget = float(p.price) if p.price else None
             url = f"{self.BASE_URL}/projects/{project_id}" if project_id else ""
 
-            # Извлекаем навыки
+            # Extract raw data for fields not exposed by WantWorker
+            raw_data = {}
+            if hasattr(p, "model_dump"):
+                try:
+                    raw_data = p.model_dump()
+                except Exception:
+                    raw_data = {}
+
+            # Извлекаем навыки — WantWorker не имеет skills, пробуем raw_data
             skills = []
             if hasattr(p, "skills") and p.skills:
                 for s in p.skills:
                     skill_name = s.name if hasattr(s, "name") else str(s)
                     skills.append(skill_name)
-            elif hasattr(p, "category_name") and p.category_name:
-                skills.append(p.category_name)
+            elif raw_data.get("skills_possible") or raw_data.get("skills"):
+                raw_skills = raw_data.get("skills_possible") or raw_data.get("skills") or []
+                if isinstance(raw_skills, list):
+                    for s in raw_skills:
+                        if isinstance(s, dict):
+                            skills.append(s.get("name", str(s)))
+                        elif isinstance(s, str):
+                            skills.append(s)
 
-            # Извлекаем дату
+            # Извлекаем дату — WantWorker не имеет date_create, берём из raw_data
             created_at = ""
-            if hasattr(p, "date_limit") and p.date_limit:
+            if raw_data.get("date_create"):
+                created_at = str(raw_data["date_create"])
+            elif raw_data.get("date_active"):
+                created_at = str(raw_data["date_active"])
+            elif hasattr(p, "date_limit") and p.date_limit:
                 created_at = str(p.date_limit)
             elif hasattr(p, "created_at") and p.created_at:
                 created_at = str(p.created_at)

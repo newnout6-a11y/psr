@@ -16,6 +16,31 @@ from src.paths import SCREENSHOTS_DIR
 from src.platforms.kwork import get_kwork_service
 
 
+def _text_similarity(text_a: str, text_b: str) -> float:
+    """Compute Jaccard similarity between two texts using 3-word shingles.
+
+    Returns 0.0 (completely different) to 1.0 (identical).
+    Used to detect duplicate/near-duplicate proposals before sending.
+    """
+    if not text_a or not text_b:
+        return 0.0
+    words_a = text_a.lower().split()
+    words_b = text_b.lower().split()
+    if len(words_a) < 3 or len(words_b) < 3:
+        return 1.0 if text_a.strip() == text_b.strip() else 0.0
+    shingles_a = set()
+    shingles_b = set()
+    for i in range(len(words_a) - 2):
+        shingles_a.add(" ".join(words_a[i : i + 3]))
+    for i in range(len(words_b) - 2):
+        shingles_b.add(" ".join(words_b[i : i + 3]))
+    if not shingles_a or not shingles_b:
+        return 0.0
+    intersection = shingles_a & shingles_b
+    union = shingles_a | shingles_b
+    return len(intersection) / len(union)
+
+
 class ProposalSender:
     def __init__(self, headless: bool = True, timeout: int = 30):
         self.timeout = timeout
@@ -111,8 +136,8 @@ class ProposalSender:
             logger.debug(f"Kwork: не удалось спарсить цены конкурентов: {e}")
         return []
 
-    def _get_kwork_api(self):
-        return self.kwork_service.get_api()
+    async def _get_kwork_api(self):
+        return await self.kwork_service.get_api()
 
     async def _ensure_auth(self, domain: str):
         if not self.browser_mgr._auth_validated.get(domain, False):
@@ -157,6 +182,29 @@ class ProposalSender:
         except Exception:
             return False
 
+    @staticmethod
+    def _kwork_web_submit_succeeded(result: dict) -> bool:
+        status = int(result.get("status") or 0)
+        payload = result.get("json")
+        if isinstance(payload, dict):
+            if payload.get("success") is False:
+                return False
+            if payload.get("error"):
+                return False
+            if payload.get("success") is True:
+                return True
+            if str(payload.get("status", "")).lower() in {"ok", "success"}:
+                return True
+        return 200 <= status < 300
+
+    @staticmethod
+    def _kwork_web_error_message(result: dict) -> str:
+        payload = result.get("json")
+        if isinstance(payload, dict):
+            return str(payload.get("message") or payload.get("error") or payload.get("response") or "неизвестная ошибка")
+        text = str(result.get("text") or "")
+        return text[:300] if text else "неизвестная ошибка"
+
     async def send_kwork_proposal(
         self,
         project_url: str,
@@ -164,8 +212,18 @@ class ProposalSender:
         proposal_text: str,
         price: Optional[str] = None,
         dry_run: bool = False,
+        attachments: Optional[list[str]] = None,
+        platform_data: Optional[dict] = None,
     ) -> bool:
         logger.info(f"Kwork: отправка отклика на проект {project_id}")
+
+        attachments = [item for item in (attachments or []) if item]
+        if attachments and os.getenv("KWORK_IMAGE_ATTACH_CONFIRMED", "false").lower() not in {"1", "true", "yes", "on"}:
+            logger.info("Kwork: attachments prepared but upload flow is not confirmed; sending text only")
+            attachments = []
+        elif attachments:
+            logger.warning("Kwork: attachment upload is marked confirmed, but API helper has no file upload path yet; sending text only")
+            attachments = []
 
         numeric_price = 500
         if price:
@@ -187,7 +245,7 @@ class ProposalSender:
                 dry_run=True,
             )
 
-        api = self._get_kwork_api()
+        api = await self._get_kwork_api()
         if api:
             try:
                 if not self._kwork_web_logged_in:
@@ -195,23 +253,94 @@ class ProposalSender:
                     self._kwork_web_logged_in = True
                     logger.info("Kwork: web-сессия установлена через мобильный API")
 
+                kwork_name = "Разработка"
+                kwork_duration = 7
+                if platform_data and isinstance(platform_data, dict):
+                    cat_id = platform_data.get("category_id")
+                    available_durations = platform_data.get("available_durations") or []
+                    if available_durations and isinstance(available_durations, list):
+                        try:
+                            durations = [int(d) for d in available_durations if d]
+                            if 7 in durations:
+                                kwork_duration = 7
+                            elif durations:
+                                kwork_duration = min(durations, key=lambda d: abs(d - 7))
+                        except (ValueError, TypeError):
+                            pass
+                    if cat_id:
+                        try:
+                            from src.platforms.kwork import get_kwork_service
+                            svc = get_kwork_service()
+                            cats = await svc.get_all_categories()
+                            for cat in cats:
+                                if isinstance(cat, dict):
+                                    sub_cats = cat.get("categories", []) or cat.get("childs", []) or []
+                                    for sub in sub_cats:
+                                        if isinstance(sub, dict) and str(sub.get("id")) == str(cat_id):
+                                            kwork_name = sub.get("name", kwork_name)
+                                            break
+                                    if str(cat.get("id")) == str(cat_id):
+                                        kwork_name = cat.get("name", kwork_name)
+                                        break
+                        except Exception:
+                            pass
+
+                from src.platforms.kwork_ext import KworkExtensions
+                is_flagged = await KworkExtensions.is_text_template_flagged(api, int(project_id), proposal_text)
+                if is_flagged:
+                    logger.warning(f"Kwork: proposal text flagged as TEMPLATE by check_is_template for project {project_id}")
+                    if not dry_run:
+                        logger.error("Kwork: отправка отклика отменена — текст помечен как шаблонный")
+                        return False
+
+                from src.action.proposal_db import ProposalDB
+                db = ProposalDB()
+                recent_texts = db.get_recent_proposal_texts(limit=20)
+                for prev_text in recent_texts:
+                    similarity = _text_similarity(proposal_text, prev_text)
+                    if similarity > 0.8:
+                        logger.warning(f"Kwork: proposal text {similarity:.0%} similar to a recent proposal — high duplicate risk")
+                        if similarity > 0.9 and not dry_run:
+                            logger.error("Kwork: отправка отменена — текст почти идентичен предыдущему отклику")
+                            return False
+                        break
+
+                if not await KworkExtensions.check_web_session(api):
+                    logger.warning("Kwork: web-сессия невалидна, реавторизация...")
+                    self._kwork_web_logged_in = False
+                    await api.web_login(url_to_redirect="/")
+                    self._kwork_web_logged_in = True
+
                 result = await api.web.submit_exchange_offer(
                     project_id=int(project_id),
                     offer_type="custom",
                     description=proposal_text,
-                    kwork_duration=7,
+                    kwork_duration=kwork_duration,
                     kwork_price=numeric_price,
-                    kwork_name="Разработка",
+                    kwork_name=kwork_name,
                 )
 
-                json_resp = result.get("json", {})
-                if json_resp.get("success"):
+                if self._kwork_web_submit_succeeded(result):
                     logger.info(f"Kwork: отклик отправлен через API на проект {project_id}")
                     return True
 
-                error_msg = json_resp.get("message", "неизвестная ошибка")
+                error_msg = self._kwork_web_error_message(result)
                 logger.error(f"Kwork: отклик отклонён API: {error_msg}")
+
+                error_lower = error_msg.lower()
+                if any(m in error_lower for m in ("уже отправл", "already responded", "уже откликнул")):
+                    logger.info(f"Kwork: уже откликнулись на проект {project_id}, повторная отправка отменена")
+                    return True
+
+                if any(m in error_lower for m in ("csrf", "token", "auth", "login", "session", "unauthorized")):
+                    logger.warning("Kwork: web-сессия истекла, сбрасываем _kwork_web_logged_in для реавторизации")
+                    self._kwork_web_logged_in = False
+
             except Exception as e:
+                error_str = str(e).lower()
+                if any(m in error_str for m in ("csrf", "token", "auth", "login", "session")):
+                    logger.warning(f"Kwork: auth/CSRF ошибка ({e}), сбрасываем web-сессию")
+                    self._kwork_web_logged_in = False
                 logger.error(f"Kwork: ошибка API-отправки: {e}")
 
         logger.warning("Kwork: API недоступен или упал, fallback на браузер")
@@ -347,6 +476,22 @@ class ProposalSender:
                     """
                 )
                 await page.sleep(random.uniform(1, 2))
+                readback = await page.evaluate(
+                    """
+                    () => {
+                        const editor = document.querySelector('.trumbowyg-editor');
+                        const textarea = document.querySelector('textarea[name="description"], .trumbowyg-textarea');
+                        return {
+                            editorText: editor ? (editor.innerText || '').trim() : '',
+                            textareaValue: textarea ? (textarea.value || '').trim() : ''
+                        };
+                    }
+                    """
+                )
+                if readback and isinstance(readback, dict):
+                    filled = readback.get("editorText", "") or readback.get("textareaValue", "")
+                    if len(filled) < 40:
+                        logger.warning(f"Kwork: Trumbowyg readback короткий ({len(filled)} chars), возможна пустая отправка")
             else:
                 textarea = await page.find("textarea[name='description']", timeout=2)
                 if textarea:
@@ -388,25 +533,29 @@ class ProposalSender:
 
             if submit_btn:
                 await submit_btn.click()
-                await page.sleep(4)
-                if await self._confirm_kwork_submission(page):
+                confirmed = False
+                for _poll in range(20):
+                    await page.sleep(0.75)
+                    if await self._confirm_kwork_submission(page):
+                        confirmed = True
+                        break
+                    if await self._page_contains(
+                        page,
+                        ["ошибка", "не удалось", "минимальная цена", "заполните", "слишком короткое"],
+                    ):
+                        break
+                if confirmed:
                     self._cleanup_screenshots(project_id)
                     logger.info("Kwork: отправка подтверждена")
                     return True
 
                 if await self._page_contains(
                     page,
-                    [
-                        "ошибка",
-                        "не удалось",
-                        "минимальная цена",
-                        "заполните",
-                        "слишком короткое",
-                    ],
+                    ["ошибка", "не удалось", "минимальная цена", "заполните", "слишком короткое"],
                 ):
                     logger.warning("Kwork: после submit обнаружены признаки ошибки, отклик не подтверждён")
                 else:
-                    logger.warning("Kwork: submit выполнен, но подтверждение отправки не найдено")
+                    logger.warning("Kwork: submit выполнен, но подтверждение отправки не найдено (15s polling)")
                 return False
 
             logger.warning("Kwork: не удалось найти кнопку отправки")
@@ -643,12 +792,16 @@ class ProposalSender:
         page = await mgr.get_page(project_url, reuse=True)
 
         try:
-            await mgr.wait_for_content(page, selector, timeout=10)
-            screenshot_path = await mgr.take_screenshot(page, project_id, "01_project_page")
+            await mgr.wait_for_content(page, selector, timeout=15)
+            await page.evaluate("window.scrollTo(0, 0)")
+            await page.sleep(1)
+            screenshot_path = await mgr.take_screenshot(page, project_id, "01_project_page", full_page=True)
             if not screenshot_path:
-                await page.scroll_down(400)
+                await page.scroll_down(200)
                 await page.sleep(2)
-                screenshot_path = await mgr.take_screenshot(page, project_id, "01_project_page_scrolled")
+                await page.evaluate("window.scrollTo(0, 0)")
+                await page.sleep(1)
+                screenshot_path = await mgr.take_screenshot(page, project_id, "01_project_page", full_page=True)
             return screenshot_path
         except Exception as e:
             logger.error(f"{platform} preview error: {e}")
@@ -663,20 +816,33 @@ class ProposalSender:
         proposal_text: str,
         price: Optional[str] = None,
         dry_run: bool = False,
+        attachments: Optional[list[str]] = None,
+        platform_data: Optional[dict] = None,
     ) -> bool:
+        from src.action.pii_filter import filter_proposal_text
+
+        cleaned_text, violations = filter_proposal_text(proposal_text)
+        if violations and not dry_run:
+            logger.warning(f"ProposalSender: PII/stop-word фильтр сработал для {platform}/{project_id}: {'; '.join(violations)}")
+        if len(cleaned_text) < 40 and not dry_run:
+            logger.error(f"ProposalSender: после PII-фильтра текст слишком короткий ({len(cleaned_text)} chars), отправка отменена")
+            return False
+
         if platform == "kwork":
             return await self.send_kwork_proposal(
                 project_url,
                 project_id,
-                proposal_text,
+                cleaned_text,
                 price,
                 dry_run=dry_run,
+                attachments=attachments,
+                platform_data=platform_data,
             )
         if platform == "freelance_ru":
             return await self.send_freelanceru_proposal(
                 project_url,
                 project_id,
-                proposal_text,
+                cleaned_text,
                 price,
                 dry_run=dry_run,
             )

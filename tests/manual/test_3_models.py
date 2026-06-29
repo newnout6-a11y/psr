@@ -1,11 +1,11 @@
-"""
-Тест генерации 3 откликов с ротацией моделей
-"""
+"""Manual smoke test: generate 3 proposals with different LLM providers."""
 
 import asyncio
 import os
 import sys
+import time
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,95 +15,78 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.brain.llm_router import get_llm_router
-from src.action.proposal_templates import generate_proposal as generate_template_proposal
 
-# Тестовые проекты
-test_projects = [
+
+TEST_PROJECTS = [
     {
-        "title": "Парсер недвижимости Avito/Cian",
-        "description": "Сбор цен, адресов, площади. Ежедневное обновление. Excel выгрузка.",
-        "skills": ["python", "парсинг"],
+        "title": "Avito/Cian real estate parser",
+        "description": "Collect prices, addresses, area, daily update, Excel export.",
+        "skills": ["python", "scraping"],
         "budget": 5000,
     },
     {
-        "title": "Бот для Telegram на Python",
-        "description": "Автоматическая публикация постов, сбор статистики, интеграция с API.",
+        "title": "Telegram bot on Python",
+        "description": "Auto publishing, stats collection, external API integration.",
         "skills": ["python", "telegram", "bot"],
         "budget": 8000,
     },
     {
-        "title": "Скрейпинг данных с сайта",
-        "description": "Нужно собрать каталог товаров: название, цена, описание, фото. 5000 позиций.",
+        "title": "Product catalog scraper",
+        "description": "Collect title, price, description and images for 5000 products.",
         "skills": ["python", "scraping"],
         "budget": 10000,
     },
 ]
 
-system_prompt = """
-Ты — профессиональный разработчик. Напиши короткий отклик заказчику.
-ПРАВИЛА:
-1. Начни с "Здравствуйте!"
-2. Без смайликов и markdown
-3. 3-4 предложения
-4. Упомяни опыт
-5. Задай вопрос
+SYSTEM_PROMPT = """
+You are a professional freelance developer. Write a short client proposal.
+Rules:
+1. Start with "Здравствуйте!"
+2. No emoji and no markdown.
+3. 3-4 sentences.
+4. Mention relevant experience.
+5. Ask one technical question.
 """
 
-providers = ["groq", "google", "glm"]
+PROVIDERS = ["openai", "deepseek", "groq"]
 
 
-async def test_generation():
-    print("\n" + "=" * 60)
-    print("ТЕСТ: 3 ОТКЛИКА С РАЗНЫМИ МОДЕЛЯМИ")
-    print("=" * 60)
+def model_for(provider: str) -> str:
+    if provider == "openai":
+        return os.getenv("OPENAI_MODEL", "gpt-5.5")
+    if provider == "deepseek":
+        return os.getenv("DEEPSEEK_MODEL", "deepseek-v4-pro")
+    if provider == "groq":
+        return os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    return os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
+
+async def test_generation() -> None:
     router = get_llm_router()
 
-    for i, project in enumerate(test_projects):
-        provider = providers[i % len(providers)]
-        print(f"\n{'=' * 60}")
-        print(f"[{i + 1}/3] Проект: {project['title']}")
-        print(f"Модель: {provider}")
-        print(f"{'=' * 60}")
-
+    for index, project in enumerate(TEST_PROJECTS, start=1):
+        provider = PROVIDERS[(index - 1) % len(PROVIDERS)]
         prompt = f"""
-ЗАКАЗ: {project["title"]}
-ОПИСАНИЕ: {project["description"]}
-БЮДЖЕТ: {project["budget"]} руб.
+Order: {project["title"]}
+Description: {project["description"]}
+Budget: {project["budget"]} RUB.
 """
-
+        started_at = time.time()
         try:
-            import time
-
-            start = time.time()
-
-            # Выбираем модель
-            if provider == "groq":
-                model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-            elif provider == "google":
-                model = os.getenv("GOOGLE_MODEL", "gemini-2.5-flash")
-            else:
-                model = os.getenv("GLM_MODEL", "glm-4.6v")
-
             result = await router.generate(
-                prompt=f"{system_prompt}\n\n{prompt}",
+                prompt=f"{SYSTEM_PROMPT}\n\n{prompt}",
                 provider=provider,
-                model=model,
+                model=model_for(provider),
                 temperature=0.75,
                 max_tokens=300,
             )
+        except Exception as exc:
+            print(f"[{index}] {provider}: ERROR {exc}")
+            continue
 
-            elapsed = time.time() - start
-
-            print(f"Время: {elapsed:.2f} сек | Длина: {len(result)} символов")
-            print(f"Ответ:\n{result}")
-
-        except Exception as e:
-            print(f"ОШИБКА: {e}")
-
-    print("\n" + "=" * 60)
-    print("ТЕСТ ЗАВЕРШЕН")
-    print("=" * 60)
+        elapsed = time.time() - started_at
+        print(f"[{index}] {provider}: {elapsed:.2f}s, {len(result)} chars")
+        print(result)
 
 
 if __name__ == "__main__":

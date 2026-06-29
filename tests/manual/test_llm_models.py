@@ -94,14 +94,13 @@ async def main():
     router = get_llm_router()
 
     # Берем модели из .env или используем defaults
+    openai_model = os.getenv("OPENAI_MODEL", "gpt-5.5")
+    deepseek_model = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-pro")
     groq_model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-    google_model = os.getenv("GOOGLE_MODEL", "gemini-2.0-flash")
-    glm_model = os.getenv("GLM_MODEL", "glm-4v-flash")
-
     tasks = [
+        test_model("openai", openai_model, router),
+        test_model("deepseek", deepseek_model, router),
         test_model("groq", groq_model, router),
-        test_model("google", google_model, router),
-        test_model("glm", glm_model, router),
     ]
 
     results = await asyncio.gather(*tasks, return_exceptions=True)

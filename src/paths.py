@@ -13,6 +13,18 @@ from pathlib import Path
 ROOT_DIR = Path(os.getenv("PSR_ROOT") or Path(__file__).resolve().parents[1])
 DATA_DIR = Path(os.getenv("PSR_DATA_DIR") or ROOT_DIR / "data")
 
+if os.getenv("PSR_DATA_DIR"):
+    _existing_data = DATA_DIR / "runtime"
+    if _existing_data.exists() and not any(_existing_data.iterdir()):
+        pass
+    elif not DATA_DIR.exists():
+        import warnings
+        warnings.warn(
+            f"PSR_DATA_DIR={DATA_DIR} не существует — будет создана пустая директория. "
+            "Если это ошибка, проверьте переменную окружения.",
+            stacklevel=2,
+        )
+
 REFERENCE_DIR = Path(os.getenv("PSR_REFERENCE_DIR") or DATA_DIR / "reference")
 RUNTIME_DIR = DATA_DIR / "runtime"
 DEBUG_DIR = DATA_DIR / "debug"
@@ -20,6 +32,7 @@ DEBUG_DIR = DATA_DIR / "debug"
 SCREENSHOTS_DIR = RUNTIME_DIR / "screenshots"
 BROWSER_PROFILES_DIR = RUNTIME_DIR / "browser_profiles"
 PARSING_RESULTS_DIR = RUNTIME_DIR / "parsing_results"
+PROPOSAL_ASSETS_DIR = RUNTIME_DIR / "proposal_assets"
 
 PORTFOLIO_FILE = REFERENCE_DIR / "portfolio.json"
 CASES_FILE = REFERENCE_DIR / "cases.json"
@@ -56,6 +69,7 @@ def ensure_layout() -> None:
         SCREENSHOTS_DIR,
         BROWSER_PROFILES_DIR,
         PARSING_RESULTS_DIR,
+        PROPOSAL_ASSETS_DIR,
     ):
         path.mkdir(parents=True, exist_ok=True)
 

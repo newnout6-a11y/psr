@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { Trash2, PauseCircle, PlayCircle, Download } from 'lucide-react'
 import { useWebSocket } from '../hooks/useWebSocket'
 import { cn } from '../lib/utils'
+import { api } from '../lib/api'
 
 interface LogEntry {
   id: number
+  seq?: number
   level: string
   message: string
   ts: string
@@ -24,6 +26,17 @@ const LEVEL_FILTERS = ['ALL', 'INFO', 'SUCCESS', 'WARNING', 'ERROR']
 let _id = 0
 function nextId() { return ++_id }
 
+function toLogEntry(msg: Record<string, unknown>): LogEntry {
+  const seq = typeof msg.seq === 'number' ? msg.seq : undefined
+  return {
+    id: seq ?? nextId(),
+    seq,
+    level: String(msg.level ?? 'INFO'),
+    message: String(msg.message ?? ''),
+    ts: typeof msg.ts === 'string' ? msg.ts : new Date().toLocaleTimeString(),
+  }
+}
+
 export default function Logs() {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [paused, setPaused] = useState(false)
@@ -34,15 +47,22 @@ export default function Logs() {
   pausedRef.current = paused
 
   useWebSocket('ws://127.0.0.1:7788/ws/logs', (msg) => {
+    if (msg.type === 'logs_snapshot') {
+      const items = Array.isArray(msg.items) ? msg.items : []
+      setLogs(items.map((item) => toLogEntry(item as Record<string, unknown>)))
+      return
+    }
+    if (msg.type === 'logs_cleared') {
+      setLogs([])
+      return
+    }
     if (msg.type !== 'log') return
     if (pausedRef.current) return
-    const entry: LogEntry = {
-      id: nextId(),
-      level: String(msg.level ?? 'INFO'),
-      message: String(msg.message ?? ''),
-      ts: new Date().toLocaleTimeString(),
-    }
+    const entry = toLogEntry(msg)
     setLogs((prev) => {
+      if (entry.seq !== undefined && prev.some((item) => item.seq === entry.seq)) {
+        return prev
+      }
       const next = [...prev, entry]
       return next.length > 2000 ? next.slice(next.length - 2000) : next
     })
@@ -67,6 +87,13 @@ export default function Logs() {
     a.href = URL.createObjectURL(blob)
     a.download = `psr-logs-${Date.now()}.txt`
     a.click()
+  }
+
+  async function handleClear() {
+    setLogs([])
+    try {
+      await api.clearLogs()
+    } catch {}
   }
 
   return (
@@ -115,7 +142,7 @@ export default function Logs() {
         <button onClick={handleDownload} className="btn btn-ghost py-1" title="Скачать логи">
           <Download className="w-4 h-4" />
         </button>
-        <button onClick={() => setLogs([])} className="btn btn-ghost py-1" title="Очистить">
+        <button onClick={handleClear} className="btn btn-ghost py-1" title="Очистить">
           <Trash2 className="w-4 h-4" />
         </button>
       </div>

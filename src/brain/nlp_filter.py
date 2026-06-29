@@ -45,7 +45,7 @@ class NLPFilter:
         r'напишите в личку',
     ]
     
-    def __init__(self, spam_threshold: float = 0.3, relevance_threshold: float = 0.7):
+    def __init__(self, spam_threshold: float = 0.3, relevance_threshold: float = 0.15):
         self.spam_threshold = spam_threshold
         self.relevance_threshold = relevance_threshold
     

@@ -27,12 +27,19 @@ class ModeRequest(BaseModel):
 
 class CycleRequest(BaseModel):
     dry_run: bool = False
-    limit: int = 5
+    limit: int = 1
     continuous: bool = False
     platforms: list[str] | None = None
     pages_to_parse: int | None = None
     query_count: int | None = None
     top_projects: int | None = None
+    discovery_mode: str | None = None
+    max_pages_per_query: int | None = None
+    max_projects_per_cycle: int | None = None
+    max_parse_seconds: int | None = None
+    ai_score_mode: str | None = None
+    ai_score_batch_size: int | None = None
+    ai_score_max_candidates: int | None = None
     search_brief: str | None = None
     browser_headless: bool | None = None
     osint_enabled: bool | None = None
@@ -82,11 +89,27 @@ def _runtime_env_from_request(req: CycleRequest) -> dict[str, str]:
         updates["PLATFORMS"] = ",".join(dict.fromkeys(platforms))
 
     if req.pages_to_parse is not None:
-        updates["PAGES_TO_PARSE"] = str(_clamp(req.pages_to_parse, 1, 10))
+        updates["PAGES_TO_PARSE"] = str(_clamp(req.pages_to_parse, 1, 50))
     if req.query_count is not None:
-        updates["QUERY_COUNT"] = str(_clamp(req.query_count, 1, 20))
+        updates["QUERY_COUNT"] = str(_clamp(req.query_count, 1, 50))
     if req.top_projects is not None:
         updates["TOP_PROJECTS"] = str(_clamp(req.top_projects, 0, 50))
+    if req.discovery_mode is not None:
+        mode = req.discovery_mode.strip().lower()
+        updates["DISCOVERY_MODE"] = mode if mode in {"wide", "standard"} else "wide"
+    if req.max_pages_per_query is not None:
+        updates["MAX_PAGES_PER_QUERY"] = str(_clamp(req.max_pages_per_query, 1, 100))
+    if req.max_projects_per_cycle is not None:
+        updates["MAX_PROJECTS_PER_CYCLE"] = str(_clamp(req.max_projects_per_cycle, 20, 2000))
+    if req.max_parse_seconds is not None:
+        updates["MAX_PARSE_SECONDS"] = str(_clamp(req.max_parse_seconds, 10, 600))
+    if req.ai_score_mode is not None:
+        mode = req.ai_score_mode.strip().lower()
+        updates["AI_SCORE_MODE"] = mode if mode in {"hybrid", "fast_full"} else "fast_full"
+    if req.ai_score_batch_size is not None:
+        updates["AI_SCORE_BATCH_SIZE"] = str(_clamp(req.ai_score_batch_size, 1, 50))
+    if req.ai_score_max_candidates is not None:
+        updates["AI_SCORE_MAX_CANDIDATES"] = str(_clamp(req.ai_score_max_candidates, 1, 1000))
     if req.search_brief is not None:
         updates["SEARCH_BRIEF"] = req.search_brief.strip()
     if req.browser_headless is not None:
@@ -164,8 +187,15 @@ def get_status():
             "pages_to_parse": _env_int("PAGES_TO_PARSE", 5),
             "query_count": _env_int("QUERY_COUNT", 6),
             "top_projects": _env_int("TOP_PROJECTS", 0),
+            "discovery_mode": os.getenv("DISCOVERY_MODE", "wide"),
+            "max_pages_per_query": _env_int("MAX_PAGES_PER_QUERY", 50),
+            "max_projects_per_cycle": _env_int("MAX_PROJECTS_PER_CYCLE", 500),
+            "max_parse_seconds": _env_int("MAX_PARSE_SECONDS", 90),
+            "ai_score_mode": os.getenv("AI_SCORE_MODE", "fast_full"),
+            "ai_score_batch_size": _env_int("AI_SCORE_BATCH_SIZE", 20),
+            "ai_score_max_candidates": _env_int("AI_SCORE_MAX_CANDIDATES", 300),
             "browser_headless": _env_bool("BROWSER_HEADLESS", True),
-            "osint_enabled": _env_bool("OSINT_ENABLED", True),
+            "osint_enabled": _env_bool("OSINT_ENABLED", False),
             "probiv_enabled": bool(os.getenv("OSINT_PROBIV_PROVIDERS", "").strip()),
             "telegram_configured": bool(os.getenv("TELEGRAM_TOKEN") and os.getenv("ADMIN_CHAT_ID")),
             "session_hub_required": _env_bool("SESSION_HUB_REQUIRED", False),

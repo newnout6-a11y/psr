@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import asyncio
+import time
+from collections import deque
 from typing import Any, Optional
 
 
@@ -12,6 +14,8 @@ class AppState:
         self.cycle_task: Optional[asyncio.Task] = None
         self.last_cycle_stats: Optional[dict] = None
         self.last_error: Optional[str] = None
+        self._log_seq: int = 0
+        self.log_history: deque[dict[str, Any]] = deque(maxlen=2000)
         # Sets of per-client asyncio.Queues for broadcasting
         self.log_queues: set[asyncio.Queue] = set()
         self.status_queues: set[asyncio.Queue] = set()
@@ -28,14 +32,32 @@ class AppState:
         self._orchestrator = None
 
     def broadcast_log_sync(self, record: str, level: str = "INFO") -> None:
-        msg = {"type": "log", "level": level, "message": record}
+        self._log_seq += 1
+        msg = {
+            "type": "log",
+            "seq": self._log_seq,
+            "ts": time.strftime("%H:%M:%S"),
+            "level": level,
+            "message": record,
+        }
+        self.log_history.append(msg)
+        self._broadcast_to_queues(self.log_queues, msg)
+
+    def log_snapshot(self) -> list[dict[str, Any]]:
+        return list(self.log_history)
+
+    def clear_logs(self) -> None:
+        self.log_history.clear()
+        self._broadcast_to_queues(self.log_queues, {"type": "logs_cleared"})
+
+    def _broadcast_to_queues(self, queues: set[asyncio.Queue], msg: dict[str, Any]) -> None:
         dead: set[asyncio.Queue] = set()
-        for q in self.log_queues:
+        for q in queues:
             try:
                 q.put_nowait(msg)
             except asyncio.QueueFull:
                 dead.add(q)
-        self.log_queues -= dead
+        queues -= dead
 
     def broadcast_status_sync(self, data: dict) -> None:
         msg = {"type": "status", **data}

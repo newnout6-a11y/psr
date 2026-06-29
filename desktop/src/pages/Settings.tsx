@@ -9,7 +9,16 @@ type Tab = 'general' | 'platforms' | 'execution' | 'filters' | 'telegram' | 'kwo
 const BOOL_KEYS = new Set([
   'OSINT_ENABLED', 'BROWSER_HEADLESS', 'CONTINUOUS_MODE',
   'SESSION_HUB_REQUIRED', 'OSINT_WMN_FULL', 'TELEGRAM_DIGEST_ENABLED',
+  'OPENAI_DISABLE_RESPONSE_STORAGE', 'ATTACHMENT_CONTEXT_ENABLED',
+  'PROPOSAL_IMAGE_ENABLED', 'KWORK_IMAGE_ATTACH_CONFIRMED',
 ])
+
+const PROVIDER_OPTIONS = ['auto', 'deepseek', 'openai', 'groq']
+const DEEPSEEK_MODEL_OPTIONS = ['deepseek-v4-pro', 'deepseek-v4-flash']
+
+function isDeepSeekModel(value: string) {
+  return DEEPSEEK_MODEL_OPTIONS.includes(value)
+}
 
 function BoolField({
   envKey, value, onChange,
@@ -38,10 +47,20 @@ function BoolField({
 const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
   general: {
     label: 'Общие / LLM',
-    keys: ['GROQ_API_KEY', 'GOOGLE_API_KEY', 'GLM_API_KEY',
-           'LLM_PROVIDER', 'LLM_FALLBACK', 'GROQ_MODEL', 'GOOGLE_MODEL', 'GLM_MODEL',
-           'AI_SCORE_THRESHOLD', 'PLATFORMS', 'SEARCH_BRIEF', 'SEARCH_QUERY',
-           'QUERY_COUNT', 'PAGES_TO_PARSE', 'TOP_PROJECTS',
+    keys: ['OPENAI_API_KEY', 'OPENAI_API_KEYS', 'OPENAI_BASE_URL', 'OPENAI_API_PREFIX', 'OPENAI_WIRE_API',
+           'OPENAI_REASONING_EFFORT', 'OPENAI_DISABLE_RESPONSE_STORAGE',
+           'DEEPSEEK_API_KEY', 'DEEPSEEK_BASE_URL', 'DEEPSEEK_API_PREFIX', 'DEEPSEEK_WIRE_API',
+           'DEEPSEEK_REASONING_EFFORT', 'DEEPSEEK_THINKING',
+           'DEEPSEEK_MODEL_QUERY_GENERATION', 'DEEPSEEK_MODEL_SCORING',
+           'GROQ_API_KEY',
+           'AI_SCORE_THRESHOLD', 'AI_SCORE_MODE', 'AI_SCORE_BATCH_SIZE', 'AI_SCORE_DEEPSEEK_BATCH_SIZE', 'AI_SCORE_MAX_CANDIDATES',
+           'PLATFORMS', 'SEARCH_BRIEF', 'SEARCH_QUERY', 'DISCOVERY_MODE',
+           'ATTACHMENT_CONTEXT_ENABLED', 'ATTACHMENT_MAX_FILES',
+           'ATTACHMENT_MAX_BYTES', 'ATTACHMENT_MAX_CHARS',
+           'PROPOSAL_IMAGE_ENABLED', 'PROPOSAL_IMAGE_MODEL',
+           'PROPOSAL_IMAGE_MIN_AI_SCORE', 'PROPOSAL_IMAGE_MIN_VET_SCORE', 'KWORK_IMAGE_ATTACH_CONFIRMED',
+           'QUERY_COUNT', 'PAGES_TO_PARSE', 'MAX_PAGES_PER_QUERY',
+           'MAX_PROJECTS_PER_CYCLE', 'MAX_PARSE_SECONDS', 'TOP_PROJECTS',
            'PROXY_URL', 'BROWSER_HEADLESS', 'TIMEZONE_REGION'],
   },
   platforms: {
@@ -77,7 +96,7 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
     keys: [],
   },
   osint_keys: {
-    label: 'OSINT / API ключи',
+    label: 'Client Signals / API',
     keys: ['OSINT_ENABLED', 'OSINT_PROVIDERS', 'OSINT_PROBIV_PROVIDERS',
            'OSINT_WMN_FULL',
            'GITHUB_TOKEN', 'EMAILREP_KEY', 'HIBP_API_KEY',
@@ -88,12 +107,14 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
 
 function EnvField({
   envKey,
+  label,
   value,
   isSecret,
   onChange,
   onReveal,
 }: {
   envKey: string
+  label?: string
   value: string
   isSecret: boolean
   onChange: (key: string, val: string) => void
@@ -121,7 +142,7 @@ function EnvField({
 
   return (
     <div>
-      <label className="label">{envKey}</label>
+      <label className="label">{label ?? envKey}</label>
       <div className="flex gap-2">
         <input
           type={show ? 'text' : 'password'}
@@ -148,6 +169,271 @@ function EnvField({
         )}
       </div>
     </div>
+  )
+}
+
+function SelectEnvField({
+  label,
+  envKey,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  envKey: string
+  value: string
+  options: string[]
+  onChange: (key: string, val: string) => void
+}) {
+  return (
+    <div>
+      <label className="label">{label}</label>
+      <select
+        value={value || options[0]}
+        onChange={(e) => onChange(envKey, e.target.value)}
+        className="input"
+      >
+        {options.map((option) => (
+          <option key={`${envKey}-${option || 'default'}`} value={option}>
+            {option || 'provider default'}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+function StaticEnvField({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div>
+      <label className="label">{label}</label>
+      <div className="input flex items-center text-sm text-zinc-400">{value}</div>
+    </div>
+  )
+}
+
+function providerModelKey(provider: string) {
+  if (provider === 'deepseek') return 'DEEPSEEK_MODEL'
+  if (provider === 'openai') return 'OPENAI_MODEL'
+  if (provider === 'groq') return 'GROQ_MODEL'
+  return ''
+}
+
+function providerModelValue(provider: string, values: Record<string, string>) {
+  const key = providerModelKey(provider)
+  return key ? (values[key] ?? '') : ''
+}
+
+function isModelCompatible(provider: string, model: string) {
+  const normalized = model.trim().toLowerCase()
+  if (!normalized) return true
+  if (provider === 'deepseek') return normalized.startsWith('deepseek-')
+  if (provider === 'openai') {
+    return !normalized.startsWith('deepseek-')
+      && !normalized.startsWith('llama-')
+      && !normalized.startsWith('mixtral-')
+      && !normalized.startsWith('gemma-')
+  }
+  if (provider === 'groq') return !normalized.startsWith('deepseek-') && !normalized.startsWith('gpt-')
+  return true
+}
+
+function RouteModelField({
+  label,
+  provider,
+  values,
+  onChange,
+  parser = false,
+  modelKey = '',
+}: {
+  label: string
+  provider: string
+  values: Record<string, string>
+  onChange: (key: string, val: string) => void
+  parser?: boolean
+  modelKey?: string
+}) {
+  const parserModel = values.PARSER_LLM_MODEL ?? ''
+
+  if (provider === 'auto') {
+    return <StaticEnvField label={label} value="provider default" />
+  }
+
+  if (modelKey) {
+    if (provider === 'deepseek') {
+      return (
+        <SelectEnvField
+          label={label}
+          envKey={modelKey}
+          value={values[modelKey] ?? ''}
+          options={['', ...DEEPSEEK_MODEL_OPTIONS]}
+          onChange={onChange}
+        />
+      )
+    }
+
+    return (
+      <EnvField
+        label={label}
+        envKey={modelKey}
+        value={values[modelKey] ?? ''}
+        isSecret={false}
+        onChange={onChange}
+      />
+    )
+  }
+
+  if (parser) {
+    if (provider === 'deepseek') {
+      return (
+        <SelectEnvField
+          label={label}
+          envKey="PARSER_LLM_MODEL"
+          value={isDeepSeekModel(parserModel) ? parserModel : ''}
+          options={['', ...DEEPSEEK_MODEL_OPTIONS]}
+          onChange={onChange}
+        />
+      )
+    }
+
+    return (
+      <EnvField
+        label={label}
+        envKey="PARSER_LLM_MODEL"
+        value={isModelCompatible(provider, parserModel) && parserModel ? parserModel : providerModelValue(provider, values)}
+        isSecret={false}
+        onChange={onChange}
+      />
+    )
+  }
+
+  if (provider === 'deepseek') {
+    return (
+      <SelectEnvField
+        label={label}
+        envKey="DEEPSEEK_MODEL"
+        value={values.DEEPSEEK_MODEL ?? 'deepseek-v4-pro'}
+        options={DEEPSEEK_MODEL_OPTIONS}
+        onChange={onChange}
+      />
+    )
+  }
+
+  const defaultModelKey = providerModelKey(provider)
+  if (!defaultModelKey) {
+    return <StaticEnvField label={label} value="provider default" />
+  }
+
+  return (
+    <EnvField
+      label={label}
+      envKey={defaultModelKey}
+      value={values[defaultModelKey] ?? ''}
+      isSecret={false}
+      onChange={onChange}
+    />
+  )
+}
+
+function LlmRoutingPanel({
+  values,
+  onChange,
+}: {
+  values: Record<string, string>
+  onChange: (key: string, val: string) => void
+}) {
+  const proposalProvider = values.PROPOSAL_WRITING_PROVIDER || 'openai'
+  const queryProvider = values.QUERY_GENERATION_PROVIDER || 'deepseek'
+  const scoringProvider = values.SCORING_PROVIDER || 'deepseek'
+  const fallbackProvider = values.LLM_PROVIDER || 'openai'
+  const proposalModel = providerModelValue(proposalProvider, values)
+
+  function handleProviderChange(key: string, val: string) {
+    onChange(key, val)
+    if (key === 'QUERY_GENERATION_PROVIDER' && val !== 'deepseek') {
+      onChange('DEEPSEEK_MODEL_QUERY_GENERATION', '')
+    }
+    if (key === 'SCORING_PROVIDER' && val !== 'deepseek') {
+      onChange('DEEPSEEK_MODEL_SCORING', '')
+    }
+  }
+
+  return (
+    <section className="factory-panel space-y-3 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="page-kicker">llm routing</div>
+          <h3 className="text-sm font-semibold text-white">Кто сейчас отвечает</h3>
+        </div>
+        <div className="rounded-md border border-brand-500/20 bg-brand-500/10 px-2 py-1 text-xs text-brand-200">
+          отклики: {proposalProvider}{proposalModel ? ` / ${proposalModel}` : ''}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4 max-xl:grid-cols-2 max-lg:grid-cols-1">
+        <div className="space-y-3">
+          <SelectEnvField
+            label="Отклики"
+            envKey="PROPOSAL_WRITING_PROVIDER"
+            value={proposalProvider}
+            options={PROVIDER_OPTIONS}
+            onChange={handleProviderChange}
+          />
+          <RouteModelField label="Model" provider={proposalProvider} values={values} onChange={onChange} />
+        </div>
+
+        <div className="space-y-3">
+          <SelectEnvField
+            label="Запросы"
+            envKey="QUERY_GENERATION_PROVIDER"
+            value={queryProvider}
+            options={PROVIDER_OPTIONS}
+            onChange={handleProviderChange}
+          />
+          <RouteModelField
+            label="Model"
+            provider={queryProvider}
+            values={values}
+            onChange={onChange}
+            modelKey="DEEPSEEK_MODEL_QUERY_GENERATION"
+          />
+        </div>
+
+        <div className="space-y-3">
+          <SelectEnvField
+            label="Скоринг"
+            envKey="SCORING_PROVIDER"
+            value={scoringProvider}
+            options={PROVIDER_OPTIONS}
+            onChange={handleProviderChange}
+          />
+          <RouteModelField
+            label="Model"
+            provider={scoringProvider}
+            values={values}
+            onChange={onChange}
+            modelKey="DEEPSEEK_MODEL_SCORING"
+          />
+        </div>
+
+        <div className="space-y-3">
+          <SelectEnvField
+            label="Запасной"
+            envKey="LLM_PROVIDER"
+            value={fallbackProvider}
+            options={PROVIDER_OPTIONS.filter((option) => option !== 'auto')}
+            onChange={handleProviderChange}
+          />
+          <RouteModelField label="Model" provider={fallbackProvider} values={values} onChange={onChange} />
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -184,7 +470,7 @@ function FiltersTab({ data, onSave }: { data: FiltersData; onSave: (d: FiltersDa
   return (
     <div className="space-y-6">
       {/* Required skills */}
-      <section>
+      <section className="factory-panel p-4">
         <h3 className="text-sm font-medium text-zinc-300 mb-3">Ключевые навыки</h3>
         <TagEditor
           items={draft.required_skills ?? []}
@@ -194,7 +480,7 @@ function FiltersTab({ data, onSave }: { data: FiltersData; onSave: (d: FiltersDa
         />
       </section>
 
-      <section>
+      <section className="factory-panel p-4">
         <h3 className="text-sm font-medium text-zinc-300 mb-3">Стоп-слова</h3>
         <TagEditor
           items={draft.stop_words ?? []}
@@ -205,7 +491,9 @@ function FiltersTab({ data, onSave }: { data: FiltersData; onSave: (d: FiltersDa
       </section>
 
       {/* Numeric fields */}
-      <div className="grid grid-cols-3 gap-4">
+      <section className="factory-panel p-4">
+        <h3 className="text-sm font-medium text-zinc-300 mb-3">Бюджет, возраст, конкуренция, клиент</h3>
+      <div className="grid grid-cols-3 gap-4 max-lg:grid-cols-1">
         {(
           [
             ['min_budget', 'Мин. бюджет (₽)'],
@@ -227,6 +515,7 @@ function FiltersTab({ data, onSave }: { data: FiltersData; onSave: (d: FiltersDa
           </div>
         ))}
       </div>
+      </section>
 
       <div className="flex items-center gap-3">
         <button onClick={handleSave} disabled={saving} className="btn btn-primary">
@@ -546,6 +835,12 @@ export default function Settings() {
               </div>
 
               <div className="space-y-3">
+                {activeTab === 'general' && (
+                  <LlmRoutingPanel
+                    values={envValues}
+                    onChange={(k, v) => setEnvDraft((prev) => ({ ...prev, [k]: v }))}
+                  />
+                )}
                 {ENV_GROUPS[activeTab].keys.map((key) => (
                   BOOL_KEYS.has(key) ? (
                     <BoolField

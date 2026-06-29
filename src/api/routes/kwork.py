@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/kwork", tags=["kwork"])
 @router.get("/status")
 async def kwork_status():
     service = get_kwork_service()
-    api = service.get_api()
+    api = await service.get_api()
     api_ok = False
     api_error = None
 

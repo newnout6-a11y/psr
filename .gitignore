@@ -13,6 +13,8 @@ scratch/
 .mypy_cache/
 .ruff_cache/
 
+logs/
+
 node_modules/
 dist/
 dist-electron/

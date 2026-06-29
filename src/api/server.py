@@ -25,14 +25,18 @@ from loguru import logger
 
 from src.api.log_sink import make_ws_sink
 from src.api.state import app_state
-from src.api.routes import orchestrator, candidates, settings, dashboard, osint, telegram, kwork
+from src.api.routes import orchestrator, candidates, settings, dashboard, osint, telegram, kwork, logs
 from src.api import ws as ws_module
 from src.paths import ensure_layout
+from src.action.proposal_db import ProposalDB
+from src.utils.log_db import get_log_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_layout()
+    ProposalDB()
+    get_log_db()
     # Register loguru WebSocket sink
     logger.add(make_ws_sink(app_state), format="{time:HH:mm:ss} | {level} | {message}", level="DEBUG")
     logger.info("PSR API server started on port 7788")
@@ -59,6 +63,7 @@ app.include_router(dashboard.router)
 app.include_router(osint.router)
 app.include_router(telegram.router)
 app.include_router(kwork.router)
+app.include_router(logs.router)
 app.include_router(ws_module.router)
 
 
