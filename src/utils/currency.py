@@ -89,15 +89,29 @@ class CurrencyConverter:
     async def to_rub(self, amount: float, currency: str) -> float:
         """Конвертировать сумму в рубли."""
         await self.ensure_rates()
+        return self._to_rub(amount, currency)
 
+    def to_rub_sync(self, amount: float, currency: str) -> float:
+        """Синхронная конвертация (использует кэшированные курсы)."""
+        if not self._rates:
+            try:
+                import asyncio
+
+                loop = asyncio.new_event_loop()
+                try:
+                    loop.run_until_complete(self.ensure_rates())
+                finally:
+                    loop.close()
+            except Exception:
+                pass
+        return self._to_rub(amount, currency)
+
+    def _to_rub(self, amount: float, currency: str) -> float:
         currency = currency.upper().replace("₽", "RUB").replace("$", "USD").replace("€", "EUR")
         if currency in ["RUB", "RUR"]:
             return amount
-
         if currency in self._rates:
-            rate = self._rates[currency]
-            return amount * rate
-
+            return amount * self._rates[currency]
         logger.warning(f"Неизвестная валюта: {currency}, возвращаем как есть")
         return amount
 

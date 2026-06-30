@@ -35,3 +35,4 @@ yarn-error.log*
 # Reference data stays versioned.
 !/data/reference/
 !/data/reference/**
+_external/vendor/app.asar

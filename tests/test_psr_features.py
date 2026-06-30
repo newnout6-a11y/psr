@@ -382,7 +382,7 @@ class TestKworkExtensions:
     async def test_check_is_template_flagged(self, mock_api):
         from src.platforms.kwork_ext import KworkExtensions
 
-        mock_api.web.request.return_value = {"json": {"success": False}}
+        mock_api.web.request.return_value = {"json": {"is_template": True}}
         flagged = await KworkExtensions.is_text_template_flagged(mock_api, 123, "Template text")
         assert flagged is True
 
@@ -530,13 +530,13 @@ class TestFingerprint:
             version_in_ua = fp.user_agent.split("Chrome/")[1].split(".")[0]
             assert f'v="{version_in_ua}"' in fp.sec_ch_ua
 
-    def test_browser_args_include_sec_ch_ua(self):
+    def test_browser_args_no_sec_ch_ua_flag(self):
         from src.browser.fingerprint import pick
 
         fp = pick(seed="test")
         args = fp.browser_args()
-        has_sec_ch = any("--sec-ch-ua=" in a for a in args)
-        assert has_sec_ch or fp.sec_ch_ua == ""
+        has_sec_ch_flag = any("--sec-ch-ua=" in a for a in args)
+        assert not has_sec_ch_flag, "sec-ch-ua should not be set via CLI flag (Chrome ignores it)"
 
     def test_deterministic_by_seed(self):
         from src.browser.fingerprint import pick

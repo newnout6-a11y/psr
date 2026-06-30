@@ -819,6 +819,8 @@ class FreelanceOrchestrator:
                     "sent": 0,
                     "per_platform": {},
                     "discovery": {},
+                    "skipped": 0,
+                    "skipped_details": [],
                     "skipped_reason": "outside_work_hours",
                 }
         except Exception:
@@ -957,6 +959,11 @@ class FreelanceOrchestrator:
                 else:
                     results.append(tr)
             for platform, _query, _page, projects, _duration_ms, error in results:
+                if platform == "unknown":
+                    continue
+                platform_stats = discovery_stats["platforms"].get(platform)
+                if platform_stats and platform_stats.get("mode") == "wide":
+                    continue
                 platform_stats = discovery_stats["platforms"].setdefault(
                     platform,
                     {
@@ -1240,7 +1247,7 @@ class FreelanceOrchestrator:
                     logger.debug(f"Не удалось скрейпить цены конкурентов: {e}")
 
             generation_started_at = time.perf_counter()
-            requested_provider = os.getenv("PROPOSAL_WRITING_PROVIDER", "auto").lower()
+            requested_provider = _route_provider_from_env("proposal_writing") or "auto"
             variant_name, variant_temp = self._assign_prompt_variant(candidate_id)
             try:
                 proposal_text = await self.generator.generate(
@@ -1312,7 +1319,8 @@ class FreelanceOrchestrator:
                 continue
 
             if decision.status == "auto_ready":
-                if auto_send_counts.get(project.platform, 0) >= limit_per_platform:
+                effective_limit = max(1, limit_per_platform or 1)
+                if auto_send_counts.get(project.platform, 0) >= effective_limit:
                     self.db.update_candidate_status(
                         candidate_id,
                         "queued",

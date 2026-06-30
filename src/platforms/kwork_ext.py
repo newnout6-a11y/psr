@@ -49,25 +49,27 @@ class RatePacer:
         self.burst_window = burst_window
         self._timestamps: list[float] = []
         self._last_call: float = 0.0
+        self._lock = asyncio.Lock()
 
     async def wait(self) -> None:
-        now = time.monotonic()
-        elapsed = now - self._last_call
-        delay = random.uniform(self.min_delay, self.max_delay)
-        if elapsed < delay:
-            await asyncio.sleep(delay - elapsed)
+        async with self._lock:
+            now = time.monotonic()
+            elapsed = now - self._last_call
+            delay = random.uniform(self.min_delay, self.max_delay)
+            if elapsed < delay:
+                await asyncio.sleep(delay - elapsed)
 
-        self._timestamps.append(time.monotonic())
-        cutoff = time.monotonic() - self.burst_window
-        self._timestamps = [t for t in self._timestamps if t > cutoff]
-        if len(self._timestamps) >= self.burst_limit:
-            extra = self.burst_window - (time.monotonic() - self._timestamps[0])
-            if extra > 0:
-                logger.debug(f"KworkExt: burst limit ({self.burst_limit}/{self.burst_window}s), пауза {extra:.1f}s")
-                await asyncio.sleep(extra)
-                self._timestamps = []
+            self._timestamps.append(time.monotonic())
+            cutoff = time.monotonic() - self.burst_window
+            self._timestamps = [t for t in self._timestamps if t > cutoff]
+            if len(self._timestamps) >= self.burst_limit:
+                extra = self.burst_window - (time.monotonic() - self._timestamps[0])
+                if extra > 0:
+                    logger.debug(f"KworkExt: burst limit ({self.burst_limit}/{self.burst_window}s), пауза {extra:.1f}s")
+                    await asyncio.sleep(extra)
+                    self._timestamps = []
 
-        self._last_call = time.monotonic()
+            self._last_call = time.monotonic()
 
 
 _pacer: RatePacer | None = None
@@ -287,12 +289,14 @@ class SuccessRateMonitor:
             return self._cache
         except Exception as e:
             logger.debug(f"KworkExt: не удалось проверить success rate: {e}")
-            return {"success_rate": 100.0, "completed": 0, "cancelled": 0, "active": 0, "total": 0}
+            return {"success_rate": -1.0, "completed": 0, "cancelled": 0, "active": 0, "total": 0}
 
     def can_send(self) -> bool:
         if not self._cache:
             return True
         rate = float(self._cache.get("success_rate", 100.0) or 100.0)
+        if rate < 0:
+            return True
         return rate >= self.block_rate
 
     def should_throttle(self) -> bool:
@@ -384,8 +388,13 @@ class AccountHealthMonitor:
                 await self._auto_pause_kworks(api)
 
             if not is_busy_risk and self._paused_kworks:
-                logger.info("KworkExt: активных заказов мало, кворки можно активировать вручную")
+                logger.info(f"KworkExt: активных заказов мало, кворки можно активировать: {self._paused_kworks}")
+                self._paused_kworks = []
 
+            has_orders = success_monitor.completed + success_monitor.cancelled > 0
+            captcha_required = captcha and has_orders
+            if captcha and not has_orders:
+                logger.debug("KworkExt: getCaptchaStatus=true (вероятно нет заказов — игнорируем)")
             self._cache = {
                 "connects_free": connects_monitor.free_amount,
                 "connects_total": connects.get("total_amount", 0),
@@ -394,7 +403,7 @@ class AccountHealthMonitor:
                 "cancelled": success_monitor.cancelled,
                 "active_orders": active_count,
                 "busy_risk": is_busy_risk,
-                "captcha_required": captcha,
+                "captcha_required": captcha_required,
                 "unread_notifications": badges.get("notifications", 0),
                 "username": actor.get("username", ""),
                 "level": actor.get("level", actor.get("rating_level", "")),
@@ -559,7 +568,8 @@ class KworkExtensions:
         """
         messages: list[dict[str, Any]] = []
         page = 1
-        while True:
+        max_pages = 50
+        while page <= max_pages:
             try:
                 data = await api.request(
                     "post",
@@ -1015,8 +1025,6 @@ class KworkExtensions:
             return False
         j = result.get("json")
         if isinstance(j, dict):
-            if j.get("success") is False:
-                return True
             if j.get("is_template") is True:
                 return True
             response = j.get("response")
@@ -1267,8 +1275,27 @@ def _patch_request_pacing() -> None:
         return await original_request(self, method, endpoint, use_token=use_token, **kwargs)
 
     KworkAPI.request = _paced_request
+
+    if hasattr(KworkAPI, "request_with_body"):
+        original_rwb = KworkAPI.request_with_body
+
+        async def _paced_rwb(self, method, endpoint, use_token=False, **kwargs):
+            await get_pacer().wait()
+            return await original_rwb(self, method, endpoint, use_token=use_token, **kwargs)
+
+        KworkAPI.request_with_body = _paced_rwb
+
+    if hasattr(KworkAPI, "request_multipart"):
+        original_rm = KworkAPI.request_multipart
+
+        async def _paced_rm(self, method, endpoint, use_token=False, **kwargs):
+            await get_pacer().wait()
+            return await original_rm(self, method, endpoint, use_token=use_token, **kwargs)
+
+        KworkAPI.request_multipart = _paced_rm
+
     KworkAPI._psr_pacing_patched = True
-    logger.debug("KworkExt: rate pacing применён к api.request()")
+    logger.debug("KworkExt: rate pacing применён к api.request() + request_with_body + request_multipart")
 
 
 def apply_kwork_patches() -> None:

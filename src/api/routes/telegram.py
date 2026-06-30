@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from src.utils.telegram_transport import (
@@ -24,7 +24,10 @@ class TelegramTestRequest(BaseModel):
 
 @router.get("/status")
 async def telegram_status():
-    bot_api = await bot_api_get_me()
+    try:
+        bot_api = await bot_api_get_me()
+    except Exception as e:
+        bot_api = type("BotAPIStatus", (), {"to_dict": lambda self: {"ok": False, "detail": str(e)}})()
     return {
         "configured": bool(os.getenv("TELEGRAM_TOKEN") and os.getenv("ADMIN_CHAT_ID")),
         "admin_chat_id_set": bool(os.getenv("ADMIN_CHAT_ID")),
@@ -38,5 +41,8 @@ async def telegram_status():
 @router.post("/test")
 async def telegram_test(req: TelegramTestRequest):
     text = req.text or "PSR test: Telegram delivery works."
-    result = await send_telegram(text, chat_id=req.chat_id, transport=req.transport)
+    try:
+        result = await send_telegram(text, chat_id=req.chat_id, transport=req.transport)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Telegram send failed: {e}") from e
     return result.to_dict()

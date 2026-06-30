@@ -104,6 +104,9 @@ def get_candidate(candidate_id: int):
 
 @router.post("/{candidate_id}/approve")
 async def approve_candidate(candidate_id: int, req: ApproveRequest):
+    candidate = _db().get_candidate(candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Not found")
     orch = app_state.get_orchestrator()
     payload: dict = {}
     if req.proposal_text:
@@ -111,6 +114,7 @@ async def approve_candidate(candidate_id: int, req: ApproveRequest):
         _db().update_candidate(candidate_id, proposal_text=req.proposal_text)
     if req.chosen_price:
         payload["chosen_price"] = req.chosen_price
+        _db().update_candidate(candidate_id, chosen_price=req.chosen_price)
     msg = await orch.execute_candidate_action(candidate_id, "approve", payload or None)
     return {"ok": True, "message": msg}
 

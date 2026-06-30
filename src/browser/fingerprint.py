@@ -75,8 +75,6 @@ class Fingerprint:
             f"--lang={self.accept_language.split(',')[0]}",
             "--disable-blink-features=AutomationControlled",
         ]
-        if self.sec_ch_ua:
-            args.append(f"--sec-ch-ua={self.sec_ch_ua}")
         return args
 
 

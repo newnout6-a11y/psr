@@ -214,6 +214,8 @@ class KworkAPIParser(BaseParser):
     def _normalize(self, raw_projects) -> List[ProjectItem]:
         from bs4 import BeautifulSoup
 
+        if not raw_projects:
+            return []
         projects = []
         for p in raw_projects:
             project_id = str(p.id) if p.id else ""

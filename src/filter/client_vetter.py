@@ -257,12 +257,12 @@ class ClientVetter:
 
         # % найма заказчика
         hired_pct = project.client_hired_percent
-        if hired_pct >= 50:
+        if hired_pct and hired_pct >= 50:
             score += 10
             reasons.append(f"заказчик часто нанимает ({hired_pct}%)")
-        elif hired_pct > 0:
+        elif hired_pct and hired_pct > 0:
             score += 5
-        elif offers > 5 and hired_pct == 0:
+        elif offers > 5 and hired_pct is None:
             score -= 10
             red_flags.append("заказчик никогда не нанимал, но уже много откликов")
 

@@ -336,7 +336,7 @@ class InboxMonitor:
             from datetime import datetime
 
             threshold_hours = int(os.getenv("KWORK_RESPONSE_TIME_ALERT_HOURS", "2"))
-            now = datetime.utcnow()
+            now = datetime.now()
 
             convs = self.db.get_active_conversations(limit=50)
             slow_responses = []
@@ -406,7 +406,7 @@ class InboxMonitor:
         try:
             from datetime import datetime
 
-            now = datetime.utcnow()
+            now = datetime.now()
             last_alert = self.db.get_runtime_state("inbox.review_alert_ts", "1970-01-01")
             try:
                 last_alert_dt = datetime.fromisoformat(last_alert.replace(" ", "T"))

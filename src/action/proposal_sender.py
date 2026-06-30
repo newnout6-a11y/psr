@@ -500,9 +500,8 @@ class ProposalSender:
                 if readback and isinstance(readback, dict):
                     filled = readback.get("editorText", "") or readback.get("textareaValue", "")
                     if len(filled) < 40:
-                        logger.warning(
-                            f"Kwork: Trumbowyg readback короткий ({len(filled)} chars), возможна пустая отправка"
-                        )
+                        logger.warning(f"Kwork: Trumbowyg readback короткий ({len(filled)} chars), отправка отменена")
+                        return False
             else:
                 textarea = await page.find("textarea[name='description']", timeout=2)
                 if textarea:

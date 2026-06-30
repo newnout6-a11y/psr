@@ -342,15 +342,9 @@ class AIRelevanceScorer:
             if currency != "RUB":
                 try:
                     from src.utils.currency import get_converter
-                    import asyncio
 
                     converter = get_converter()
-                    if asyncio.get_event_loop().is_running():
-                        budget_rub = project.budget
-                    else:
-                        budget_rub = asyncio.get_event_loop().run_until_complete(
-                            converter.to_rub(project.budget, currency)
-                        )
+                    budget_rub = converter.to_rub_sync(project.budget, currency)
                 except Exception:
                     budget_rub = project.budget
             if 500 <= budget_rub <= 5000:

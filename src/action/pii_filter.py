@@ -22,10 +22,10 @@ from loguru import logger
 _PII_PATTERNS: list[tuple[str, str, re.Pattern[str]]] = [
     ("phone_ru", "Российский телефон", re.compile(r"(?:\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}")),
     ("phone_intl", "Международный телефон", re.compile(r"\+\d{1,4}[\s\-]?\(?\d{1,4}\)?[\s\-]?[\d\s\-]{4,}")),
+    ("email", "Email", re.compile(r"\b[\w.+-]+@[\w.-]+\.\w{2,}\b", re.IGNORECASE)),
     ("telegram_link", "Telegram ссылка", re.compile(r"(?:https?://)?(?:t\.me|telegram\.me)/[\w\d_]+", re.IGNORECASE)),
     ("telegram_handle", "Telegram @username", re.compile(r"@\w{3,32}")),
     ("whatsapp", "WhatsApp", re.compile(r"\b(?:whats\s*app|ватсап|вацап)\b", re.IGNORECASE)),
-    ("email", "Email", re.compile(r"\b[\w.+-]+@[\w.-]+\.\w{2,}\b", re.IGNORECASE)),
     ("vk_link", "VK ссылка", re.compile(r"(?:https?://)?vk\.com/[\w\d_.]+", re.IGNORECASE)),
     ("skype", "Skype", re.compile(r"\bskype\s*[:\-]?\s*\w+\b", re.IGNORECASE)),
 ]

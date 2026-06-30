@@ -263,6 +263,10 @@ def _reset_caches() -> None:
         from src.browser.browser_manager import BrowserManager
 
         BrowserManager.reset()
+    with suppress(Exception):
+        from src.api.state import app_state
+
+        app_state.reset_orchestrator()
 
 
 @router.get("/filters")

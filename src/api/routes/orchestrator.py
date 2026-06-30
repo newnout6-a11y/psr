@@ -120,12 +120,15 @@ def _runtime_env_from_request(req: CycleRequest) -> dict[str, str]:
     if req.session_hub_required is not None:
         updates["SESSION_HUB_REQUIRED"] = _bool_text(req.session_hub_required)
     if req.probiv_enabled is not None:
-        remembered = _ENV_CACHE.get("OSINT_PROBIV_PROVIDERS") or DEFAULT_PROBIV_PROVIDERS
-        updates["OSINT_PROBIV_PROVIDERS"] = remembered if req.probiv_enabled else ""
+        current = os.getenv("OSINT_PROBIV_PROVIDERS", "")
+        remembered = _ENV_CACHE.get("OSINT_PROBIV_PROVIDERS", "")
+        updates["OSINT_PROBIV_PROVIDERS"] = (
+            (current or remembered or DEFAULT_PROBIV_PROVIDERS) if req.probiv_enabled else ""
+        )
     if req.telegram_enabled is not None:
         if req.telegram_enabled:
-            updates["TELEGRAM_TOKEN"] = _ENV_CACHE.get("TELEGRAM_TOKEN") or os.getenv("TELEGRAM_TOKEN", "")
-            updates["ADMIN_CHAT_ID"] = _ENV_CACHE.get("ADMIN_CHAT_ID") or os.getenv("ADMIN_CHAT_ID", "")
+            updates["TELEGRAM_TOKEN"] = os.getenv("TELEGRAM_TOKEN", "") or _ENV_CACHE.get("TELEGRAM_TOKEN", "")
+            updates["ADMIN_CHAT_ID"] = os.getenv("ADMIN_CHAT_ID", "") or _ENV_CACHE.get("ADMIN_CHAT_ID", "")
         else:
             updates["TELEGRAM_TOKEN"] = ""
             updates["ADMIN_CHAT_ID"] = ""

@@ -94,6 +94,7 @@ class KworkParser(BaseParser):
 
     async def get_project_details(self, project_id: str) -> Optional[ProjectItem]:
         url = f"{self.BASE_URL}/projects/{project_id}"
+        page_tab = None
         try:
             await self._ensure_auth()
             mgr = self.browser_mgr
@@ -105,7 +106,6 @@ class KworkParser(BaseParser):
 
             state_project = KworkStateDataParser.project_from_html(html, project_id=project_id)
             if state_project:
-                await mgr.close_page(page_tab)
                 return state_project
 
             soup = BeautifulSoup(html, "lxml")
@@ -135,8 +135,6 @@ class KworkParser(BaseParser):
                 if num_match:
                     budget = float(num_match.group(1))
 
-            await mgr.close_page(page_tab)
-
             return ProjectItem(
                 id=project_id,
                 title=title,
@@ -151,6 +149,10 @@ class KworkParser(BaseParser):
         except Exception as e:
             logger.error(f"Kwork get_project_details ошибка: {e}")
             return None
+        finally:
+            if page_tab:
+                with suppress(Exception):
+                    await self.browser_mgr.close_page(page_tab)
 
     def close(self):
         """Закрыть сессию и остановить браузер."""

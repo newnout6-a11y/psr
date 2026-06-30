@@ -126,7 +126,8 @@ class ProposalImageGenerator:
 
     def _artifact_path(self, project: ProjectItem) -> Path:
         safe_id = re.sub(r"[^a-zA-Z0-9_.-]+", "_", project.id or "project")
-        return self.output_dir / f"{project.platform}_{safe_id}.png"
+        safe_platform = re.sub(r"[^a-zA-Z0-9_.-]+", "_", project.platform or "unknown")
+        return self.output_dir / f"{safe_platform}_{safe_id}.png"
 
     def _build_prompt(self, project: ProjectItem, proposal_text: str) -> str:
         description = re.sub(r"\s+", " ", project.description or "")[:1200]

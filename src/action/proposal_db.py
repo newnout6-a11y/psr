@@ -1121,9 +1121,13 @@ class ProposalDB:
             return [row["proposal_text"] for row in rows if row["proposal_text"]]
 
     def get_conversion_funnel(self, days: int = 30) -> dict[str, int]:
+        from datetime import datetime, timedelta, timezone
+
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
         with self._connect() as conn:
             sent = conn.execute(
-                "SELECT COUNT(*) AS n FROM candidates WHERE status IN ('auto_sent', 'manual_sent', 'hired', 'declined', 'completed') AND sent_at IS NOT NULL"
+                "SELECT COUNT(*) AS n FROM candidates WHERE status IN ('auto_sent', 'manual_sent', 'hired', 'declined', 'completed') AND sent_at IS NOT NULL AND sent_at >= ?",
+                (cutoff,),
             ).fetchone()
             responded = conn.execute(
                 """
@@ -1132,11 +1136,19 @@ class ProposalDB:
                 JOIN conversations conv ON conv.candidate_id = c.candidate_id
                 WHERE c.status IN ('auto_sent', 'manual_sent', 'hired', 'declined', 'completed')
                   AND conv.status != 'new'
-                """
+                  AND c.sent_at >= ?
+                """,
+                (cutoff,),
             ).fetchone()
-            hired = conn.execute("SELECT COUNT(*) AS n FROM candidates WHERE status = 'hired'").fetchone()
-            completed = conn.execute("SELECT COUNT(*) AS n FROM candidates WHERE status = 'completed'").fetchone()
-            paid = conn.execute("SELECT COUNT(*) AS n FROM earnings WHERE status = 'paid'").fetchone()
+            hired = conn.execute(
+                "SELECT COUNT(*) AS n FROM candidates WHERE status = 'hired' AND updated_at >= ?", (cutoff,)
+            ).fetchone()
+            completed = conn.execute(
+                "SELECT COUNT(*) AS n FROM candidates WHERE status = 'completed' AND updated_at >= ?", (cutoff,)
+            ).fetchone()
+            paid = conn.execute(
+                "SELECT COUNT(*) AS n FROM earnings WHERE status = 'paid' AND created_at >= ?", (cutoff,)
+            ).fetchone()
             return {
                 "sent": int(sent["n"] or 0) if sent else 0,
                 "responded": int(responded["n"] or 0) if responded else 0,

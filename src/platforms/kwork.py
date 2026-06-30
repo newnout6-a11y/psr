@@ -452,12 +452,11 @@ class KworkService:
         markers = (
             "unauthorized",
             "forbidden",
-            "auth",
-            "authorization",
-            "token",
-            "login",
-            "session",
-            "signin",
+            "invalid token",
+            "invalid session",
+            "session expired",
+            "auth failed",
+            "not authenticated",
         )
         return any(marker in details for marker in markers)
 
@@ -529,7 +528,15 @@ class KworkService:
             payload = data if isinstance(data, dict) else None
             raise KworkAPIResponseError(f"Kwork /projects response has unexpected shape ({summary})", payload)
 
-        return [WantWorker(**item) for item in response if isinstance(item, dict)]
+        result = []
+        for item in response:
+            if not isinstance(item, dict):
+                continue
+            try:
+                result.append(WantWorker(**item))
+            except Exception as e:
+                logger.debug(f"KworkService: skip malformed project item: {e}")
+        return result
 
     async def fetch_client_data(self, project_id: str, user_id: str | None = None) -> dict[str, Any] | None:
         api = await self.get_api()

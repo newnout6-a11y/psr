@@ -314,7 +314,7 @@ class LLMRouter:
         preferred_provider = self._normalize_provider(provider)
         last_error = None
         for provider_name in candidates:
-            model_for_provider = model if not preferred_provider or provider_name == preferred_provider else None
+            model_for_provider = model if (preferred_provider and provider_name == preferred_provider) else None
             selected_model = self._select_model(provider_name, task, model_for_provider)
             logger.info(f"LLMRouter: task={task} provider={provider_name} model={selected_model} start")
             try:
