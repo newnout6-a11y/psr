@@ -47,7 +47,7 @@ class ReplyLinkResult:
 def _normalize_response(response: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "platform": (response.get("platform") or "").strip().lower(),
-        "username": (response.get("username") or "").strip(),
+        "username": (response.get("username") or response.get("sender_username") or "").strip(),
         "project_id": (response.get("project_id") or "").strip() or None,
         "project_title": response.get("project_title") or "",
         "message": (response.get("message") or "").strip(),

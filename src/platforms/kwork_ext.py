@@ -1217,10 +1217,13 @@ def _patch_tls_session() -> None:
             proxy = self._proxy
             impersonate = os.getenv("KWORK_TLS_BROWSER", "chrome120")
             try:
+                timeout_val = getattr(self._timeout, "total", None)
+                if timeout_val is None:
+                    timeout_val = self._timeout if isinstance(self._timeout, (int, float)) else 30.0
                 session = curl_requests.AsyncSession(
                     impersonate=impersonate,
                     proxies={"http": proxy, "https": proxy} if proxy else None,
-                    timeout=self._timeout.total if self._timeout else 30.0,
+                    timeout=timeout_val,
                 )
                 session._psr_is_curl_cffi = True
                 logger.debug(f"KworkExt: TLS-имитация активна (impersonate={impersonate})")

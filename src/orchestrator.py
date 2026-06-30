@@ -119,8 +119,14 @@ def _calc_parse_time_limit(queries: int, pages_per_query: int) -> int:
     total_calls = max(queries, 1) * max(pages_per_query, 1)
 
     avg_delay = 2.75  # (1.5 + 4.0) / 2
-    burst_limit = int(os.getenv("KWORK_BURST_LIMIT", "15"))
-    burst_window = float(os.getenv("KWORK_BURST_WINDOW", "60"))
+    try:
+        burst_limit = max(1, int(os.getenv("KWORK_BURST_LIMIT", "15")))
+    except (ValueError, TypeError):
+        burst_limit = 15
+    try:
+        burst_window = float(os.getenv("KWORK_BURST_WINDOW", "60"))
+    except (ValueError, TypeError):
+        burst_window = 60.0
 
     # Эффективное время на один вызов с учётом burst-пауз
     if avg_delay * burst_limit < burst_window:
@@ -245,10 +251,16 @@ class FreelanceOrchestrator:
         self.search_strategy = SearchStrategy(db=self.db)
         self.breaker = get_breaker()
 
-        async def _on_breaker_open(key: str, state: str, seconds: int, error: str):
+        def _on_breaker_open(key: str, state: str, seconds: int, error: str):
             logger.warning(f"Breaker alert: {key} {state} for {seconds}s: {error}")
             if self.notifier:
-                await self.notifier.send_text(f"BREAKER: {key} → {state} на {seconds}s\nПричина: {error}")
+                try:
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(
+                        self.notifier.send_text(f"BREAKER: {key} → {state} на {seconds}s\nПричина: {error}")
+                    )
+                except RuntimeError:
+                    logger.warning("Breaker alert: no event loop, Telegram notification skipped")
 
         from src.utils.circuit_breaker import CircuitBreaker
 
@@ -265,7 +277,11 @@ class FreelanceOrchestrator:
         logger.info(f"Оркестратор инициализирован. Активно парсеров: {len(self.parsers)}")
 
         if os.getenv("KWORK_FAST_INBOX_POLLING", "true").lower() in {"1", "true", "yes", "on"}:
-            asyncio.create_task(self.inbox_monitor.start_fast_polling())
+            try:
+                loop = asyncio.get_running_loop()
+                self._fast_polling_task = loop.create_task(self.inbox_monitor.start_fast_polling())
+            except RuntimeError:
+                logger.warning("Fast polling: нет event loop при инициализации, пропущено")
 
     def _ensure_runtime_defaults(self) -> None:
         if not self.db.get_runtime_state("execution_mode"):

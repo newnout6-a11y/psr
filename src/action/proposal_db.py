@@ -182,6 +182,12 @@ class ProposalDB:
             )
             conn.execute(
                 """
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_conv_project_platform
+                ON conversations(project_id, platform)
+                """
+            )
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS conversation_messages (
                     message_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     conversation_id INTEGER NOT NULL,
@@ -579,8 +585,10 @@ class ProposalDB:
             return True
 
     def snooze_candidate(self, candidate_id: int, minutes: int, actor: str = "telegram") -> None:
-        until = datetime.now().timestamp() + max(minutes, 1) * 60
-        snoozed_until = datetime.fromtimestamp(until).strftime("%Y-%m-%d %H:%M:%S")
+        from datetime import timezone
+
+        until = datetime.now(timezone.utc).timestamp() + max(minutes, 1) * 60
+        snoozed_until = datetime.fromtimestamp(until, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         self.update_candidate_status(
             candidate_id,
             "snoozed",
@@ -893,15 +901,19 @@ class ProposalDB:
             if row:
                 return int(row["conversation_id"])
             now = _now()
-            cursor = conn.execute(
+            conn.execute(
                 """
-                INSERT INTO conversations (candidate_id, project_id, platform, project_title, status, created_at, updated_at)
+                INSERT OR IGNORE INTO conversations (candidate_id, project_id, platform, project_title, status, created_at, updated_at)
                 VALUES (?, ?, ?, ?, 'new', ?, ?)
                 """,
                 (candidate_id, project_id, platform, project_title, now, now),
             )
             conn.commit()
-            return int(cursor.lastrowid)
+            row = conn.execute(
+                "SELECT conversation_id FROM conversations WHERE project_id = ? AND platform = ?",
+                (project_id, platform),
+            ).fetchone()
+            return int(row["conversation_id"])
 
     def add_conversation_message(
         self, conversation_id: int, *, sender: str, message_text: str, platform_message_id: str | None = None

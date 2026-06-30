@@ -127,8 +127,12 @@ class TelegramNotifier:
     def _setup_handlers(self) -> None:
         @self.dp.message(Command("start"))
         async def cmd_start(message: types.Message):
-            self.admin_id = str(message.chat.id)
-            self._save_id_to_env(self.admin_id)
+            if self.admin_id and str(message.chat.id) != str(self.admin_id):
+                await message.answer("Доступ запрещён: оператор уже назначен.")
+                return
+            if not self.admin_id:
+                self.admin_id = str(message.chat.id)
+                self._save_id_to_env(self.admin_id)
             await message.answer(
                 "Операторский режим PSR подключен.\n"
                 "Команды: /queue /chats /reply /msg /orders /offers /status /rate /health /connects /digest /stats /mode /pause /resume /rules\n"
@@ -831,7 +835,7 @@ class TelegramNotifier:
 
     def _is_admin_message(self, message: types.Message) -> bool:
         if not self.admin_id:
-            return True
+            return False
         return str(message.chat.id) == str(self.admin_id)
 
     def _command_arg(self, message: types.Message) -> str:
@@ -1350,11 +1354,13 @@ class TelegramNotifier:
         )
         await self._safe_send_message(self.admin_id, msg)
 
-    async def _run_candidate_executor(self, candidate_id: int, action: str) -> str:
+    async def _run_candidate_executor(
+        self, candidate_id: int, action: str, payload: dict[str, Any] | None = None
+    ) -> str:
         if self._candidate_executor is None:
             return f"Исполнитель не привязан. Действие {action} не выполнено."
         try:
-            return await self._candidate_executor(candidate_id, action, None)
+            return await self._candidate_executor(candidate_id, action, payload)
         except Exception as e:
             logger.error(f"TelegramNotifier: executor error for {candidate_id}/{action}: {e}")
             return f"Ошибка выполнения для #{candidate_id}: {e}"
