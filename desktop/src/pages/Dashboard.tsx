@@ -3,10 +3,11 @@ import {
   AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, Legend
 } from 'recharts'
-import { RefreshCw, TrendingUp } from 'lucide-react'
+import { RefreshCw, TrendingUp, AlertTriangle, Bell } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { api, TimelineItem, StatusRow } from '../lib/api'
 import { fmtTs, fmtNum, STATUS_LABEL } from '../lib/utils'
+import { cn } from '../lib/utils'
 
 function MetricCard({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
   const display = typeof value === 'number' ? fmtNum(value) : String(value)
@@ -57,6 +58,7 @@ export default function Dashboard() {
   const { data: funnelData } = useApi(() => (api as any).getFunnel(days), [days])
   const { data: queryMemory } = useApi(() => api.getQueryMemory(10), [days])
   const { data: breakerData } = useApi(() => api.getBreaker(), [])
+  const { data: alertsData } = useApi(() => (api as any).getAlerts(), [])
 
   const chartData = timeline ? timelineToChartData(timeline) : []
   const actions = timeline
@@ -88,6 +90,36 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+
+      {/* Alerts banner */}
+      {alertsData?.count > 0 && (
+        <div className="space-y-1.5">
+          {alertsData.alerts.map((alert: any, i: number) => (
+            <div
+              key={i}
+              className={cn(
+                'flex items-center gap-2 rounded-md border px-3 py-2 text-xs',
+                alert.severity === 'critical'
+                  ? 'border-red-500/30 bg-red-500/10 text-red-300'
+                  : alert.severity === 'warning'
+                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                    : 'border-blue-500/30 bg-blue-500/10 text-blue-300'
+              )}
+            >
+              {alert.severity === 'critical' ? (
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+              ) : alert.type === 'pending_review' ? (
+                <Bell className="h-4 w-4 shrink-0" />
+              ) : (
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+              )}
+              <span className="font-medium">{alert.title}</span>
+              <span className="text-zinc-500">·</span>
+              <span>{alert.detail}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Metric cards */}
       <div className="grid grid-cols-7 gap-3 max-2xl:grid-cols-4 max-lg:grid-cols-2">

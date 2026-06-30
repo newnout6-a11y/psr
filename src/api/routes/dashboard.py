@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+from typing import Any
+
 from fastapi import APIRouter, HTTPException, Query
 
 from src.dashboard import queries as q
@@ -195,3 +198,88 @@ def skipped_candidates(limit: int = Query(50, ge=1, le=200)):
             }
         )
     return {"items": result, "total": len(result)}
+
+
+@router.get("/alerts")
+def get_alerts():
+    """Активные алерты: slow responses, pending reviews, auto-assignments."""
+    from src.action.proposal_db import ProposalDB
+    from datetime import datetime, timezone, timedelta
+
+    alerts: list[dict[str, Any]] = []
+    db = ProposalDB()
+
+    try:
+        threshold_hours = int(os.getenv("KWORK_RESPONSE_TIME_ALERT_HOURS", "2"))
+        now = datetime.now(timezone.utc)
+        convs = db.get_active_conversations(limit=50)
+        for conv in convs:
+            if conv.get("status") == "awaiting_reply" and conv.get("last_message_at"):
+                try:
+                    last_msg = conv["last_message_at"].replace(" ", "T")
+                    msg_time = datetime.fromisoformat(last_msg)
+                    if msg_time.tzinfo is None:
+                        msg_time = msg_time.replace(tzinfo=timezone.utc)
+                    elapsed = (now - msg_time).total_seconds() / 3600
+                    if elapsed >= threshold_hours:
+                        alerts.append(
+                            {
+                                "type": "slow_response",
+                                "severity": "warning" if elapsed < 6 else "critical",
+                                "project_id": conv.get("project_id", ""),
+                                "platform": conv.get("platform", ""),
+                                "title": conv.get("project_title") or conv.get("project_id", ""),
+                                "detail": f"Нет ответа {elapsed:.0f}ч (порог {threshold_hours}ч)",
+                            }
+                        )
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    try:
+        with db._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT c.candidate_id, c.project_id, c.platform, c.title, c.sent_at
+                FROM candidates c
+                WHERE c.status IN ('auto_sent', 'manual_sent')
+                  AND c.sent_at IS NOT NULL
+                ORDER BY c.sent_at DESC LIMIT 30
+                """
+            ).fetchall()
+            for row in rows:
+                sent_at = row["sent_at"]
+                if not sent_at:
+                    continue
+                try:
+                    sent_dt = datetime.fromisoformat(sent_at.replace(" ", "T"))
+                    if sent_dt.tzinfo is None:
+                        sent_dt = sent_dt.replace(tzinfo=timezone.utc)
+                    age_hours = (now - sent_dt).total_seconds() / 3600
+                    if age_hours >= 24:
+                        has_review = conn.execute(
+                            "SELECT 1 FROM earnings WHERE candidate_id = ? AND status = 'paid'",
+                            (row["candidate_id"],),
+                        ).fetchone()
+                        has_completed = conn.execute(
+                            "SELECT 1 FROM candidates WHERE candidate_id = ? AND status = 'completed'",
+                            (row["candidate_id"],),
+                        ).fetchone()
+                        if not has_review and not has_completed:
+                            alerts.append(
+                                {
+                                    "type": "pending_review",
+                                    "severity": "info",
+                                    "project_id": row["project_id"],
+                                    "platform": row["platform"],
+                                    "title": row["title"] or row["project_id"],
+                                    "detail": f"Отправлено {age_hours:.0f}ч назад, отзыв не оставлен",
+                                }
+                            )
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    return {"alerts": alerts, "count": len(alerts)}

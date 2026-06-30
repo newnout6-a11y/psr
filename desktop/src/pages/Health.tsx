@@ -1,12 +1,13 @@
 import { useApi } from '../hooks/useApi'
 import { api, HealthData } from '../lib/api'
-import { HeartPulse, AlertTriangle, CheckCircle2, XCircle, Activity, Bell, Shield, Zap } from 'lucide-react'
+import { HeartPulse, AlertTriangle, CheckCircle2, XCircle, Activity, Bell, Shield, Zap, Clock, MessageCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 export default function Health() {
   const { data, loading, refetch } = useApi(() => (api as any).getHealth(), [])
   const { data: connectsCheck } = useApi(() => (api as any).getConnectsCheck(), [])
   const { data: breakerData } = useApi(() => api.getBreaker(), [])
+  const { data: alertsData } = useApi(() => (api as any).getAlerts(), [])
 
   const h = data as HealthData | null
 
@@ -150,6 +151,40 @@ export default function Health() {
           )}
         </div>
       </div>
+
+      {/* Follow-up alerts */}
+      {alertsData?.count > 0 && (
+        <div className="card p-4">
+          <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-amber-400" /> Follow-up алерты
+          </h3>
+          <div className="space-y-2">
+            {alertsData.alerts.map((alert: any, i: number) => (
+              <div
+                key={i}
+                className={cn(
+                  'flex items-start gap-2 rounded-md border px-3 py-2 text-xs',
+                  alert.severity === 'critical'
+                    ? 'border-red-500/30 bg-red-500/10 text-red-300'
+                    : alert.severity === 'warning'
+                      ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                      : 'border-blue-500/30 bg-blue-500/10 text-blue-300'
+                )}
+              >
+                {alert.type === 'slow_response' ? (
+                  <MessageCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                ) : (
+                  <Bell className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <div className="font-medium">{alert.title}</div>
+                  <div className="text-zinc-400">{alert.detail}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {h.paused_kworks && h.paused_kworks.length > 0 && (
         <div className="card p-3 text-xs text-yellow-400">

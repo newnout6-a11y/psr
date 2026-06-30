@@ -258,6 +258,8 @@ export interface Candidate {
   updated_at?: string
   created_at?: string
   snoozed_until?: string
+  competitor_prices?: Array<{ price?: string; kwork_name?: string }>
+  proposal_image_path?: string
 }
 
 export interface KworkInspectProject {
@@ -605,3 +607,16 @@ export interface ConnectsCheck {
 }
 
 ;(api as any).getConnectsCheck = () => request<ConnectsCheck>('/api/dashboard/kwork-connects-check')
+
+// ── Alerts ───────────────────────────────────────────────────────────────────
+
+export interface AlertItem {
+  type: string
+  severity: string
+  project_id: string
+  platform: string
+  title: string
+  detail: string
+}
+
+;(api as any).getAlerts = () => request<{ alerts: AlertItem[]; count: number }>('/api/dashboard/alerts')

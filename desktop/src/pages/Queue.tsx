@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import {
   CheckCircle2, XCircle, Clock, Pencil, ExternalLink,
   RefreshCw, Filter, ChevronDown, ChevronUp, Send, DollarSign, Paperclip,
-  UserCheck, UserX, PackageCheck, Wallet
+  UserCheck, UserX, PackageCheck, Wallet, TrendingUp, ImageIcon, ShieldAlert
 } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { api, Candidate, PlatformData } from '../lib/api'
@@ -103,6 +103,49 @@ function CandidateRow({
   )
 }
 
+function OSINTSection({ osint }: { osint: any }) {
+  const [expanded, setExpanded] = useState(false)
+  if (!osint) return null
+  const score = osint.reputation_score ?? '—'
+  const redFlags = osint.red_flags || []
+  const positiveSignals = osint.positive_signals || []
+  const summary = osint.summary || ''
+
+  return (
+    <div className="text-xs rounded-md border border-white/10 bg-black/20 p-2">
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="flex w-full items-center justify-between"
+      >
+        <span className="flex items-center gap-1.5">
+          <ShieldAlert className="w-3 h-3 text-brand-400" />
+          <span className="text-brand-400 font-medium">OSINT</span>
+          <span className="text-zinc-500">· репутация: {score}</span>
+          {redFlags.length > 0 && <span className="text-red-400">· {redFlags.length} флагов</span>}
+        </span>
+        {expanded ? <ChevronUp className="w-3 h-3 text-zinc-500" /> : <ChevronDown className="w-3 h-3 text-zinc-500" />}
+      </button>
+      {expanded && (
+        <div className="mt-2 space-y-1.5">
+          {summary && <div className="text-zinc-400 italic">{summary.slice(0, 200)}</div>}
+          {redFlags.length > 0 && (
+            <div>
+              <span className="text-red-400">Флаги: </span>
+              <span className="text-zinc-300">{redFlags.join(', ')}</span>
+            </div>
+          )}
+          {positiveSignals.length > 0 && (
+            <div>
+              <span className="text-emerald-400">Позитив: </span>
+              <span className="text-zinc-300">{positiveSignals.join(', ')}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function CandidateDetail({
   c,
   onApprove,
@@ -171,6 +214,43 @@ function CandidateDetail({
           {c.vet_red_flags.map((f, i) => (
             <span key={i} className="text-zinc-300">{f}{i < c.vet_red_flags!.length - 1 ? ', ' : ''}</span>
           ))}
+        </div>
+      )}
+
+      {/* OSINT results */}
+      {c.client_context && (c.client_context as any).osint && (
+        <OSINTSection osint={(c.client_context as any).osint} />
+      )}
+
+      {/* Competitor prices */}
+      {c.competitor_prices && c.competitor_prices.length > 0 && (
+        <div className="text-xs">
+          <span className="text-brand-400 font-medium flex items-center gap-1 mb-1">
+            <TrendingUp className="w-3 h-3" /> Цены конкурентов ({c.competitor_prices.length}):
+          </span>
+          <div className="space-y-0.5">
+            {c.competitor_prices.slice(0, 8).map((p, i) => (
+              <div key={i} className="flex items-center justify-between text-zinc-400">
+                <span className="truncate max-w-48">{p.kwork_name || `#${i + 1}`}</span>
+                <span className="text-zinc-300">{p.price || '—'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Proposal image preview */}
+      {c.proposal_image_path && (
+        <div className="text-xs">
+          <span className="text-brand-400 font-medium flex items-center gap-1 mb-1">
+            <ImageIcon className="w-3 h-3" /> Изображение к отклику:
+          </span>
+          <img
+            src={`file://${c.proposal_image_path}`}
+            alt="Proposal preview"
+            className="rounded-md border border-white/10 max-h-32 object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
         </div>
       )}
 
