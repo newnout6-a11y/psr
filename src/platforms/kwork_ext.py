@@ -1294,18 +1294,18 @@ def _patch_request_pacing() -> None:
     if hasattr(KworkAPI, "request_with_body"):
         original_rwb = KworkAPI.request_with_body
 
-        async def _paced_rwb(self, method, endpoint, use_token=False, **kwargs):
+        async def _paced_rwb(self, endpoint, use_token=False, **kwargs):
             await get_pacer().wait()
-            return await original_rwb(self, method, endpoint, use_token=use_token, **kwargs)
+            return await original_rwb(self, endpoint, use_token=use_token, **kwargs)
 
         KworkAPI.request_with_body = _paced_rwb
 
     if hasattr(KworkAPI, "request_multipart"):
         original_rm = KworkAPI.request_multipart
 
-        async def _paced_rm(self, method, endpoint, use_token=False, **kwargs):
+        async def _paced_rm(self, endpoint, use_token=False, **kwargs):
             await get_pacer().wait()
-            return await original_rm(self, method, endpoint, use_token=use_token, **kwargs)
+            return await original_rm(self, endpoint, use_token=use_token, **kwargs)
 
         KworkAPI.request_multipart = _paced_rm
 
