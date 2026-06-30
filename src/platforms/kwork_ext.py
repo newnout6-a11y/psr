@@ -174,6 +174,8 @@ class ConnectsMonitor:
         try:
             data = await api.request("post", "projects", use_token=True, categories="")
             connects = data.get("connects", {}) if isinstance(data, dict) else {}
+            if isinstance(connects, dict):
+                connects["free_amount"] = connects.get("active_connects", 0) or 0
             self._cache = connects
             self._last_check = now
             free = int(connects.get("free_amount", 0) or 0)
@@ -189,7 +191,7 @@ class ConnectsMonitor:
     def can_send(self) -> bool:
         if not self._cache:
             return True
-        free = int(self._cache.get("free_amount", 999) or 999)
+        free = int(self._cache.get("free_amount") or self._cache.get("active_connects") or 999)
         if free == 0:
             return False
         return free > self.block_threshold
@@ -201,7 +203,7 @@ class ConnectsMonitor:
 
     @property
     def free_amount(self) -> int:
-        return int(self._cache.get("free_amount", 0) or 0)
+        return int(self._cache.get("free_amount") or self._cache.get("active_connects") or 0)
 
 
 _connects_monitor: ConnectsMonitor | None = None
