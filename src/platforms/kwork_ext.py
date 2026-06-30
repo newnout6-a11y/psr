@@ -190,6 +190,8 @@ class ConnectsMonitor:
         if not self._cache:
             return True
         free = int(self._cache.get("free_amount", 999) or 999)
+        if free == 0:
+            return False
         return free > self.block_threshold
 
     def decrement(self, amount: int = 1) -> None:
