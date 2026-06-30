@@ -822,7 +822,9 @@ class ProposalDB:
             return [dict(row) for row in rows]
 
     def count_today_sent(self) -> int:
-        today = datetime.now().strftime("%Y-%m-%d")
+        from datetime import timezone
+
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT COUNT(*) AS total FROM proposals WHERE sent_at LIKE ?",
@@ -928,13 +930,16 @@ class ProposalDB:
                 ).fetchone()
                 if existing:
                     return False
-            conn.execute(
-                """
-                INSERT INTO conversation_messages (conversation_id, sender, message_text, platform_message_id, created_at)
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (conversation_id, sender, message_text, platform_message_id, now),
-            )
+            try:
+                conn.execute(
+                    """
+                    INSERT INTO conversation_messages (conversation_id, sender, message_text, platform_message_id, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (conversation_id, sender, message_text, platform_message_id, now),
+                )
+            except sqlite3.IntegrityError:
+                return False
             if sender == "customer":
                 conn.execute(
                     """

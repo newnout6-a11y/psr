@@ -129,7 +129,7 @@ class OpenAICompatibleClient:
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
-        if self.reasoning_effort and self.thinking != "disabled":
+        if self.reasoning_effort and self.thinking != "disabled" and self.wire_api == "responses":
             payload["reasoning_effort"] = self.reasoning_effort
         if self.thinking in {"enabled", "disabled"}:
             payload["thinking"] = {"type": self.thinking}
@@ -271,7 +271,7 @@ class LLMRouter:
             except Exception as e:
                 logger.warning(f"LLMRouter: OpenAI-compatible provider недоступен: {e}")
 
-        deepseek_key = os.getenv("DEEPSEEK_API_KEY")
+        deepseek_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
         if deepseek_key:
             try:
                 self.providers["deepseek"] = OpenAICompatibleClient(
@@ -288,7 +288,7 @@ class LLMRouter:
             except Exception as e:
                 logger.warning(f"LLMRouter: DeepSeek недоступен: {e}")
 
-        groq_key = os.getenv("GROQ_API_KEY")
+        groq_key = os.getenv("GROQ_API_KEY", "").strip()
         if groq_key:
             self.providers["groq"] = {"api_key": groq_key}
             self.health["groq"] = ProviderHealth()
@@ -570,6 +570,8 @@ class LLMRouter:
             temperature=temperature,
             max_tokens=max_tokens,
         )
+        if not response.choices:
+            raise ValueError("Groq вернул пустой choices (возможно content-filter)")
         content = response.choices[0].message.content
         if not content:
             raise ValueError("Groq вернул пустой ответ")

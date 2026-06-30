@@ -93,6 +93,10 @@ RULES (STRICT!):
         # Удаляем Markdown
         for char in "*#_`>":
             text = text.replace(char, "")
+        # Удаляем markdown-дефисы в начале строк (списки), но не в словах
+        import re as _re
+
+        text = _re.sub(r"^\s*[-–—]\s+", "", text, flags=_re.MULTILINE)
 
         # Удаляем эмодзи — точечно, сохраняя русскую типографику
         text = re.sub(
@@ -218,15 +222,15 @@ RULES (STRICT!):
         client_context = ""
         if client_data:
             parts = []
-            if client_data.get("completed_orders_count", 0) > 0:
+            if (client_data.get("completed_orders_count") or 0) > 0:
                 parts.append(f"завершённых заказов: {client_data['completed_orders_count']}")
-            if client_data.get("rating", 0) > 0:
+            if (client_data.get("rating") or 0) > 0:
                 parts.append(f"рейтинг: {client_data['rating']}")
             if client_data.get("online"):
                 parts.append("онлайн сейчас")
-            if client_data.get("achievments_count", 0) > 0:
+            if (client_data.get("achievments_count") or 0) > 0:
                 parts.append(f"бейджей: {client_data['achievments_count']}")
-            if client_data.get("order_done_repeat_persent", 0) > 0:
+            if (client_data.get("order_done_repeat_persent") or 0) > 0:
                 parts.append(f"повторных заказов: {client_data['order_done_repeat_persent']}%")
             if client_data.get("good_reviews", 0) > 0:
                 parts.append(f"положительных отзывов: {client_data['good_reviews']}")
@@ -426,7 +430,7 @@ RULES (STRICT!):
         if not osint_result:
             return ""
         hints = []
-        if getattr(osint_result, "reputation_score", 50) >= 70:
+        if (getattr(osint_result, "reputation_score", 50) or 0) >= 70:
             hints.append("заказчик вызывает доверие по публичным данным")
         if getattr(osint_result, "red_flags", None):
             hints.append("осторожно: есть тревожные сигналы от заказчика")

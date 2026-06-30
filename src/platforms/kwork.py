@@ -183,8 +183,10 @@ class KworkStateDataParser:
         user = cls._user_payload(want)
         title = str(want.get("name") or want.get("title") or "").strip()
         description = _strip_html(want.get("description") or "")
-        budget = _as_float(want.get("priceLimit")) or _as_float(want.get("possiblePriceLimit"))
-        offers_count = _as_int(want.get("kwork_count") or want.get("offers"))
+        _price = _as_float(want.get("priceLimit"))
+        budget = _price if _price is not None and _price > 0 else _as_float(want.get("possiblePriceLimit"))
+        _offers = _as_int(want.get("kwork_count"))
+        offers_count = _offers if _offers is not None and _offers >= 0 else _as_int(want.get("offers"))
         client_user_id = str(user.get("USERID") or user.get("id") or want.get("user_id") or "").strip() or None
         client_hired_percent = cls._client_hired_percent(want)
         files = want.get("files") if isinstance(want.get("files"), list) else []

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 
 from src.dashboard import queries as q
 
@@ -87,10 +87,13 @@ def runtime_state():
 @router.get("/health")
 async def kwork_health():
     """Полный health check аккаунта Kwork."""
-    from src.platforms.kwork import get_kwork_service
+    try:
+        from src.platforms.kwork import get_kwork_service
 
-    service = get_kwork_service()
-    return await service.check_account_health()
+        service = get_kwork_service()
+        return await service.check_account_health()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/funnel")
@@ -181,14 +184,14 @@ def skipped_candidates(limit: int = Query(50, ge=1, le=200)):
                 "candidate_id": r.get("candidate_id"),
                 "project_id": str(r.get("project_id", "")),
                 "platform": r.get("platform", ""),
-                "title": r.get("title", "")[:80],
-                "budget": str(r.get("budget", "") or ""),
-                "status": r.get("status", ""),
-                "decision_reason": r.get("decision_reason", "")[:120],
+                "title": (r.get("title") or "")[:80],
+                "budget": str(r.get("budget") or ""),
+                "status": r.get("status") or "",
+                "decision_reason": (r.get("decision_reason") or "")[:120],
                 "ai_score": r.get("ai_score"),
-                "ai_score_source": r.get("ai_score_source", ""),
-                "updated_at": r.get("updated_at", ""),
-                "search_query": r.get("search_query", ""),
+                "ai_score_source": r.get("ai_score_source") or "",
+                "updated_at": r.get("updated_at") or "",
+                "search_query": r.get("search_query") or "",
             }
         )
     return {"items": result, "total": len(result)}

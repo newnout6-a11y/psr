@@ -102,7 +102,7 @@ class ClientVetter:
 
         # Завершённые заказы (ключевой показатель!)
         completed = data.get("completed_orders_count", 0)
-        if isinstance(completed, int):
+        if isinstance(completed, (int, float)):
             if completed >= 10:
                 score += 20
                 reasons.append(f"проверенный заказчик ({completed} завершённых заказов)")
@@ -141,7 +141,7 @@ class ClientVetter:
         # Положительные vs отрицательные отзывы
         good = data.get("good_reviews", 0)
         bad = data.get("bad_reviews", 0)
-        if isinstance(good, int) and isinstance(bad, int):
+        if isinstance(good, (int, float)) and isinstance(bad, (int, float)):
             total = good + bad
             if total >= 5:
                 if good > bad * 2:
@@ -156,7 +156,7 @@ class ClientVetter:
 
         # Достижения (бейджи) — показатель активности
         achievments = data.get("achievments_count", 0)
-        if isinstance(achievments, int) and achievments > 0:
+        if isinstance(achievments, (int, float)) and achievments > 0:
             score += 5
             reasons.append(f"есть достижения ({achievments})")
 
@@ -181,7 +181,11 @@ class ClientVetter:
             try:
                 import time
 
-                reg_ts = int(reg_date) if str(reg_date).isdigit() else 0
+                reg_ts = 0
+                try:
+                    reg_ts = float(reg_date)
+                except (ValueError, TypeError):
+                    pass
                 if reg_ts > 0:
                     days_old = (int(time.time()) - reg_ts) // 86400
                     if days_old < 30:

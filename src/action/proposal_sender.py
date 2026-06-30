@@ -306,14 +306,14 @@ class ProposalSender:
                 recent_texts = db.get_recent_proposal_texts(limit=20)
                 for prev_text in recent_texts:
                     similarity = _text_similarity(proposal_text, prev_text)
+                    if similarity > 0.9 and not dry_run:
+                        logger.error("Kwork: отправка отменена — текст почти идентичен предыдущему отклику")
+                        return False
                     if similarity > 0.8:
                         logger.warning(
                             f"Kwork: proposal text {similarity:.0%} similar to a recent proposal — high duplicate risk"
                         )
-                        if similarity > 0.9 and not dry_run:
-                            logger.error("Kwork: отправка отменена — текст почти идентичен предыдущему отклику")
-                            return False
-                        break
+                        continue
 
                 if not await KworkExtensions.check_web_session(api):
                     logger.warning("Kwork: web-сессия невалидна, реавторизация...")

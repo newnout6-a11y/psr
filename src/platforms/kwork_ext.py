@@ -78,10 +78,22 @@ _pacer: RatePacer | None = None
 def get_pacer() -> RatePacer:
     global _pacer
     if _pacer is None:
-        min_d = float(os.getenv("KWORK_PACE_MIN", "1.5"))
-        max_d = float(os.getenv("KWORK_PACE_MAX", "4.0"))
-        burst = int(os.getenv("KWORK_BURST_LIMIT", "15"))
-        window = float(os.getenv("KWORK_BURST_WINDOW", "60"))
+        try:
+            min_d = float(os.getenv("KWORK_PACE_MIN", "1.5"))
+        except (ValueError, TypeError):
+            min_d = 1.5
+        try:
+            max_d = float(os.getenv("KWORK_PACE_MAX", "4.0"))
+        except (ValueError, TypeError):
+            max_d = 4.0
+        try:
+            burst = int(os.getenv("KWORK_BURST_LIMIT", "15"))
+        except (ValueError, TypeError):
+            burst = 15
+        try:
+            window = float(os.getenv("KWORK_BURST_WINDOW", "60"))
+        except (ValueError, TypeError):
+            window = 60.0
         _pacer = RatePacer(min_delay=min_d, max_delay=max_d, burst_limit=burst, burst_window=window)
     return _pacer
 
@@ -1144,7 +1156,8 @@ class KworkExtensions:
         """Количество непрочитанных уведомлений — быстрый heartbeat."""
         try:
             data = await api.request_with_body("getBadgesInfo", use_token=True, body={})
-            return data.get("response") if isinstance(data, dict) else {}
+            resp = data.get("response") if isinstance(data, dict) else {}
+            return resp if isinstance(resp, dict) else {}
         except Exception as e:
             logger.debug(f"KworkExt: не удалось получить badges: {e}")
             return {}

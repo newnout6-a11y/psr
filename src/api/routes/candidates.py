@@ -42,6 +42,8 @@ def list_candidates(
     page: int = 0,
     page_size: int = 30,
 ):
+    page = max(0, page)
+    page_size = max(1, min(200, page_size))
     import sqlite3
     from src.paths import PROPOSALS_DB_FILE
 
@@ -230,7 +232,10 @@ async def send_message_to_client(candidate_id: int, req: SendMessageRequest):
         raise HTTPException(status_code=400, detail="Message sending only supported for kwork")
 
     service = get_kwork_service()
-    result = await service.send_message(req.user_id, req.text)
+    try:
+        result = await service.send_message(req.user_id, req.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to send message: {e}") from e
 
     if result is None:
         raise HTTPException(status_code=502, detail="Failed to send message")

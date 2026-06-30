@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import List
 
+import re
 import yaml
 from loguru import logger
 
@@ -123,17 +124,25 @@ class ProjectFilter:
             skills_text = " ".join([skill.lower() for skill in project.skills])
             full_text = f"{text} {skills_text}"
 
-            found_skills = [required for required in self.required_skills if required in full_text]
+            found_skills = [
+                required
+                for required in self.required_skills
+                if re.search(r"\b" + re.escape(required.lower()) + r"\b", full_text)
+            ]
 
             if not found_skills:
-                stop_hits = [word for word in self.stop_words if word in full_text]
+                stop_hits = [
+                    word for word in self.stop_words if re.search(r"\b" + re.escape(word.lower()) + r"\b", full_text)
+                ]
                 if stop_hits:
                     reject(project, f"stop_word:{', '.join(stop_hits[:3])}")
                 else:
                     reject(project, "missing_required_skills")
                 continue
 
-            stop_hits = [word for word in self.stop_words if word in full_text]
+            stop_hits = [
+                word for word in self.stop_words if re.search(r"\b" + re.escape(word.lower()) + r"\b", full_text)
+            ]
             if stop_hits:
                 logger.debug(
                     f"KeywordFilter: soft stop-word match for '{project.title[:50]}' "

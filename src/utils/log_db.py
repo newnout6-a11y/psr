@@ -233,9 +233,10 @@ class LogDB:
                     AVG(projects_count) as avg_projects,
                     SUM(CASE WHEN status = 'error' THEN 1 ELSE 0 END) as error_count
                 FROM parse_logs
-                WHERE timestamp >= datetime('now', '-{} days')
+                WHERE timestamp >= datetime('now', ?)
                 GROUP BY platform
-            """.format(days)
+            """,
+                (f"-{int(days)} days",),
             ).fetchall()
             return [dict(row) for row in rows]
 
@@ -250,10 +251,11 @@ class LogDB:
                     error_type,
                     COUNT(*) as count
                 FROM errors
-                WHERE timestamp >= datetime('now', '-{} days')
+                WHERE timestamp >= datetime('now', ?)
                 GROUP BY module, error_type
                 ORDER BY count DESC
-            """.format(days)
+            """,
+                (f"-{int(days)} days",),
             ).fetchall()
             return [dict(row) for row in rows]
 
@@ -265,8 +267,9 @@ class LogDB:
                 SELECT 
                     CAST(SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*)
                 FROM send_logs
-                WHERE timestamp >= datetime('now', '-{} days')
-            """.format(days)
+                WHERE timestamp >= datetime('now', ?)
+            """,
+                (f"-{int(days)} days",),
             ).fetchone()
             return round(row[0] * 100, 2) if row and row[0] else 0.0
 

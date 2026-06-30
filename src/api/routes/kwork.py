@@ -15,16 +15,18 @@ router = APIRouter(prefix="/api/kwork", tags=["kwork"])
 @router.get("/status")
 async def kwork_status():
     service = get_kwork_service()
-    api = await service.get_api()
     api_ok = False
     api_error = None
-
-    if api:
-        try:
-            me = await api.get_me()
-            api_ok = bool(me)
-        except Exception as e:
-            api_error = f"{type(e).__name__}: {e}"
+    try:
+        api = await service.get_api()
+        if api:
+            try:
+                me = await api.get_me()
+                api_ok = bool(me)
+            except Exception as e:
+                api_error = f"{type(e).__name__}: {e}"
+    except Exception as e:
+        api_error = f"{type(e).__name__}: {e}"
 
     return {
         "configured": bool(os.getenv("KWORK_EMAIL") and os.getenv("KWORK_PASSWORD")),

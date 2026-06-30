@@ -496,7 +496,9 @@ class FreelanceOrchestrator:
         return {
             "username": user.get("username") or "",
             "completed_orders_count": None,
-            "order_done_repeat_persent": project.client_hired_percent or data.get("wants_hired_percent") or 0,
+            "order_done_repeat_persent": project.client_hired_percent
+            if project.client_hired_percent is not None
+            else (data.get("wants_hired_percent") or 0),
             "wants_count": data.get("wants_count"),
             "badges": user.get("badges") or [],
             "profile_url": user.get("profile_url"),
@@ -823,8 +825,8 @@ class FreelanceOrchestrator:
                     "skipped_details": [],
                     "skipped_reason": "outside_work_hours",
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Schedule check failed, assuming work time: {e}")
         for parser in self.parsers:
             service = getattr(parser, "service", None)
             if service is not None and hasattr(service, "reset_cycle"):
@@ -855,7 +857,7 @@ class FreelanceOrchestrator:
                 try:
                     link_result = link_inbox_response(self.db, response)
                 except Exception as link_err:
-                    logger.debug(f"ReplyLinker: не удалось привязать реплай: {link_err}")
+                    logger.warning(f"ReplyLinker: не удалось привязать реплай: {link_err}")
                     continue
 
                 if not link_result.linked or link_result.candidate_id is None:
@@ -1099,8 +1101,12 @@ class FreelanceOrchestrator:
         for result in score_results:
             project = result.project
             key = self._project_key(project)
-            candidate_id = candidate_ids[key]
+            candidate_id = candidate_ids.get(key)
+            if not candidate_id:
+                logger.warning(f"AIScorer returned unknown project key={key}, skipping")
+                continue
             ai_source = "fallback_scored" if result.fallback_scored else result.source
+            summary = result.summary or ""
             self.db.update_candidate(
                 candidate_id,
                 stage="scored",
@@ -1108,8 +1114,8 @@ class FreelanceOrchestrator:
                 ai_pre_score=result.pre_score,
                 ai_score=result.final_score,
                 ai_score_source=ai_source,
-                ai_reason=result.summary,
-                decision_reason=result.summary,
+                ai_reason=summary,
+                decision_reason=summary,
             )
 
             if result.passed:
@@ -1121,7 +1127,7 @@ class FreelanceOrchestrator:
                     skipped_log,
                     project,
                     stage="ai_score",
-                    reason=f"score {result.final_score}/{result.threshold}: {result.summary[:120]}",
+                    reason=f"score {result.final_score}/{result.threshold}: {(result.summary or '')[:120]}",
                 )
 
         rejected_scores = [result for result in score_results if not result.passed]
@@ -1130,7 +1136,7 @@ class FreelanceOrchestrator:
                 "AIScorer rejected examples: "
                 + "; ".join(
                     f"id={item.project.id} title='{item.project.title[:50]}' "
-                    f"score={item.final_score}/{item.threshold} reason='{item.summary[:100]}'"
+                    f"score={item.final_score}/{item.threshold} reason='{(item.summary or '')[:100]}'"
                     for item in rejected_scores[:10]
                 )
             )
@@ -1195,7 +1201,7 @@ class FreelanceOrchestrator:
                 )
             else:
                 self._record_query_signal(project, "skipped")
-                vet_reasons_str = "; ".join(vet_result.get("reasons", []))[:120]
+                vet_reasons_str = "; ".join(str(r) for r in vet_result.get("reasons", []))[:120]
                 self._log_skip(
                     skipped_log,
                     project,
@@ -1315,7 +1321,7 @@ class FreelanceOrchestrator:
             if decision.status == "skipped":
                 self.db.update_candidate_status(candidate_id, "skipped", actor="system", reason=decision.reason)
                 self._record_query_signal(project, "skipped")
-                self._log_skip(skipped_log, project, stage="decision", reason=decision.reason[:120])
+                self._log_skip(skipped_log, project, stage="decision", reason=(decision.reason or "")[:120])
                 continue
 
             if decision.status == "auto_ready":
