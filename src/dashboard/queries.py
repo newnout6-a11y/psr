@@ -273,6 +273,7 @@ def breaker_snapshot() -> pd.DataFrame:
             last_error,
             updated_at
         FROM breaker_state
+        WHERE key NOT LIKE 'test%'
         ORDER BY key
         """,
     )
