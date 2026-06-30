@@ -153,7 +153,7 @@ export default function Health() {
       </div>
 
       {/* Follow-up alerts */}
-      {alertsData?.count > 0 && (
+      {alertsData?.count > 0 && alertsData?.alerts && (
         <div className="card p-4">
           <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-400" /> Follow-up алерты

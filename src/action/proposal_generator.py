@@ -447,6 +447,8 @@ RULES (STRICT!):
         client_data: dict = None,
         competitor_prices: list = None,
         osint_result: Any = None,
+        temperature: Optional[float] = None,
+        prompt_variant: Optional[str] = None,
     ) -> str:
         """Основной метод генерации с использованием LLM Router."""
         from src.brain.llm_router import get_llm_router
@@ -484,7 +486,7 @@ RULES (STRICT!):
                 prompt=prompt,
                 provider=provider if provider != "auto" else None,
                 model=None,
-                temperature=0.75,
+                temperature=0.75 if temperature is None else temperature,
                 max_tokens=2048,
                 task="proposal_writing",
                 system_prompt=system_prompt,

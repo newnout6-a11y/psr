@@ -75,9 +75,9 @@ export default function Skipped() {
     if (search.trim()) {
       const q = search.toLowerCase()
       result = result.filter(e =>
-        e.title.toLowerCase().includes(q) ||
-        e.project_id.toLowerCase().includes(q) ||
-        e.decision_reason.toLowerCase().includes(q) ||
+        (e.title || '').toLowerCase().includes(q) ||
+        (e.project_id || '').toLowerCase().includes(q) ||
+        (e.decision_reason || '').toLowerCase().includes(q) ||
         (e.search_query || '').toLowerCase().includes(q)
       )
     }

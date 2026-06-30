@@ -260,6 +260,8 @@ class ProposalDB:
                 ("platform_data", "TEXT"),
                 ("offers_count", "INTEGER DEFAULT 0"),
                 ("client_hired_percent", "INTEGER DEFAULT 0"),
+                ("client_username", "TEXT"),
+                ("prompt_variant", "TEXT"),
             ]:
                 self._ensure_column(conn, "candidates", column, ddl)
 
