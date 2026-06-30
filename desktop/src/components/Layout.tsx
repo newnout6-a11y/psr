@@ -5,7 +5,7 @@ import {
   Search, Play, Square, ChevronDown, Globe2,
   Wallet, HeartPulse,
   AlertCircle, CheckCircle2, Loader2, Asterisk, Monitor, ShieldCheck,
-  Activity, MessageSquare, Ban
+  Activity, MessageSquare, Ban, MessagesSquare, Package
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
@@ -42,15 +42,17 @@ interface RunConfig {
 }
 
 const NAV = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Панель' },
-  { to: '/queue',     icon: ListChecks,      label: 'Очередь' },
-  { to: '/skipped',   icon: Ban,             label: 'Пропуски' },
-  { to: '/earnings',  icon: Wallet,          label: 'Доход' },
-  { to: '/health',    icon: HeartPulse,      label: 'Статус' },
-  { to: '/chat',      icon: MessageSquare,   label: 'Чат ИИ' },
-  { to: '/settings',  icon: Settings,        label: 'Настройки' },
-  { to: '/logs',      icon: ScrollText,      label: 'Логи' },
-  { to: '/osint',     icon: Search,          label: 'Сигналы' },
+  { to: '/dashboard',     icon: LayoutDashboard, label: 'Панель' },
+  { to: '/queue',         icon: ListChecks,      label: 'Очередь' },
+  { to: '/skipped',       icon: Ban,             label: 'Пропуски' },
+  { to: '/conversations', icon: MessagesSquare,  label: 'Диалоги' },
+  { to: '/orders',        icon: Package,         label: 'Заказы' },
+  { to: '/earnings',      icon: Wallet,          label: 'Доход' },
+  { to: '/health',        icon: HeartPulse,      label: 'Статус' },
+  { to: '/chat',          icon: MessageSquare,   label: 'Чат ИИ' },
+  { to: '/settings',      icon: Settings,        label: 'Настройки' },
+  { to: '/logs',          icon: ScrollText,      label: 'Логи' },
+  { to: '/osint',         icon: Search,          label: 'Сигналы' },
 ]
 
 const MODES = ['auto', 'semi_auto', 'manual', 'paused']
@@ -610,6 +612,13 @@ export default function Layout() {
                 />
               </div>
             </section>
+
+            {/* Paused platforms */}
+            {status.paused_platforms.length > 0 && (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-300">
+                На паузе: {status.paused_platforms.join(', ')}
+              </div>
+            )}
 
             {/* Status indicator */}
             <div className={cn(

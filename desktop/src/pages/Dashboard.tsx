@@ -54,6 +54,9 @@ export default function Dashboard() {
   const { data: parseStats } = useApi(() => api.getParseStats(days), [days])
   const { data: activity } = useApi(() => api.getActivity(), [days])
   const { data: statusData } = useApi(() => api.getStatus(), [])
+  const { data: funnelData } = useApi(() => (api as any).getFunnel(days), [days])
+  const { data: queryMemory } = useApi(() => api.getQueryMemory(10), [days])
+  const { data: breakerData } = useApi(() => api.getBreaker(), [])
 
   const chartData = timeline ? timelineToChartData(timeline) : []
   const actions = timeline
@@ -211,6 +214,85 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Funnel + Query Memory + Breaker */}
+      <div className="grid grid-cols-3 gap-4 max-xl:grid-cols-1">
+        {/* Conversion Funnel */}
+        <div className="card">
+          <h2 className="text-sm font-medium text-zinc-300 mb-3">Конверсия</h2>
+          {funnelData && (funnelData as any).sent > 0 ? (
+            <div className="space-y-2">
+              {[
+                ['Отправлено', (funnelData as any).sent, 100],
+                ['Ответы', (funnelData as any).responded, (funnelData as any).response_rate],
+                ['Наняли', (funnelData as any).hired, (funnelData as any).hire_rate],
+                ['Завершено', (funnelData as any).completed, (funnelData as any).completion_rate],
+                ['Оплачено', (funnelData as any).paid, (funnelData as any).payment_rate],
+              ].map(([label, val, rate]) => (
+                <div key={label as string} className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-400">{label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-zinc-200 font-medium">{val}</span>
+                    <span className="text-zinc-600 w-12 text-right">{(rate as number).toFixed(0)}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-zinc-500 text-sm text-center py-6">Нет данных</p>
+          )}
+        </div>
+
+        {/* Query Memory */}
+        <div className="card">
+          <h2 className="text-sm font-medium text-zinc-300 mb-3">Эффективность запросов</h2>
+          {queryMemory && queryMemory.length > 0 ? (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              {queryMemory.map((q, i) => (
+                <div key={i} className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-400 truncate max-w-32">{q.query_text}</span>
+                  <div className="flex items-center gap-2 text-zinc-500">
+                    <span title="shortlisted">{q.shortlisted_count}</span>
+                    <span className="text-emerald-400" title="sent">{q.sent_count}</span>
+                    <span className="text-blue-400" title="responded">{q.responded_count}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-zinc-500 text-sm text-center py-6">Нет данных</p>
+          )}
+        </div>
+
+        {/* Circuit Breaker */}
+        <div className="card">
+          <h2 className="text-sm font-medium text-zinc-300 mb-3">Circuit Breaker</h2>
+          {breakerData && breakerData.length > 0 ? (
+            <div className="space-y-2">
+              {breakerData.map((b) => (
+                <div key={b.key} className="flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-zinc-300">{b.key}</span>
+                    {b.consecutive_failures > 0 && (
+                      <span className="text-red-400 ml-2">{b.consecutive_failures} ошибок</span>
+                    )}
+                  </div>
+                  <span className={
+                    b.state === 'CLOSED' ? 'text-emerald-400' :
+                    b.state === 'OPEN' ? 'text-red-400' :
+                    'text-amber-400'
+                  }>
+                    {b.state}
+                    {b.paused_seconds_left > 0 && ` (${b.paused_seconds_left}s)`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-zinc-500 text-sm text-center py-6">Нет данных</p>
+          )}
         </div>
       </div>
     </div>

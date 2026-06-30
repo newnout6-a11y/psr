@@ -528,3 +528,80 @@ export interface ChatTestResult {
     method: 'POST',
     body: JSON.stringify({ provider, model, messages, system_prompt: systemPrompt, temperature, max_tokens: maxTokens }),
   })
+
+// ── Conversations ────────────────────────────────────────────────────────────
+
+export interface ConversationRow {
+  conversation_id: number
+  candidate_id?: number
+  project_id: string
+  platform: string
+  project_title?: string
+  status: string
+  last_message_at?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ConversationMessage {
+  message_id: number
+  sender: string
+  message_text?: string
+  created_at: string
+}
+
+;(api as any).getConversations = (limit = 50) =>
+  request<ConversationRow[]>(`/api/dashboard/conversations?limit=${limit}`)
+;(api as any).getConversationHistory = (projectId: string, platform: string) =>
+  request<{ messages: ConversationMessage[]; username: string }>(
+    `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}`,
+  )
+;(api as any).getCandidateDialog = (id: number) =>
+  request<{ messages: any[]; username: string }>(`/api/candidates/${id}/dialog`)
+;(api as any).sendMessageToClient = (id: number, userId: string, text: string) =>
+  request<{ ok: boolean }>(`/api/candidates/${id}/message`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId, text }),
+  })
+
+// ── Blacklist ────────────────────────────────────────────────────────────────
+
+;(api as any).getBlacklist = () =>
+  request<{ items: any[] }>(`/api/candidates/blacklist/list`)
+;(api as any).addBlacklist = (clientUserId: string, platform = 'kwork', reason = '') =>
+  request<{ ok: boolean }>(`/api/candidates/blacklist/add`, {
+    method: 'POST',
+    body: JSON.stringify({ client_user_id: clientUserId, platform, reason }),
+  })
+;(api as any).removeBlacklist = (clientUserId: string, platform: string) =>
+  request<{ ok: boolean }>(
+    `/api/candidates/blacklist/${encodeURIComponent(clientUserId)}/${encodeURIComponent(platform)}`,
+    { method: 'DELETE' },
+  )
+
+// ── Kwork Orders ─────────────────────────────────────────────────────────────
+
+export interface KworkOrder {
+  id?: number
+  name?: string
+  status?: string
+  price?: number
+  date_create?: string
+  date_to?: string
+  user_username?: string
+}
+
+;(api as any).getKworkOrders = (status = 'all') =>
+  request<{ orders: KworkOrder[] }>(`/api/dashboard/kwork-orders?status=${status}`)
+
+// ── Connects Check ───────────────────────────────────────────────────────────
+
+export interface ConnectsCheck {
+  connects: any
+  free_amount: number
+  can_send: boolean
+  warn_threshold: number
+  block_threshold: number
+}
+
+;(api as any).getConnectsCheck = () => request<ConnectsCheck>('/api/dashboard/kwork-connects-check')

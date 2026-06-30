@@ -2,13 +2,15 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Queue from './pages/Queue'
+import Skipped from './pages/Skipped'
 import Settings from './pages/Settings'
 import Logs from './pages/Logs'
 import OsintPage from './pages/Osint'
 import Earnings from './pages/Earnings'
 import Health from './pages/Health'
 import Chat from './pages/Chat'
-import Skipped from './pages/Skipped'
+import Conversations from './pages/Conversations'
+import Orders from './pages/Orders'
 
 export default function App() {
   return (
@@ -18,6 +20,8 @@ export default function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="queue" element={<Queue />} />
         <Route path="skipped" element={<Skipped />} />
+        <Route path="conversations" element={<Conversations />} />
+        <Route path="orders" element={<Orders />} />
         <Route path="earnings" element={<Earnings />} />
         <Route path="health" element={<Health />} />
         <Route path="chat" element={<Chat />} />

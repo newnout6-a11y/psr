@@ -128,6 +128,16 @@ _ENV_KEYS = [
     # Misc
     "PROXY_URL",
     "TIMEZONE_REGION",
+    # Kwork pacing / TLS
+    "KWORK_PACING",
+    "KWORK_PACE_MIN",
+    "KWORK_PACE_MAX",
+    "KWORK_BURST_LIMIT",
+    "KWORK_BURST_WINDOW",
+    "KWORK_PROXY_LIST",
+    "KWORK_TLS_IMPERSONATE",
+    "KWORK_TLS_BROWSER",
+    "KWORK_PHONE",
 ]
 
 _SECRET_KEYS = {

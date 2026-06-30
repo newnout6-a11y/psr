@@ -277,3 +277,29 @@ async def get_dialog_history(candidate_id: int):
 
     messages = await KworkExtensions.get_dialog_history(api, username)
     return {"messages": messages, "username": username}
+
+
+# ── Client Blacklist ──────────────────────────────────────────────────────────
+
+
+class BlacklistRequest(BaseModel):
+    client_user_id: str
+    platform: str = "kwork"
+    reason: str = ""
+
+
+@router.get("/blacklist/list")
+def get_blacklist():
+    return {"items": _db().get_blacklisted_clients()}
+
+
+@router.post("/blacklist/add")
+def add_to_blacklist(req: BlacklistRequest):
+    _db().blacklist_client(req.client_user_id, req.platform, reason=req.reason)
+    return {"ok": True}
+
+
+@router.delete("/blacklist/{client_user_id}/{platform}")
+def remove_from_blacklist(client_user_id: str, platform: str):
+    _db().remove_from_blacklist(client_user_id, platform)
+    return {"ok": True}
