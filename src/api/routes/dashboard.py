@@ -208,10 +208,10 @@ def get_alerts():
 
     alerts: list[dict[str, Any]] = []
     db = ProposalDB()
+    now = datetime.now(timezone.utc)
 
     try:
         threshold_hours = int(os.getenv("KWORK_RESPONSE_TIME_ALERT_HOURS", "2"))
-        now = datetime.now(timezone.utc)
         convs = db.get_active_conversations(limit=50)
         for conv in convs:
             if conv.get("status") == "awaiting_reply" and conv.get("last_message_at"):

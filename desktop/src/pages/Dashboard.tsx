@@ -92,7 +92,7 @@ export default function Dashboard() {
       </div>
 
       {/* Alerts banner */}
-      {alertsData?.count > 0 && (
+      {alertsData?.count > 0 && alertsData?.alerts && (
         <div className="space-y-1.5">
           {alertsData.alerts.map((alert: any, i: number) => (
             <div

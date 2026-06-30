@@ -150,10 +150,12 @@ function CandidateDetail({
   c,
   onApprove,
   onClose,
+  onRefetch,
 }: {
   c: Candidate
   onApprove: (text: string, price: string) => void
   onClose: () => void
+  onRefetch?: () => void
 }) {
   const [text, setText] = useState(c.proposal_text ?? '')
   const [price, setPrice] = useState(c.chosen_price ?? String(c.budget ?? ''))
@@ -317,13 +319,13 @@ function CandidateDetail({
       {(c.status === 'manual_sent' || c.status === 'auto_sent' || c.status === 'responded') && (
         <div className="flex gap-2 flex-wrap">
           <button
-            onClick={() => (api as any).hireCandidate(c.candidate_id).then(() => { setMsg('Нанят'); refetch?.() })}
+            onClick={() => (api as any).hireCandidate(c.candidate_id).then(() => { setMsg('Нанят'); onRefetch?.() })}
             className="btn btn-success text-xs"
           >
             <UserCheck className="w-3.5 h-3.5" /> Нанят
           </button>
           <button
-            onClick={() => (api as any).declineCandidate(c.candidate_id).then(() => { setMsg('Отклонён'); refetch?.() })}
+            onClick={() => (api as any).declineCandidate(c.candidate_id).then(() => { setMsg('Отклонён'); onRefetch?.() })}
             className="btn btn-ghost text-xs"
           >
             <UserX className="w-3.5 h-3.5" /> Отклонить
@@ -334,7 +336,7 @@ function CandidateDetail({
       {c.status === 'hired' && (
         <div className="flex gap-2">
           <button
-            onClick={() => (api as any).completeCandidate(c.candidate_id).then(() => { setMsg('Завершён'); refetch?.() })}
+            onClick={() => (api as any).completeCandidate(c.candidate_id).then(() => { setMsg('Завершён'); onRefetch?.() })}
             className="btn btn-success text-xs flex-1"
           >
             <PackageCheck className="w-3.5 h-3.5" /> Работа сдана
@@ -355,7 +357,7 @@ function CandidateDetail({
               const el = document.getElementById(`earn-amount-${c.candidate_id}`) as HTMLInputElement
               const amount = parseFloat(el?.value || '0')
               if (amount > 0) {
-                (api as any).recordEarning(c.candidate_id, amount).then(() => { setMsg('Доход записан'); refetch?.() })
+                (api as any).recordEarning(c.candidate_id, amount).then(() => { setMsg('Доход записан'); onRefetch?.() })
               }
             }}
             className="btn btn-ghost text-xs"
@@ -523,6 +525,7 @@ export default function Queue() {
             c={selected}
             onApprove={handleApprove}
             onClose={() => setSelected(null)}
+            onRefetch={refetch}
           />
         </div>
       )}

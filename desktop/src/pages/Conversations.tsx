@@ -54,7 +54,9 @@ export default function Conversations() {
         setError('Нет candidate_id для отправки')
         return
       }
-      await (api as any).sendMessageToClient(candidate, '', replyText.trim())
+      const dialogInfo = await (api as any).getCandidateDialog(candidate)
+      const userId = dialogInfo.username || ''
+      await (api as any).sendMessageToClient(candidate, userId, replyText.trim())
       setReplyText('')
       const result = await (api as any).getConversationHistory(selected.project_id, selected.platform)
       setMessages(result.messages || [])

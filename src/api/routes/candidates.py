@@ -268,14 +268,20 @@ async def get_dialog_history(candidate_id: int):
         username = client_data.get("username", "")
 
     if not username:
-        return {"messages": [], "note": "No client username found in candidate data"}
+        return {"messages": [], "username": "", "note": "No client username found in candidate data"}
 
     service = get_kwork_service()
-    api = await service.get_api()
+    try:
+        api = await service.get_api()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Kwork API unavailable: {e}") from e
     if not api:
         raise HTTPException(status_code=503, detail="Kwork API unavailable")
 
-    messages = await KworkExtensions.get_dialog_history(api, username)
+    try:
+        messages = await KworkExtensions.get_dialog_history(api, username)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to get dialog: {e}") from e
     return {"messages": messages, "username": username}
 
 
