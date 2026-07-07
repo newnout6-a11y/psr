@@ -115,6 +115,40 @@ class OpenAICompatibleClient:
         messages.append({"role": "user", "content": prompt})
         return messages
 
+    def _vision_messages(self, prompt: str, image_urls: list[str], system_prompt: Optional[str]) -> list[dict[str, Any]]:
+        messages: list[dict[str, Any]] = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
+        for url in image_urls:
+            if url:
+                content.append({"type": "image_url", "image_url": {"url": url}})
+        messages.append({"role": "user", "content": content})
+        return messages
+
+    async def generate_with_images(
+        self,
+        prompt: str,
+        image_urls: list[str],
+        model: str,
+        temperature: float,
+        max_tokens: int,
+        system_prompt: Optional[str] = None,
+    ) -> str:
+        if not image_urls:
+            return await self.generate(prompt, model, temperature, max_tokens, system_prompt)
+        payload: dict[str, Any] = {
+            "model": model,
+            "messages": self._vision_messages(prompt, image_urls, system_prompt),
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+
+        async with httpx.AsyncClient(timeout=LLM_REQUEST_TIMEOUT, trust_env=False) as client:
+            response = await client.post(self._url("chat/completions"), headers=self._headers(), json=payload)
+            response.raise_for_status()
+            return self._extract_text(response.json())
+
     async def _generate_chat(
         self,
         prompt: str,
@@ -344,6 +378,57 @@ class LLMRouter:
 
         # Requirement 10.3: если все провайдеры вернули ошибку — исключение с task и ошибкой последнего
         raise ValueError(f"Все LLM провайдеры недоступны для task={task}: {last_error}")
+
+    async def generate_with_images(
+        self,
+        prompt: str,
+        image_urls: list[str],
+        provider: Optional[str] = None,
+        model: Optional[str] = None,
+        temperature: float = 0.35,
+        max_tokens: int = 1200,
+        task: str = "vision",
+        system_prompt: Optional[str] = None,
+    ) -> str:
+        candidates = self._candidate_providers(task=task, preferred=provider)
+        if not candidates:
+            raise ValueError("Нет доступных LLM провайдеров")
+
+        preferred_provider = self._normalize_provider(provider)
+        last_error = None
+        for provider_name in candidates:
+            client = self.providers.get(provider_name)
+            if not hasattr(client, "generate_with_images"):
+                continue
+            model_for_provider = model if (preferred_provider and provider_name == preferred_provider) else None
+            selected_model = self._select_model(provider_name, task, model_for_provider)
+            logger.info(f"LLMRouter: vision task={task} provider={provider_name} model={selected_model} start")
+            try:
+                result = await client.generate_with_images(
+                    prompt=prompt,
+                    image_urls=image_urls,
+                    model=selected_model,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    system_prompt=system_prompt,
+                )
+                self._record_success(provider_name, task, selected_model)
+                self._last_route = {
+                    "provider": provider_name,
+                    "model": selected_model,
+                    "task": task,
+                    "at": time.time(),
+                }
+                logger.info(f"LLMRouter: vision task={task} provider={provider_name} model={selected_model} success")
+                return result
+            except Exception as e:
+                self._record_failure(provider_name, task, selected_model, e)
+                last_error = e
+                logger.warning(
+                    f"LLMRouter: vision task={task} provider={provider_name} model={selected_model} failed, try next: {e}"
+                )
+
+        raise ValueError(f"Все vision LLM провайдеры недоступны для task={task}: {last_error}")
 
     async def _generate_once(
         self,

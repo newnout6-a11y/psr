@@ -747,10 +747,12 @@ def active_conversations(limit: int = 20) -> list[dict[str, Any]]:
         """
         SELECT
             c.conversation_id,
+            c.candidate_id,
             c.project_id,
             c.platform,
             c.project_title,
             c.status,
+            c.created_at,
             c.last_message_at,
             c.updated_at,
             (SELECT COUNT(*) FROM conversation_messages cm WHERE cm.conversation_id = c.conversation_id) AS message_count
@@ -769,7 +771,7 @@ def conversation_history(project_id: str, platform: str) -> list[dict[str, Any]]
     df = _read_sql(
         PROPOSALS_DB,
         """
-        SELECT cm.sender, cm.message_text, cm.created_at
+        SELECT cm.message_id, cm.sender, cm.message_text, cm.created_at
         FROM conversation_messages cm
         JOIN conversations c ON c.conversation_id = cm.conversation_id
         WHERE c.project_id = ? AND c.platform = ?

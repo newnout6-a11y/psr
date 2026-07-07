@@ -11,6 +11,7 @@ import Health from './pages/Health'
 import Chat from './pages/Chat'
 import Conversations from './pages/Conversations'
 import Orders from './pages/Orders'
+import KworkMarket from './pages/KworkMarket'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="skipped" element={<Skipped />} />
         <Route path="conversations" element={<Conversations />} />
         <Route path="orders" element={<Orders />} />
+        <Route path="kwork-market" element={<KworkMarket />} />
         <Route path="earnings" element={<Earnings />} />
         <Route path="health" element={<Health />} />
         <Route path="chat" element={<Chat />} />

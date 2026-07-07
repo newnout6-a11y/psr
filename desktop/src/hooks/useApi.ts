@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 export function useApi<T>(
   fetcher: () => Promise<T>,
@@ -8,17 +8,22 @@ export function useApi<T>(
   const [data, setData] = useState<T | undefined>(initialValue)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const requestId = useRef(0)
 
   const fetch = useCallback(async () => {
+    const currentRequest = requestId.current + 1
+    requestId.current = currentRequest
     setLoading(true)
     setError(null)
     try {
       const result = await fetcher()
+      if (requestId.current !== currentRequest) return
       setData(result)
     } catch (e) {
+      if (requestId.current !== currentRequest) return
       setError(e instanceof Error ? e.message : String(e))
     } finally {
-      setLoading(false)
+      if (requestId.current === currentRequest) setLoading(false)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)

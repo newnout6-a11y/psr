@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { MessageSquare, Send, ArrowLeft, Loader2 } from 'lucide-react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { MessageSquare, Send, ArrowLeft, Loader2, Sparkles } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { api, ConversationRow, ConversationMessage } from '../lib/api'
 import { cn } from '../lib/utils'
@@ -7,7 +7,9 @@ import { cn } from '../lib/utils'
 const STATUS_LABELS: Record<string, string> = {
   new: 'новый',
   awaiting_reply: 'ждёт ответа',
+  read: 'прочитано',
   replied: 'отвечено',
+  system: 'системный',
   confirmed: 'подтверждено',
   completed: 'завершён',
 }
@@ -15,59 +17,131 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   new: 'text-zinc-400',
   awaiting_reply: 'text-amber-400',
+  read: 'text-zinc-400',
   replied: 'text-blue-400',
+  system: 'text-zinc-500',
   confirmed: 'text-emerald-400',
   completed: 'text-zinc-500',
 }
 
 export default function Conversations() {
-  const { data: conversations, loading } = useApi(() => (api as any).getConversations(100), [])
+  const { data: conversations, loading, refetch } = useApi(() => (api as any).getConversations(100), [])
   const [selected, setSelected] = useState<ConversationRow | null>(null)
   const [messages, setMessages] = useState<ConversationMessage[]>([])
   const [loadingMsgs, setLoadingMsgs] = useState(false)
   const [replyText, setReplyText] = useState('')
   const [sending, setSending] = useState(false)
+  const [drafting, setDrafting] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const seenRef = useRef<Record<string, string>>({})
+  const initializedRef = useRef(false)
 
-  const openConversation = useCallback(async (conv: ConversationRow) => {
-    setSelected(conv)
-    setLoadingMsgs(true)
+  const loadMessages = useCallback(async (conv: ConversationRow, withSpinner = false) => {
+    if (withSpinner) setLoadingMsgs(true)
     setError('')
-    setMessages([])
     try {
       const result = await (api as any).getConversationHistory(conv.project_id, conv.platform)
       setMessages(result.messages || [])
+      if (withSpinner && conv.platform === 'kwork' && result.read_state && result.read_state.ok === false) {
+        setNotice('Kwork не подтвердил отметку «прочитано»: Session Hub без cookies или авторизация устарела')
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка загрузки')
     } finally {
-      setLoadingMsgs(false)
+      if (withSpinner) setLoadingMsgs(false)
     }
   }, [])
+
+  const openConversation = useCallback(async (conv: ConversationRow) => {
+    setSelected(conv)
+    setMessages([])
+    await loadMessages(conv, true)
+  }, [loadMessages])
 
   const handleSend = useCallback(async () => {
     if (!selected || !replyText.trim() || sending) return
     setSending(true)
     setError('')
     try {
-      const candidate = selected.candidate_id
-      if (!candidate) {
-        setError('Нет candidate_id для отправки')
-        return
-      }
-      const dialogInfo = await (api as any).getCandidateDialog(candidate)
-      const userId = dialogInfo.username || ''
-      await (api as any).sendMessageToClient(candidate, userId, replyText.trim())
+      await (api as any).sendConversationMessage(selected.project_id, selected.platform, replyText.trim())
       setReplyText('')
-      const result = await (api as any).getConversationHistory(selected.project_id, selected.platform)
-      setMessages(result.messages || [])
+      await loadMessages(selected)
+      refetch()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка отправки')
     } finally {
       setSending(false)
     }
-  }, [selected, replyText, sending])
+  }, [selected, replyText, sending, loadMessages, refetch])
+
+  const handleDraftReply = useCallback(async () => {
+    if (!selected || drafting) return
+    setDrafting(true)
+    setError('')
+    try {
+      const result = await (api as any).draftConversationReply(selected.project_id, selected.platform)
+      setReplyText(result.text || '')
+      setNotice('ИИ подготовила черновик ответа')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка генерации ответа')
+    } finally {
+      setDrafting(false)
+    }
+  }, [selected, drafting])
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      refetch()
+    }, 10000)
+    return () => window.clearInterval(timer)
+  }, [refetch])
+
+  useEffect(() => {
+    if (!selected) return
+    const timer = window.setInterval(() => {
+      loadMessages(selected)
+    }, 8000)
+    return () => window.clearInterval(timer)
+  }, [selected, loadMessages])
 
   const convs: ConversationRow[] = conversations || []
+
+  useEffect(() => {
+    const next: Record<string, string> = {}
+    let incoming: ConversationRow | null = null
+    for (const conv of convs) {
+      const key = `${conv.platform}:${conv.project_id}`
+      const signature = `${conv.updated_at || ''}|${conv.last_message_at || ''}|${conv.status}|${conv.message_count || 0}`
+      next[key] = signature
+      if (
+        initializedRef.current &&
+        seenRef.current[key] &&
+        seenRef.current[key] !== signature &&
+        conv.status === 'awaiting_reply'
+      ) {
+        incoming = conv
+      }
+    }
+    seenRef.current = next
+    if (!initializedRef.current) {
+      initializedRef.current = true
+      return
+    }
+    if (incoming) {
+      const title = incoming.project_title || incoming.project_id
+      setNotice(`Новое сообщение: ${title}`)
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification('PSR: новое сообщение', { body: title })
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') new Notification('PSR: новое сообщение', { body: title })
+          })
+        }
+      }
+    }
+  }, [convs])
 
   if (selected) {
     return (
@@ -90,6 +164,15 @@ export default function Conversations() {
             </span>
           </div>
         </div>
+
+        {notice && (
+          <button
+            onClick={() => setNotice('')}
+            className="mx-4 mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-200"
+          >
+            {notice}
+          </button>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {loadingMsgs ? (
@@ -132,6 +215,14 @@ export default function Conversations() {
               disabled={sending}
               className="input flex-1 text-sm"
             />
+            <button
+              onClick={handleDraftReply}
+              disabled={drafting || loadingMsgs || messages.length === 0}
+              className="btn btn-secondary px-4"
+              title="Сгенерировать черновик ответа"
+            >
+              {drafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            </button>
             <button onClick={handleSend} disabled={sending || !replyText.trim()} className="btn btn-primary px-4">
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </button>
@@ -147,6 +238,15 @@ export default function Conversations() {
         <div className="page-kicker">client chats</div>
         <h1 className="text-xl font-semibold text-white">Диалоги с клиентами</h1>
       </div>
+
+      {notice && (
+        <button
+          onClick={() => setNotice('')}
+          className="w-full rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-200"
+        >
+          {notice}
+        </button>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">

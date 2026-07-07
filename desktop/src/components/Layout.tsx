@@ -1,15 +1,20 @@
-import { useState, useEffect, useCallback, type CSSProperties } from 'react'
+import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import {
   LayoutDashboard, ListChecks, Settings, ScrollText,
   Search, Play, Square, ChevronDown, Globe2,
   Wallet, HeartPulse,
   AlertCircle, CheckCircle2, Loader2, Asterisk, Monitor, ShieldCheck,
-  Activity, MessageSquare, Ban, MessagesSquare, Package
+  Activity, MessageSquare, Ban, MessagesSquare, Package, Store
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
 import { useWebSocket } from '../hooks/useWebSocket'
+import {
+  isKworkManualVerificationSignal,
+  notifyKworkVerificationNeeded,
+  openKworkVerificationWindow,
+} from '../lib/kworkVerification'
 
 type PlatformId = 'kwork' | 'freelance_ru' | 'hh_ru'
 
@@ -41,7 +46,18 @@ interface RunConfig {
   session_hub_required: boolean
 }
 
+interface KworkVerificationNotice {
+  needed: boolean
+  dismissed: boolean
+  opening: boolean
+  source: string
+  detail: string
+  message: string
+  seenAt: number
+}
+
 const NAV = [
+  { to: '/kwork-market',  icon: Store,           label: 'Kwork Market' },
   { to: '/dashboard',     icon: LayoutDashboard, label: 'Панель' },
   { to: '/queue',         icon: ListChecks,      label: 'Очередь' },
   { to: '/skipped',       icon: Ban,             label: 'Пропуски' },
@@ -231,6 +247,16 @@ export default function Layout() {
   const [dryRun, setDryRun] = useState(true)
   const [runConfig, setRunConfig] = useState<RunConfig>(() => readStoredRunConfig())
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+  const [kworkVerification, setKworkVerification] = useState<KworkVerificationNotice>({
+    needed: false,
+    dismissed: false,
+    opening: false,
+    source: '',
+    detail: '',
+    message: '',
+    seenAt: 0,
+  })
+  const kworkVerificationNotifiedRef = useRef(0)
 
   const refreshStatus = useCallback(async () => {
     try {
@@ -258,6 +284,76 @@ export default function Layout() {
   function showToast(msg: string, ok: boolean) {
     setToast({ msg, ok })
     setTimeout(() => setToast(null), 3500)
+  }
+
+  const markKworkVerificationNeeded = useCallback((source: string, detail = '') => {
+    const now = Date.now()
+    if (now - kworkVerificationNotifiedRef.current > 5 * 60_000) {
+      kworkVerificationNotifiedRef.current = now
+      setToast({ msg: 'Kwork просит ручную проверку', ok: false })
+      setTimeout(() => setToast(null), 5000)
+      notifyKworkVerificationNeeded()
+    }
+    setKworkVerification((prev) => ({
+      ...prev,
+      needed: true,
+      dismissed: false,
+      source,
+      detail,
+      seenAt: now,
+    }))
+  }, [])
+
+  const refreshKworkHealth = useCallback(async () => {
+    try {
+      const getHealth = (api as typeof api & {
+        getHealth?: () => Promise<{ captcha_required?: boolean; username?: string }>
+      }).getHealth
+      if (!getHealth) return
+      const health = await getHealth()
+      if (health?.captcha_required) {
+        markKworkVerificationNeeded(
+          'health',
+          health.username ? `Аккаунт ${health.username}: Kwork требует ручную проверку.` : 'Kwork требует ручную проверку.',
+        )
+      }
+    } catch {}
+  }, [markKworkVerificationNeeded])
+
+  useEffect(() => {
+    refreshKworkHealth()
+    const id = setInterval(refreshKworkHealth, 30_000)
+    return () => clearInterval(id)
+  }, [refreshKworkHealth])
+
+  useWebSocket('ws://127.0.0.1:7788/ws/logs', (msg) => {
+    if (msg.type === 'logs_snapshot') {
+      const items = Array.isArray(msg.items) ? msg.items : []
+      const hit = items.find((item) => isKworkManualVerificationSignal((item as Record<string, unknown>).message))
+      if (hit) {
+        markKworkVerificationNeeded('logs', String((hit as Record<string, unknown>).message || ''))
+      }
+      return
+    }
+    if (msg.type === 'log' && isKworkManualVerificationSignal(msg.message)) {
+      markKworkVerificationNeeded('logs', String(msg.message || ''))
+    }
+  })
+
+  async function handleKworkVerification() {
+    setKworkVerification((prev) => ({ ...prev, opening: true, message: '' }))
+    try {
+      const result = await openKworkVerificationWindow()
+      const message = result?.reused
+        ? 'Окно проверки уже открыто.'
+        : `Окно проверки открыто${result?.imported ? `, импортировано cookies: ${result.imported}` : ''}.`
+      setKworkVerification((prev) => ({ ...prev, opening: false, message }))
+      showToast('Открыл проверку Kwork', true)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Не удалось открыть проверку Kwork'
+      setKworkVerification((prev) => ({ ...prev, opening: false, message }))
+      showToast(message, false)
+    }
   }
 
   async function handleStart() {
@@ -671,6 +767,47 @@ export default function Layout() {
           </div>
         </header>
         <div className="flex-1 overflow-y-auto">
+          {kworkVerification.needed && !kworkVerification.dismissed && (
+            <div className="mx-4 mt-3 rounded-md border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-xs text-amber-100 shadow-lg shadow-black/20">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-amber-50">Kwork просит ручную проверку</div>
+                  <div className="mt-0.5 text-amber-200/75">
+                    Открой окно Kwork, пройди проверку вручную: галочка, слайдер или картинка. PSR сохранит cookies и начнёт использовать их в запросах.
+                  </div>
+                  {kworkVerification.detail && (
+                    <div className="mt-1 max-w-3xl truncate text-amber-200/60" title={kworkVerification.detail}>
+                      Источник: {kworkVerification.source} · {kworkVerification.detail}
+                    </div>
+                  )}
+                  {kworkVerification.message && (
+                    <div className="mt-1 text-amber-200/80">{kworkVerification.message}</div>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    onClick={handleKworkVerification}
+                    disabled={kworkVerification.opening}
+                    className="btn btn-ghost border-amber-500/30 bg-amber-500/10 py-1 text-amber-50 hover:text-white"
+                  >
+                    {kworkVerification.opening ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                    )}
+                    Открыть проверку
+                  </button>
+                  <button
+                    onClick={() => setKworkVerification((prev) => ({ ...prev, dismissed: true }))}
+                    className="btn btn-ghost py-1 text-amber-200/70 hover:text-white"
+                  >
+                    Скрыть
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           <Outlet />
         </div>
       </main>

@@ -49,6 +49,7 @@ PARSING_LOGS_FILE = RUNTIME_DIR / "parsing_logs.txt"
 GENERATED_PROPOSALS_FILE = RUNTIME_DIR / "generated_proposals.txt"
 LAST_LLM_PROMPT_FILE = RUNTIME_DIR / "last_llm_prompt.txt"
 LAST_LLM_RESPONSE_FILE = RUNTIME_DIR / "last_llm_response.txt"
+KWORK_MANUAL_COOKIES_FILE = RUNTIME_DIR / "kwork_manual_cookies.json"
 
 FORM_STRUCTURE_FILE = DEBUG_DIR / "form_structure.txt"
 PAGE_STRUCTURE_FILE = DEBUG_DIR / "page_structure.txt"

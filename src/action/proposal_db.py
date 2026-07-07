@@ -953,7 +953,7 @@ class ProposalDB:
             else:
                 conn.execute(
                     """
-                    UPDATE conversations SET last_message_at = ?, updated_at = ?
+                    UPDATE conversations SET last_message_at = ?, updated_at = ?, status = 'replied'
                     WHERE conversation_id = ?
                     """,
                     (now, now, conversation_id),

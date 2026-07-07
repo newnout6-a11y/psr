@@ -407,3 +407,47 @@ class TestOpenAICompatibleClient:
         assert client._headers()["Authorization"] == "Bearer k1"
         assert client._headers()["Authorization"] == "Bearer k2"
         assert client._headers()["Authorization"] == "Bearer k1"
+
+    @pytest.mark.asyncio
+    async def test_generate_with_images_posts_multimodal_payload(self, monkeypatch):
+        captured = {}
+
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"choices": [{"message": {"content": "visual brief"}}]}
+
+        class FakeClient:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def post(self, url, **kwargs):
+                captured["url"] = url
+                captured["json"] = kwargs.get("json")
+                return FakeResponse()
+
+        monkeypatch.setattr("httpx.AsyncClient", FakeClient)
+        client = OpenAICompatibleClient(api_key="k", base_url="https://api.example.com", wire_api="responses")
+
+        result = await client.generate_with_images(
+            prompt="analyze",
+            image_urls=["data:image/jpeg;base64,aaa"],
+            model="vision-model",
+            temperature=0.1,
+            max_tokens=200,
+            system_prompt="system",
+        )
+
+        assert result == "visual brief"
+        assert captured["url"] == "https://api.example.com/v1/chat/completions"
+        message_content = captured["json"]["messages"][1]["content"]
+        assert message_content[0] == {"type": "text", "text": "analyze"}
+        assert message_content[1]["image_url"]["url"] == "data:image/jpeg;base64,aaa"

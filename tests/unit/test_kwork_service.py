@@ -10,11 +10,15 @@ Tests cover:
 - Max 3 session resets per cycle (Requirement 7.7)
 """
 
+import json
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import pytest
+from yarl import URL
 
-from src.platforms.kwork import KworkService
+from src.platforms.kwork import KworkService, env_kwork_web_cookies, manual_kwork_web_cookies, parse_cookie_env
 
 
 @pytest.fixture
@@ -74,6 +78,186 @@ class TestGetApiSessionHubPriority:
         assert api is mock_kwork
         assert kwork_cls.call_args.kwargs["phone_last"] == "1234"
         assert "phone" not in kwork_cls.call_args.kwargs
+
+    @pytest.mark.asyncio
+    async def test_session_hub_cookie_only_success(self, service, monkeypatch):
+        """Session Hub cookies are enough even when email/password are absent."""
+        monkeypatch.setenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "status": "ok",
+            "count": 1,
+            "cookies": [{"name": "PHPSESSID", "value": "abc123"}],
+        }
+
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=mock_response)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=False)
+
+        mock_kwork = MagicMock()
+        mock_kwork._session = None
+        mock_kwork.session = None
+
+        with patch("httpx.AsyncClient", return_value=mock_client):
+            with patch("kwork.Kwork", return_value=mock_kwork) as kwork_cls:
+                api = await service.get_api()
+
+        assert api is mock_kwork
+        assert kwork_cls.call_args.kwargs["login"] == ""
+        assert kwork_cls.call_args.kwargs["password"] == ""
+
+    @pytest.mark.asyncio
+    async def test_session_hub_cookies_are_applied_to_created_session(self, service):
+        """Session Hub cookies must be present in the actual HTTP session jar."""
+
+        class FakeApi:
+            def __init__(self):
+                self.session = aiohttp.ClientSession()
+
+        api = FakeApi()
+        try:
+            applied = service._apply_cookies_to_api(api, {"PHPSESSID": "abc123", "rememberMe": "xyz789"})
+
+            assert applied is True
+            assert api.session.cookie_jar.filter_cookies(URL("https://kwork.ru/"))["PHPSESSID"].value == "abc123"
+            assert api.session.cookie_jar.filter_cookies(URL("https://api.kwork.ru/"))["rememberMe"].value == "xyz789"
+        finally:
+            await api.session.close()
+
+    def test_web_chat_list_is_normalized(self, service):
+        html = (
+            '<script>window.chatList=[{"user_id":123,"username":"buyer",'
+            '"unread_count":1,"message":"hello","MID":789,"inbox_message_id":456,'
+            '"time":1783335549}];window.other={};</script>'
+        )
+
+        chats = service._extract_chat_list(html)
+        normalized = service._normalize_web_dialog(chats[0])
+
+        assert normalized["user_id"] == 123
+        assert normalized["project_id"] == 123
+        assert normalized["username"] == "buyer"
+        assert normalized["unread"] == 1
+        assert normalized["last_message"] == "hello"
+        assert normalized["last_message_id"] == 789
+
+    def test_manual_kwork_cookies_reads_saved_verification_file(self, monkeypatch, tmp_path):
+        cookie_file = tmp_path / "kwork_manual_cookies.json"
+        cookie_file.write_text(
+            json.dumps(
+                {
+                    "saved_at": "2026-07-07T01:30:00Z",
+                    "cookies": [
+                        {
+                            "name": "captcha_ok",
+                            "value": "yes",
+                            "domain": ".kwork.ru",
+                            "expirationDate": time.time() + 3600,
+                        },
+                        {
+                            "name": "expired",
+                            "value": "no",
+                            "domain": ".kwork.ru",
+                            "expirationDate": time.time() - 10,
+                        },
+                        {"name": "foreign", "value": "skip", "domain": ".example.com"},
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        monkeypatch.setattr("src.platforms.kwork.KWORK_MANUAL_COOKIES_FILE", cookie_file)
+
+        assert manual_kwork_web_cookies() == {"captcha_ok": "yes"}
+
+    @pytest.mark.asyncio
+    async def test_mark_web_dialog_read_opens_dialog_and_uses_api_fallbacks(self, service, monkeypatch):
+        calls: list[tuple[str, int]] = []
+
+        async def fake_cookies():
+            return {"PHPSESSID": "abc"}
+
+        async def fake_inbox_read(message_id: int):
+            calls.append(("message", message_id))
+            return {"success": True}
+
+        async def fake_tracks_read(dialog_id: int):
+            calls.append(("dialog", dialog_id))
+            return {"success": True}
+
+        class FakeResponse:
+            status_code = 200
+
+            def __init__(self, text: str):
+                self.text = text
+
+        class FakeClient:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def get(self, url, **kwargs):
+                if url.endswith("/inbox"):
+                    return FakeResponse(
+                        '<script>window.chatList=[{"user_id":123,"username":"buyer",'
+                        '"dialog_id":456,"unread_count":1,"message":"hello","MID":789,'
+                        '"time":1783335549}];</script>'
+                    )
+                return FakeResponse("<html>dialog</html>")
+
+        monkeypatch.setattr(service, "_fetch_session_hub_cookies", fake_cookies)
+        monkeypatch.setattr(service, "inbox_read", fake_inbox_read)
+        monkeypatch.setattr(service, "mark_inbox_read", fake_tracks_read)
+
+        with patch("httpx.AsyncClient", return_value=FakeClient()):
+            result = await service.mark_web_dialog_read("buyer")
+
+        assert result["ok"] is True
+        assert result["web_opened"] is True
+        assert calls == [("message", 789), ("dialog", 456)]
+
+    @pytest.mark.asyncio
+    async def test_mark_web_dialog_read_opens_username_when_chat_list_misses(self, service, monkeypatch):
+        opened: list[str] = []
+
+        async def fake_cookies():
+            return {"PHPSESSID": "abc"}
+
+        class FakeResponse:
+            status_code = 200
+
+            def __init__(self, text: str):
+                self.text = text
+
+        class FakeClient:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def get(self, url, **kwargs):
+                opened.append(url)
+                if url.endswith("/inbox"):
+                    return FakeResponse("<html>no chat list</html>")
+                return FakeResponse("<html>dialog</html>")
+
+        monkeypatch.setattr(service, "_fetch_session_hub_cookies", fake_cookies)
+        monkeypatch.setattr(service, "inbox_read", AsyncMock(return_value=None))
+        monkeypatch.setattr(service, "mark_inbox_read", AsyncMock(return_value=None))
+
+        with patch("httpx.AsyncClient", return_value=FakeClient()):
+            result = await service.mark_web_dialog_read("buyer")
+
+        assert result["ok"] is True
+        assert result["web_opened"] is True
+        assert result["username"] == "buyer"
+        assert opened[-1].endswith("/inbox/buyer")
 
     @pytest.mark.asyncio
     async def test_session_hub_unavailable_falls_back_to_email(self, service, monkeypatch):
@@ -308,3 +492,31 @@ class TestCachedClient:
 
         api = await service.get_api()
         assert api is mock_api
+
+
+class TestEnvWebCookies:
+    def test_parse_cookie_env_accepts_raw_cookie_header(self):
+        assert parse_cookie_env("slrememberme=a; csrf_user_token=b\nuad=c") == {
+            "slrememberme": "a",
+            "csrf_user_token": "b",
+            "uad": "c",
+        }
+
+    def test_parse_cookie_env_accepts_json_dict(self):
+        assert parse_cookie_env('{"slrememberme":"a","RORSSQIHEK":"b"}') == {
+            "slrememberme": "a",
+            "RORSSQIHEK": "b",
+        }
+
+    def test_env_kwork_web_cookies_supports_real_kwork_names(self, monkeypatch):
+        monkeypatch.setenv("KWORK_COOKIE_SLREMEMBERME", "remember")
+        monkeypatch.setenv("KWORK_COOKIE_CSRF_USER_TOKEN", "csrf")
+        monkeypatch.setenv("KWORK_COOKIE_UAD", "uad")
+        monkeypatch.setenv("KWORK_COOKIE_RORSSQIHEK", "guard")
+
+        cookies = env_kwork_web_cookies()
+
+        assert cookies["slrememberme"] == "remember"
+        assert cookies["csrf_user_token"] == "csrf"
+        assert cookies["uad"] == "uad"
+        assert cookies["RORSSQIHEK"] == "guard"

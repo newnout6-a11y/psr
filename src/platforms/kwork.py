@@ -8,13 +8,18 @@ dates, category ids, price limits and raw user metadata.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+import re
+import time
 from dataclasses import dataclass
 from typing import Any
 
 from loguru import logger
+from yarl import URL
 
+from src.paths import KWORK_MANUAL_COOKIES_FILE
 from src.platforms.kwork_ext import KworkExtensions, apply_kwork_patches
 
 apply_kwork_patches()
@@ -62,6 +67,104 @@ def _strip_html(value: Any) -> str:
         return BeautifulSoup(text, "lxml").get_text(" ", strip=True)
     except Exception:
         return text.strip()
+
+
+def parse_cookie_env(raw: str) -> dict[str, str]:
+    raw = (raw or "").strip()
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+        if isinstance(parsed, dict):
+            return {str(key): str(value) for key, value in parsed.items() if key and value not in (None, "")}
+        if isinstance(parsed, list):
+            result: dict[str, str] = {}
+            for item in parsed:
+                if not isinstance(item, dict):
+                    continue
+                name = str(item.get("name") or "").strip()
+                value = str(item.get("value") or "").strip()
+                if name and value:
+                    result[name] = value
+            return result
+    except json.JSONDecodeError:
+        pass
+
+    result: dict[str, str] = {}
+    for part in re.split(r"[;\n]+", raw):
+        if "=" not in part:
+            continue
+        name, value = part.split("=", 1)
+        name = name.strip()
+        value = value.strip()
+        if name and value:
+            result[name] = value
+    return result
+
+
+def env_kwork_web_cookies() -> dict[str, str]:
+    cookies: dict[str, str] = {}
+    for key in ("KWORK_WEB_COOKIES_JSON", "KWORK_WEB_COOKIES_RAW", "KWORK_COOKIES_JSON", "KWORK_COOKIES_RAW"):
+        cookies.update(parse_cookie_env(os.getenv(key, "")))
+
+    env_map = {
+        "slrememberme": ("KWORK_COOKIE_SLREMEMBERME", "KWORK_COOKIE_REMEMBERME"),
+        "userId": ("KWORK_COOKIE_USERID", "KWORK_COOKIE_USER_ID"),
+        "uad": ("KWORK_COOKIE_UAD",),
+        "csrf_user_token": ("KWORK_COOKIE_CSRF_USER_TOKEN", "KWORK_CSRF_USER_TOKEN", "KWORK_CSRF_TOKEN"),
+        "RORSSQIHEK": ("KWORK_COOKIE_RORSSQIHEK",),
+        "_kmid": ("KWORK_COOKIE_KMID",),
+        "_kmfvt": ("KWORK_COOKIE_KMFVT",),
+        "_kmwl": ("KWORK_COOKIE_KMWL",),
+        "PHPSESSID": ("KWORK_COOKIE_PHPSESSID",),
+    }
+    for cookie_name, env_names in env_map.items():
+        for env_name in env_names:
+            value = os.getenv(env_name, "").strip()
+            if value:
+                cookies[cookie_name] = value
+                break
+    return {name: value for name, value in cookies.items() if name and value}
+
+
+def manual_kwork_web_cookies() -> dict[str, str]:
+    """Cookies saved by the in-app manual Kwork verification window."""
+    try:
+        if not KWORK_MANUAL_COOKIES_FILE.exists():
+            return {}
+        data = json.loads(KWORK_MANUAL_COOKIES_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+    items = data.get("cookies") if isinstance(data, dict) else data
+    if not isinstance(items, list):
+        return {}
+
+    now = time.time()
+    result: dict[str, str] = {}
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        domain = str(item.get("domain") or "")
+        if "kwork.ru" not in domain:
+            continue
+        expires = item.get("expirationDate")
+        try:
+            if expires and float(expires) < now:
+                continue
+        except (TypeError, ValueError):
+            pass
+        name = str(item.get("name") or "").strip()
+        value = str(item.get("value") or "").strip()
+        if name and value:
+            result[name] = value
+    return result
+
+
+def merge_manual_kwork_cookies(cookies: dict[str, str]) -> dict[str, str]:
+    merged = dict(cookies or {})
+    merged.update(manual_kwork_web_cookies())
+    return merged
 
 
 def _extract_json_object_after_marker(html: str, marker: str = STATE_MARKER) -> str | None:
@@ -255,6 +358,9 @@ class KworkService:
     def __post_init__(self) -> None:
         self._api: Any = None
         self._reset_count: int = 0
+        self._session_hub_cookies: dict[str, str] = {}
+        self._session_hub_cookies_at: float = 0.0
+        self._session_hub_fetch_task: asyncio.Task[dict[str, str]] | None = None
 
     def reset_cycle(self) -> None:
         """Reset per-cycle counters. Call at the start of each parsing cycle."""
@@ -304,9 +410,6 @@ class KworkService:
         hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
         email = os.getenv("KWORK_EMAIL", "")
         password = os.getenv("KWORK_PASSWORD", "")
-        if not email or not password:
-            logger.debug("KworkService: Session Hub cookies found path skipped without KWORK_EMAIL/KWORK_PASSWORD")
-            return None
 
         try:
             async with httpx.AsyncClient() as client:
@@ -316,17 +419,20 @@ class KworkService:
                 )
             if resp.status_code != 200:
                 logger.debug(f"KworkService: Session Hub вернул HTTP {resp.status_code}")
-                return None
+                cookies = []
+            else:
+                data = resp.json()
+                cookies = data.get("cookies", [])
+                if data.get("status") != "ok" and not cookies:
+                    logger.debug(f"KworkService: Session Hub статус: {data.get('status')}")
 
-            data = resp.json()
-            if data.get("status") != "ok":
-                logger.debug(f"KworkService: Session Hub статус: {data.get('status')}")
-                return None
-
-            cookies = data.get("cookies", [])
             if not cookies:
-                logger.debug("KworkService: Session Hub вернул пустой список кук")
-                return None
+                manual_cookies = manual_kwork_web_cookies()
+                if manual_cookies:
+                    cookies = [{"name": name, "value": value} for name, value in manual_cookies.items()]
+                else:
+                    logger.debug("KworkService: Session Hub вернул пустой список кук")
+                    return None
 
             # Build cookie dict for kwork library
             cookie_dict: dict[str, str] = {}
@@ -340,31 +446,366 @@ class KworkService:
                 logger.debug("KworkService: Session Hub куки пустые после фильтрации")
                 return None
 
+            cookie_dict = merge_manual_kwork_cookies(cookie_dict)
+            self._session_hub_cookies = cookie_dict
+            self._session_hub_cookies_at = time.monotonic()
+
             # Create Kwork client with cookies from Session Hub
             from kwork import Kwork
             from src.platforms.kwork_ext import get_proxy_rotator
 
             phone = os.getenv("KWORK_PHONE", "")
             api = Kwork(
-                login=email,
-                password=password,
+                login=email or "",
+                password=password or "",
                 phone_last=phone if phone else None,
                 timeout=self.timeout,
                 retry_max_attempts=max(1, self.retry_max_attempts),
                 proxy=get_proxy_rotator().next() if os.getenv("KWORK_PROXY_LIST") else (os.getenv("PROXY_URL") or None),
             )
-            # Inject Session Hub cookies into the client session
-            if hasattr(api, "_session") and api._session is not None:
-                api._session.cookie_jar.update_cookies(cookie_dict)
-            elif hasattr(api, "session") and api.session is not None:
-                api.session.cookie_jar.update_cookies(cookie_dict)
+            # Force-create the underlying HTTP session before injecting cookies.
+            self._apply_cookies_to_api(api, cookie_dict)
+            auth_mode = "email+cookies" if email and password else "cookie-only"
 
             logger.info(f"KworkService: API-клиент инициализирован через Session Hub ({len(cookie_dict)} кук)")
+            logger.debug(f"KworkService: Session Hub auth mode: {auth_mode}")
             return api
 
         except Exception as e:
             logger.debug(f"KworkService: Session Hub недоступен ({e})")
             return None
+
+    async def _fetch_session_hub_cookies(self) -> dict[str, str]:
+        ttl = 90.0
+        try:
+            ttl = max(5.0, float(os.getenv("KWORK_SESSION_HUB_COOKIE_TTL", "90")))
+        except (TypeError, ValueError):
+            ttl = 90.0
+        if self._session_hub_cookies and time.monotonic() - self._session_hub_cookies_at < ttl:
+            return dict(self._session_hub_cookies)
+        if self._session_hub_fetch_task and not self._session_hub_fetch_task.done():
+            return await self._session_hub_fetch_task
+        self._session_hub_fetch_task = asyncio.create_task(self._fetch_session_hub_cookies_uncached())
+        try:
+            return await self._session_hub_fetch_task
+        finally:
+            if self._session_hub_fetch_task.done():
+                self._session_hub_fetch_task = None
+
+    async def _fetch_session_hub_cookies_uncached(self) -> dict[str, str]:
+        """Fetch the latest Kwork cookies from Session Hub as a plain dict."""
+        import httpx
+
+        hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(f"{hub_url}?domain=kwork.ru", timeout=10.0)
+            if resp.status_code != 200:
+                logger.debug(f"KworkService: Session Hub returned HTTP {resp.status_code}")
+                return {}
+
+            data = resp.json()
+            if data.get("status") != "ok" and not data.get("cookies"):
+                logger.debug(f"KworkService: Session Hub status: {data.get('status')}")
+                fallback = merge_manual_kwork_cookies(env_kwork_web_cookies())
+                if fallback:
+                    self._session_hub_cookies = fallback
+                    self._session_hub_cookies_at = time.monotonic()
+                return fallback
+
+            cookie_dict: dict[str, str] = {}
+            for c in data.get("cookies", []):
+                if not isinstance(c, dict):
+                    continue
+                name = str(c.get("name", "") or "")
+                value = str(c.get("value", "") or "")
+                if name and value:
+                    cookie_dict[name] = value
+
+            cookie_dict = merge_manual_kwork_cookies(cookie_dict)
+            if cookie_dict:
+                self._session_hub_cookies = cookie_dict
+                self._session_hub_cookies_at = time.monotonic()
+            return cookie_dict
+        except Exception as e:
+            logger.debug(f"KworkService: Session Hub unavailable ({e})")
+            fallback = merge_manual_kwork_cookies(env_kwork_web_cookies())
+            if fallback:
+                self._session_hub_cookies = fallback
+                self._session_hub_cookies_at = time.monotonic()
+            return fallback
+
+    def _apply_cookies_to_api(self, api: Any, cookies: dict[str, str] | None = None) -> bool:
+        """Apply Session Hub cookies to the underlying Kwork HTTP session."""
+        cookie_dict = cookies or self._session_hub_cookies
+        if not cookie_dict:
+            return False
+
+        try:
+            session = api.session
+        except Exception as e:
+            logger.debug(f"KworkService: failed to create session for cookies: {e}")
+            return False
+
+        try:
+            if hasattr(session, "cookie_jar"):
+                session.cookie_jar.update_cookies(cookie_dict, response_url=URL("https://kwork.ru/"))
+                session.cookie_jar.update_cookies(cookie_dict, response_url=URL("https://api.kwork.ru/"))
+                return True
+            if hasattr(session, "cookies"):
+                session.cookies.update(cookie_dict)
+                return True
+        except TypeError:
+            try:
+                session.cookie_jar.update_cookies(cookie_dict)
+                return True
+            except Exception:
+                pass
+        except Exception as e:
+            logger.debug(f"KworkService: failed to apply Session Hub cookies: {e}")
+        return False
+
+    async def _sync_session_hub_cookies(self, api: Any) -> None:
+        """Refresh cookies for cached clients before cookie-sensitive operations."""
+        cookie_dict = await self._fetch_session_hub_cookies()
+        if cookie_dict:
+            self._apply_cookies_to_api(api, cookie_dict)
+
+    @staticmethod
+    def _extract_chat_list(html: str) -> list[dict[str, Any]]:
+        marker = "window.chatList="
+        idx = html.find(marker)
+        if idx < 0:
+            return []
+        raw = html[idx + len(marker) :].lstrip()
+        try:
+            value, _ = json.JSONDecoder().raw_decode(raw)
+        except Exception as e:
+            logger.debug(f"KworkService: failed to parse web chat list: {e}")
+            return []
+        return value if isinstance(value, list) else []
+
+    @staticmethod
+    def _normalize_web_dialog(item: dict[str, Any]) -> dict[str, Any]:
+        from datetime import datetime
+
+        author = item.get("author") if isinstance(item.get("author"), dict) else {}
+        last_message = item.get("lastMessage") if isinstance(item.get("lastMessage"), dict) else {}
+        username = str(item.get("username") or author.get("username") or "")
+        user_id = item.get("user_id") or author.get("USERID") or author.get("user_id") or username
+        message_id = (
+            last_message.get("MID")
+            or item.get("MID")
+            or last_message.get("inbox_message_id")
+            or item.get("inbox_message_id")
+            or item.get("message_id")
+            or user_id
+        )
+        timestamp = last_message.get("time") or item.get("time") or item.get("created_at") or item.get("updated_at")
+        if isinstance(timestamp, (int, float)) or (isinstance(timestamp, str) and timestamp.isdigit()):
+            last_message_at = datetime.fromtimestamp(int(timestamp)).strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            last_message_at = str(timestamp or "")
+        sender_id = last_message.get("MSGFROM") or item.get("MSGFROM")
+        actor_id = item.get("member_id")
+        sender = "freelancer" if actor_id and sender_id and str(sender_id) == str(actor_id) else "customer"
+
+        return {
+            "id": message_id,
+            "dialog_id": item.get("dialog_id") or item.get("MID") or user_id,
+            "user_id": user_id,
+            "username": username,
+            "project_id": item.get("project_id") or item.get("want_id") or item.get("order_id") or user_id,
+            "project_name": item.get("project_name") or username or "Kwork dialog",
+            "unread": item.get("unread") or item.get("unread_count") or 0,
+            "unread_count": item.get("unread_count") or item.get("unread") or 0,
+            "last_message": str(last_message.get("message") or item.get("message") or item.get("last_message") or ""),
+            "last_message_id": message_id,
+            "last_message_at": last_message_at,
+            "updated_at": last_message_at,
+            "sender": sender,
+        }
+
+    async def get_web_dialogs(self, limit: int = 100) -> list[dict[str, Any]]:
+        """Read Kwork inbox dialogs from the authenticated web page using Session Hub cookies."""
+        import httpx
+
+        cookie_dict = await self._fetch_session_hub_cookies()
+        if not cookie_dict:
+            return []
+
+        try:
+            async with httpx.AsyncClient(
+                follow_redirects=True,
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+                    ),
+                    "Referer": "https://kwork.ru/inbox",
+                },
+                timeout=20.0,
+            ) as client:
+                resp = await client.get(f"{KWORK_BASE_URL}/inbox", cookies=cookie_dict)
+            if resp.status_code != 200:
+                logger.debug(f"KworkService: web inbox returned HTTP {resp.status_code}")
+                return []
+            chats = self._extract_chat_list(resp.text)
+            return [self._normalize_web_dialog(item) for item in chats[:limit] if isinstance(item, dict)]
+        except Exception as e:
+            logger.debug(f"KworkService: failed to read web dialogs: {e}")
+            return []
+
+    async def send_web_message(self, recipient: str | int, text: str) -> dict[str, Any] | None:
+        """Send a Kwork inbox message through the authenticated web form."""
+        import httpx
+
+        message = text.strip()
+        if not message:
+            return None
+
+        cookie_dict = await self._fetch_session_hub_cookies()
+        if not cookie_dict:
+            return None
+
+        try:
+            async with httpx.AsyncClient(
+                follow_redirects=True,
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+                    ),
+                    "Origin": KWORK_BASE_URL,
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                timeout=30.0,
+            ) as client:
+                inbox = await client.get(f"{KWORK_BASE_URL}/inbox", cookies=cookie_dict)
+                chats = self._extract_chat_list(inbox.text)
+                recipient_key = str(recipient).lower()
+                chat = next(
+                    (
+                        item
+                        for item in chats
+                        if str(item.get("user_id") or item.get("USERID") or "").lower() == recipient_key
+                        or str(item.get("username") or "").lower() == recipient_key
+                    ),
+                    None,
+                )
+                if not chat:
+                    logger.debug(f"KworkService: web recipient not found in chat list: {recipient}")
+                    return None
+
+                username = str(chat.get("username") or "")
+                user_id = str(chat.get("user_id") or chat.get("USERID") or recipient)
+                page_url = f"{KWORK_BASE_URL}/inbox/{username}" if username else f"{KWORK_BASE_URL}/inbox"
+                page = await client.get(page_url, cookies=cookie_dict)
+                csrf_match = re.search(r'name="csrftoken"\s+value="([^"]+)"', page.text)
+                user_match = re.search(r"window\.conversationUserId\s*=\s*(\d+)", page.text)
+                csrf = csrf_match.group(1) if csrf_match else ""
+                msgto = user_match.group(1) if user_match else user_id
+                if not csrf or not msgto:
+                    logger.debug("KworkService: web send form is missing csrf or recipient")
+                    return None
+
+                files = {
+                    "csrftoken": (None, csrf),
+                    "submg": (None, "1"),
+                    "msgto": (None, msgto),
+                    "message_body": (None, message),
+                    "message_type": (None, ""),
+                    "allowDialog": (None, "1"),
+                    "quoteId": (None, ""),
+                }
+                resp = await client.post(
+                    f"{KWORK_BASE_URL}/sendmessage",
+                    cookies=cookie_dict,
+                    headers={"Referer": page_url},
+                    files=files,
+                )
+                if resp.status_code != 200:
+                    logger.debug(f"KworkService: web send returned HTTP {resp.status_code}")
+                    return None
+                data = resp.json()
+                if isinstance(data, dict) and data.get("MID"):
+                    logger.info(f"KworkService: web message sent to {username or user_id}")
+                    return data
+                logger.debug(f"KworkService: unexpected web send response: {data}")
+                return None
+        except Exception as e:
+            logger.debug(f"KworkService: failed to send web message: {e}")
+            return None
+
+    async def mark_web_dialog_read(self, recipient: str | int) -> dict[str, Any]:
+        """Best-effort mark a Kwork web dialog as read using the live web session and API fallbacks."""
+        import httpx
+
+        result: dict[str, Any] = {"ok": False, "web_opened": False, "api_read": False, "api_tracks_read": False}
+        cookie_dict = await self._fetch_session_hub_cookies()
+        chat: dict[str, Any] | None = None
+        recipient_key = str(recipient).lower()
+        if not cookie_dict:
+            result["reason"] = "session_hub_cookies_missing"
+
+        if cookie_dict:
+            try:
+                async with httpx.AsyncClient(
+                    follow_redirects=True,
+                    headers={
+                        "User-Agent": (
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+                        ),
+                        "Referer": "https://kwork.ru/inbox",
+                    },
+                    timeout=20.0,
+                ) as client:
+                    inbox = await client.get(f"{KWORK_BASE_URL}/inbox", cookies=cookie_dict)
+                    chats = self._extract_chat_list(inbox.text)
+                    chat = next(
+                        (
+                            item
+                            for item in chats
+                            if str(item.get("user_id") or item.get("USERID") or "").lower() == recipient_key
+                            or str(item.get("username") or "").lower() == recipient_key
+                        ),
+                        None,
+                    )
+                    username = str((chat or {}).get("username") or "")
+                    if not username and not str(recipient).isdigit():
+                        username = str(recipient)
+                    page_url = f"{KWORK_BASE_URL}/inbox/{username}" if username else f"{KWORK_BASE_URL}/inbox"
+                    if chat or username:
+                        page = await client.get(page_url, cookies=cookie_dict)
+                        result["web_opened"] = page.status_code == 200
+                        if username:
+                            result["username"] = username
+            except Exception as e:
+                logger.debug(f"KworkService: failed to open web dialog for read mark: {e}")
+
+        if chat:
+            normalized = self._normalize_web_dialog(chat)
+            message_id = normalized.get("last_message_id")
+            dialog_id = normalized.get("dialog_id") or normalized.get("user_id")
+        else:
+            message_id = None
+            dialog_id = recipient
+
+        try:
+            if message_id and str(message_id).isdigit():
+                result["api_read"] = bool(await self.inbox_read(int(message_id)))
+        except Exception as e:
+            logger.debug(f"KworkService: inboxRead fallback failed: {e}")
+
+        try:
+            if dialog_id and str(dialog_id).isdigit():
+                result["api_tracks_read"] = bool(await self.mark_inbox_read(int(dialog_id)))
+        except Exception as e:
+            logger.debug(f"KworkService: markInboxTracksAsRead fallback failed: {e}")
+
+        result["ok"] = bool(result["web_opened"] or result["api_read"] or result["api_tracks_read"])
+        return result
 
     async def _try_email_password(self) -> Any | None:
         """Attempt direct auth via email/password with retry on 401."""
@@ -610,6 +1051,7 @@ class KworkService:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.send_message_to_client(api, user_id, text)
 
     async def get_dialog_history(self, username: str) -> list[dict[str, Any]]:
@@ -617,6 +1059,7 @@ class KworkService:
         api = await self.get_api()
         if not api:
             return []
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.get_dialog_history(api, username)
 
     async def get_worker_orders(self, status_filter: str = "all") -> list[dict[str, Any]]:
@@ -624,6 +1067,7 @@ class KworkService:
         api = await self.get_api()
         if not api:
             return []
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.get_worker_orders(api, status_filter)
 
     async def get_notifications(self) -> list[dict[str, Any]]:
@@ -631,6 +1075,7 @@ class KworkService:
         api = await self.get_api()
         if not api:
             return []
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.get_notifications(api)
 
     async def get_connects_info(self) -> dict[str, Any]:
@@ -675,6 +1120,7 @@ class KworkService:
         hiring_from: int | None = None,
         kworks_filter_from: int | None = None,
         kworks_filter_to: int | None = None,
+        **filters: Any,
     ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """Получить сырые проекты со всеми полями API (без WantWorker)."""
         api = await self.get_api()
@@ -690,6 +1136,7 @@ class KworkService:
             hiring_from=hiring_from,
             kworks_filter_from=kworks_filter_from,
             kworks_filter_to=kworks_filter_to,
+            **filters,
         )
 
     async def upload_offer_file(self, project_id: int, file_path: str, **kwargs: Any) -> dict[str, Any] | None:
@@ -697,36 +1144,42 @@ class KworkService:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.upload_file_to_offer(api, project_id, file_path, **kwargs)
 
     async def approve_order(self, order_id: int) -> dict[str, Any] | None:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.approve_order(api, order_id)
 
     async def cancel_order_by_worker(self, order_id: int, reason: str = "") -> dict[str, Any] | None:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.cancel_order_by_worker(api, order_id, reason)
 
     async def get_order_details(self, order_id: int) -> dict[str, Any] | None:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.get_order_details(api, order_id)
 
     async def get_order_header(self, order_id: int) -> dict[str, Any] | None:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.get_order_header(api, order_id)
 
     async def get_order_files(self, order_id: int) -> list[dict[str, Any]]:
         api = await self.get_api()
         if not api:
             return []
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.get_order_files(api, order_id)
 
     async def create_review(
@@ -735,6 +1188,7 @@ class KworkService:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.create_review(api, order_id, rating, text, body)
 
     async def get_kwork_reviews_api(self, kwork_id: int, page: int = 1) -> list[dict[str, Any]]:
@@ -747,24 +1201,28 @@ class KworkService:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.inbox_read(api, message_id)
 
     async def mark_inbox_read(self, dialog_id: int) -> dict[str, Any] | None:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.mark_inbox_tracks_as_read(api, dialog_id)
 
     async def set_typing(self, recipient_id: int) -> None:
         api = await self.get_api()
         if not api:
             return
+        await self._sync_session_hub_cookies(api)
         await KworkExtensions.set_typing(api, recipient_id)
 
     async def is_dialog_allowed(self, user_id: int) -> bool:
         api = await self.get_api()
         if not api:
             return True
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.is_dialog_allow(api, user_id)
 
     async def get_wants_count(self, categories: str = "all", **filters: Any) -> int:
@@ -861,6 +1319,7 @@ class KworkService:
         api = await self.get_api()
         if not api:
             return []
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.orders_between(api, user_id)
 
     async def check_is_template(self, project_id: int, description: str) -> bool:
@@ -897,6 +1356,7 @@ class KworkService:
         api = await self.get_api()
         if not api:
             return None
+        await self._sync_session_hub_cookies(api)
         return await KworkExtensions.create_review(api, order_id, rating=rating, text=text)
 
 

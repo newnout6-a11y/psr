@@ -38,7 +38,10 @@ class KworkInboxChecker(InboxChecker):
             self.db.set_runtime_state("inbox.kwork.watermark", ts)
 
     async def _get_api(self):
-        return await self.kwork_service.get_api()
+        api = await self.kwork_service.get_api()
+        if api and hasattr(self.kwork_service, "_sync_session_hub_cookies"):
+            await self.kwork_service._sync_session_hub_cookies(api)
+        return api
 
     async def check_new_messages(self) -> List[Dict]:
         """Проверить новые сообщения в чатах Kwork.
@@ -46,35 +49,57 @@ class KworkInboxChecker(InboxChecker):
         Использует watermark из runtime_state для фильтрации уже обработанных диалогов.
         Watermark = timestamp последней успешной проверки.
         """
-        api = await self._get_api()
-        if not api:
-            return []
-
         new_responses = []
 
         try:
             watermark = self._get_watermark()
             now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            inbox = await api.get_all_dialogs()
-            dialogs = inbox if isinstance(inbox, list) else inbox.get("data", [])
+            dialogs = await self.kwork_service.get_web_dialogs(limit=100)
+            if not dialogs:
+                api = await self._get_api()
+                if not api:
+                    return []
+                inbox = await api.get_all_dialogs()
+                dialogs = inbox if isinstance(inbox, list) else inbox.get("data", [])
 
             for dialog in dialogs:
                 if isinstance(dialog, dict):
-                    project_id = str(dialog.get("project_id", ""))
-                    unread = dialog.get("unread", 0)
-                    last_message = dialog.get("last_message", "")
-                    project_title = dialog.get("project_name", "Неизвестный проект")
                     username = dialog.get("username", dialog.get("user_name", ""))
-                    dialog_id = str(dialog.get("id", dialog.get("dialog_id", "")))
+                    dialog_id = str(dialog.get("id", dialog.get("dialog_id", dialog.get("user_id", username))))
+                    project_id = str(
+                        dialog.get("project_id")
+                        or dialog.get("want_id")
+                        or dialog.get("order_id")
+                        or dialog.get("user_id")
+                        or username
+                        or dialog_id
+                    )
+                    unread = dialog.get("unread", dialog.get("unread_count", 0))
+                    last_message = dialog.get("last_message", "")
+                    if not last_message and isinstance(dialog.get("lastMessage"), dict):
+                        last_message = dialog["lastMessage"].get("message", "")
+                    project_title = dialog.get("project_name", "Неизвестный проект")
                     last_message_at = dialog.get("last_message_at", dialog.get("updated_at", ""))
                 else:
-                    project_id = str(getattr(dialog, "project_id", ""))
-                    unread = getattr(dialog, "unread", 0)
-                    last_message = getattr(dialog, "last_message", "")
-                    project_title = getattr(dialog, "project_name", "Неизвестный проект")
                     username = getattr(dialog, "username", getattr(dialog, "user_name", ""))
-                    dialog_id = str(getattr(dialog, "id", getattr(dialog, "dialog_id", "")))
+                    dialog_id = str(
+                        getattr(dialog, "id", getattr(dialog, "dialog_id", getattr(dialog, "user_id", username)))
+                    )
+                    project_id = str(
+                        getattr(dialog, "project_id", None)
+                        or getattr(dialog, "want_id", None)
+                        or getattr(dialog, "order_id", None)
+                        or getattr(dialog, "user_id", None)
+                        or username
+                        or dialog_id
+                    )
+                    unread = getattr(dialog, "unread", None) or getattr(dialog, "unread_count", 0)
+                    last_message = getattr(dialog, "last_message", "")
+                    if not last_message:
+                        last_message_obj = getattr(dialog, "last_message_obj", None)
+                        last_message = getattr(last_message_obj, "message", "") if last_message_obj else ""
+                    project_title = getattr(dialog, "project_name", "Неизвестный проект")
                     last_message_at = getattr(dialog, "last_message_at", getattr(dialog, "updated_at", ""))
 
                 if not (unread > 0 and last_message and project_id):
@@ -256,14 +281,9 @@ class InboxMonitor:
 
         try:
             from src.platforms.kwork import get_kwork_service
-            from src.platforms.kwork_ext import KworkExtensions
 
             service = get_kwork_service()
-            api = await service.get_api()
-            if not api:
-                return
-
-            orders = await KworkExtensions.get_worker_orders(api, status_filter="all")
+            orders = await service.get_worker_orders(status_filter="all")
             if not orders:
                 return
 

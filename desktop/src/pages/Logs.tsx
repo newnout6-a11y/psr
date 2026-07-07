@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { Trash2, PauseCircle, PlayCircle, Download } from 'lucide-react'
+import { Trash2, PauseCircle, PlayCircle, Download, ShieldCheck, Loader2 } from 'lucide-react'
 import { useWebSocket } from '../hooks/useWebSocket'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
+import { isKworkManualVerificationSignal, openKworkVerificationWindow } from '../lib/kworkVerification'
 
 interface LogEntry {
   id: number
@@ -42,6 +43,8 @@ export default function Logs() {
   const [paused, setPaused] = useState(false)
   const [levelFilter, setLevelFilter] = useState('ALL')
   const [search, setSearch] = useState('')
+  const [verificationOpening, setVerificationOpening] = useState(false)
+  const [verificationMessage, setVerificationMessage] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
   const pausedRef = useRef(paused)
   pausedRef.current = paused
@@ -79,6 +82,7 @@ export default function Logs() {
     if (search && !l.message.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
+  const hasKworkRobotCheck = logs.some((l) => isKworkManualVerificationSignal(l.message))
 
   function handleDownload() {
     const text = filtered.map((l) => `[${l.ts}] ${l.level} | ${l.message}`).join('\n')
@@ -94,6 +98,23 @@ export default function Logs() {
     try {
       await api.clearLogs()
     } catch {}
+  }
+
+  async function handleKworkVerification() {
+    setVerificationOpening(true)
+    setVerificationMessage('')
+    try {
+      const result = await openKworkVerificationWindow()
+      setVerificationMessage(
+        result?.reused
+          ? 'Окно проверки уже открыто.'
+          : `Окно проверки открыто${result?.imported ? `, импортировано cookies: ${result.imported}` : ''}.`,
+      )
+    } catch (error) {
+      setVerificationMessage(error instanceof Error ? error.message : 'Не удалось открыть проверку Kwork')
+    } finally {
+      setVerificationOpening(false)
+    }
   }
 
   return (
@@ -146,6 +167,27 @@ export default function Logs() {
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
+
+      {hasKworkRobotCheck && (
+        <div className="mx-3 mt-3 flex shrink-0 items-center gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+          <ShieldCheck className="h-4 w-4 shrink-0 text-amber-300" />
+          <div className="min-w-0 flex-1">
+            <div className="font-medium">Kwork просит ручную проверку</div>
+            <div className="text-amber-200/70">
+              Открой окно, поставь галочку на странице Kwork сам, потом закрой окно. PSR сохранит обновлённые cookies.
+            </div>
+            {verificationMessage && <div className="mt-1 text-amber-200/80">{verificationMessage}</div>}
+          </div>
+          <button
+            onClick={handleKworkVerification}
+            disabled={verificationOpening}
+            className="btn btn-ghost shrink-0 border-amber-500/30 bg-amber-500/10 py-1 text-amber-100 hover:text-white"
+          >
+            {verificationOpening ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+            Открыть проверку Kwork
+          </button>
+        </div>
+      )}
 
       {/* Log area */}
       <div className="flex-1 overflow-y-auto bg-surface-900/70 p-3 font-mono text-xs">

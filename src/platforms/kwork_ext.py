@@ -523,17 +523,21 @@ class KworkExtensions:
         """Извлечь все ID категорий из дерева."""
         raw = await KworkExtensions.get_categories_raw(api)
         ids: list[int] = []
-        for cat in raw:
-            if isinstance(cat, dict):
-                cat_id = cat.get("id")
-                if cat_id is not None:
-                    ids.append(int(cat_id))
-                for sub in cat.get("categories", []) or cat.get("childs", []) or []:
-                    if isinstance(sub, dict):
-                        sub_id = sub.get("id")
-                        if sub_id is not None:
-                            ids.append(int(sub_id))
-        return list(set(ids))
+
+        def walk(items: Any) -> None:
+            if not isinstance(items, list):
+                return
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                item_id = item.get("id")
+                if item_id is not None:
+                    ids.append(int(item_id))
+                for child_key in ("subcategories", "categories", "childs", "children"):
+                    walk(item.get(child_key))
+
+        walk(raw)
+        return sorted(set(ids))
 
     @staticmethod
     async def get_project_details(api: Any, project_id: int | str) -> dict[str, Any] | None:
@@ -733,6 +737,7 @@ class KworkExtensions:
         hiring_from: int | None = None,
         kworks_filter_from: int | None = None,
         kworks_filter_to: int | None = None,
+        **filters: Any,
     ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """Получить сырые данные проектов без WantWorker парсинга.
 
@@ -754,6 +759,7 @@ class KworkExtensions:
                 hiring_from=hiring_from,
                 kworks_filter_from=kworks_filter_from,
                 kworks_filter_to=kworks_filter_to,
+                **filters,
             )
             response = data.get("response") if isinstance(data, dict) else None
             paging = data.get("paging", {}) if isinstance(data, dict) else {}
@@ -1118,10 +1124,14 @@ class KworkExtensions:
     async def get_kworks_list(api: Any, category_id: int, page: int = 1) -> list[dict[str, Any]]:
         """Список кворков в категории — наши + конкуренты."""
         try:
-            data = await api.request("post", "kworks", category=category_id, page=page)
+            data = await api.request("post", "kworks", categoryId=category_id, page=page)
             response = data.get("response") if isinstance(data, dict) else None
             if isinstance(response, list):
                 return response
+            if isinstance(response, dict):
+                kworks = response.get("kworks") or response.get("items") or response.get("data")
+                if isinstance(kworks, list):
+                    return [item for item in kworks if isinstance(item, dict)]
             return []
         except Exception as e:
             logger.debug(f"KworkExt: не удалось получить список кворков: {e}")

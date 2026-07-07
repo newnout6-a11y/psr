@@ -1,4 +1,5 @@
 const BASE = 'http://127.0.0.1:7788'
+export const API_BASE = BASE
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -6,8 +7,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   })
   if (!res.ok) {
-    const body = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(body.detail ?? res.statusText)
+    const text = await res.text().catch(() => '')
+    let body: Record<string, unknown> = {}
+    try {
+      body = text ? JSON.parse(text) : {}
+    } catch {
+      body = {}
+    }
+    const code = typeof body.code === 'string' && body.code ? ` (${body.code})` : ''
+    const detail =
+      typeof body.detail === 'string' && body.detail
+        ? body.detail
+        : typeof body.message === 'string' && body.message
+          ? body.message
+          : text || res.statusText
+    throw new Error(`HTTP ${res.status}${code}: ${detail}`)
   }
   return res.json()
 }
@@ -119,6 +133,66 @@ export const api = {
       detail?: string
       project?: KworkInspectProject
     }>(`/api/kwork/inspect/${encodeURIComponent(projectId)}`),
+
+  getKworkMarketCategories: () =>
+    request<{ categories: KworkCategoryNode[]; raw?: Record<string, unknown> }>('/api/kwork/market/categories'),
+
+  getKworkCategoryAttributes: (categoryId: number) =>
+    request<KworkCategoryAttributes>(`/api/kwork/market/category/${categoryId}/attributes`),
+
+  getKworkCategoryPrices: (categoryId: number, attributeId?: number) => {
+    const qs = attributeId ? `?attribute_id=${attributeId}` : ''
+    return request<KworkPriceRules>(`/api/kwork/market/category/${categoryId}/prices${qs}`)
+  },
+
+  getKworkFormManifest: (categoryId: number, payload: KworkFormManifestRequest) =>
+    request<KworkFormManifest>(`/api/kwork/market/category/${categoryId}/form-manifest`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  suggestKworkAttribute: (categoryId: number, payload: KworkAttributeSuggestRequest) =>
+    request<KworkAttributeSuggestResult>(`/api/kwork/market/category/${categoryId}/attribute-suggest`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getKworkMarketMetrics: (params: {
+    category_id: number
+    classifier_id?: number
+    include_demand?: boolean
+    include_competitor_details?: boolean
+    competitor_detail_limit?: number
+    page?: number
+    attribute_selection?: Record<string, unknown>
+    attribute_controls?: KworkFormControl[]
+  }) =>
+    request<KworkMarketMetrics>('/api/kwork/market/metrics', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    }),
+
+  createKworkDraft: (payload: KworkDraftRequest) =>
+    request<KworkDraftResult>('/api/kwork/autopublish/draft', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  preflightKworkPublish: (draft: Record<string, unknown>) =>
+    request<KworkPublishPreflightResult>('/api/kwork/autopublish/preflight', {
+      method: 'POST',
+      body: JSON.stringify({ draft }),
+    }),
+
+  publishKworkDraft: (
+    draft: Record<string, unknown>,
+    dryRun = true,
+    options?: { confirm_token?: string; confirmation?: string },
+  ) =>
+    request<KworkPublishResult>('/api/kwork/autopublish/publish', {
+      method: 'POST',
+      body: JSON.stringify({ draft, dry_run: dryRun, ...(options || {}) }),
+    }),
 
   setMode: (mode: string) =>
     request<{ ok: boolean; mode: string }>('/api/orchestrator/mode', {
@@ -271,6 +345,280 @@ export interface KworkInspectProject {
   client_hired_percent?: number
   client_user_id?: string
   platform_data?: Record<string, unknown>
+}
+
+export interface KworkCategoryNode {
+  id: number
+  name: string
+  parent_id?: number | string | null
+  alias?: string | null
+  kworks_count?: number
+  raw?: Record<string, unknown>
+  children?: KworkCategoryNode[]
+}
+
+export interface KworkCategoryAttributes {
+  category_id: number
+  attributes: KworkAttributeRaw[]
+  flat: KworkAttributeFlat[]
+  raw?: Record<string, unknown>
+}
+
+export interface KworkAttributeRaw {
+  id?: number
+  name?: string
+  required?: boolean
+  children?: KworkAttributeRaw[]
+  [key: string]: unknown
+}
+
+export interface KworkAttributeFlat {
+  id: number
+  name: string
+  path: string
+  path_ids: number[]
+  required: boolean
+  allow_multiple: boolean
+  allow_custom: boolean
+  percent_usage?: number | string | null
+  kworks_count: number
+  orders_inprogress_limit?: number | string | null
+  has_children: boolean
+  raw?: Record<string, unknown>
+}
+
+export interface KworkClassifier {
+  id: number
+  name: string
+  kworks_count: number
+  raw?: Record<string, unknown>
+}
+
+export interface KworkCompetitor {
+  id?: number | string
+  title?: string
+  price?: number | string
+  classifier_id?: number | string
+  image_url?: string
+  share_url?: string
+  worker?: string
+  worker_avatar?: string
+  seller_level?: string
+  rating?: number | string
+  reviews?: number | string
+  is_best?: boolean
+  description?: string
+  instruction?: string
+  service_size?: string
+  practice_context?: string
+  detail_status?: string
+  detail_error?: string
+  queue_count?: number
+  work_time_seconds?: number
+  raw?: Record<string, unknown>
+}
+
+export interface KworkDemandSnapshot {
+  status: 'ok' | 'needs_cookies' | 'error' | 'skipped' | string
+  label?: string
+  wants_count?: number
+  sample_count?: number
+  detail?: string
+  sample?: Record<string, unknown>[]
+  meta?: Record<string, unknown>
+  scope?: Record<string, unknown>
+  filter_params?: Record<string, unknown>
+}
+
+export interface KworkMarketMetrics {
+  category_id?: number
+  classifier_id?: number
+  page: number
+  kworks_count: number
+  classifiers: KworkClassifier[]
+  competitors: KworkCompetitor[]
+  practice_context?: Array<Record<string, unknown>>
+  raw_keys: string[]
+  filter_scope?: {
+    params?: Record<string, unknown>
+    selected?: Array<Record<string, unknown>>
+    count?: number
+    effective_classifier_ids?: number[]
+  }
+  filter_requests?: Array<Record<string, unknown>>
+  demand: KworkDemandSnapshot
+}
+
+export interface KworkPriceRules {
+  success?: boolean
+  prices?: {
+    priceGradation?: number[] | Record<string, number[] | Record<string, number>>
+    typicalPriceGradation?: number[]
+    minPrice?: number
+    maxPrice?: number
+    [key: string]: unknown
+  } | null
+  [key: string]: unknown
+}
+
+export interface KworkFormOption {
+  id: number
+  value: number
+  label: string
+  selected?: boolean
+  disabled?: boolean
+  has_child?: boolean
+  data?: Record<string, unknown>
+}
+
+export interface KworkFormControl {
+  group_id: number
+  name: string
+  custom_name?: string
+  label?: string
+  question?: string
+  type: 'radio' | 'checkbox' | 'select' | string
+  multiple: boolean
+  required?: boolean
+  disabled?: boolean
+  options: KworkFormOption[]
+  value?: string
+  placeholder?: string
+  data?: Record<string, unknown>
+}
+
+export interface KworkFormManifest {
+  category_id: number
+  lang: string
+  success?: boolean
+  code?: string
+  detail?: string
+  final_url?: string
+  http_status?: number | null
+  selected: Record<string, unknown>
+  controls: KworkFormControl[]
+  fragments?: Array<Record<string, unknown>>
+  unresolved_required?: string[]
+}
+
+export interface KworkFormManifestRequest {
+  classifier_id?: number
+  selection?: Record<string, unknown>
+  lang?: string
+}
+
+export interface KworkAttributeSuggestRequest {
+  classifier_id?: number
+  category_name?: string
+  classifier_name?: string
+  service_summary?: string
+  audience?: string
+  control: KworkFormControl
+  controls?: KworkFormControl[]
+  selection?: Record<string, unknown>
+  market_context?: Record<string, unknown>
+  mode?: string
+  use_llm?: boolean
+  lang?: string
+}
+
+export interface KworkAttributeSuggestResult {
+  ok: boolean
+  source: 'llm' | 'fallback' | string
+  control: string
+  selected_ids: number[]
+  selection: Record<string, unknown>
+  reason?: string
+  confidence?: number
+}
+
+export interface KworkDraftRequest {
+  category_id: number
+  category_name?: string
+  classifier_id?: number
+  classifier_name?: string
+  service_summary?: string
+  brief?: string
+  audience?: string
+  market_context?: Record<string, unknown>
+  portfolio_context?: string
+  attributes?: Record<string, unknown>
+  attribute_manifest?: KworkFormManifest | Record<string, unknown>
+  attribute_selection?: Record<string, unknown>
+  price?: number
+  work_time?: number
+  lang?: string
+  use_llm?: boolean
+  generate_image?: boolean
+  image_context?: string
+  cover_text?: string
+  cover_subtitle?: string
+  use_cover_prompt_llm?: boolean
+  cover_prompt_provider?: string
+  cover_prompt_model?: string
+  cover_prompt_temperature?: number
+  use_competitor_image_analysis?: boolean
+  cover_vision_provider?: string
+  cover_vision_model?: string
+  cover_vision_temperature?: number
+  cover_vision_max_tokens?: number
+  provider?: string
+  model?: string
+  temperature?: number
+}
+
+export interface KworkCoverImageResult {
+  status?: string
+  path?: string
+  asset_url?: string
+  filename?: string
+  detail?: string
+  prompt?: string
+  prompt_source?: string
+  text_overlay?: boolean
+  visual_analysis_status?: 'analyzed' | 'empty' | 'failed' | 'disabled' | 'no_images' | 'download_failed' | string
+  competitor_images_seen?: number
+  visual_style_brief?: string
+  visual_analysis_detail?: string
+  cover_prompt_context?: Record<string, unknown>
+  sidecar_path?: string
+}
+
+export interface KworkDraftResult {
+  ok: boolean
+  draft: Record<string, any>
+  image?: KworkCoverImageResult | null
+}
+
+export interface KworkPublishResult {
+  ok: boolean
+  dry_run: boolean
+  payload: Record<string, any>
+  code?: string
+  detail?: string
+  preflight?: Record<string, any>
+  confirmation?: Record<string, any>
+  web_state?: Record<string, any>
+  save_result?: Record<string, any>
+  verify_result?: Record<string, any>
+  upload?: Record<string, any>
+}
+
+export interface KworkPublishPreflightResult {
+  ok: boolean
+  dry_run: boolean
+  payload: Record<string, any>
+  preflight: {
+    ok: boolean
+    missing?: string[]
+    code?: string
+    detail?: string
+  }
+  token?: string
+  draft_hash?: string
+  expires_at?: number
+  ttl_seconds?: number
+  confirmation_phrase?: string
 }
 
 export interface OverviewMetrics {
@@ -541,6 +889,7 @@ export interface ConversationRow {
   project_title?: string
   status: string
   last_message_at?: string
+  message_count?: number
   created_at: string
   updated_at: string
 }
@@ -555,8 +904,24 @@ export interface ConversationMessage {
 ;(api as any).getConversations = (limit = 50) =>
   request<ConversationRow[]>(`/api/dashboard/conversations?limit=${limit}`)
 ;(api as any).getConversationHistory = (projectId: string, platform: string) =>
-  request<{ messages: ConversationMessage[]; username: string }>(
+  request<{ messages: ConversationMessage[]; username: string; read_state?: Record<string, unknown> | null }>(
     `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}`,
+  )
+;(api as any).draftConversationReply = (projectId: string, platform: string, tone = 'friendly') =>
+  request<{ ok: boolean; text: string }>(
+    `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}/draft`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ tone }),
+    },
+  )
+;(api as any).sendConversationMessage = (projectId: string, platform: string, text: string) =>
+  request<{ ok: boolean; message_id?: number }>(
+    `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}/message`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    },
   )
 ;(api as any).getCandidateDialog = (id: number) =>
   request<{ messages: any[]; username: string }>(`/api/candidates/${id}/dialog`)
