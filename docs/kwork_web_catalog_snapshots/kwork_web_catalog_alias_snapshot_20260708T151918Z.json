@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-07-08T15:19:18Z",
+  "source": "psr.kwork_web_catalog_alias_snapshot",
+  "config": {
+    "aliases": [
+      "programming",
+      "design"
+    ],
+    "page": 1,
+    "page_size": 10,
+    "delay_seconds": 2.0,
+    "include_raw": false,
+    "cookie_count": 17
+  },
+  "results": [
+    {
+      "alias": "programming",
+      "endpoint": "/catalog_kworks_filters/programming",
+      "url": "https://kwork.ru/catalog_kworks_filters/programming",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status_code": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "protection_status": "blocked",
+      "success": false,
+      "body_prefix": "Доступ заблокирован Вам заблокирован доступ к сайту в связи с большой нагрузкой на сайт с вашей стороны. Скорее всего она вызвана автоматическими скриптами, работающими на вашей стороне. Использование автоматических скриптов для обращения…"
+    },
+    {
+      "alias": "design",
+      "endpoint": "/catalog_kworks_filters/design",
+      "url": "https://kwork.ru/catalog_kworks_filters/design",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status_code": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "protection_status": "blocked",
+      "success": false,
+      "body_prefix": "Доступ заблокирован Вам заблокирован доступ к сайту в связи с большой нагрузкой на сайт с вашей стороны. Скорее всего она вызвана автоматическими скриптами, работающими на вашей стороне. Использование автоматических скриптов для обращения…"
+    }
+  ],
+  "errors": [],
+  "aggregate": {
+    "alias_count": 2,
+    "ok_count": 0,
+    "blocked_count": 2,
+    "empty_or_invalid_alias_count": 0,
+    "status_counts": [
+      [
+        "blocked",
+        2
+      ]
+    ]
+  },
+  "timings_ms": {
+    "total": 4168
+  },
+  "file_path": "docs\\kwork_web_catalog_snapshots\\kwork_web_catalog_alias_snapshot_20260708T151918Z.json",
+  "session_hub": {
+    "cookie_count": 17,
+    "error": null
+  }
+}

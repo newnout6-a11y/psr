@@ -1,0 +1,2801 @@
+{
+  "generated_at": "2026-07-08",
+  "credential_mode": "env_loaded_no_secret_output",
+  "rubrics": [
+    {
+      "id": 15,
+      "name": "Дизайн",
+      "order": 1,
+      "rubric_description": "Логотипы, веб-дизайн, визитки"
+    },
+    {
+      "id": 11,
+      "name": "Разработка и IT",
+      "order": 2,
+      "rubric_description": "Доработка, сайт под ключ"
+    },
+    {
+      "id": 5,
+      "name": "Тексты и переводы",
+      "order": 3,
+      "rubric_description": "Статьи, корректура, переводы"
+    },
+    {
+      "id": 17,
+      "name": "SEO и трафик",
+      "order": 4,
+      "rubric_description": "Аудиты, ссылки, трафик"
+    },
+    {
+      "id": 45,
+      "name": "Соцсети и маркетинг",
+      "order": 5,
+      "rubric_description": "Маркетинг, продвижение, PR"
+    },
+    {
+      "id": 7,
+      "name": "Аудио, видео, съемка",
+      "order": 6,
+      "rubric_description": "Музыка, обработка, видеоролики"
+    },
+    {
+      "id": 83,
+      "name": "Бизнес и жизнь",
+      "order": 7,
+      "rubric_description": "Наполнение сайта, консультации"
+    }
+  ],
+  "catalog_categories_by_rubric": {
+    "15": {
+      "rubric": "Дизайн",
+      "count": 11,
+      "items": [
+        {
+          "id": 25,
+          "name": "Логотип и брендинг",
+          "kworks_count": 46233,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 24,
+          "name": "Веб и мобильный дизайн",
+          "kworks_count": 17598,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 28,
+          "name": "Арт и иллюстрации",
+          "kworks_count": 28097,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 27,
+          "name": "Полиграфия",
+          "kworks_count": 9792,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 90,
+          "name": "Интерьер и экстерьер",
+          "kworks_count": 8532,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 250,
+          "name": "Промышленный дизайн",
+          "kworks_count": 3044,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 306,
+          "name": "ИИ-генерация изображений",
+          "kworks_count": 22299,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 270,
+          "name": "Презентации и инфографика",
+          "kworks_count": 14560,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 68,
+          "name": "Обработка и редактирование",
+          "kworks_count": 16927,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 272,
+          "name": "Наружная реклама",
+          "kworks_count": 1609,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 286,
+          "name": "Маркетплейсы и соцсети",
+          "kworks_count": 91000,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        }
+      ]
+    },
+    "11": {
+      "rubric": "Разработка и IT",
+      "count": 9,
+      "items": [
+        {
+          "id": 38,
+          "name": "Доработка и настройка сайта",
+          "kworks_count": 13712,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 37,
+          "name": "Создание сайта",
+          "kworks_count": 24150,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 41,
+          "name": "Скрипты, боты и mini apps",
+          "kworks_count": 37925,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 79,
+          "name": "Верстка",
+          "kworks_count": 6508,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 80,
+          "name": "Десктоп программирование",
+          "kworks_count": 5201,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 39,
+          "name": "Мобильные приложения",
+          "kworks_count": 1836,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 40,
+          "name": "Игры",
+          "kworks_count": 2439,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 255,
+          "name": "Сервера и хостинг",
+          "kworks_count": 3432,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 81,
+          "name": "Юзабилити, тесты и помощь",
+          "kworks_count": 7697,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        }
+      ]
+    },
+    "5": {
+      "rubric": "Тексты и переводы",
+      "count": 6,
+      "items": [
+        {
+          "id": 235,
+          "name": "Резюме и вакансии",
+          "kworks_count": 2130,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 75,
+          "name": "Набор текста",
+          "kworks_count": 64268,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 74,
+          "name": "Продающие и бизнес-тексты",
+          "kworks_count": 13040,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 73,
+          "name": "Тексты и наполнение сайта",
+          "kworks_count": 46383,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 35,
+          "name": "Переводы",
+          "kworks_count": 59860,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 303,
+          "name": "ИИ-тексты",
+          "kworks_count": 5304,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        }
+      ]
+    },
+    "17": {
+      "rubric": "SEO и трафик",
+      "count": 7,
+      "items": [
+        {
+          "id": 72,
+          "name": "Трафик",
+          "kworks_count": 3101,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 71,
+          "name": "Семантическое ядро",
+          "kworks_count": 1231,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 59,
+          "name": "Ссылки",
+          "kworks_count": 45547,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 56,
+          "name": "Статистика и аналитика",
+          "kworks_count": 2148,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 44,
+          "name": "SEO аудиты, консультации",
+          "kworks_count": 2387,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 43,
+          "name": "Внутренняя оптимизация",
+          "kworks_count": 1938,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 273,
+          "name": "Продвижение сайта в топ",
+          "kworks_count": 2993,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        }
+      ]
+    },
+    "45": {
+      "rubric": "Соцсети и маркетинг",
+      "count": 6,
+      "items": [
+        {
+          "id": 113,
+          "name": "Базы данных и клиентов",
+          "kworks_count": 41796,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 112,
+          "name": "Маркетплейсы и доски объявлений",
+          "kworks_count": 24983,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 108,
+          "name": "E-mail маркетинг и рассылки",
+          "kworks_count": 1145,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 49,
+          "name": "Контекстная реклама",
+          "kworks_count": 7421,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 47,
+          "name": "Маркетинг и PR",
+          "kworks_count": 6136,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 46,
+          "name": "Соцсети и SMM",
+          "kworks_count": 25769,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        }
+      ]
+    },
+    "7": {
+      "rubric": "Аудио, видео, съемка",
+      "count": 7,
+      "items": [
+        {
+          "id": 106,
+          "name": "Редактирование аудио",
+          "kworks_count": 1776,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 78,
+          "name": "Видеосъемка и монтаж",
+          "kworks_count": 14092,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 77,
+          "name": "Интро и анимация логотипа",
+          "kworks_count": 2004,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 76,
+          "name": "Видеоролики",
+          "kworks_count": 3855,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 23,
+          "name": "Музыка и песни",
+          "kworks_count": 6386,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 20,
+          "name": "Аудиозапись и озвучка",
+          "kworks_count": 2351,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 300,
+          "name": "ИИ-генерация видео",
+          "kworks_count": 3655,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        }
+      ]
+    },
+    "83": {
+      "rubric": "Бизнес и жизнь",
+      "count": 8,
+      "items": [
+        {
+          "id": 114,
+          "name": "Продажа сайтов и групп",
+          "kworks_count": 4208,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 84,
+          "name": "Персональный помощник",
+          "kworks_count": 13814,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 64,
+          "name": "Бухгалтерия и налоги",
+          "kworks_count": 3363,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 63,
+          "name": "Юридическая помощь",
+          "kworks_count": 8189,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 55,
+          "name": "Обучение и консалтинг",
+          "kworks_count": 7601,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 262,
+          "name": "Обзвоны и продажи",
+          "kworks_count": 587,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 265,
+          "name": "Подбор персонала",
+          "kworks_count": 640,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        },
+        {
+          "id": 65,
+          "name": "Стройка и ремонт",
+          "kworks_count": 4531,
+          "parent_id": null,
+          "classifier_id": null,
+          "cover_url": null
+        }
+      ]
+    }
+  },
+  "catalog_categories_total_from_rubrics": 54,
+  "catalog_mainv2_blocks": [
+    {
+      "block": "popular_categories_block",
+      "count": 74,
+      "top": [
+        {
+          "path": "popular_categories_block[0].categories[20]",
+          "name": "Дизайн для маркетплейсов",
+          "category_id": 286,
+          "classifier_id": 1433413,
+          "kworks_count": 82696,
+          "order": 20,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1362-mobile-1656344436.jpg"
+        },
+        {
+          "path": "popular_categories_block[1].categories[0]",
+          "name": "Ссылки",
+          "category_id": 59,
+          "classifier_id": null,
+          "kworks_count": 45547,
+          "order": 0,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/15-mobile-1606474584.jpg"
+        },
+        {
+          "path": "popular_categories_block[2].categories[13]",
+          "name": "Готовые базы",
+          "category_id": 113,
+          "classifier_id": 1117,
+          "kworks_count": 34073,
+          "order": 13,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/628-mobile-1606475669.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[0]",
+          "name": "Логотипы",
+          "category_id": 25,
+          "classifier_id": 401928,
+          "kworks_count": 33636,
+          "order": 0,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/102-mobile-1606468637.jpg"
+        },
+        {
+          "path": "popular_categories_block[2].categories[16]",
+          "name": "Маркетплейсы",
+          "category_id": 112,
+          "classifier_id": 1357,
+          "kworks_count": 21114,
+          "order": 16,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/643-mobile-1606475806.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[8]",
+          "name": "Иллюстрации и рисунки",
+          "category_id": 28,
+          "classifier_id": 819,
+          "kworks_count": 18150,
+          "order": 8,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/817-mobile-1606475105.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[4]",
+          "name": "Презентации",
+          "category_id": 270,
+          "classifier_id": 314398,
+          "kworks_count": 11605,
+          "order": 4,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/436-mobile-1606468793.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[26]",
+          "name": "Фотомонтаж и обработка",
+          "category_id": 68,
+          "classifier_id": 399860,
+          "kworks_count": 11495,
+          "order": 26,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/117-mobile-1606469218.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[14]",
+          "name": "Веб-дизайн",
+          "category_id": 24,
+          "classifier_id": 393348,
+          "kworks_count": 11331,
+          "order": 14,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/78-mobile-1606469054.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[19]",
+          "name": "Дизайн в соцсетях",
+          "category_id": 286,
+          "classifier_id": 1433356,
+          "kworks_count": 8304,
+          "order": 19,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/90-mobile-1606469137.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[2]",
+          "name": "Визитки",
+          "category_id": 25,
+          "classifier_id": 402019,
+          "kworks_count": 7844,
+          "order": 2,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/81-mobile-1606468677.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[40]",
+          "name": "Нейрофотосессия",
+          "category_id": 306,
+          "classifier_id": 4200138,
+          "kworks_count": 7526,
+          "order": 40,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1416-mobile-1752600632.jpg"
+        },
+        {
+          "path": "popular_categories_block[2].categories[12]",
+          "name": "Сбор данных",
+          "category_id": 113,
+          "classifier_id": 1116,
+          "kworks_count": 7234,
+          "order": 12,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/626-mobile-1606475654.jpg"
+        },
+        {
+          "path": "popular_categories_block[2].categories[2]",
+          "name": "Telegram",
+          "category_id": 46,
+          "classifier_id": 281,
+          "kworks_count": 7157,
+          "order": 2,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/607-mobile-1606474824.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[43]",
+          "name": "ИИ-логотипы и инфографика",
+          "category_id": 306,
+          "classifier_id": 4200156,
+          "kworks_count": 6642,
+          "order": 43,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1422-mobile-1752600731.jpg"
+        },
+        {
+          "path": "popular_categories_block[2].categories[11]",
+          "name": "Яндекс Директ",
+          "category_id": 49,
+          "classifier_id": 206,
+          "kworks_count": 6590,
+          "order": 11,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/622-mobile-1606475542.jpg"
+        },
+        {
+          "path": "popular_categories_block[2].categories[0]",
+          "name": "Youtube",
+          "category_id": 46,
+          "classifier_id": 265,
+          "kworks_count": 5584,
+          "order": 0,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/598-mobile-1606474786.jpg"
+        },
+        {
+          "path": "popular_categories_block[2].categories[1]",
+          "name": "ВКонтакте",
+          "category_id": 46,
+          "classifier_id": 242,
+          "kworks_count": 5296,
+          "order": 1,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/601-mobile-1606474798.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[21]",
+          "name": "Интерьер",
+          "category_id": 90,
+          "classifier_id": 206908,
+          "kworks_count": 5058,
+          "order": 21,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/476-mobile-1606469266.jpg"
+        },
+        {
+          "path": "popular_categories_block[0].categories[42]",
+          "name": "ИИ-иллюстрации и концепт-арт",
+          "category_id": 306,
+          "classifier_id": 4200150,
+          "kworks_count": 4929,
+          "order": 42,
+          "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1420-mobile-1752600704.jpg"
+        }
+      ]
+    },
+    {
+      "block": "catalog_service_block",
+      "count": 0,
+      "top": []
+    },
+    {
+      "block": "other_services_block",
+      "count": 10,
+      "top": [
+        {
+          "path": "other_services_block[0]",
+          "name": "Ссылки",
+          "category_id": 59,
+          "classifier_id": null,
+          "kworks_count": null,
+          "order": 0,
+          "cover_url": "https://cdn-edge.kwork.ru/files/category/collage/categories_second_level/ru/t1_r/links_mobile.jpg"
+        },
+        {
+          "path": "other_services_block[1]",
+          "name": "Продвижение сайта в топ",
+          "category_id": 273,
+          "classifier_id": null,
+          "kworks_count": null,
+          "order": 1,
+          "cover_url": "https://cdn-edge.kwork.ru/files/category/collage/categories_second_level/ru/t1_r/vyvod-zaprosov-v-top_mobile.jpg"
+        },
+        {
+          "path": "other_services_block[2]",
+          "name": "Новый сайт",
+          "category_id": 37,
+          "classifier_id": 5016,
+          "kworks_count": null,
+          "order": 2,
+          "cover_url": ""
+        },
+        {
+          "path": "other_services_block[3]",
+          "name": "Доработка сайта",
+          "category_id": 38,
+          "classifier_id": 1271,
+          "kworks_count": null,
+          "order": 3,
+          "cover_url": ""
+        },
+        {
+          "path": "other_services_block[4]",
+          "name": "Яндекс Директ",
+          "category_id": 49,
+          "classifier_id": 206,
+          "kworks_count": null,
+          "order": 4,
+          "cover_url": ""
+        },
+        {
+          "path": "other_services_block[5]",
+          "name": "Видеосъемка и монтаж",
+          "category_id": 78,
+          "classifier_id": null,
+          "kworks_count": null,
+          "order": 5,
+          "cover_url": "https://cdn-edge.kwork.ru/files/category/collage/categories_second_level/ru/t1_r/editing-media_mobile.jpg"
+        },
+        {
+          "path": "other_services_block[6]",
+          "name": "Контент-маркетинг",
+          "category_id": 47,
+          "classifier_id": 1356,
+          "kworks_count": null,
+          "order": 6,
+          "cover_url": ""
+        },
+        {
+          "path": "other_services_block[7]",
+          "name": "Веб-дизайн",
+          "category_id": 24,
+          "classifier_id": 393348,
+          "kworks_count": null,
+          "order": 7,
+          "cover_url": ""
+        },
+        {
+          "path": "other_services_block[8]",
+          "name": "SEO аудиты, консультации",
+          "category_id": 44,
+          "classifier_id": null,
+          "kworks_count": null,
+          "order": 8,
+          "cover_url": "https://cdn-edge.kwork.ru/files/category/collage/categories_second_level/ru/t1_r/audit_mobile.jpg"
+        },
+        {
+          "path": "other_services_block[9]",
+          "name": "Продвижение музыки",
+          "category_id": 47,
+          "classifier_id": 710463,
+          "kworks_count": null,
+          "order": 9,
+          "cover_url": ""
+        }
+      ]
+    }
+  ],
+  "catalog_mainv2_total_items": 84,
+  "catalog_mainv2_top_market_seeds": [
+    {
+      "path": "popular_categories_block[0].categories[20]",
+      "name": "Дизайн для маркетплейсов",
+      "category_id": 286,
+      "classifier_id": 1433413,
+      "kworks_count": 82696,
+      "order": 20,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1362-mobile-1656344436.jpg"
+    },
+    {
+      "path": "popular_categories_block[1].categories[0]",
+      "name": "Ссылки",
+      "category_id": 59,
+      "classifier_id": null,
+      "kworks_count": 45547,
+      "order": 0,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/15-mobile-1606474584.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[13]",
+      "name": "Готовые базы",
+      "category_id": 113,
+      "classifier_id": 1117,
+      "kworks_count": 34073,
+      "order": 13,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/628-mobile-1606475669.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[0]",
+      "name": "Логотипы",
+      "category_id": 25,
+      "classifier_id": 401928,
+      "kworks_count": 33636,
+      "order": 0,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/102-mobile-1606468637.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[16]",
+      "name": "Маркетплейсы",
+      "category_id": 112,
+      "classifier_id": 1357,
+      "kworks_count": 21114,
+      "order": 16,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/643-mobile-1606475806.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[8]",
+      "name": "Иллюстрации и рисунки",
+      "category_id": 28,
+      "classifier_id": 819,
+      "kworks_count": 18150,
+      "order": 8,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/817-mobile-1606475105.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[4]",
+      "name": "Презентации",
+      "category_id": 270,
+      "classifier_id": 314398,
+      "kworks_count": 11605,
+      "order": 4,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/436-mobile-1606468793.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[26]",
+      "name": "Фотомонтаж и обработка",
+      "category_id": 68,
+      "classifier_id": 399860,
+      "kworks_count": 11495,
+      "order": 26,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/117-mobile-1606469218.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[14]",
+      "name": "Веб-дизайн",
+      "category_id": 24,
+      "classifier_id": 393348,
+      "kworks_count": 11331,
+      "order": 14,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/78-mobile-1606469054.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[19]",
+      "name": "Дизайн в соцсетях",
+      "category_id": 286,
+      "classifier_id": 1433356,
+      "kworks_count": 8304,
+      "order": 19,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/90-mobile-1606469137.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[2]",
+      "name": "Визитки",
+      "category_id": 25,
+      "classifier_id": 402019,
+      "kworks_count": 7844,
+      "order": 2,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/81-mobile-1606468677.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[40]",
+      "name": "Нейрофотосессия",
+      "category_id": 306,
+      "classifier_id": 4200138,
+      "kworks_count": 7526,
+      "order": 40,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1416-mobile-1752600632.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[12]",
+      "name": "Сбор данных",
+      "category_id": 113,
+      "classifier_id": 1116,
+      "kworks_count": 7234,
+      "order": 12,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/626-mobile-1606475654.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[2]",
+      "name": "Telegram",
+      "category_id": 46,
+      "classifier_id": 281,
+      "kworks_count": 7157,
+      "order": 2,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/607-mobile-1606474824.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[43]",
+      "name": "ИИ-логотипы и инфографика",
+      "category_id": 306,
+      "classifier_id": 4200156,
+      "kworks_count": 6642,
+      "order": 43,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1422-mobile-1752600731.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[11]",
+      "name": "Яндекс Директ",
+      "category_id": 49,
+      "classifier_id": 206,
+      "kworks_count": 6590,
+      "order": 11,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/622-mobile-1606475542.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[0]",
+      "name": "Youtube",
+      "category_id": 46,
+      "classifier_id": 265,
+      "kworks_count": 5584,
+      "order": 0,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/598-mobile-1606474786.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[1]",
+      "name": "ВКонтакте",
+      "category_id": 46,
+      "classifier_id": 242,
+      "kworks_count": 5296,
+      "order": 1,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/601-mobile-1606474798.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[21]",
+      "name": "Интерьер",
+      "category_id": 90,
+      "classifier_id": 206908,
+      "kworks_count": 5058,
+      "order": 21,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/476-mobile-1606469266.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[42]",
+      "name": "ИИ-иллюстрации и концепт-арт",
+      "category_id": 306,
+      "classifier_id": 4200150,
+      "kworks_count": 4929,
+      "order": 42,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1420-mobile-1752600704.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[19]",
+      "name": "Контент-маркетинг",
+      "category_id": 47,
+      "classifier_id": 1356,
+      "kworks_count": 4670,
+      "order": 19,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/646-mobile-1606475860.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[17]",
+      "name": "Баннеры и иконки",
+      "category_id": 24,
+      "classifier_id": 398966,
+      "kworks_count": 4365,
+      "order": 17,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/75-mobile-1606469116.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[1]",
+      "name": "Фирменный стиль",
+      "category_id": 25,
+      "classifier_id": 401976,
+      "kworks_count": 4159,
+      "order": 1,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/114-mobile-1606468650.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[27]",
+      "name": "3D-графика",
+      "category_id": 68,
+      "classifier_id": 399851,
+      "kworks_count": 3950,
+      "order": 27,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/812-mobile-1606469229.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[9]",
+      "name": "Другие",
+      "category_id": 46,
+      "classifier_id": 302,
+      "kworks_count": 3493,
+      "order": 9,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/616-mobile-1606474878.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[7]",
+      "name": "Портрет, шарж, карикатура",
+      "category_id": 28,
+      "classifier_id": 398135,
+      "kworks_count": 3479,
+      "order": 7,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/449-mobile-1606468862.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[41]",
+      "name": "ИИ-аватары и портреты",
+      "category_id": 306,
+      "classifier_id": 4200145,
+      "kworks_count": 3202,
+      "order": 41,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1418-mobile-1752600668.jpg"
+    },
+    {
+      "path": "popular_categories_block[2].categories[17]",
+      "name": "Доски объявлений",
+      "category_id": 112,
+      "classifier_id": 1466231,
+      "kworks_count": 3109,
+      "order": 17,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/638-mobile-1606475783.jpg"
+    },
+    {
+      "path": "popular_categories_block[1].categories[1]",
+      "name": "Продвижение сайта в топ",
+      "category_id": 273,
+      "classifier_id": null,
+      "kworks_count": 2993,
+      "order": 1,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/569-mobile-1606474596.jpg"
+    },
+    {
+      "path": "popular_categories_block[0].categories[5]",
+      "name": "Инфографика",
+      "category_id": 270,
+      "classifier_id": 314408,
+      "kworks_count": 2653,
+      "order": 5,
+      "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/99-mobile-1611588723.jpg"
+    }
+  ],
+  "catalog_main_token_counts": {
+    "rubrics": 7,
+    "popular_categories": 4,
+    "popular_kworks": 20,
+    "viewed_kworks": 3
+  },
+  "catalog_main_token_popular_kwork_keys": [
+    "id",
+    "category_id",
+    "category_name",
+    "status_id",
+    "status_name",
+    "title",
+    "url",
+    "share_url",
+    "image_url",
+    "cover",
+    "price",
+    "is_price_from",
+    "is_from",
+    "is_best",
+    "is_hidden",
+    "is_favorite",
+    "lang",
+    "worker",
+    "activity",
+    "edits_list",
+    "not_available_for_company",
+    "isSubscription",
+    "badges"
+  ],
+  "catalog_main_token_popular_kworks_sample": [
+    {
+      "id": 1532,
+      "title": "500 ссылок на ваш сайт, поднимаем запросы",
+      "name": null,
+      "price": 750,
+      "category_id": 59,
+      "category_name": "Ссылки",
+      "worker": {
+        "id": 1310,
+        "username": "Seovzlet",
+        "fullname": "Иван",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/05/1310-7.jpg",
+        "rating": 5,
+        "reviews_count": 2474,
+        "rating_count": 2474,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/links/1532/500-ssylok-na-vash-sayt-podnimaem-zaprosy"
+    },
+    {
+      "id": 22476,
+      "title": "Ведение группы ВКонтакте",
+      "name": null,
+      "price": 500,
+      "category_id": 46,
+      "category_name": "Соцсети и SMM",
+      "worker": {
+        "id": 1845,
+        "username": "domadonetsk",
+        "fullname": "Мария Пирогова",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/55/1845-2.jpg",
+        "rating": 5,
+        "reviews_count": 929,
+        "rating_count": 929,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/smm/22476/vedenie-gruppy-vkontakte"
+    },
+    {
+      "id": 38691,
+      "title": "Размещение 1 пресс-релиза на 38 площадках+подарок",
+      "name": null,
+      "price": 500,
+      "category_id": 47,
+      "category_name": "Маркетинг и PR",
+      "worker": {
+        "id": 56226,
+        "username": "lisaveta",
+        "fullname": "Елизавета",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/06/56226-2.jpg",
+        "rating": 5,
+        "reviews_count": 1061,
+        "rating_count": 1057,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/marketing/38691/razmeshchenie-1-press-reliza-na-38-ploshchadkakh-podarok"
+    },
+    {
+      "id": 128937,
+      "title": "Озвучу видео для Ютуб",
+      "name": null,
+      "price": 500,
+      "category_id": 20,
+      "category_name": "Аудиозапись и озвучка",
+      "worker": {
+        "id": 211167,
+        "username": "MaxMedia",
+        "fullname": "Антон",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/40/211167-3.jpg",
+        "rating": 5,
+        "reviews_count": 314,
+        "rating_count": 285,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/audio/128937/ozvuchu-video-dlya-yutub"
+    },
+    {
+      "id": 149121,
+      "title": "Составление смет на монтаж ПС, видеонаблюдение, СКУД, СКС, ОС, ВОЛС",
+      "name": null,
+      "price": 500,
+      "category_id": 65,
+      "category_name": "Стройка и ремонт",
+      "worker": {
+        "id": 173280,
+        "username": "abrgen",
+        "fullname": "Геннадий",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/34/173280-13.jpg",
+        "rating": 5,
+        "reviews_count": 92,
+        "rating_count": 90,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/engineering/149121/sostavlenie-smet-na-montazh-ps-videonablyudenie-skud-sks-os-vols"
+    },
+    {
+      "id": 175026,
+      "title": "Переделаю текст любой песни - песня переделка",
+      "name": null,
+      "price": 1000,
+      "category_id": 23,
+      "category_name": "Музыка и песни",
+      "worker": {
+        "id": 302185,
+        "username": "Evaeva1",
+        "fullname": "Евгения Прокофьева",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/00/302185-2.jpg",
+        "rating": 5,
+        "reviews_count": 1701,
+        "rating_count": 1663,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/music/175026/peredelayu-tekst-lyuboy-pesni-pesnya-peredelka"
+    },
+    {
+      "id": 224085,
+      "title": "10 крауд-ссылок на форумах Украина в новых темах",
+      "name": null,
+      "price": 750,
+      "category_id": 59,
+      "category_name": "Ссылки",
+      "worker": {
+        "id": 35577,
+        "username": "s-e-o-nick",
+        "fullname": "Ник",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/27/35577-5.jpg",
+        "rating": 5,
+        "reviews_count": 9055,
+        "rating_count": 9055,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/links/224085/10-kraud-ssylok-na-forumakh-ukraina-v-novykh-temakh"
+    },
+    {
+      "id": 3673037,
+      "title": "3д визуализация. 3д модель. Картинки для сайтов и маркетплейсов",
+      "name": null,
+      "price": 1000,
+      "category_id": 68,
+      "category_name": "Обработка и редактирование",
+      "worker": {
+        "id": 2121760,
+        "username": "3onapa",
+        "fullname": "Павел",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/15/2121760-1.jpg",
+        "rating": 5,
+        "reviews_count": 651,
+        "rating_count": 368,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/vector-tracing/3673037/3d-vizualizatsiya-3d-model-kartinki-dlya-saytov-i-marketpleysov"
+    },
+    {
+      "id": 6139888,
+      "title": "Движение вашего сайта в ТОП Яндекса",
+      "name": null,
+      "price": 2500,
+      "category_id": 273,
+      "category_name": "Продвижение сайта в топ",
+      "worker": {
+        "id": 2380870,
+        "username": "Jekaseo",
+        "fullname": "Евгений",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/35/2380870-5.jpg",
+        "rating": 4.8,
+        "reviews_count": 317,
+        "rating_count": 317,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/integrated-promotion/6139888/dvizhenie-vashego-sayta-v-top-yandeksa"
+    },
+    {
+      "id": 8506911,
+      "title": "Создам Дрим арт портрет по вашей фотографии",
+      "name": null,
+      "price": 500,
+      "category_id": 28,
+      "category_name": "Арт и иллюстрации",
+      "worker": {
+        "id": 1766101,
+        "username": "tanech",
+        "fullname": "Татьяна",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/41/1766101-4.jpg",
+        "rating": 5,
+        "reviews_count": 28,
+        "rating_count": 18,
+        "is_online": false
+      },
+      "username": null,
+      "rating": null,
+      "reviews_count": null,
+      "share_url": "https://kwork.ru/illustrations/8506911/sozdam-drim-art-portret-po-vashey-fotografii"
+    }
+  ],
+  "catalog_filters_samples": {
+    "41": {
+      "ok": true,
+      "kworks_count": 38092,
+      "filter_count": 8,
+      "group_count": 4,
+      "filter_keys": [
+        "name",
+        "type",
+        "query_key",
+        "mobile_group_id",
+        "values",
+        "max_value",
+        "min_value",
+        "unit"
+      ],
+      "group_keys": [
+        "id",
+        "name"
+      ],
+      "filter_samples": [
+        {
+          "id": null,
+          "name": "Цена",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "_500",
+              "value": "500 руб."
+            },
+            {
+              "id": "1000_6000",
+              "value": "1 000 руб. - 6 000 руб."
+            },
+            {
+              "id": "7000_70000",
+              "value": "7 000 руб. - 70 000 руб."
+            },
+            {
+              "id": "75000_",
+              "value": "75 000 руб. и выше"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Уровень продавца",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "1",
+              "name": "Восходящая звезда и выше"
+            },
+            {
+              "id": "2",
+              "name": "Высший рейтинг и выше"
+            },
+            {
+              "id": "3",
+              "name": "Высший рейтинг плюс"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Активность продавцов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "online",
+              "name": "Онлайн"
+            },
+            {
+              "id": "1",
+              "name": "Заходил до 1 дн. назад"
+            },
+            {
+              "id": "3",
+              "name": "Заходил до 3 дн. назад"
+            },
+            {
+              "id": "7",
+              "name": "Заходил до 1 нед. назад"
+            },
+            {
+              "id": "14",
+              "name": "Заходил до 2 нед. назад"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Положительных отзывов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "5",
+              "name": "От 5"
+            },
+            {
+              "id": "10",
+              "name": "От 10"
+            },
+            {
+              "id": "20",
+              "name": "От 20"
+            },
+            {
+              "id": "50",
+              "name": "От 50"
+            },
+            {
+              "id": "100",
+              "name": "От 100"
+            }
+          ],
+          "values_count": null
+        }
+      ]
+    },
+    "59": {
+      "ok": true,
+      "kworks_count": 45598,
+      "filter_count": 14,
+      "group_count": 4,
+      "filter_keys": [
+        "name",
+        "type",
+        "query_key",
+        "mobile_group_id",
+        "max_value",
+        "min_value"
+      ],
+      "group_keys": [
+        "id",
+        "name"
+      ],
+      "filter_samples": [
+        {
+          "id": null,
+          "name": "ИКС площадок",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": null,
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Majestic CF",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": null,
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Траст площадок",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": null,
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Спам площадок",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": null,
+          "values_count": null
+        }
+      ]
+    },
+    "56": {
+      "ok": true,
+      "kworks_count": 2114,
+      "filter_count": 8,
+      "group_count": 4,
+      "filter_keys": [
+        "name",
+        "type",
+        "query_key",
+        "mobile_group_id",
+        "values",
+        "max_value",
+        "min_value",
+        "unit"
+      ],
+      "group_keys": [
+        "id",
+        "name"
+      ],
+      "filter_samples": [
+        {
+          "id": null,
+          "name": "Цена",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "_500",
+              "value": "500 руб."
+            },
+            {
+              "id": "1000_4500",
+              "value": "1 000 руб. - 4 500 руб."
+            },
+            {
+              "id": "5000_40000",
+              "value": "5 000 руб. - 40 000 руб."
+            },
+            {
+              "id": "43000_",
+              "value": "43 000 руб. и выше"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Уровень продавца",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "1",
+              "name": "Восходящая звезда и выше"
+            },
+            {
+              "id": "2",
+              "name": "Высший рейтинг и выше"
+            },
+            {
+              "id": "3",
+              "name": "Высший рейтинг плюс"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Активность продавцов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "online",
+              "name": "Онлайн"
+            },
+            {
+              "id": "1",
+              "name": "Заходил до 1 дн. назад"
+            },
+            {
+              "id": "3",
+              "name": "Заходил до 3 дн. назад"
+            },
+            {
+              "id": "7",
+              "name": "Заходил до 1 нед. назад"
+            },
+            {
+              "id": "14",
+              "name": "Заходил до 2 нед. назад"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Положительных отзывов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "5",
+              "name": "От 5"
+            },
+            {
+              "id": "10",
+              "name": "От 10"
+            },
+            {
+              "id": "20",
+              "name": "От 20"
+            },
+            {
+              "id": "50",
+              "name": "От 50"
+            },
+            {
+              "id": "100",
+              "name": "От 100"
+            }
+          ],
+          "values_count": null
+        }
+      ]
+    },
+    "44": {
+      "ok": true,
+      "kworks_count": 2382,
+      "filter_count": 8,
+      "group_count": 4,
+      "filter_keys": [
+        "name",
+        "type",
+        "query_key",
+        "mobile_group_id",
+        "values",
+        "max_value",
+        "min_value",
+        "unit"
+      ],
+      "group_keys": [
+        "id",
+        "name"
+      ],
+      "filter_samples": [
+        {
+          "id": null,
+          "name": "Цена",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "_500",
+              "value": "500 руб."
+            },
+            {
+              "id": "1000_3500",
+              "value": "1 000 руб. - 3 500 руб."
+            },
+            {
+              "id": "4000_27000",
+              "value": "4 000 руб. - 27 000 руб."
+            },
+            {
+              "id": "30000_",
+              "value": "30 000 руб. и выше"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Уровень продавца",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "1",
+              "name": "Восходящая звезда и выше"
+            },
+            {
+              "id": "2",
+              "name": "Высший рейтинг и выше"
+            },
+            {
+              "id": "3",
+              "name": "Высший рейтинг плюс"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Активность продавцов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "online",
+              "name": "Онлайн"
+            },
+            {
+              "id": "1",
+              "name": "Заходил до 1 дн. назад"
+            },
+            {
+              "id": "3",
+              "name": "Заходил до 3 дн. назад"
+            },
+            {
+              "id": "7",
+              "name": "Заходил до 1 нед. назад"
+            },
+            {
+              "id": "14",
+              "name": "Заходил до 2 нед. назад"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Положительных отзывов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "5",
+              "name": "От 5"
+            },
+            {
+              "id": "10",
+              "name": "От 10"
+            },
+            {
+              "id": "20",
+              "name": "От 20"
+            },
+            {
+              "id": "50",
+              "name": "От 50"
+            },
+            {
+              "id": "100",
+              "name": "От 100"
+            }
+          ],
+          "values_count": null
+        }
+      ]
+    },
+    "72": {
+      "ok": true,
+      "kworks_count": 3101,
+      "filter_count": 8,
+      "group_count": 4,
+      "filter_keys": [
+        "name",
+        "type",
+        "query_key",
+        "mobile_group_id",
+        "values",
+        "max_value",
+        "min_value",
+        "unit"
+      ],
+      "group_keys": [
+        "id",
+        "name"
+      ],
+      "filter_samples": [
+        {
+          "id": null,
+          "name": "Цена",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "_500",
+              "value": "500 руб."
+            },
+            {
+              "id": "1000_4000",
+              "value": "1 000 руб. - 4 000 руб."
+            },
+            {
+              "id": "4500_30000",
+              "value": "4 500 руб. - 30 000 руб."
+            },
+            {
+              "id": "33000_",
+              "value": "33 000 руб. и выше"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Уровень продавца",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "1",
+              "name": "Восходящая звезда и выше"
+            },
+            {
+              "id": "2",
+              "name": "Высший рейтинг и выше"
+            },
+            {
+              "id": "3",
+              "name": "Высший рейтинг плюс"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Активность продавцов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "online",
+              "name": "Онлайн"
+            },
+            {
+              "id": "1",
+              "name": "Заходил до 1 дн. назад"
+            },
+            {
+              "id": "3",
+              "name": "Заходил до 3 дн. назад"
+            },
+            {
+              "id": "7",
+              "name": "Заходил до 1 нед. назад"
+            },
+            {
+              "id": "14",
+              "name": "Заходил до 2 нед. назад"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Положительных отзывов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "5",
+              "name": "От 5"
+            },
+            {
+              "id": "10",
+              "name": "От 10"
+            },
+            {
+              "id": "20",
+              "name": "От 20"
+            },
+            {
+              "id": "50",
+              "name": "От 50"
+            },
+            {
+              "id": "100",
+              "name": "От 100"
+            }
+          ],
+          "values_count": null
+        }
+      ]
+    },
+    "113": {
+      "ok": true,
+      "kworks_count": 42018,
+      "filter_count": 8,
+      "group_count": 4,
+      "filter_keys": [
+        "name",
+        "type",
+        "query_key",
+        "mobile_group_id",
+        "values",
+        "max_value",
+        "min_value",
+        "unit"
+      ],
+      "group_keys": [
+        "id",
+        "name"
+      ],
+      "filter_samples": [
+        {
+          "id": null,
+          "name": "Цена",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "_500",
+              "value": "500 руб."
+            },
+            {
+              "id": "1000_3500",
+              "value": "1 000 руб. - 3 500 руб."
+            },
+            {
+              "id": "4000_25000",
+              "value": "4 000 руб. - 25 000 руб."
+            },
+            {
+              "id": "27000_",
+              "value": "27 000 руб. и выше"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Уровень продавца",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "1",
+              "name": "Восходящая звезда и выше"
+            },
+            {
+              "id": "2",
+              "name": "Высший рейтинг и выше"
+            },
+            {
+              "id": "3",
+              "name": "Высший рейтинг плюс"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Активность продавцов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "online",
+              "name": "Онлайн"
+            },
+            {
+              "id": "1",
+              "name": "Заходил до 1 дн. назад"
+            },
+            {
+              "id": "3",
+              "name": "Заходил до 3 дн. назад"
+            },
+            {
+              "id": "7",
+              "name": "Заходил до 1 нед. назад"
+            },
+            {
+              "id": "14",
+              "name": "Заходил до 2 нед. назад"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Положительных отзывов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "5",
+              "name": "От 5"
+            },
+            {
+              "id": "10",
+              "name": "От 10"
+            },
+            {
+              "id": "20",
+              "name": "От 20"
+            },
+            {
+              "id": "50",
+              "name": "От 50"
+            },
+            {
+              "id": "100",
+              "name": "От 100"
+            }
+          ],
+          "values_count": null
+        }
+      ]
+    },
+    "286": {
+      "ok": true,
+      "kworks_count": 91257,
+      "filter_count": 8,
+      "group_count": 4,
+      "filter_keys": [
+        "name",
+        "type",
+        "query_key",
+        "mobile_group_id",
+        "values",
+        "max_value",
+        "min_value",
+        "unit"
+      ],
+      "group_keys": [
+        "id",
+        "name"
+      ],
+      "filter_samples": [
+        {
+          "id": null,
+          "name": "Цена",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "_500",
+              "value": "500 руб."
+            },
+            {
+              "id": "1000_4500",
+              "value": "1 000 руб. - 4 500 руб."
+            },
+            {
+              "id": "5000_40000",
+              "value": "5 000 руб. - 40 000 руб."
+            },
+            {
+              "id": "43000_",
+              "value": "43 000 руб. и выше"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Уровень продавца",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "1",
+              "name": "Восходящая звезда и выше"
+            },
+            {
+              "id": "2",
+              "name": "Высший рейтинг и выше"
+            },
+            {
+              "id": "3",
+              "name": "Высший рейтинг плюс"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Активность продавцов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "online",
+              "name": "Онлайн"
+            },
+            {
+              "id": "1",
+              "name": "Заходил до 1 дн. назад"
+            },
+            {
+              "id": "3",
+              "name": "Заходил до 3 дн. назад"
+            },
+            {
+              "id": "7",
+              "name": "Заходил до 1 нед. назад"
+            },
+            {
+              "id": "14",
+              "name": "Заходил до 2 нед. назад"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Положительных отзывов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "5",
+              "name": "От 5"
+            },
+            {
+              "id": "10",
+              "name": "От 10"
+            },
+            {
+              "id": "20",
+              "name": "От 20"
+            },
+            {
+              "id": "50",
+              "name": "От 50"
+            },
+            {
+              "id": "100",
+              "name": "От 100"
+            }
+          ],
+          "values_count": null
+        }
+      ]
+    },
+    "306": {
+      "ok": true,
+      "kworks_count": 22370,
+      "filter_count": 8,
+      "group_count": 4,
+      "filter_keys": [
+        "name",
+        "type",
+        "query_key",
+        "mobile_group_id",
+        "values",
+        "max_value",
+        "min_value",
+        "unit"
+      ],
+      "group_keys": [
+        "id",
+        "name"
+      ],
+      "filter_samples": [
+        {
+          "id": null,
+          "name": "Цена",
+          "title": null,
+          "type": "range",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "_500",
+              "value": "500 руб."
+            },
+            {
+              "id": "1000_3500",
+              "value": "1 000 руб. - 3 500 руб."
+            },
+            {
+              "id": "4000_24000",
+              "value": "4 000 руб. - 24 000 руб."
+            },
+            {
+              "id": "25000_",
+              "value": "25 000 руб. и выше"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Уровень продавца",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "1",
+              "name": "Восходящая звезда и выше"
+            },
+            {
+              "id": "2",
+              "name": "Высший рейтинг и выше"
+            },
+            {
+              "id": "3",
+              "name": "Высший рейтинг плюс"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Активность продавцов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "online",
+              "name": "Онлайн"
+            },
+            {
+              "id": "1",
+              "name": "Заходил до 1 дн. назад"
+            },
+            {
+              "id": "3",
+              "name": "Заходил до 3 дн. назад"
+            },
+            {
+              "id": "7",
+              "name": "Заходил до 1 нед. назад"
+            },
+            {
+              "id": "14",
+              "name": "Заходил до 2 нед. назад"
+            }
+          ],
+          "values_count": null
+        },
+        {
+          "id": null,
+          "name": "Положительных отзывов",
+          "title": null,
+          "type": "one_of_several",
+          "input_type": null,
+          "required": null,
+          "is_required": null,
+          "values": [
+            {
+              "id": "5",
+              "name": "От 5"
+            },
+            {
+              "id": "10",
+              "name": "От 10"
+            },
+            {
+              "id": "20",
+              "name": "От 20"
+            },
+            {
+              "id": "50",
+              "name": "От 50"
+            }
+          ],
+          "values_count": null
+        }
+      ]
+    }
+  },
+  "search_kworks_catalog_query": {
+    "telegram": [
+      {
+        "suggestion": "телеграм\\\\",
+        "excerpt": "<b>телеграм</b>\\\\"
+      },
+      {
+        "suggestion": "telegram чат",
+        "excerpt": "<b>telegram</b> чат"
+      },
+      {
+        "suggestion": "телеграмм канал",
+        "excerpt": "<b>телеграмм</b> канал"
+      },
+      {
+        "suggestion": "telegram живые",
+        "excerpt": "<b>telegram</b> живые"
+      },
+      {
+        "suggestion": "телеграмм боты",
+        "excerpt": "<b>телеграмм</b> боты"
+      },
+      {
+        "suggestion": "телеграмм просмотры",
+        "excerpt": "<b>телеграмм</b> просмотры"
+      },
+      {
+        "suggestion": "telegram рассылка",
+        "excerpt": "<b>telegram</b> рассылка"
+      },
+      {
+        "suggestion": "телеграмм подписчики",
+        "excerpt": "<b>телеграмм</b> подписчики"
+      },
+      {
+        "suggestion": "телеграмм ведение",
+        "excerpt": "<b>телеграмм</b> ведение"
+      }
+    ],
+    "seo": [
+      {
+        "suggestion": " seo",
+        "excerpt": " <b>seo</b>"
+      },
+      {
+        "suggestion": "seo лендинга",
+        "excerpt": "<b>seo</b> лендинга"
+      },
+      {
+        "suggestion": "seo обучение",
+        "excerpt": "<b>seo</b> обучение"
+      },
+      {
+        "suggestion": "seo сайта",
+        "excerpt": "<b>seo</b> сайта"
+      },
+      {
+        "suggestion": "seo под ключ",
+        "excerpt": "<b>seo</b> под ключ"
+      },
+      {
+        "suggestion": "seo modx",
+        "excerpt": "<b>seo</b> modx"
+      },
+      {
+        "suggestion": "seo битрикс",
+        "excerpt": "<b>seo</b> битрикс"
+      },
+      {
+        "suggestion": "seo dle",
+        "excerpt": "<b>seo</b> dle"
+      },
+      {
+        "suggestion": "seo оптимизация wordpress",
+        "excerpt": "<b>seo</b> оптимизация wordpress"
+      }
+    ],
+    "python": [
+      {
+        "suggestion": "python\\",
+        "excerpt": "<b>python\\</b>"
+      },
+      {
+        "suggestion": "python парсер",
+        "excerpt": "<b>python</b> парсер"
+      },
+      {
+        "suggestion": "python django",
+        "excerpt": "<b>python</b> django"
+      },
+      {
+        "suggestion": "Python сайт",
+        "excerpt": "<b>Python</b> сайт"
+      },
+      {
+        "suggestion": "python бот",
+        "excerpt": "<b>python</b> бот"
+      },
+      {
+        "suggestion": "Python скрипт",
+        "excerpt": "<b>Python</b> скрипт"
+      },
+      {
+        "suggestion": "python api",
+        "excerpt": "<b>python</b> api"
+      },
+      {
+        "suggestion": "python script",
+        "excerpt": "<b>python</b> script"
+      },
+      {
+        "suggestion": "Python Программист",
+        "excerpt": "<b>Python</b> Программист"
+      }
+    ],
+    "bot": [
+      {
+        "suggestion": "bot",
+        "excerpt": "<b>bot</b>"
+      },
+      {
+        "suggestion": "bot telegram",
+        "excerpt": "<b>bot</b> telegram"
+      },
+      {
+        "suggestion": "bot discord",
+        "excerpt": "<b>bot</b> discord"
+      },
+      {
+        "suggestion": "Bot whatsapp",
+        "excerpt": "<b>Bot</b> whatsapp"
+      },
+      {
+        "suggestion": "bot instagram",
+        "excerpt": "<b>bot</b> instagram"
+      },
+      {
+        "suggestion": "bot help",
+        "excerpt": "<b>bot</b> help"
+      },
+      {
+        "suggestion": "bot python",
+        "excerpt": "<b>bot</b> python"
+      },
+      {
+        "suggestion": "bot tg",
+        "excerpt": "<b>bot</b> tg"
+      },
+      {
+        "suggestion": "bot GPT",
+        "excerpt": "<b>bot</b> GPT"
+      }
+    ],
+    "ai": [
+      {
+        "suggestion": "ai",
+        "excerpt": "<b>ai</b>"
+      },
+      {
+        "suggestion": "ai персонаж",
+        "excerpt": "<b>ai</b> персонаж"
+      },
+      {
+        "suggestion": "ai иллюстратор",
+        "excerpt": "<b>ai</b> иллюстратор"
+      },
+      {
+        "suggestion": "ai чат бот",
+        "excerpt": "<b>ai</b> чат бот"
+      },
+      {
+        "suggestion": "AI разработка",
+        "excerpt": "<b>AI</b> разработка"
+      },
+      {
+        "suggestion": "ai ml",
+        "excerpt": "<b>ai</b> ml"
+      },
+      {
+        "suggestion": "Ai дизайн",
+        "excerpt": "<b>Ai</b> дизайн"
+      },
+      {
+        "suggestion": "ai видео",
+        "excerpt": "<b>ai</b> видео"
+      },
+      {
+        "suggestion": "ai бот",
+        "excerpt": "<b>ai</b> бот"
+      }
+    ],
+    "logo": [
+      {
+        "suggestion": "logo",
+        "excerpt": "<b>logo</b>"
+      },
+      {
+        "suggestion": "logo design",
+        "excerpt": "<b>logo</b> design"
+      },
+      {
+        "suggestion": "logo для сайта",
+        "excerpt": "<b>logo</b> для сайта"
+      },
+      {
+        "suggestion": "logo animation",
+        "excerpt": "<b>logo</b> animation"
+      },
+      {
+        "suggestion": "logo maker",
+        "excerpt": "<b>logo</b> maker"
+      },
+      {
+        "suggestion": "3d logo",
+        "excerpt": "3d <b>logo</b>"
+      },
+      {
+        "suggestion": "Анимация LOGO",
+        "excerpt": "Анимация <b>LOGO</b>"
+      },
+      {
+        "suggestion": "Design logo",
+        "excerpt": "Design <b>logo</b>"
+      },
+      {
+        "suggestion": "mascot logo",
+        "excerpt": "mascot <b>logo</b>"
+      }
+    ]
+  },
+  "user_id_endpoint_sample_keys": [
+    "id",
+    "username",
+    "status",
+    "fullname",
+    "profilepicture",
+    "description",
+    "slogan",
+    "location",
+    "rating",
+    "rating_count",
+    "level_description",
+    "good_reviews",
+    "bad_reviews",
+    "reviews_count",
+    "online",
+    "live_date",
+    "cover",
+    "custom_request_min_budget",
+    "is_allow_custom_request",
+    "order_done_persent",
+    "order_done_intime_persent",
+    "order_done_repeat_persent",
+    "timezoneId",
+    "blocked_by_user",
+    "allowedDialog",
+    "addtime",
+    "achievments_list",
+    "completed_orders_count",
+    "specialization",
+    "profession",
+    "kworks_count",
+    "kworks",
+    "portfolio_list",
+    "reviews",
+    "skills",
+    "is_verified_worker",
+    "note",
+    "is_cashless_payment_available",
+    "is_stop_work"
+  ],
+  "user_id_endpoint_sample": {
+    "id": 3280,
+    "username": "Nekrashevich_Alex",
+    "status": "active",
+    "fullname": "Локальное продвижение в Картах",
+    "description": "👋 Привет! Я Александр Некрашевич — эксперт по локальному продвижению в Картах с 20+ лет в digital, 2000+ успешными проектами и 1700+ положительными отзывами.\n\nЧто делаю для роста заявок из Карт?\nАудит карточки → Исправления/Оформление → Ведение → Промо/Реклама.\nРаботаю в белую: без накруток отзывов и сомнительных «услуг». Покупные отзывы от фрилансеров часто пессимизируют карточку и ведут к блокировкам/удалениям. Я выстраиваю системный репутационный маркетинг и понятные процессы.\n\nМои специализации:\n• Яндекс Бизнес: Консультация, Карточки, Ведение, Настройка, Отзывы, \n• Google Maps / Google Business Profile: аудит, настройка, ответы на отзывы.\n• SEO, YouTube, контекстная реклама — для усиления локального трафика.\n• Разработка стратегий и воронок — экономия бюджета до 25%.\n\nДостижения на бирже\nТОП‑продавец и суперпокупатель с 2015 года. 95% успешных кейсов из 2000+ проектов.\n\n💬 Напишите сейчас — проведу  аудит и предложу план действий ведущих к результату.\nЯндекс.Бизнес.Консультация, Яндекс.Бизнес.Карточки, Яндекс.Бизнес.Ведение, Яндекс.Бизнес.Настройка, Яндекс.Бизнес.Отзывы, Яндекс.Бизнес.Регистрация, Яндекс.Бизнес.Оформление, Google Maps, Google Business Profile",
+    "slogan": "",
+    "rating": "5.0",
+    "rating_count": 1755,
+    "level_description": "Высший рейтинг плюс",
+    "good_reviews": 1743,
+    "bad_reviews": 18,
+    "kworks_count": 89,
+    "portfolio_count": null,
+    "orders_done_count": null
+  },
+  "user_search_count": 31,
+  "user_search_sample": [
+    {
+      "id": 3280,
+      "username": "Nekrashevich_Alex",
+      "fullname": "Локальное продвижение в Картах",
+      "rating": 5,
+      "rating_count": 0,
+      "status": null
+    },
+    {
+      "id": 24428102,
+      "username": "DenisNekrashevich20",
+      "fullname": "",
+      "rating": 0,
+      "rating_count": 0,
+      "status": null
+    },
+    {
+      "id": 22909787,
+      "username": "nekrashevich1999liz",
+      "fullname": "",
+      "rating": 0,
+      "rating_count": 0,
+      "status": null
+    },
+    {
+      "id": 22814819,
+      "username": "nekrashevich0",
+      "fullname": "",
+      "rating": 0,
+      "rating_count": 0,
+      "status": null
+    },
+    {
+      "id": 21479923,
+      "username": "nekrashevichroman51",
+      "fullname": "Роман",
+      "rating": 0,
+      "rating_count": 0,
+      "status": null
+    },
+    {
+      "id": 20781652,
+      "username": "nekrashevichnikita",
+      "fullname": "",
+      "rating": 0,
+      "rating_count": 0,
+      "status": null
+    },
+    {
+      "id": 2508233,
+      "username": "NekrashevichI",
+      "fullname": "Игорь",
+      "rating": 5,
+      "rating_count": 0,
+      "status": null
+    },
+    {
+      "id": 20677283,
+      "username": "Nekrashevich07",
+      "fullname": "",
+      "rating": 0,
+      "rating_count": 0,
+      "status": null
+    },
+    {
+      "id": 15655108,
+      "username": "nekrashevichaleksey",
+      "fullname": "Алексей",
+      "rating": 0,
+      "rating_count": 0,
+      "status": null
+    },
+    {
+      "id": 19036438,
+      "username": "nekrashevich250901",
+      "fullname": "Анастасия",
+      "rating": 0,
+      "rating_count": 0,
+      "status": null
+    }
+  ],
+  "viewed_catalog_kworks_count": 3,
+  "viewed_catalog_kworks_sample": [
+    {
+      "id": 14325533,
+      "title": "Индивидуальный дизайн презентации на любую тему",
+      "name": null,
+      "price": 1000,
+      "category_id": 270,
+      "worker": {
+        "id": 9841746,
+        "username": "prosto_dasha",
+        "fullname": "Даша",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/00/9841746-3.jpg",
+        "rating": 5,
+        "reviews_count": 551,
+        "rating_count": 411,
+        "is_online": false,
+        "level_description": "Высший рейтинг"
+      },
+      "username": null,
+      "share_url": "https://kwork.ru/presentations-infographics/14325533/individualniy-dizayn-prezentatsii-na-lyubuyu-temu"
+    },
+    {
+      "id": 29072946,
+      "title": "Напишу Telegram бота",
+      "name": null,
+      "price": 500,
+      "category_id": 41,
+      "worker": {
+        "id": 15792531,
+        "username": "asyncioso",
+        "fullname": "Андрей",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/09/15792531-3.jpg",
+        "rating": 5,
+        "reviews_count": 81,
+        "rating_count": 81,
+        "is_online": true,
+        "level_description": ""
+      },
+      "username": null,
+      "share_url": "https://kwork.ru/script-programming/29072946/napishu-telegram-bota"
+    },
+    {
+      "id": 5137308,
+      "title": "Доработка сайта на 1С Битрикс",
+      "name": null,
+      "price": 1000,
+      "category_id": 38,
+      "worker": {
+        "id": 1704856,
+        "username": "molodsom",
+        "fullname": "Булат",
+        "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/22/1704856-1.jpg",
+        "rating": 5,
+        "reviews_count": 791,
+        "rating_count": 790,
+        "is_online": false,
+        "level_description": "Высший рейтинг плюс"
+      },
+      "username": null,
+      "share_url": "https://kwork.ru/website-repair/5137308/dorabotka-sayta-na-1s-bitriks"
+    }
+  ]
+}

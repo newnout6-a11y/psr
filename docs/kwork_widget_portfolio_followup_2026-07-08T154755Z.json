@@ -1,0 +1,169 @@
+{
+  "timestamp_utc": "2026-07-08T15:47:58.398706+00:00",
+  "purpose": "Follow-up for widget redirect target and get_popup param spelling.",
+  "proxy": {
+    "profileName": "germanyvless1",
+    "country": "Germany",
+    "proxyUrl": "http://<redacted_ip>:17990"
+  },
+  "session_hub": {
+    "status_code": 200,
+    "cookie_count": 14,
+    "names": [
+      "RORSSQIHEK",
+      "_kmfvt",
+      "_kmid",
+      "_kmwl",
+      "accept_cookie_device_id",
+      "csrf_user_token",
+      "list_type_sdisplay",
+      "referrer_url",
+      "seo_activation_request_uri",
+      "seo_activation_set_time",
+      "seo_activation_source",
+      "show_mobile_app_banner_date",
+      "slrememberme",
+      "uad"
+    ]
+  },
+  "results": [
+    {
+      "name": "widget_location_json_yes",
+      "status_code": 302,
+      "location": "/api/widget/get?json=yes&cat_type=all&count=3&popular_type=1&width=250&user_style=",
+      "content_type": "text/html; charset=UTF-8",
+      "body_len": 0
+    },
+    {
+      "name": "widget_location_json_no",
+      "status_code": 302,
+      "location": "/api/widget/get?json=no&cat_type=all&count=3&popular_type=1&width=250&user_style=",
+      "content_type": "text/html; charset=UTF-8",
+      "body_len": 0
+    },
+    {
+      "name": "get_popup_portfolio_id_1123924",
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 8446,
+      "json_type": "dict",
+      "json_keys": [
+        "data",
+        "success"
+      ],
+      "success": true,
+      "data_keys": [
+        "additional",
+        "portfolio"
+      ],
+      "portfolio_type": "NoneType",
+      "portfolio_is_null": true,
+      "additional_keys": [
+        "anotherVideos",
+        "canDeletePortfolio",
+        "categories",
+        "hasOrders",
+        "kworks",
+        "order",
+        "parentCategories",
+        "workNum"
+      ],
+      "category_count": 29,
+      "parent_category_count": 6,
+      "kworks_count": 0
+    },
+    {
+      "name": "get_popup_portfolio_id_14040541",
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 8446,
+      "json_type": "dict",
+      "json_keys": [
+        "data",
+        "success"
+      ],
+      "success": true,
+      "data_keys": [
+        "additional",
+        "portfolio"
+      ],
+      "portfolio_type": "NoneType",
+      "portfolio_is_null": true,
+      "additional_keys": [
+        "anotherVideos",
+        "canDeletePortfolio",
+        "categories",
+        "hasOrders",
+        "kworks",
+        "order",
+        "parentCategories",
+        "workNum"
+      ],
+      "category_count": 29,
+      "parent_category_count": 6,
+      "kworks_count": 0
+    },
+    {
+      "name": "get_popup_id_1123924",
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 8446,
+      "json_type": "dict",
+      "json_keys": [
+        "data",
+        "success"
+      ],
+      "success": true,
+      "data_keys": [
+        "additional",
+        "portfolio"
+      ],
+      "portfolio_type": "NoneType",
+      "portfolio_is_null": true,
+      "additional_keys": [
+        "anotherVideos",
+        "canDeletePortfolio",
+        "categories",
+        "hasOrders",
+        "kworks",
+        "order",
+        "parentCategories",
+        "workNum"
+      ],
+      "category_count": 29,
+      "parent_category_count": 6,
+      "kworks_count": 0
+    },
+    {
+      "name": "get_popup_id_14040541",
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 8446,
+      "json_type": "dict",
+      "json_keys": [
+        "data",
+        "success"
+      ],
+      "success": true,
+      "data_keys": [
+        "additional",
+        "portfolio"
+      ],
+      "portfolio_type": "NoneType",
+      "portfolio_is_null": true,
+      "additional_keys": [
+        "anotherVideos",
+        "canDeletePortfolio",
+        "categories",
+        "hasOrders",
+        "kworks",
+        "order",
+        "parentCategories",
+        "workNum"
+      ],
+      "category_count": 29,
+      "parent_category_count": 6,
+      "kworks_count": 0
+    }
+  ]
+}

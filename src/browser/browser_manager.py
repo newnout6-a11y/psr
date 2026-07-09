@@ -17,6 +17,7 @@ from loguru import logger
 
 from .fingerprint import Fingerprint, pick as pick_fingerprint
 from src.paths import BROWSER_PROFILES_DIR, SCREENSHOTS_DIR
+from src.utils.vpnte_proxy import effective_proxy_url, vpnte_proxy_enabled
 
 
 class BrowserManager:
@@ -84,7 +85,12 @@ class BrowserManager:
             )
 
             try:
-                proxy_url = os.getenv("PROXY_URL") or os.getenv("KWORK_PROXY_LIST", "").split(",")[0].strip() or None
+                configured_proxy = os.getenv("PROXY_URL") or os.getenv("KWORK_PROXY_LIST", "").split(",")[0].strip() or None
+                proxy_url = (
+                    effective_proxy_url(rotate=False, fallback=configured_proxy)
+                    if vpnte_proxy_enabled()
+                    else configured_proxy
+                )
                 browser_args = fp.browser_args()
                 if proxy_url:
                     browser_args.append(f"--proxy-server={proxy_url}")
@@ -223,7 +229,7 @@ class BrowserManager:
         """
         try:
             hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(trust_env=False) as client:
                 resp = await client.get(
                     f"{hub_url}?domain={domain}",
                     timeout=10,

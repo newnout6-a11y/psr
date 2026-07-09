@@ -1,0 +1,82 @@
+{
+  "generated_at": "2026-07-09T08:28:30.950791+00:00",
+  "status": "ok",
+  "aggregate": {
+    "probe_count": 3,
+    "unique_projects": 9,
+    "zero_offer_count": 2,
+    "low_offer_count": 7,
+    "top_score": 88.0
+  },
+  "file_path": "C:\\psr\\docs\\kwork_market_snapshots\\kwork_buyer_scout_20260709T082830Z.json",
+  "top": [
+    {
+      "id": 3202311,
+      "title": "Нужно создать 5–6 Telegram Stories с упоминанием",
+      "username": "Salvador1w1332",
+      "offers": 0,
+      "score": 88.0,
+      "buyer_history_status": "ok",
+      "buyer_history_projects_count": 4,
+      "buyer_history_total": 4,
+      "buyer_history_sample": [
+        "Массовый инвайтинг +рассылка с отчетом",
+        "Нужно создать 5–6 Telegram Stories с упоминанием",
+        "10000 упоминаний в telegram"
+      ]
+    },
+    {
+      "id": 3212022,
+      "title": "Массовый инвайтинг +рассылка с отчетом",
+      "username": "Salvador1w1332",
+      "offers": 1,
+      "score": 81.0,
+      "buyer_history_status": "ok",
+      "buyer_history_projects_count": 4,
+      "buyer_history_total": 4,
+      "buyer_history_sample": [
+        "Массовый инвайтинг +рассылка с отчетом",
+        "Нужно создать 5–6 Telegram Stories с упоминанием",
+        "10000 упоминаний в telegram"
+      ]
+    },
+    {
+      "id": 3204499,
+      "title": "10000 упоминаний в telegram",
+      "username": "Salvador1w1332",
+      "offers": 1,
+      "score": 81.0,
+      "buyer_history_status": "ok",
+      "buyer_history_projects_count": 4,
+      "buyer_history_total": 4,
+      "buyer_history_sample": [
+        "Массовый инвайтинг +рассылка с отчетом",
+        "Нужно создать 5–6 Telegram Stories с упоминанием",
+        "10000 упоминаний в telegram"
+      ]
+    },
+    {
+      "id": 3211916,
+      "title": "Поиск заказчиков на услуги маркетинга",
+      "username": "mediahelp247",
+      "offers": 2,
+      "score": 76.0,
+      "buyer_history_status": null,
+      "buyer_history_projects_count": null,
+      "buyer_history_total": null,
+      "buyer_history_sample": []
+    },
+    {
+      "id": 3212981,
+      "title": "Вывод бота в топ телег",
+      "username": "aspitsin138",
+      "offers": 2,
+      "score": 66.0,
+      "buyer_history_status": null,
+      "buyer_history_projects_count": null,
+      "buyer_history_total": null,
+      "buyer_history_sample": []
+    }
+  ],
+  "endpoint_errors": []
+}

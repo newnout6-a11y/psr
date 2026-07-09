@@ -1,0 +1,230 @@
+{
+  "status": "ok",
+  "aggregate": {
+    "seed_count": 1,
+    "cards_seen": 10,
+    "unique_sellers_seen": 9,
+    "seller_profiles_collected": 0,
+    "top_opportunities": [
+      {
+        "seed_name": "Programming broad",
+        "category_id": 41,
+        "classifier_id": null,
+        "supply_kworks_count": 38188,
+        "demand_wants_count": 0,
+        "demand_status": "empty",
+        "demand_per_1000_kworks": 0.0,
+        "opportunity_score": 0.0,
+        "sample_cards": 10,
+        "sample_unique_sellers": 9,
+        "seller_concentration": 0.2,
+        "sample_price_min": 500,
+        "sample_price_max": 50000,
+        "sample_price_avg": 7650.0,
+        "price_rule_min": 500,
+        "price_rule_max": 71183,
+        "price_rule_typical": null,
+        "demand_sample_offers_min": null,
+        "demand_sample_low_offer_count": 0,
+        "demand_sample_budget_avg": null,
+        "demand_sample_portfolio_required_count": 0,
+        "demand_sample_kwork_required_count": 0,
+        "demand_sample_higher_price_allowed_count": 0,
+        "top_sellers": [
+          [
+            "ameganix",
+            2
+          ],
+          [
+            "Egor_procod",
+            1
+          ],
+          [
+            "kladovec",
+            1
+          ],
+          [
+            "degen_digital",
+            1
+          ],
+          [
+            "PavloSG",
+            1
+          ]
+        ],
+        "signals": {
+          "demand_level": "none",
+          "supply_level": "competitive",
+          "low_offer_demand": false,
+          "portfolio_heavy_demand": false,
+          "higher_price_allowed": false
+        }
+      }
+    ],
+    "top_sellers": [
+      [
+        "ameganix",
+        2
+      ],
+      [
+        "Egor_procod",
+        1
+      ],
+      [
+        "kladovec",
+        1
+      ],
+      [
+        "degen_digital",
+        1
+      ],
+      [
+        "PavloSG",
+        1
+      ],
+      [
+        "teleprog",
+        1
+      ],
+      [
+        "like-clik",
+        1
+      ],
+      [
+        "blackdev",
+        1
+      ],
+      [
+        "asyncioso",
+        1
+      ]
+    ],
+    "category_counts": [
+      [
+        "41",
+        10
+      ]
+    ]
+  },
+  "seed": {
+    "name": "Programming broad",
+    "category_id": 41
+  },
+  "kworks_count": 38188,
+  "price_rules": {
+    "status": "ok",
+    "min_price": 500,
+    "max_price": 71183,
+    "typical_price": 0,
+    "typical_price_gradation": [
+      500,
+      1000,
+      1500,
+      2000,
+      2500,
+      3000,
+      3500,
+      4000,
+      4500,
+      5000,
+      6000,
+      7000,
+      8000,
+      9000,
+      10000,
+      11000,
+      12000,
+      13000,
+      14000,
+      15000,
+      16000,
+      17000,
+      18000,
+      19000,
+      20000,
+      21000,
+      22000,
+      23000,
+      24000,
+      25000,
+      27000,
+      30000,
+      33000,
+      35000,
+      37000,
+      40000,
+      43000,
+      45000,
+      47000,
+      50000,
+      55000,
+      60000,
+      65000,
+      70000
+    ],
+    "raw_keys": [
+      "prices",
+      "success"
+    ]
+  },
+  "demand_status": "empty",
+  "demand_wants_count": 0,
+  "demand_sample_count": 0,
+  "first_demand_sample": null,
+  "market_rankings": [
+    {
+      "seed_name": "Programming broad",
+      "category_id": 41,
+      "classifier_id": null,
+      "supply_kworks_count": 38188,
+      "demand_wants_count": 0,
+      "demand_status": "empty",
+      "demand_per_1000_kworks": 0.0,
+      "opportunity_score": 0.0,
+      "sample_cards": 10,
+      "sample_unique_sellers": 9,
+      "seller_concentration": 0.2,
+      "sample_price_min": 500,
+      "sample_price_max": 50000,
+      "sample_price_avg": 7650.0,
+      "price_rule_min": 500,
+      "price_rule_max": 71183,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": null,
+      "demand_sample_low_offer_count": 0,
+      "demand_sample_budget_avg": null,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 0,
+      "top_sellers": [
+        [
+          "ameganix",
+          2
+        ],
+        [
+          "Egor_procod",
+          1
+        ],
+        [
+          "kladovec",
+          1
+        ],
+        [
+          "degen_digital",
+          1
+        ],
+        [
+          "PavloSG",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "none",
+        "supply_level": "competitive",
+        "low_offer_demand": false,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": false
+      }
+    }
+  ]
+}

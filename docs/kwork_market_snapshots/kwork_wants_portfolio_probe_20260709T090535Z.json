@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-07-09T09:05:32.724120+00:00",
+  "project_id": 3202311,
+  "new_offer": {
+    "status_code": 200,
+    "url": "https://kwork.ru/new_offer?project=3202311",
+    "content_type": "text/html; charset=UTF-8",
+    "html_len": 107738,
+    "state_keys_count": 213,
+    "categoryId_hits": [
+      {
+        "path": "categoryId",
+        "value": "46"
+      }
+    ],
+    "offerUserId_hits": [],
+    "wantLang_hits": [
+      {
+        "path": "offerParams.wantLang",
+        "value": "ru"
+      }
+    ],
+    "USER_ID_hits": []
+  },
+  "endpoint": "POST https://kwork.ru/wants/portfolio",
+  "source_js_payload": {
+    "userId": "offerUserId",
+    "category": "categoryId",
+    "page": "currentPortfolioPage+1",
+    "lang": "wantLang"
+  },
+  "results": [
+    {
+      "name": "missing_user",
+      "request_json": {
+        "category": 46,
+        "page": 1,
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "success": true,
+      "top_keys": [
+        "data",
+        "success"
+      ],
+      "data_keys": [
+        "allPortfolioIds",
+        "curCount",
+        "haveNext",
+        "offset",
+        "portfolioJson",
+        "totalCount"
+      ],
+      "portfolio_count": 0,
+      "all_portfolio_ids_count": 0,
+      "have_next": 0,
+      "body_prefix": "{\"success\":true,\"data\":{\"totalCount\":0,\"offset\":0,\"curCount\":0,\"haveNext\":0,\"portfolioJson\":[],\"allPortfolioIds\":[]}}",
+      "json_prefix": "{\"success\": true, \"data\": {\"totalCount\": 0, \"offset\": 0, \"curCount\": 0, \"haveNext\": 0, \"portfolioJson\": [], \"allPortfolioIds\": []}}",
+      "parse_error": ""
+    }
+  ],
+  "assessment": {
+    "read_like": true,
+    "primary_buyer_discovery": false,
+    "likely_value": "own portfolio suggestions for a specific offer/category, not a global buyer feed"
+  }
+}

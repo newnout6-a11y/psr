@@ -1,0 +1,277 @@
+{
+  "generated_at": "2026-07-09T06:50:38.020358+00:00",
+  "source": "psr.backend_code_market_analysis",
+  "buyer_scout_file": "docs\\kwork_market_snapshots\\kwork_buyer_scout_20260709T065027Z.json",
+  "buyer": {
+    "generated_at": "2026-07-09T06:50:27Z",
+    "source": "psr.kwork_buyer_scout",
+    "status": "empty",
+    "config": {
+      "max_probes": 10,
+      "page": 1,
+      "per_probe_limit": 20,
+      "top_limit": 40,
+      "include_project_details": true,
+      "include_want_details": false,
+      "detail_limit": 12
+    },
+    "probes": [
+      {
+        "name": "telegram_bot_low_offer_ru",
+        "categories": "all",
+        "query": "телеграм бот",
+        "filters": {
+          "kworks_filter_to": 5
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 5014
+        }
+      },
+      {
+        "name": "telegram_bot_zero_ru",
+        "categories": "all",
+        "query": "телеграм бот",
+        "filters": {
+          "kworks_filter_to": 0
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 4735
+        }
+      },
+      {
+        "name": "telegram_low_offer_en",
+        "categories": "all",
+        "query": "telegram",
+        "filters": {
+          "kworks_filter_to": 5
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 4791
+        }
+      },
+      {
+        "name": "telegram_budget30_low_offer",
+        "categories": "all",
+        "query": "telegram",
+        "filters": {
+          "price_from": 30000,
+          "kworks_filter_to": 5
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 4661
+        }
+      },
+      {
+        "name": "python_bot_low_offer_ru",
+        "categories": "all",
+        "query": "python бот",
+        "filters": {
+          "kworks_filter_to": 5
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 4760
+        }
+      },
+      {
+        "name": "automation_low_offer_ru",
+        "categories": "all",
+        "query": "автоматизация",
+        "filters": {
+          "kworks_filter_to": 5
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 4711
+        }
+      },
+      {
+        "name": "site_zero_ru",
+        "categories": "all",
+        "query": "сайт",
+        "filters": {
+          "kworks_filter_to": 0
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 4595
+        }
+      },
+      {
+        "name": "site_rework_low_offer_ru",
+        "categories": "all",
+        "query": "доработка сайта",
+        "filters": {
+          "kworks_filter_to": 10
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 4782
+        }
+      },
+      {
+        "name": "wordpress_low_offer",
+        "categories": "all",
+        "query": "wordpress",
+        "filters": {
+          "kworks_filter_to": 5
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 4774
+        }
+      },
+      {
+        "name": "bitrix_low_offer",
+        "categories": "all",
+        "query": "bitrix",
+        "filters": {
+          "kworks_filter_to": 5
+        },
+        "status": "empty",
+        "count": 0,
+        "sample_count": 0,
+        "sample": [],
+        "meta": {},
+        "timings_ms": {
+          "total": 4636
+        }
+      }
+    ],
+    "top": [],
+    "aggregate": {
+      "probe_count": 10,
+      "unique_projects": 0,
+      "zero_offer_count": 0,
+      "low_offer_count": 0,
+      "top_score": null
+    },
+    "endpoint_errors": [],
+    "timings_ms": {
+      "total": 48016
+    },
+    "file_path": "docs\\kwork_market_snapshots\\kwork_buyer_scout_20260709T065027Z.json"
+  },
+  "supply": [
+    {
+      "name": "Telegram classifier",
+      "status": "error",
+      "detail": "KworkRetryExceeded: Request POST /kworks failed after 1 attempts: TimeoutError (TimeoutError())"
+    },
+    {
+      "name": "Programming broad",
+      "category_id": 41,
+      "classifier_id": null,
+      "kworks_count": 38156,
+      "competitor_cards": 10,
+      "median_sample_price": 1750.0,
+      "min_sample_price": 1000,
+      "max_sample_price": 50000,
+      "top_titles": [
+        "Разработка Telegram БОТА + исходники и поддержка",
+        "Скрипт по работе в Рутуб",
+        "Разработка расширения для Chrome, Firefox, Яндекс. Браузер",
+        "Разработка телеграм бота",
+        "Разработка Telegram-бота на Python",
+        "Напишу Телеграм и MAX Бота с Mini app"
+      ],
+      "timings_ms": {
+        "kworks": 1298,
+        "total": 1300
+      }
+    },
+    {
+      "name": "Ready databases",
+      "category_id": 113,
+      "classifier_id": 1117,
+      "kworks_count": 34244,
+      "competitor_cards": 10,
+      "median_sample_price": 1500.0,
+      "min_sample_price": 500,
+      "max_sample_price": 18000,
+      "top_titles": [
+        "База Бизнесов. Все отрасли и направления, вся РФ и 8 стран",
+        "102 464 контакта компаний Санкт-Петербурга",
+        "Телеграм каналы с открытыми комментариями. Разные тематики",
+        "База ресторанов, кафе России. Все с EMAIL+тел. 62 тыс. организаций",
+        "База Контактов продавцов Wildberries, март 26, телефоны поставщиков",
+        "Выгрузка базы организаций"
+      ],
+      "timings_ms": {
+        "kworks": 403,
+        "total": 404
+      }
+    },
+    {
+      "name": "Marketplaces",
+      "category_id": 112,
+      "classifier_id": 1357,
+      "kworks_count": 109403,
+      "competitor_cards": 10,
+      "median_sample_price": 750.0,
+      "min_sample_price": 500,
+      "max_sample_price": 4500,
+      "top_titles": [
+        "Продвижение товара в ТОП на Озон. По ключевым запросам",
+        "Дизайн слайда инфографики",
+        "Дикая раскрутка карточки на Wildberries - 500 ссылок для продвижения",
+        "Инфографика для маркетплейсов, дизайн карточек товаров WB",
+        "Добавлю товары на OZON. Карточки товаров для Ozon",
+        "250 Добавлений товара в корзину"
+      ],
+      "timings_ms": {
+        "kworks": 555,
+        "total": 556
+      }
+    }
+  ],
+  "summary": {
+    "buyer_probe_count": 10,
+    "unique_projects": 0,
+    "zero_offer_count": 0,
+    "low_offer_count": 0,
+    "top_budget_max": null,
+    "top_budget_median": null,
+    "endpoint_errors": []
+  }
+}

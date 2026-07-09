@@ -29,6 +29,61 @@ async def test_kwork_status_uses_session_hub_cookies(monkeypatch):
     assert result["session_hub_cookie_count"] == 2
 
 
+def test_kwork_verification_summary_separates_global_script_from_challenge():
+    result = kwork._summarize_kwork_verification(
+        captcha_status={
+            "ok": False,
+            "required": False,
+            "source": "getCaptchaStatus",
+            "error": "KworkException: Некорректные значения параметров",
+        },
+        cookie_count=2,
+        pages=[
+            {
+                "path": "/new",
+                "status_code": 200,
+                "final_url": "https://kwork.ru/new",
+                "evidence": {
+                    "manual_required": False,
+                    "script_matches": ["smartcaptcha", "smart-token"],
+                    "strong_matches": [],
+                    "weak_matches": [],
+                    "challenge_url": False,
+                    "challenge_status": False,
+                    "has_new_form": True,
+                },
+            }
+        ],
+        generated_at="2026-07-09T13:00:00Z",
+    )
+
+    assert result["status"] == "ok"
+    assert result["manual_verification_required"] is False
+    assert result["web_session_ok"] is True
+    assert result["smartcaptcha_scripts_seen"] is True
+    assert "not itself a captcha challenge" in result["detail"]
+
+
+def test_kwork_verification_summary_reports_api_flag_only():
+    result = kwork._summarize_kwork_verification(
+        captcha_status={"ok": True, "required": True, "source": "getCaptchaStatus"},
+        cookie_count=2,
+        pages=[
+            {
+                "path": "/projects",
+                "status_code": 200,
+                "final_url": "https://kwork.ru/projects",
+                "evidence": {"manual_required": False, "script_matches": []},
+            }
+        ],
+        generated_at="2026-07-09T13:00:00Z",
+    )
+
+    assert result["status"] == "api_flag_only"
+    assert result["manual_verification_required"] is False
+    assert result["captcha_required"] is False
+
+
 @pytest.mark.asyncio
 async def test_kwork_attribute_suggest_fallback_uses_context():
     result = await kwork.kwork_market_category_attribute_suggest(
@@ -144,6 +199,92 @@ async def test_kwork_form_manifest_returns_structured_exception(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_kwork_market_web_catalog_passes_alias_options(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class FakeService:
+        async def _fetch_session_hub_cookies(self):
+            return {"slrememberme": "present"}
+
+    class FakeClient:
+        async def get_web_catalog_filters(self, alias, *, page=1, page_size=10, include_raw=False, cookies=None):
+            captured.update(
+                {
+                    "alias": alias,
+                    "page": page,
+                    "page_size": page_size,
+                    "include_raw": include_raw,
+                    "cookies": cookies,
+                }
+            )
+            return {"alias": alias, "success": True, "protection_status": "ok"}
+
+        async def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setattr(kwork, "get_kwork_service", lambda: FakeService())
+    monkeypatch.setattr(kwork, "KworkMarketClient", lambda: FakeClient())
+
+    result = await kwork.kwork_market_web_catalog("programming", page=2, page_size=12, include_raw=True)
+
+    assert result["success"] is True
+    assert captured == {
+        "alias": "programming",
+        "page": 2,
+        "page_size": 12,
+        "include_raw": True,
+        "cookies": {"slrememberme": "present"},
+        "closed": True,
+    }
+
+
+@pytest.mark.asyncio
+async def test_kwork_market_web_catalog_snapshot_passes_payload_and_cookies(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class FakeService:
+        async def _fetch_session_hub_cookies(self):
+            return {"slrememberme": "present"}
+
+    class FakeClient:
+        async def get_web_catalog_alias_snapshot(self, **kwargs):
+            captured.update(kwargs)
+            return {
+                "source": "test",
+                "aggregate": {"alias_count": len(kwargs.get("aliases") or [])},
+                "results": [],
+                "errors": [],
+            }
+
+        async def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setattr(kwork, "get_kwork_service", lambda: FakeService())
+    monkeypatch.setattr(kwork, "KworkMarketClient", lambda: FakeClient())
+
+    result = await kwork.kwork_market_web_catalog_snapshot(
+        kwork.KworkWebCatalogSnapshotRequest(
+            aliases=["programming", "design"],
+            page=2,
+            page_size=12,
+            delay_seconds=0.5,
+            include_raw=True,
+            write_file=False,
+        )
+    )
+
+    assert result["aggregate"]["alias_count"] == 2
+    assert captured["aliases"] == ["programming", "design"]
+    assert captured["page"] == 2
+    assert captured["page_size"] == 12
+    assert captured["delay_seconds"] == 0.5
+    assert captured["include_raw"] is True
+    assert captured["write_file"] is False
+    assert captured["cookies"] == {"slrememberme": "present"}
+    assert captured["closed"] is True
+
+
+@pytest.mark.asyncio
 async def test_kwork_market_metrics_post_passes_attribute_filters(monkeypatch):
     captured: dict[str, object] = {}
 
@@ -180,3 +321,155 @@ async def test_kwork_market_metrics_post_passes_attribute_filters(monkeypatch):
     assert captured["attribute_filters"] == {"attribute[3610][]": [3612]}
     assert captured["attribute_controls"] == [{"name": "attribute[3610][]", "options": [{"id": 3612, "label": "Telegram"}]}]
     assert captured["closed"] is True
+
+
+@pytest.mark.asyncio
+async def test_kwork_market_intelligence_snapshot_route_passes_payload(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class FakeMarketClient:
+        async def get_market_intelligence_snapshot(self, **kwargs):
+            captured.update(kwargs)
+            return {
+                "source": "test",
+                "aggregate": {"seed_count": len(kwargs.get("seeds") or [])},
+                "supply": [],
+                "query_demand": {},
+            }
+
+        async def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setattr(kwork, "KworkMarketClient", lambda: FakeMarketClient())
+
+    result = await kwork.kwork_market_intelligence_snapshot(
+        kwork.KworkMarketIntelligenceRequest(
+            seeds=[{"name": "Bots", "category_id": 41, "classifier_id": 100}],
+            max_seeds=1,
+            pages=1,
+            include_demand=True,
+            demand_queries=["telegram"],
+            include_seller_details=True,
+            seller_detail_limit=3,
+            include_want_details=True,
+            want_detail_limit=1,
+            include_price_rules=True,
+            include_account_context=True,
+            write_file=False,
+        )
+    )
+
+    assert result["aggregate"]["seed_count"] == 1
+    assert captured["seeds"] == [{"name": "Bots", "category_id": 41, "classifier_id": 100}]
+    assert captured["max_seeds"] == 1
+    assert captured["demand_queries"] == ["telegram"]
+    assert captured["include_seller_details"] is True
+    assert captured["seller_detail_limit"] == 3
+    assert captured["include_want_details"] is True
+    assert captured["want_detail_limit"] == 1
+    assert captured["include_price_rules"] is True
+    assert captured["include_account_context"] is True
+    assert captured["write_file"] is False
+    assert captured["closed"] is True
+
+
+@pytest.mark.asyncio
+async def test_kwork_market_buyer_scout_route_passes_payload(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class FakeMarketClient:
+        async def get_buyer_scout(self, **kwargs):
+            captured.update(kwargs)
+            return {"source": "test", "top": [{"id": 1}], "aggregate": {"unique_projects": 1}}
+
+        async def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setattr(kwork, "KworkMarketClient", lambda: FakeMarketClient())
+
+    result = await kwork.kwork_market_buyer_scout(
+        kwork.KworkBuyerScoutRequest(
+            probes=[{"name": "telegram", "categories": "all", "query": "telegram", "kworks_filter_to": 5}],
+            max_probes=1,
+            page=1,
+            project_page_limit=2,
+            per_probe_limit=7,
+            top_limit=9,
+            include_project_details=True,
+            include_want_details=False,
+            detail_limit=3,
+            budget_max=5000,
+            include_query_suggestions=True,
+            query_suggestion_limit=4,
+            write_file=True,
+        )
+    )
+
+    assert result["aggregate"]["unique_projects"] == 1
+    assert captured["probes"] == [
+        {"name": "telegram", "categories": "all", "query": "telegram", "kworks_filter_to": 5}
+    ]
+    assert captured["max_probes"] == 1
+    assert captured["project_page_limit"] == 2
+    assert captured["per_probe_limit"] == 7
+    assert captured["top_limit"] == 9
+    assert captured["include_project_details"] is True
+    assert captured["include_want_details"] is False
+    assert captured["detail_limit"] == 3
+    assert captured["budget_max"] == 5000
+    assert captured["include_query_suggestions"] is True
+    assert captured["query_suggestion_limit"] == 4
+    assert captured["write_file"] is True
+    assert captured["closed"] is True
+
+
+def test_kwork_market_buyer_scout_request_defaults_are_fast():
+    payload = kwork.KworkBuyerScoutRequest()
+
+    assert payload.include_project_details is False
+    assert payload.include_want_details is False
+    assert payload.include_buyer_history is False
+    assert payload.project_page_limit == 2
+    assert payload.budget_max == 5000
+
+
+@pytest.mark.asyncio
+async def test_kwork_market_intelligence_history_route_reads_index(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class FakeMarketClient:
+        def get_market_intelligence_history(self, **kwargs):
+            captured.update(kwargs)
+            return {"entry_count": 1, "entries": [{"generated_at": "now"}], "exists": True}
+
+        async def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setattr(kwork, "KworkMarketClient", lambda: FakeMarketClient())
+
+    result = await kwork.kwork_market_intelligence_history(limit=7)
+
+    assert result["entry_count"] == 1
+    assert captured["limit"] == 7
+    assert captured["closed"] is True
+
+
+@pytest.mark.asyncio
+async def test_kwork_market_categories_reports_missing_proxy_dependency(monkeypatch):
+    closed = {"value": False}
+
+    class BrokenMarketClient:
+        async def get_categories_tree(self):
+            raise ImportError("Proxy support requires optional dependency aiohttp-socks")
+
+        async def close(self):
+            closed["value"] = True
+
+    monkeypatch.setattr(kwork, "KworkMarketClient", lambda: BrokenMarketClient())
+
+    with pytest.raises(kwork.HTTPException) as exc:
+        await kwork.kwork_market_categories()
+
+    assert exc.value.status_code == 503
+    assert "aiohttp-socks" in str(exc.value.detail)
+    assert closed["value"] is True

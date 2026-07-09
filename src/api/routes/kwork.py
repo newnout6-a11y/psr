@@ -5,21 +5,50 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import httpx
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
+from kwork.exceptions import KworkRetryExceeded
 from loguru import logger
 from pydantic import BaseModel, Field
 
 from src.paths import PROPOSAL_ASSETS_DIR
 from src.platforms.kwork import KWORK_BASE_URL, KworkStateDataParser, get_kwork_service
 from src.platforms.kwork_autopublish import KworkAutopublishService
-from src.platforms.kwork_listing import KworkWebListingClient
+from src.platforms.kwork_ext import KworkExtensions
+from src.platforms.kwork_listing import KworkWebListingClient, manual_verification_evidence
 from src.platforms.kwork_market import KworkMarketClient
+from src.utils.vpnte_proxy import kwork_http_proxy_url
 
 router = APIRouter(prefix="/api/kwork", tags=["kwork"])
+
+
+def _raise_kwork_market_error(exc: Exception, *, context: str) -> None:
+    detail = f"{type(exc).__name__}: {exc}"
+    if isinstance(exc, ImportError) and "aiohttp-socks" in str(exc):
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Kwork proxy dependency is missing in current Python runtime. "
+                'Install aiohttp-socks or run: python -m pip install "kwork[proxy]". '
+                f"{detail}"
+            ),
+        ) from exc
+    if isinstance(exc, httpx.HTTPStatusError):
+        raise HTTPException(status_code=exc.response.status_code, detail=detail) from exc
+    if isinstance(exc, (TimeoutError, KworkRetryExceeded)) or "TimeoutError" in detail:
+        logger.warning(f"Kwork market {context} timed out: {detail}")
+        raise HTTPException(
+            status_code=504,
+            detail="Kwork API timed out while loading market data. Try again or rotate VPN/proxy.",
+        ) from exc
+    logger.exception(f"Kwork market {context} failed")
+    raise HTTPException(status_code=502, detail=detail) from exc
 
 
 class KworkDraftRequest(BaseModel):
@@ -78,12 +107,56 @@ class KworkFormManifestRequest(BaseModel):
 class KworkMarketMetricsRequest(BaseModel):
     category_id: int = Field(..., ge=1)
     classifier_id: int | None = Field(default=None, ge=1)
-    include_demand: bool = True
-    include_competitor_details: bool = True
-    competitor_detail_limit: int = Field(default=2, ge=0, le=12)
+    include_demand: bool = False
+    include_competitor_details: bool = False
+    competitor_detail_limit: int = Field(default=6, ge=0, le=12)
     page: int = Field(default=1, ge=1)
     attribute_selection: dict[str, Any] = Field(default_factory=dict)
     attribute_controls: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class KworkMarketIntelligenceRequest(BaseModel):
+    seeds: list[dict[str, Any]] | None = None
+    max_seeds: int = Field(default=8, ge=1, le=30)
+    pages: int = Field(default=1, ge=1, le=3)
+    include_demand: bool = True
+    demand_queries: list[str] | None = None
+    include_competitor_details: bool = False
+    competitor_detail_limit: int = Field(default=0, ge=0, le=12)
+    include_seller_details: bool = False
+    seller_detail_limit: int = Field(default=8, ge=0, le=20)
+    include_want_details: bool = False
+    want_detail_limit: int = Field(default=2, ge=0, le=10)
+    include_price_rules: bool = False
+    include_account_context: bool = False
+    write_file: bool = True
+
+
+class KworkBuyerScoutRequest(BaseModel):
+    probes: list[dict[str, Any]] | None = None
+    max_probes: int = Field(default=10, ge=1, le=30)
+    page: int = Field(default=1, ge=1, le=5)
+    project_page_limit: int = Field(default=2, ge=1, le=3)
+    per_probe_limit: int = Field(default=12, ge=1, le=50)
+    top_limit: int = Field(default=20, ge=1, le=100)
+    include_project_details: bool = False
+    include_want_details: bool = False
+    include_buyer_history: bool = False
+    detail_limit: int = Field(default=8, ge=0, le=20)
+    buyer_history_limit: int = Field(default=6, ge=0, le=20)
+    budget_max: int = Field(default=5000, ge=0, le=150000)
+    include_query_suggestions: bool = True
+    query_suggestion_limit: int = Field(default=5, ge=0, le=20)
+    write_file: bool = False
+
+
+class KworkWebCatalogSnapshotRequest(BaseModel):
+    aliases: list[str] = Field(default_factory=list)
+    page: int = Field(default=1, ge=1)
+    page_size: int = Field(default=10, ge=1, le=50)
+    delay_seconds: float = Field(default=2.0, ge=0, le=20)
+    include_raw: bool = False
+    write_file: bool = True
 
 
 class KworkAttributeSuggestRequest(BaseModel):
@@ -213,6 +286,158 @@ def _fallback_attribute_suggestion(payload: KworkAttributeSuggestRequest) -> dic
     )
 
 
+KWORK_VERIFICATION_CHECK_PATHS = ("/", "/new", "/manage_kworks", "/projects")
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _summarize_kwork_verification(
+    *,
+    captcha_status: dict[str, Any],
+    pages: list[dict[str, Any]],
+    cookie_count: int,
+    errors: list[dict[str, Any]] | None = None,
+    generated_at: str | None = None,
+    timings_ms: dict[str, int] | None = None,
+) -> dict[str, Any]:
+    checked_pages = [item for item in pages if isinstance(item, dict)]
+    manual_pages = [
+        item
+        for item in checked_pages
+        if isinstance(item.get("evidence"), dict) and item["evidence"].get("manual_required")
+    ]
+    smartcaptcha_scripts_seen = any(
+        bool((item.get("evidence") or {}).get("script_matches")) for item in checked_pages if isinstance(item, dict)
+    )
+    web_session_ok = any(
+        200 <= int(item.get("status_code") or 0) < 400
+        and not ((item.get("evidence") or {}).get("manual_required"))
+        for item in checked_pages
+        if isinstance(item, dict)
+    )
+    api_required = bool(captcha_status.get("required")) if isinstance(captcha_status, dict) else False
+    api_error = str(captcha_status.get("error") or "") if isinstance(captcha_status, dict) else ""
+
+    if manual_pages:
+        status = "manual_required"
+        detail = "Kwork web pages currently show a manual SmartCaptcha/robot check."
+    elif api_required:
+        status = "api_flag_only"
+        detail = "getCaptchaStatus returned a captcha flag, but checked web pages did not show a manual challenge."
+    elif web_session_ok:
+        status = "ok"
+        detail = "Kwork web session opens normally; no manual captcha challenge was detected on checked pages."
+    else:
+        status = "error"
+        detail = "Could not prove a working Kwork web session from checked pages."
+
+    if smartcaptcha_scripts_seen and not manual_pages:
+        detail += " SmartCaptcha scripts are present globally, which is not itself a captcha challenge."
+    if api_error and status == "ok":
+        detail += f" getCaptchaStatus was not usable: {api_error}"
+
+    return {
+        "generated_at": generated_at or _utc_now_iso(),
+        "source": "psr.kwork_verification_status",
+        "status": status,
+        "detail": detail,
+        "captcha_required": bool(manual_pages),
+        "manual_verification_required": bool(manual_pages),
+        "web_session_ok": web_session_ok,
+        "smartcaptcha_scripts_seen": smartcaptcha_scripts_seen,
+        "cookie_count": cookie_count,
+        "captcha_status": captcha_status,
+        "pages": checked_pages,
+        "errors": errors or [],
+        "timings_ms": timings_ms or {},
+    }
+
+
+@router.get("/verification-status")
+async def kwork_verification_status(write_file: bool = Query(default=False)) -> dict[str, Any]:
+    started = time.monotonic()
+    service = get_kwork_service()
+    errors: list[dict[str, Any]] = []
+    cookies: dict[str, str] = {}
+    captcha_status: dict[str, Any] = {
+        "ok": False,
+        "required": False,
+        "source": "getCaptchaStatus",
+        "error": "not_checked",
+    }
+
+    try:
+        cookies = await service._fetch_session_hub_cookies()
+    except Exception as exc:
+        errors.append({"stage": "session_hub", "detail": f"{type(exc).__name__}: {exc}"})
+
+    try:
+        api = await service.get_api()
+        if api:
+            captcha_status = await KworkExtensions.get_captcha_status_detail(api)
+        else:
+            captcha_status["error"] = "api_not_available"
+    except Exception as exc:
+        captcha_status = {
+            "ok": False,
+            "required": False,
+            "source": "getCaptchaStatus",
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+
+    pages: list[dict[str, Any]] = []
+    async with httpx.AsyncClient(
+        base_url=KWORK_BASE_URL,
+        timeout=15,
+        follow_redirects=True,
+        proxy=kwork_http_proxy_url(rotate=False),
+    ) as client:
+        for path in KWORK_VERIFICATION_CHECK_PATHS:
+            page_started = time.monotonic()
+            try:
+                response = await client.get(path, cookies=cookies)
+                evidence = manual_verification_evidence(response.text or "", str(response.url), response.status_code)
+                pages.append(
+                    {
+                        "path": path,
+                        "status_code": response.status_code,
+                        "final_url": str(response.url),
+                        "evidence": evidence,
+                        "timings_ms": {"total": int((time.monotonic() - page_started) * 1000)},
+                    }
+                )
+            except Exception as exc:
+                detail = f"{type(exc).__name__}: {exc}"
+                errors.append({"stage": "web_page", "path": path, "detail": detail})
+                pages.append(
+                    {
+                        "path": path,
+                        "status_code": 0,
+                        "final_url": "",
+                        "evidence": manual_verification_evidence("", path, 0),
+                        "error": detail,
+                        "timings_ms": {"total": int((time.monotonic() - page_started) * 1000)},
+                    }
+                )
+
+    result = _summarize_kwork_verification(
+        captcha_status=captcha_status,
+        pages=pages,
+        cookie_count=len(cookies),
+        errors=errors,
+        timings_ms={"total": int((time.monotonic() - started) * 1000)},
+    )
+    if write_file:
+        root = Path("docs") / "kwork_market_snapshots"
+        root.mkdir(parents=True, exist_ok=True)
+        path = root / f"kwork_verification_status_{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}.json"
+        path.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+        result["file_path"] = str(path)
+    return result
+
+
 @router.get("/status")
 async def kwork_status():
     service = get_kwork_service()
@@ -271,6 +496,8 @@ async def kwork_market_categories():
     client = KworkMarketClient()
     try:
         return await client.get_categories_tree()
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context="categories")
     finally:
         await client.close()
 
@@ -280,6 +507,8 @@ async def kwork_market_category_attributes(category_id: int):
     client = KworkMarketClient()
     try:
         return await client.get_category_attributes(category_id)
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context=f"category attributes {category_id}")
     finally:
         await client.close()
 
@@ -289,8 +518,63 @@ async def kwork_market_category_prices(category_id: int, attribute_id: int | Non
     client = KworkMarketClient()
     try:
         return await client.get_price_rules(category_id, attribute_id)
-    except httpx.HTTPStatusError as exc:
-        raise HTTPException(status_code=exc.response.status_code, detail=str(exc)) from exc
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context=f"category prices {category_id}")
+    finally:
+        await client.close()
+
+
+@router.get("/market/web-catalog/{alias}")
+async def kwork_market_web_catalog(
+    alias: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=10, ge=1, le=50),
+    include_raw: bool = Query(default=False),
+):
+    cookies: dict[str, str] = {}
+    try:
+        cookies = await get_kwork_service()._fetch_session_hub_cookies()
+    except Exception as exc:
+        logger.debug(f"Kwork web catalog: Session Hub cookies unavailable: {type(exc).__name__}: {exc}")
+
+    client = KworkMarketClient()
+    try:
+        return await client.get_web_catalog_filters(
+            alias,
+            page=page,
+            page_size=page_size,
+            include_raw=include_raw,
+            cookies=cookies,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context=f"web catalog {alias}")
+    finally:
+        await client.close()
+
+
+@router.post("/market/web-catalog-snapshot")
+async def kwork_market_web_catalog_snapshot(payload: KworkWebCatalogSnapshotRequest) -> dict[str, Any]:
+    cookies: dict[str, str] = {}
+    try:
+        cookies = await get_kwork_service()._fetch_session_hub_cookies()
+    except Exception as exc:
+        logger.debug(f"Kwork web catalog snapshot: Session Hub cookies unavailable: {type(exc).__name__}: {exc}")
+
+    client = KworkMarketClient()
+    try:
+        return await client.get_web_catalog_alias_snapshot(
+            aliases=payload.aliases or None,
+            page=payload.page,
+            page_size=payload.page_size,
+            delay_seconds=payload.delay_seconds,
+            include_raw=payload.include_raw,
+            cookies=cookies,
+            write_file=payload.write_file,
+        )
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context="web catalog snapshot")
     finally:
         await client.close()
 
@@ -416,9 +700,9 @@ async def kwork_market_category_attribute_suggest(
 async def kwork_market_metrics(
     category_id: int = Query(..., ge=1),
     classifier_id: int | None = Query(default=None, ge=1),
-    include_demand: bool = True,
-    include_competitor_details: bool = True,
-    competitor_detail_limit: int = Query(default=2, ge=0, le=12),
+    include_demand: bool = False,
+    include_competitor_details: bool = False,
+    competitor_detail_limit: int = Query(default=6, ge=0, le=12),
     page: int = Query(default=1, ge=1),
 ) -> dict[str, Any]:
     client = KworkMarketClient()
@@ -431,6 +715,8 @@ async def kwork_market_metrics(
             competitor_detail_limit=competitor_detail_limit,
             page=page,
         )
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context="metrics")
     finally:
         await client.close()
 
@@ -449,6 +735,72 @@ async def kwork_market_metrics_post(payload: KworkMarketMetricsRequest) -> dict[
             attribute_filters=payload.attribute_selection,
             attribute_controls=payload.attribute_controls,
         )
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context="metrics post")
+    finally:
+        await client.close()
+
+
+@router.post("/market/intelligence-snapshot")
+async def kwork_market_intelligence_snapshot(payload: KworkMarketIntelligenceRequest) -> dict[str, Any]:
+    client = KworkMarketClient()
+    try:
+        return await client.get_market_intelligence_snapshot(
+            seeds=payload.seeds,
+            max_seeds=payload.max_seeds,
+            pages=payload.pages,
+            include_demand=payload.include_demand,
+            demand_queries=payload.demand_queries,
+            include_competitor_details=payload.include_competitor_details,
+            competitor_detail_limit=payload.competitor_detail_limit,
+            include_seller_details=payload.include_seller_details,
+            seller_detail_limit=payload.seller_detail_limit,
+            include_want_details=payload.include_want_details,
+            want_detail_limit=payload.want_detail_limit,
+            include_price_rules=payload.include_price_rules,
+            include_account_context=payload.include_account_context,
+            write_file=payload.write_file,
+        )
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context="intelligence snapshot")
+    finally:
+        await client.close()
+
+
+@router.post("/market/buyer-scout")
+async def kwork_market_buyer_scout(payload: KworkBuyerScoutRequest) -> dict[str, Any]:
+    client = KworkMarketClient()
+    try:
+        return await client.get_buyer_scout(
+            probes=payload.probes,
+            max_probes=payload.max_probes,
+            page=payload.page,
+            project_page_limit=payload.project_page_limit,
+            per_probe_limit=payload.per_probe_limit,
+            top_limit=payload.top_limit,
+            include_project_details=payload.include_project_details,
+            include_want_details=payload.include_want_details,
+            include_buyer_history=payload.include_buyer_history,
+            detail_limit=payload.detail_limit,
+            buyer_history_limit=payload.buyer_history_limit,
+            budget_max=payload.budget_max,
+            include_query_suggestions=payload.include_query_suggestions,
+            query_suggestion_limit=payload.query_suggestion_limit,
+            write_file=payload.write_file,
+        )
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context="buyer scout")
+    finally:
+        await client.close()
+
+
+@router.get("/market/intelligence-history")
+async def kwork_market_intelligence_history(limit: int = 50) -> dict[str, Any]:
+    client = KworkMarketClient()
+    try:
+        return client.get_market_intelligence_history(limit=max(1, min(limit, 500)))
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context="intelligence history")
     finally:
         await client.close()
 
@@ -511,7 +863,12 @@ async def inspect_kwork_project(project_id: str):
         raise HTTPException(status_code=400, detail="project_id must be numeric")
 
     url = f"{KWORK_BASE_URL}/projects/{project_id}"
-    async with httpx.AsyncClient(timeout=20, follow_redirects=True, trust_env=False) as client:
+    async with httpx.AsyncClient(
+        timeout=20,
+        follow_redirects=True,
+        proxy=kwork_http_proxy_url(rotate=False),
+        trust_env=False,
+    ) as client:
         response = await client.get(url, headers={"User-Agent": "Mozilla/5.0 PSR-KworkInspector/1.0"})
 
     if response.status_code >= 400:

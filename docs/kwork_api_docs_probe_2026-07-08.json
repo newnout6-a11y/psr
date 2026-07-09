@@ -1,0 +1,434 @@
+[
+  {
+    "url": "https://api.kwork.ru/swagger.json",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/swagger/v1/swagger.json",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/api-docs",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/api-docs/",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/openapi.json",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/openapi.yaml",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/v1/api-docs",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/v2/api-docs",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/.well-known/openapi.json",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/api/swagger",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/docs",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/redoc",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/swagger",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/swagger-ui",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/swagger-ui.html",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/service?wsdl",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/service?WSDL",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/service?singleWsdl",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/service.asmx?wsdl",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/Service.svc?wsdl",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/Service.svc?singleWsdl",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/ws/service.wsdl",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/axis2/services/listServices",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://api.kwork.ru/cxf/services",
+    "status": 401,
+    "location": null,
+    "content_type": "text/html",
+    "len": 172,
+    "kind": "other",
+    "body_sample": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://kwork.ru/swagger.json",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/swagger/v1/swagger.json",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/api-docs",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/api-docs/",
+    "status": 302,
+    "location": "http://kwork.ru/api-docs",
+    "content_type": "text/html",
+    "len": 138,
+    "kind": "other",
+    "body_sample": "<html> <head><title>302 Found</title></head> <body> <center><h1>302 Found</h1></center> <hr><center>nginx</center> </body> </html> "
+  },
+  {
+    "url": "https://kwork.ru/openapi.json",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/openapi.yaml",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/v1/api-docs",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/v2/api-docs",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/.well-known/openapi.json",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/api/swagger",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/docs",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/redoc",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/swagger",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/swagger-ui",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/swagger-ui.html",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/service?wsdl",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/service?WSDL",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/service?singleWsdl",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/service.asmx?wsdl",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/Service.svc?wsdl",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/Service.svc?singleWsdl",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/ws/service.wsdl",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/axis2/services/listServices",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  },
+  {
+    "url": "https://kwork.ru/cxf/services",
+    "status": 404,
+    "location": null,
+    "content_type": "text/html; charset=UTF-8",
+    "len": 54739,
+    "kind": "other",
+    "body_sample": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variabl"
+  }
+]

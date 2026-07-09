@@ -18,16 +18,40 @@ from urllib.parse import urlencode
 
 import httpx
 from loguru import logger
+from src.utils.vpnte_proxy import kwork_http_proxy_url
 
 KWORK_WEB_BASE_URL = "https://kwork.ru"
 
 ATTRIBUTE_NAME_RE = re.compile(r"^(?:new_custom_)?attribute\[(\d+)\](\[\])?$")
 FIELD_PART_RE = re.compile(r"([^\[\]]+)|\[([^\[\]]*)\]")
 QUESTION_CLASS_RE = re.compile(r"(label|title|caption|name|field|parameter|param)", re.I)
+MANUAL_VERIFICATION_STRONG_RE = re.compile(
+    r"(smart-captcha|captcha-api\.yandex|data-sitekey|manual_verification_required)",
+    re.I,
+)
+MANUAL_VERIFICATION_SCRIPT_RE = re.compile(
+    r"(smartcaptcha|smartcaptcha\.cloud\.yandex\.ru|smartcaptcha\.yandexcloud\.net|smart-token)",
+    re.I,
+)
+MANUAL_VERIFICATION_WEAK_RE = re.compile(
+    r"(подтвердите,\s*что\s*вы\s*не\s*робот|я\s*не\s*робот|"
+    r"большой\s+нагрузк|автоматическ(?:ие|ими)?\s+скрипт)",
+    re.I,
+)
+MANUAL_VERIFICATION_REAL_WEAK_RE = re.compile(
+    r"(подтвердите,\s*что\s*вы\s*не\s*робот|я\s*не\s*робот|"
+    r"большой\s+нагрузк|автоматическ(?:ие|ими|их)?\s+скрипт)",
+    re.I,
+)
 MANUAL_VERIFICATION_RE = re.compile(
-    r"(smartcaptcha|smart-captcha|smartcaptcha\.cloud\.yandex\.ru|captcha-api\.yandex|"
-    r"smart-token|подтвердите,\s*что\s*вы\s*не\s*робот|я\s*не\s*робот|"
-    r"большой\s+нагрузк|автоматическ(?:ие|ими)?\s+скрипт|manual_verification_required)",
+    f"({MANUAL_VERIFICATION_STRONG_RE.pattern}|{MANUAL_VERIFICATION_WEAK_RE.pattern}|"
+    f"{MANUAL_VERIFICATION_REAL_WEAK_RE.pattern})",
+    re.I,
+)
+MANUAL_VERIFICATION_URL_RE = re.compile(r"(not_access|captcha|manual_verification)", re.I)
+KWORK_NEW_FORM_RE = re.compile(
+    r"(js-kwork-save-form|/save_kwork|name=[\"']csrftoken[\"']|name=[\"']draft_id[\"']|"
+    r"name=[\"']title[\"']|name=[\"']description[\"'])",
     re.I,
 )
 
@@ -38,13 +62,48 @@ def _clean_text(value: Any) -> str:
     return text
 
 
-def is_kwork_manual_verification_page(text: str, final_url: str = "") -> bool:
+def manual_verification_evidence(
+    text: str,
+    final_url: str = "",
+    status_code: int | None = None,
+) -> dict[str, Any]:
     haystack = f"{final_url}\n{text or ''}"
-    return bool(MANUAL_VERIFICATION_RE.search(haystack))
+    strong = sorted({match.group(0) for match in MANUAL_VERIFICATION_STRONG_RE.finditer(haystack)})
+    script_markers = sorted({match.group(0) for match in MANUAL_VERIFICATION_SCRIPT_RE.finditer(haystack)})
+    weak = sorted(
+        {
+            match.group(0)
+            for regex in (MANUAL_VERIFICATION_WEAK_RE, MANUAL_VERIFICATION_REAL_WEAK_RE)
+            for match in regex.finditer(haystack)
+        }
+    )
+    challenge_url = bool(MANUAL_VERIFICATION_URL_RE.search(final_url or ""))
+    has_new_form = bool(KWORK_NEW_FORM_RE.search(text or ""))
+    challenge_status = status_code in {403, 429}
+    normal_new_form = bool(status_code and 200 <= status_code < 300 and has_new_form and not challenge_url)
+    manual_required = False
+    if not normal_new_form:
+        manual_required = bool(strong and (challenge_url or challenge_status or not has_new_form))
+        manual_required = manual_required or bool(script_markers and (challenge_url or challenge_status))
+        manual_required = manual_required or bool(weak and (challenge_url or challenge_status))
+    return {
+        "manual_required": manual_required,
+        "strong_matches": strong[:8],
+        "script_matches": script_markers[:8],
+        "weak_matches": weak[:8],
+        "challenge_url": challenge_url,
+        "challenge_status": challenge_status,
+        "has_new_form": has_new_form,
+    }
+
+
+def is_kwork_manual_verification_page(text: str, final_url: str = "") -> bool:
+    return bool(manual_verification_evidence(text, final_url).get("manual_required"))
 
 
 def manual_verification_response(status_code: int, text: str, final_url: str = "") -> dict[str, Any] | None:
-    if not is_kwork_manual_verification_page(text, final_url):
+    evidence = manual_verification_evidence(text, final_url, status_code)
+    if not evidence.get("manual_required"):
         return None
     logger.warning(f"Kwork manual_verification_required: status={status_code} url={str(final_url or '')[:180]}")
     return {
@@ -53,6 +112,7 @@ def manual_verification_response(status_code: int, text: str, final_url: str = "
         "code": "manual_verification_required",
         "detail": "Kwork requires a manual SmartCaptcha/robot check. Open the Kwork verification window in PSR and complete it by hand.",
         "final_url": final_url,
+        "evidence": evidence,
     }
 
 
@@ -632,6 +692,7 @@ class KworkWebListingClient:
             },
             timeout=20.0,
             follow_redirects=True,
+            proxy=kwork_http_proxy_url(rotate=False),
             trust_env=False,
         ) as client:
             response = await client.get("/new", cookies=self.cookies)
@@ -667,6 +728,7 @@ class KworkWebListingClient:
             },
             timeout=20.0,
             follow_redirects=True,
+            proxy=kwork_http_proxy_url(rotate=False),
             trust_env=False,
         ) as client:
             response = await client.get("/api/attribute/loadclassification", params=params, cookies=self.cookies)
@@ -751,6 +813,7 @@ class KworkWebListingClient:
             },
             timeout=60.0,
             follow_redirects=True,
+            proxy=kwork_http_proxy_url(rotate=False),
             trust_env=False,
         ) as client:
             with file_path.open("rb") as fh:
@@ -808,6 +871,7 @@ class KworkWebListingClient:
             },
             timeout=60.0,
             follow_redirects=True,
+            proxy=kwork_http_proxy_url(rotate=False),
             trust_env=False,
         ) as client:
             response = await client.post("/save_kwork", cookies=self.cookies, content=encoded)
@@ -826,6 +890,7 @@ class KworkWebListingClient:
             },
             timeout=60.0,
             follow_redirects=True,
+            proxy=kwork_http_proxy_url(rotate=False),
             trust_env=False,
         ) as client:
             response = await client.post("/save_kwork", cookies=self.cookies, json=structured)
@@ -862,6 +927,7 @@ class KworkWebListingClient:
             },
             timeout=30.0,
             follow_redirects=True,
+            proxy=kwork_http_proxy_url(rotate=False),
             trust_env=False,
         ) as client:
             checked: list[dict[str, Any]] = []

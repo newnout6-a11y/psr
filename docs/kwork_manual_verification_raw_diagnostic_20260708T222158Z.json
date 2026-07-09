@@ -1,0 +1,158 @@
+{
+  "generated_at": "2026-07-08T22:21:55Z",
+  "source": "codex.kwork_manual_verification_raw_diagnostic",
+  "cookies_count": 15,
+  "cookie_names": [
+    "RORSSQIHEK",
+    "_kmfvt",
+    "_kmid",
+    "_kmwl",
+    "accept_cookie_device_id",
+    "csrf_user_token",
+    "list_type_sdisplay",
+    "referrer_url",
+    "seo_activation_request_uri",
+    "seo_activation_set_time",
+    "seo_activation_source",
+    "show_mobile_app_banner_date",
+    "slrememberme",
+    "uad",
+    "userId"
+  ],
+  "proxy": "http://127.0.0.1:17990",
+  "checks": {
+    "current_open_new_helper": {
+      "ok": false,
+      "http_status": 403,
+      "code": "manual_verification_required",
+      "detail": "Kwork requires a manual SmartCaptcha/robot check. Open the Kwork verification window in PSR and complete it by hand.",
+      "final_url": "https://kwork.ru/not_access.php"
+    },
+    "new": {
+      "http_status": 403,
+      "final_url": "https://kwork.ru/not_access.php",
+      "content_type": "text/html; charset=UTF-8",
+      "html_len": 1284,
+      "old_detector_code": "manual_verification_required",
+      "strong_marker_counts": {
+        "smartcaptcha": 1,
+        "smart-captcha": 1,
+        "smartcaptcha.cloud.yandex.ru": 0,
+        "captcha-api.yandex": 0,
+        "smart-token": 0,
+        "data-sitekey": 1,
+        "captcha_iframe": 0,
+        "manual_code": 0
+      },
+      "weak_marker_counts": {
+        "heavy_load_ru": 1,
+        "automatic_scripts_ru": 2,
+        "not_robot_ru": 1
+      },
+      "form_marker_counts": {
+        "save_kwork": 0,
+        "category_id_field": 0,
+        "title_field": 0,
+        "description_field": 0,
+        "csrftoken": 0,
+        "new_form_action": 0
+      },
+      "regex_matches": [
+        {
+          "match": "большой нагрузк",
+          "context": "=1.0\"> </head> <body> <div style=\"text-align: center; margin-top: 100px;\"> Вам заблокирован доступ к сайту в связи с большой нагрузкой на сайт с вашей стороны.<br> Скорее всего она вызвана автоматическими скриптами, работающими на вашей стороне.<br>"
+        },
+        {
+          "match": "автоматическими скрипт",
+          "context": "> Вам заблокирован доступ к сайту в связи с большой нагрузкой на сайт с вашей стороны.<br> Скорее всего она вызвана автоматическими скриптами, работающими на вашей стороне.<br> Использование автоматических скриптов для обращения к сайту запрещено правилами"
+        },
+        {
+          "match": "подтвердите, что вы не робот",
+          "context": "вание автоматических скриптов для обращения к сайту запрещено правилами системы.<br> Для получения доступа к сайту подтвердите, что вы не робот:<br> <form action=\"/not_access.php\" method=\"post\"> <div class=\"form-item\" style=\"width: 320px; max-width: 100%;"
+        },
+        {
+          "match": "smartcaptcha",
+          "context": "rm-item\" style=\"width: 320px; max-width: 100%; margin: 15px auto 30px;\" align=\"center\"> <script src=\"https://smartcaptcha.yandexcloud.net/captcha.js\" defer></script> <div class=\"smart-captcha\" data-sitekey=\"ysc1_hBr12GvIX6hPj9M0DAC9TM6"
+        },
+        {
+          "match": "smart-captcha",
+          "context": "gn=\"center\"> <script src=\"https://smartcaptcha.yandexcloud.net/captcha.js\" defer></script> <div class=\"smart-captcha\" data-sitekey=\"ysc1_hBr12GvIX6hPj9M0DAC9TM6gquxIeMM0OB4kNlVA74e93fa3\"></div> <input type=\"submit\" value=\"Подт"
+        },
+        {
+          "match": "автоматические скрипт",
+          "context": "t type=\"submit\" value=\"Подтвердить\" style=\"margin-top: 5px;\" /> </div> </form> <br> Если вы не используете автоматические скрипты для доступа к сайту,<br>обратитесь в техподдержку для решения этой проблемы по адресу: support@kwork.ru <br> При о"
+        }
+      ],
+      "parse_new_form_snapshot": {
+        "ok": false,
+        "code": null,
+        "final_url": "https://kwork.ru/not_access.php",
+        "title": null,
+        "category_id": null,
+        "dynamic_fields_count": null
+      },
+      "elapsed_ms": 581
+    },
+    "loadclassification_root": {
+      "http_status": 403,
+      "final_url": "https://kwork.ru/not_access.php",
+      "content_type": "text/html; charset=UTF-8",
+      "html_len": 1284,
+      "old_detector_code": "manual_verification_required",
+      "strong_marker_counts": {
+        "smartcaptcha": 1,
+        "smart-captcha": 1,
+        "smartcaptcha.cloud.yandex.ru": 0,
+        "captcha-api.yandex": 0,
+        "smart-token": 0,
+        "data-sitekey": 1,
+        "captcha_iframe": 0,
+        "manual_code": 0
+      },
+      "weak_marker_counts": {
+        "heavy_load_ru": 1,
+        "automatic_scripts_ru": 2,
+        "not_robot_ru": 1
+      },
+      "form_marker_counts": {
+        "save_kwork": 0,
+        "category_id_field": 0,
+        "title_field": 0,
+        "description_field": 0,
+        "csrftoken": 0,
+        "new_form_action": 0
+      },
+      "regex_matches": [
+        {
+          "match": "большой нагрузк",
+          "context": "=1.0\"> </head> <body> <div style=\"text-align: center; margin-top: 100px;\"> Вам заблокирован доступ к сайту в связи с большой нагрузкой на сайт с вашей стороны.<br> Скорее всего она вызвана автоматическими скриптами, работающими на вашей стороне.<br>"
+        },
+        {
+          "match": "автоматическими скрипт",
+          "context": "> Вам заблокирован доступ к сайту в связи с большой нагрузкой на сайт с вашей стороны.<br> Скорее всего она вызвана автоматическими скриптами, работающими на вашей стороне.<br> Использование автоматических скриптов для обращения к сайту запрещено правилами"
+        },
+        {
+          "match": "подтвердите, что вы не робот",
+          "context": "вание автоматических скриптов для обращения к сайту запрещено правилами системы.<br> Для получения доступа к сайту подтвердите, что вы не робот:<br> <form action=\"/not_access.php\" method=\"post\"> <div class=\"form-item\" style=\"width: 320px; max-width: 100%;"
+        },
+        {
+          "match": "smartcaptcha",
+          "context": "rm-item\" style=\"width: 320px; max-width: 100%; margin: 15px auto 30px;\" align=\"center\"> <script src=\"https://smartcaptcha.yandexcloud.net/captcha.js\" defer></script> <div class=\"smart-captcha\" data-sitekey=\"ysc1_hBr12GvIX6hPj9M0DAC9TM6"
+        },
+        {
+          "match": "smart-captcha",
+          "context": "gn=\"center\"> <script src=\"https://smartcaptcha.yandexcloud.net/captcha.js\" defer></script> <div class=\"smart-captcha\" data-sitekey=\"ysc1_hBr12GvIX6hPj9M0DAC9TM6gquxIeMM0OB4kNlVA74e93fa3\"></div> <input type=\"submit\" value=\"Подт"
+        },
+        {
+          "match": "автоматические скрипт",
+          "context": "t type=\"submit\" value=\"Подтвердить\" style=\"margin-top: 5px;\" /> </div> </form> <br> Если вы не используете автоматические скрипты для доступа к сайту,<br>обратитесь в техподдержку для решения этой проблемы по адресу: support@kwork.ru <br> При о"
+        }
+      ],
+      "parse_new_form_snapshot": null,
+      "elapsed_ms": 227
+    }
+  },
+  "timings_ms": {
+    "total": 3287
+  }
+}

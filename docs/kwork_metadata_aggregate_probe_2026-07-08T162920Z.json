@@ -1,0 +1,1152 @@
+{
+  "timestamp_utc": "2026-07-08T16:29:20.993403+00:00",
+  "purpose": "Validate Kwork metadata/category/filter/count endpoints for scalable market aggregate intelligence.",
+  "proxy": {
+    "proxyUrl": "http://<redacted_ip>:17990",
+    "profileName": "usa2",
+    "country": "United States"
+  },
+  "auth": {
+    "mobile_basic_header_for_api": true,
+    "user_secrets_stored": false
+  },
+  "results": [
+    {
+      "name": "api_categories",
+      "method": "POST",
+      "url": "https://api.kwork.ru/categories",
+      "params": {},
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 4854,
+      "elapsed_ms": 1322,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "description",
+          "subcategories"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "description": "Логотипы, веб-дизайн, визитки",
+            "subcategories": [
+              {
+                "id": 25,
+                "name": "Логотип и брендинг",
+                "description": ""
+              },
+              {
+                "id": 24,
+                "name": "Веб и мобильный дизайн",
+                "description": ""
+              },
+              {
+                "id": 28,
+                "name": "Арт и иллюстрации",
+                "description": ""
+              },
+              {
+                "id": 27,
+                "name": "Полиграфия",
+                "description": ""
+              },
+              {
+                "id": 90,
+                "name": "Интерьер и экстерьер",
+                "description": ""
+              }
+            ]
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "description": "Доработка, сайт под ключ",
+            "subcategories": [
+              {
+                "id": 38,
+                "name": "Доработка и настройка сайта",
+                "description": ""
+              },
+              {
+                "id": 37,
+                "name": "Создание сайта",
+                "description": ""
+              },
+              {
+                "id": 41,
+                "name": "Скрипты, боты и mini apps",
+                "description": ""
+              },
+              {
+                "id": 79,
+                "name": "Верстка",
+                "description": ""
+              },
+              {
+                "id": 80,
+                "name": "Десктоп программирование",
+                "description": ""
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "description": "Статьи, корректура, переводы",
+            "subcategories": [
+              {
+                "id": 235,
+                "name": "Резюме и вакансии",
+                "description": ""
+              },
+              {
+                "id": 75,
+                "name": "Набор текста",
+                "description": ""
+              },
+              {
+                "id": 74,
+                "name": "Продающие и бизнес-тексты",
+                "description": ""
+              },
+              {
+                "id": 73,
+                "name": "Тексты и наполнение сайта",
+                "description": ""
+              },
+              {
+                "id": 35,
+                "name": "Переводы",
+                "description": ""
+              }
+            ]
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "description": "Аудиты, ссылки, трафик",
+            "subcategories": [
+              {
+                "id": 72,
+                "name": "Трафик",
+                "description": ""
+              },
+              {
+                "id": 71,
+                "name": "Семантическое ядро",
+                "description": ""
+              },
+              {
+                "id": 59,
+                "name": "Ссылки",
+                "description": ""
+              },
+              {
+                "id": 56,
+                "name": "Статистика и аналитика",
+                "description": ""
+              },
+              {
+                "id": 44,
+                "name": "SEO аудиты, консультации",
+                "description": ""
+              }
+            ]
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "description": "Маркетинг, продвижение, PR",
+            "subcategories": [
+              {
+                "id": 113,
+                "name": "Базы данных и клиентов",
+                "description": ""
+              },
+              {
+                "id": 112,
+                "name": "Маркетплейсы и доски объявлений",
+                "description": ""
+              },
+              {
+                "id": 108,
+                "name": "E-mail маркетинг и рассылки",
+                "description": ""
+              },
+              {
+                "id": 49,
+                "name": "Контекстная реклама",
+                "description": ""
+              },
+              {
+                "id": 47,
+                "name": "Маркетинг и PR",
+                "description": ""
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "api_category_11",
+      "method": "POST",
+      "url": "https://api.kwork.ru/category",
+      "params": {
+        "category_id": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 226,
+      "elapsed_ms": 1051,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "id",
+          "name",
+          "mobile_description",
+          "base_volume",
+          "volume_type",
+          "attributes",
+          "positive_reviews_count"
+        ],
+        "id": 11,
+        "name": "Разработка и IT",
+        "mobile_description": "Доработка, сайт под ключ",
+        "base_volume": null,
+        "volume_type": null,
+        "attributes_count": 0,
+        "positive_reviews_count": false,
+        "sample": {
+          "id": 11,
+          "name": "Разработка и IT",
+          "mobile_description": "Доработка, сайт под ключ",
+          "base_volume": null,
+          "volume_type": null,
+          "attributes": [],
+          "positive_reviews_count": false
+        }
+      }
+    },
+    {
+      "name": "api_category_15",
+      "method": "POST",
+      "url": "https://api.kwork.ru/category",
+      "params": {
+        "category_id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 221,
+      "elapsed_ms": 1357,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "id",
+          "name",
+          "mobile_description",
+          "base_volume",
+          "volume_type",
+          "attributes",
+          "positive_reviews_count"
+        ],
+        "id": 15,
+        "name": "Дизайн",
+        "mobile_description": "Логотипы, веб-дизайн, визитки",
+        "base_volume": null,
+        "volume_type": null,
+        "attributes_count": 0,
+        "positive_reviews_count": false,
+        "sample": {
+          "id": 15,
+          "name": "Дизайн",
+          "mobile_description": "Логотипы, веб-дизайн, визитки",
+          "base_volume": null,
+          "volume_type": null,
+          "attributes": [],
+          "positive_reviews_count": false
+        }
+      }
+    },
+    {
+      "name": "categoryAttributes_11",
+      "method": "POST",
+      "url": "https://api.kwork.ru/categoryAttributes",
+      "params": {
+        "category_id": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 30,
+      "elapsed_ms": 1039,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 0,
+        "sample": []
+      }
+    },
+    {
+      "name": "categoryAttributes_15",
+      "method": "POST",
+      "url": "https://api.kwork.ru/categoryAttributes",
+      "params": {
+        "category_id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 30,
+      "elapsed_ms": 1038,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 0,
+        "sample": []
+      }
+    },
+    {
+      "name": "catalogFilters_11_categoryId",
+      "method": "POST",
+      "url": "https://api.kwork.ru/catalogFilters",
+      "params": {
+        "categoryId": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 1561,
+      "elapsed_ms": 1105,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "filters",
+          "groups",
+          "kworks_count"
+        ],
+        "filters_count": 4,
+        "filters_item_keys": [
+          "name",
+          "type",
+          "query_key",
+          "mobile_group_id",
+          "values"
+        ],
+        "groups_count": 4,
+        "groups_item_keys": [
+          "id",
+          "name"
+        ],
+        "sample": {
+          "filters": [
+            {
+              "name": "Уровень продавца",
+              "type": "one_of_several",
+              "query_key": "sellerlvl",
+              "mobile_group_id": 3,
+              "values": [
+                {
+                  "id": "1",
+                  "name": "Восходящая звезда и выше"
+                },
+                {
+                  "id": "2",
+                  "name": "Высший рейтинг и выше"
+                },
+                {
+                  "id": "3",
+                  "name": "Высший рейтинг плюс"
+                }
+              ]
+            },
+            {
+              "name": "Активность продавцов",
+              "type": "one_of_several",
+              "query_key": "sonline",
+              "mobile_group_id": 3,
+              "values": [
+                {
+                  "id": "online",
+                  "name": "Онлайн"
+                },
+                {
+                  "id": "1",
+                  "name": "Заходил до 1 дн. назад"
+                },
+                {
+                  "id": "3",
+                  "name": "Заходил до 3 дн. назад"
+                },
+                {
+                  "id": "7",
+                  "name": "Заходил до 1 нед. назад"
+                },
+                {
+                  "id": "14",
+                  "name": "Заходил до 2 нед. назад"
+                }
+              ]
+            },
+            {
+              "name": "Срок выполнения",
+              "type": "one_of_several",
+              "query_key": "sdeliverytime",
+              "mobile_group_id": 2,
+              "values": [
+                {
+                  "id": "1",
+                  "name": "За 24 часа"
+                },
+                {
+                  "id": "2",
+                  "name": "До 2 дней"
+                },
+                {
+                  "id": "3",
+                  "name": "До 3 дней"
+                },
+                {
+                  "id": "5",
+                  "name": "До 5 дней"
+                },
+                {
+                  "id": "10",
+                  "name": "До 10 дней"
+                }
+              ]
+            },
+            {
+              "name": "Заказов в очереди",
+              "type": "one_of_several",
+              "query_key": "sordersqueue",
+              "mobile_group_id": 3,
+              "values": [
+                {
+                  "id": "1",
+                  "name": "Нет"
+                },
+                {
+                  "id": "2",
+                  "name": "До 1"
+                },
+                {
+                  "id": "4",
+                  "name": "До 3"
+                },
+                {
+                  "id": "6",
+                  "name": "До 5"
+                },
+                {
+                  "id": "9",
+                  "name": "До 8"
+                }
+              ]
+            }
+          ],
+          "groups": [
+            {
+              "id": 1,
+              "name": "Сортировка"
+            },
+            {
+              "id": 2,
+              "name": "Пожелания к работе"
+            },
+            {
+              "id": 3,
+              "name": "Пожелание к исполнителю"
+            },
+            {
+              "id": 4,
+              "name": "Показывать только"
+            }
+          ],
+          "kworks_count": 103023
+        }
+      }
+    },
+    {
+      "name": "catalogFilters_11_category_id",
+      "method": "POST",
+      "url": "https://api.kwork.ru/catalogFilters",
+      "params": {
+        "category_id": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 1839,
+      "elapsed_ms": 1111,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "filters",
+          "groups",
+          "kworks_count"
+        ],
+        "filters_count": 5,
+        "filters_item_keys": [
+          "name",
+          "type",
+          "query_key",
+          "mobile_group_id",
+          "values"
+        ],
+        "groups_count": 4,
+        "groups_item_keys": [
+          "id",
+          "name"
+        ],
+        "sample": {
+          "filters": [
+            {
+              "name": "Уровень продавца",
+              "type": "one_of_several",
+              "query_key": "sellerlvl",
+              "mobile_group_id": 3,
+              "values": [
+                {
+                  "id": "1",
+                  "name": "Восходящая звезда и выше"
+                },
+                {
+                  "id": "2",
+                  "name": "Высший рейтинг и выше"
+                },
+                {
+                  "id": "3",
+                  "name": "Высший рейтинг плюс"
+                }
+              ]
+            },
+            {
+              "name": "Активность продавцов",
+              "type": "one_of_several",
+              "query_key": "sonline",
+              "mobile_group_id": 3,
+              "values": [
+                {
+                  "id": "online",
+                  "name": "Онлайн"
+                },
+                {
+                  "id": "1",
+                  "name": "Заходил до 1 дн. назад"
+                },
+                {
+                  "id": "3",
+                  "name": "Заходил до 3 дн. назад"
+                },
+                {
+                  "id": "7",
+                  "name": "Заходил до 1 нед. назад"
+                },
+                {
+                  "id": "14",
+                  "name": "Заходил до 2 нед. назад"
+                }
+              ]
+            },
+            {
+              "name": "Положительных отзывов",
+              "type": "one_of_several",
+              "query_key": "sminreview",
+              "mobile_group_id": 3,
+              "values": [
+                {
+                  "id": "5",
+                  "name": "От 5"
+                },
+                {
+                  "id": "10",
+                  "name": "От 10"
+                },
+                {
+                  "id": "20",
+                  "name": "От 20"
+                },
+                {
+                  "id": "50",
+                  "name": "От 50"
+                },
+                {
+                  "id": "100",
+                  "name": "От 100"
+                }
+              ]
+            },
+            {
+              "name": "Срок выполнения",
+              "type": "one_of_several",
+              "query_key": "sdeliverytime",
+              "mobile_group_id": 2,
+              "values": [
+                {
+                  "id": "1",
+                  "name": "За 24 часа"
+                },
+                {
+                  "id": "2",
+                  "name": "До 2 дней"
+                },
+                {
+                  "id": "3",
+                  "name": "До 3 дней"
+                },
+                {
+                  "id": "5",
+                  "name": "До 5 дней"
+                },
+                {
+                  "id": "10",
+                  "name": "До 10 дней"
+                }
+              ]
+            },
+            {
+              "name": "Заказов в очереди",
+              "type": "one_of_several",
+              "query_key": "sordersqueue",
+              "mobile_group_id": 3,
+              "values": [
+                {
+                  "id": "1",
+                  "name": "Нет"
+                },
+                {
+                  "id": "2",
+                  "name": "До 1"
+                },
+                {
+                  "id": "4",
+                  "name": "До 3"
+                },
+                {
+                  "id": "6",
+                  "name": "До 5"
+                },
+                {
+                  "id": "9",
+                  "name": "До 8"
+                }
+              ]
+            }
+          ],
+          "groups": [
+            {
+              "id": 1,
+              "name": "Сортировка"
+            },
+            {
+              "id": 2,
+              "name": "Пожелания к работе"
+            },
+            {
+              "id": 3,
+              "name": "Пожелание к исполнителю"
+            },
+            {
+              "id": 4,
+              "name": "Показывать только"
+            }
+          ],
+          "kworks_count": 784454
+        }
+      }
+    },
+    {
+      "name": "catalogMainv2",
+      "method": "POST",
+      "url": "https://api.kwork.ru/catalogMainv2",
+      "params": {},
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 31785,
+      "elapsed_ms": 1311,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "popular_categories_block",
+          "catalog_service_block",
+          "other_services_block"
+        ],
+        "popular_categories_block_count": 3,
+        "popular_categories_block_item_keys": [
+          "name",
+          "block_description",
+          "categories",
+          "order",
+          "id"
+        ],
+        "catalog_service_block_count": 7,
+        "catalog_service_block_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "icon_path",
+          "order"
+        ],
+        "other_services_block_count": 10,
+        "other_services_block_item_keys": [
+          "name",
+          "cover_url",
+          "order",
+          "category_id"
+        ],
+        "sample": {
+          "popular_categories_block": [
+            {
+              "name": "Дизайн",
+              "block_description": "Все ваши мечты о дизайне станут реальностью",
+              "categories": [
+                {
+                  "category_id": 25,
+                  "classifier_id": 401928,
+                  "name": "Логотипы",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/102-mobile-1606468637.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/102-1761987361.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/102-mobile-1606468637.jpg",
+                  "kworks_count": 33644,
+                  "order": 0
+                },
+                {
+                  "category_id": 25,
+                  "classifier_id": 401976,
+                  "name": "Фирменный стиль",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/114-mobile-1606468650.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/114-1761987373.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/114-mobile-1606468650.jpg",
+                  "kworks_count": 4163,
+                  "order": 1
+                },
+                {
+                  "category_id": 25,
+                  "classifier_id": 402019,
+                  "name": "Визитки",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/81-mobile-1606468677.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/81-1761987383.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/81-mobile-1606468677.jpg",
+                  "kworks_count": 7847,
+                  "order": 2
+                },
+                {
+                  "category_id": 25,
+                  "classifier_id": 402005,
+                  "name": "Брендирование и сувенирка",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/257-mobile-1606468749.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/257-1761987397.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/257-mobile-1606468749.jpg",
+                  "kworks_count": 594,
+                  "order": 3
+                },
+                {
+                  "category_id": 270,
+                  "classifier_id": 314398,
+                  "name": "Презентации",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/436-mobile-1606468793.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/436-1761987411.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/436-mobile-1606468793.jpg",
+                  "kworks_count": 11610,
+                  "order": 4
+                }
+              ],
+              "order": 0,
+              "id": 15
+            },
+            {
+              "name": "SEO и трафик",
+              "block_description": "Потому что сайт должен приносить доход",
+              "categories": [
+                {
+                  "category_id": 59,
+                  "classifier_id": null,
+                  "name": "Ссылки",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/15-mobile-1606474584.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/15-1761984472.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/15-mobile-1606474584.jpg",
+                  "kworks_count": 45352,
+                  "order": 0
+                },
+                {
+                  "category_id": 273,
+                  "classifier_id": null,
+                  "name": "Продвижение сайта в топ",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/569-mobile-1606474596.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/569-1761984507.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/569-mobile-1606474596.jpg",
+                  "kworks_count": 2986,
+                  "order": 1
+                },
+                {
+                  "category_id": 43,
+                  "classifier_id": null,
+                  "name": "Внутренняя оптимизация",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/572-mobile-1606474611.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/572-1761984532.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/572-mobile-1606474611.jpg",
+                  "kworks_count": 1939,
+                  "order": 2
+                },
+                {
+                  "category_id": 71,
+                  "classifier_id": null,
+                  "name": "Семантическое ядро",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/12-mobile-1606474654.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/12-1761984549.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/12-mobile-1606474654.jpg",
+                  "kworks_count": 1228,
+                  "order": 3
+                },
+                {
+                  "category_id": 44,
+                  "classifier_id": null,
+                  "name": "SEO аудиты, консультации",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/6-mobile-1611590221.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/6-1761984562.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/6-mobile-1611590221.jpg",
+                  "kworks_count": 2389,
+                  "order": 4
+                }
+              ],
+              "order": 1,
+              "id": 17
+            },
+            {
+              "name": "Соцсети и маркетинг",
+              "block_description": "Пусть о вашем бизнесе узнают новые клиенты",
+              "categories": [
+                {
+                  "category_id": 46,
+                  "classifier_id": 265,
+                  "name": "Youtube",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/598-mobile-1606474786.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/598-1764134677.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/598-mobile-1606474786.jpg",
+                  "kworks_count": 5576,
+                  "order": 0
+                },
+                {
+                  "category_id": 46,
+                  "classifier_id": 242,
+                  "name": "ВКонтакте",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/601-mobile-1606474798.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/601-1764134637.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/601-mobile-1606474798.jpg",
+                  "kworks_count": 5275,
+                  "order": 1
+                },
+                {
+                  "category_id": 46,
+                  "classifier_id": 281,
+                  "name": "Telegram",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/607-mobile-1606474824.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/607-1764134689.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/607-mobile-1606474824.jpg",
+                  "kworks_count": 7156,
+                  "order": 2
+                },
+                {
+                  "category_id": 46,
+                  "classifier_id": 5273900,
+                  "name": "MAX",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1429-mobile-1771556652.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/1429-1771556653.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/1429-mobile-1771556652.jpg",
+                  "kworks_count": 843,
+                  "order": 3
+                },
+                {
+                  "category_id": 46,
+                  "classifier_id": 273,
+                  "name": "Одноклассники",
+                  "cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/608-mobile-1606474834.jpg",
+                  "cover_redesign_url": "https://cdn-edge.kwork.ru/files/menu_cover/large_x2/608-1764134710.png",
+                  "mobile_cover_url": "https://cdn-edge.kwork.ru/files/menu_cover/x1/608-mobile-1606474834.jpg",
+                  "kworks_count": 455,
+                  "order": 4
+                }
+              ],
+              "order": 2,
+              "id": 45
+            }
+          ],
+          "catalog_service_block": [
+            {
+              "id": 15,
+              "name": "Дизайн",
+              "rubric_description": "Логотипы, веб-дизайн, визитки",
+              "icon_path": "https://cache.kwork.ru/files/menu_ico/69-1595922297.png",
+              "order": 0
+            },
+            {
+              "id": 11,
+              "name": "Разработка и IT",
+              "rubric_description": "Доработка, сайт под ключ",
+              "icon_path": "https://cache.kwork.ru/files/menu_ico/144-1595922314.png",
+              "order": 1
+            },
+            {
+              "id": 5,
+              "name": "Тексты и переводы",
+              "rubric_description": "Статьи, корректура, переводы",
+              "icon_path": "https://cache.kwork.ru/files/menu_ico/207-1595922325.png",
+              "order": 2
+            },
+            {
+              "id": 17,
+              "name": "SEO и трафик",
+              "rubric_description": "Аудиты, ссылки, трафик",
+              "icon_path": "https://cache.kwork.ru/files/menu_ico/3-1595922342.png",
+              "order": 3
+            },
+            {
+              "id": 45,
+              "name": "Соцсети и маркетинг",
+              "rubric_description": "Маркетинг, продвижение, PR",
+              "icon_path": "https://cache.kwork.ru/files/menu_ico/120-1595922356.png",
+              "order": 4
+            }
+          ],
+          "other_services_block": [
+            {
+              "name": "Ссылки",
+              "cover_url": "https://cdn-edge.kwork.ru/files/category/collage/categories_second_level/ru/t1_r/links_mobile.jpg",
+              "order": 0,
+              "category_id": 59
+            },
+            {
+              "name": "Продвижение сайта в топ",
+              "cover_url": "https://cdn-edge.kwork.ru/files/category/collage/categories_second_level/ru/t1_r/vyvod-zaprosov-v-top_mobile.jpg",
+              "order": 1,
+              "category_id": 273
+            },
+            {
+              "name": "Новый сайт",
+              "cover_url": "",
+              "order": 2,
+              "classifier_id": 5016,
+              "category_id": 37
+            },
+            {
+              "name": "Доработка сайта",
+              "cover_url": "",
+              "order": 3,
+              "classifier_id": 1271,
+              "category_id": 38
+            },
+            {
+              "name": "Яндекс Директ",
+              "cover_url": "",
+              "order": 4,
+              "classifier_id": 206,
+              "category_id": 49
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "positiveReviewsCount_11",
+      "method": "POST",
+      "url": "https://api.kwork.ru/positiveReviewsCount",
+      "params": {
+        "category_id": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 33,
+      "elapsed_ms": 1043,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "sample": false
+      }
+    },
+    {
+      "name": "positiveReviewsCount_11_attr208",
+      "method": "POST",
+      "url": "https://api.kwork.ru/positiveReviewsCount",
+      "params": {
+        "category_id": "11",
+        "attribute_id": "208"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 33,
+      "elapsed_ms": 1090,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "sample": false
+      }
+    },
+    {
+      "name": "positiveReviewsCount_15",
+      "method": "POST",
+      "url": "https://api.kwork.ru/positiveReviewsCount",
+      "params": {
+        "category_id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 33,
+      "elapsed_ms": 1039,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "sample": false
+      }
+    },
+    {
+      "name": "freeprice_category_11",
+      "method": "GET",
+      "url": "https://kwork.ru/api/freeprice/categorygetprices",
+      "params": {
+        "categoryId": "11",
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 30,
+      "elapsed_ms": 1651,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "sample": {
+          "success": true,
+          "prices": null
+        }
+      }
+    },
+    {
+      "name": "freeprice_category_15",
+      "method": "GET",
+      "url": "https://kwork.ru/api/freeprice/categorygetprices",
+      "params": {
+        "categoryId": "15",
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 30,
+      "elapsed_ms": 1025,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "sample": {
+          "success": true,
+          "prices": null
+        }
+      }
+    },
+    {
+      "name": "freeprice_attribute_11_208",
+      "method": "GET",
+      "url": "https://kwork.ru/api/freeprice/attributegetprices",
+      "params": {
+        "categoryId": "11",
+        "attributeId": "208",
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 30,
+      "elapsed_ms": 1065,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "sample": {
+          "success": true,
+          "prices": null
+        }
+      }
+    }
+  ]
+}

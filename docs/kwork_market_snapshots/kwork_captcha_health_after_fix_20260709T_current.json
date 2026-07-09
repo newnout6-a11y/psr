@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-07-09T10:13:58.905576+00:00",
+  "scope": "captcha_health_after_fix",
+  "health": {
+    "captcha_required": false,
+    "captcha_api_flag": false,
+    "captcha_status": "ok",
+    "captcha_check_error": "KworkException: Некорректные значения параметров",
+    "manual_verification_required": false,
+    "active_orders": 0,
+    "completed": 0,
+    "cancelled": 0,
+    "busy_risk": false
+  }
+}

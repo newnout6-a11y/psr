@@ -25,6 +25,10 @@ import {
   type KworkDraftResult,
   type KworkFormControl,
   type KworkFormManifest,
+  type KworkBuyerScout,
+  type KworkMarketIntelligenceHistory,
+  type KworkMarketIntelligenceSnapshot,
+  type KworkMarketMetrics,
   type KworkPriceRules,
 } from '../lib/api'
 import { cn } from '../lib/utils'
@@ -48,6 +52,178 @@ interface FieldChangeNotice {
   source: string
   confidence?: number
   context: string[]
+}
+
+const MARKET_SCAN_DEFAULT_SEEDS: Array<Record<string, unknown>> = [
+  { name: 'Программирование широко', category_id: 41 },
+  { name: 'Telegram', category_id: 46, classifier_id: 281 },
+  { name: 'Ссылки', category_id: 59 },
+  { name: 'Логотипы', category_id: 25, classifier_id: 401928 },
+]
+
+const KWORK_MARKET_STATE_KEY = 'psr:kwork-market:v3'
+
+function readKworkMarketState(): Record<string, any> {
+  if (typeof window === 'undefined') return {}
+  try {
+    const raw = window.localStorage.getItem(KWORK_MARKET_STATE_KEY)
+    const parsed = raw ? JSON.parse(raw) : {}
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function writeKworkMarketState(state: Record<string, unknown>) {
+  if (typeof window === 'undefined') return
+  const compactState = {
+    ...state,
+    buyerScoutResult: compactBuyerScoutResult(state.buyerScoutResult),
+    marketScanResult: compactMarketScanResult(state.marketScanResult),
+  }
+  try {
+    window.localStorage.setItem(KWORK_MARKET_STATE_KEY, JSON.stringify(compactState))
+  } catch {
+    try {
+      window.localStorage.setItem(
+        KWORK_MARKET_STATE_KEY,
+        JSON.stringify({
+          ...compactState,
+          buyerScoutResult: null,
+          marketScanResult: null,
+          formManifest: compactFormManifest(state.formManifest),
+        }),
+      )
+    } catch {
+      // localStorage can be full or disabled; losing this cache must not break the screen.
+    }
+  }
+}
+
+function compactFormManifest(value: unknown) {
+  if (!value || typeof value !== 'object') return null
+  const manifest = value as Record<string, unknown>
+  return {
+    category_id: manifest.category_id,
+    classifier_id: manifest.classifier_id,
+    success: manifest.success,
+    code: manifest.code,
+    selected: manifest.selected,
+    controls: Array.isArray(manifest.controls) ? manifest.controls : [],
+    unresolved_required: Array.isArray(manifest.unresolved_required) ? manifest.unresolved_required : [],
+  }
+}
+
+function compactMarketScanResult(value: unknown) {
+  if (!value || typeof value !== 'object') return null
+  const result = value as Record<string, any>
+  const supply = Array.isArray(result.supply) ? result.supply.slice(0, 10) : []
+  const sellerIntelligence = Array.isArray(result.seller_intelligence) ? result.seller_intelligence.slice(0, 8) : []
+  return {
+    generated_at: result.generated_at,
+    source: result.source,
+    config: result.config,
+    seeds: Array.isArray(result.seeds) ? result.seeds.slice(0, 12) : [],
+    supply,
+    query_demand: result.query_demand,
+    seller_intelligence: sellerIntelligence,
+    market_rankings: Array.isArray(result.market_rankings) ? result.market_rankings.slice(0, 12) : [],
+    aggregate: result.aggregate,
+    file_path: result.file_path,
+    latest_path: result.latest_path,
+    index_path: result.index_path,
+    account_context: result.account_context,
+    timings_ms: result.timings_ms,
+  }
+}
+
+function compactBuyerScoutResult(value: unknown) {
+  if (!value || typeof value !== 'object') return null
+  const result = value as Record<string, any>
+  const top = Array.isArray(result.top) ? result.top.slice(0, 12) : []
+  const probes = Array.isArray(result.probes) ? result.probes.slice(0, 12) : []
+  return {
+    generated_at: result.generated_at,
+    status: result.status,
+    aggregate: result.aggregate,
+    buyer_summary: result.aggregate?.buyer_summary || null,
+    market_signals: Array.isArray(result.aggregate?.market_signals) ? result.aggregate.market_signals.slice(0, 8) : [],
+    probes: probes.map((item: Record<string, unknown>) => ({
+      name: item.name,
+      query: item.query,
+      status: item.status,
+      count: item.count,
+      sample_count: item.sample_count,
+      filters: item.filters,
+      meta: item.meta,
+    })),
+    top: top.map((item: Record<string, unknown>) => ({
+      id: item.id,
+      score: item.score,
+      score_reasons: item.score_reasons,
+      matched_probe: item.matched_probe,
+      title: item.title,
+      offers: item.offers,
+      price: item.price,
+      possible_price_limit: item.possible_price_limit,
+      allow_higher_price: item.allow_higher_price,
+      views: item.views,
+      orders: item.orders,
+      username: item.username,
+      user_id: item.user_id,
+      user_projects_count: item.user_projects_count,
+      user_active_projects_count: item.user_active_projects_count,
+      user_hired_percent: item.user_hired_percent,
+      buyer_projects_url: item.buyer_projects_url,
+      description: item.description,
+      project_detail: item.project_detail,
+      want_detail: item.want_detail,
+      buyer_history: item.buyer_history,
+    })),
+    endpoint_errors: result.endpoint_errors,
+    timings_ms: result.timings_ms,
+    file_path: result.file_path,
+  }
+}
+
+function numberOrNull(value: unknown) {
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+function numberOrUndefined(value: unknown) {
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+function stringOrDefault(value: unknown, fallback = '') {
+  return typeof value === 'string' ? value : fallback
+}
+
+function boolOrDefault(value: unknown, fallback = false) {
+  return typeof value === 'boolean' ? value : fallback
+}
+
+function objectOrDefault<T>(value: unknown, fallback: T): T {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as T) : fallback
+}
+
+function arrayOrDefault<T>(value: unknown, fallback: T[]): T[] {
+  return Array.isArray(value) ? (value as T[]) : fallback
+}
+
+function buildMarketScanSeeds(primary?: Record<string, unknown>) {
+  const result: Array<Record<string, unknown>> = []
+  if (primary?.category_id) result.push(primary)
+  result.push(...MARKET_SCAN_DEFAULT_SEEDS)
+
+  const seen = new Set<string>()
+  return result.filter((seed) => {
+    const key = `${String(seed.category_id || '')}:${String(seed.classifier_id || '')}`
+    if (!seed.category_id || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 function flattenCategories(
@@ -83,6 +259,143 @@ function formatNumber(value?: number | string | null) {
 function formatPrice(value?: number | string | null) {
   const n = Number(value || 0)
   return Number.isFinite(n) && n > 0 ? `${formatNumber(n)} ₽` : '-'
+}
+
+function formatPercent(value?: number | string | null) {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return '-'
+  return `${Math.round((n <= 1 ? n * 100 : n))}%`
+}
+
+function finiteNumber(value: unknown) {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
+function hasMeaningfulMarketOpportunity(row: Record<string, unknown>) {
+  const score = finiteNumber(row.opportunity_score)
+  const demand = finiteNumber(row.demand_per_1000_kworks)
+  const wants = finiteNumber(row.demand_wants_count)
+  return Boolean(row.seed_name || row.category_id) && [score, demand, wants].some((value) => value !== null && value > 0)
+}
+
+function marketOpportunityLabel(row: Record<string, unknown>) {
+  const name = String(row.seed_name || row.category_name || row.category_id || 'срез')
+  const score = finiteNumber(row.opportunity_score)
+  const demand = finiteNumber(row.demand_per_1000_kworks)
+  const supply = finiteNumber(row.supply_kworks_count)
+  const parts = [
+    score !== null ? `балл ${formatNumber(score)}` : '',
+    demand !== null ? `спрос ${formatNumber(demand)}/1000` : '',
+    supply !== null ? `конкурентов ${formatNumber(supply)}` : '',
+  ].filter(Boolean)
+  return parts.length ? `${name}: ${parts.join(' · ')}` : name
+}
+
+function marketTermLabel(item: { term?: string; count?: number }) {
+  const term = String(item.term || '').trim()
+  return item.count ? `${term} ${formatNumber(item.count)}` : term
+}
+
+function buyerProjectBudget(project: Record<string, unknown>) {
+  const direct = finiteNumber(project.price)
+  const possible = finiteNumber(project.possible_price_limit)
+  if (direct !== null && possible !== null && possible > direct) return `${formatPrice(direct)} -> ${formatPrice(possible)}`
+  if (direct !== null) return formatPrice(direct)
+  if (possible !== null) return formatPrice(possible)
+  return '-'
+}
+
+function buyerProjectDescription(project: Record<string, unknown>) {
+  const projectDetail = objectOrDefault(project.project_detail, {} as Record<string, unknown>)
+  const wantDetail = objectOrDefault(project.want_detail, {} as Record<string, unknown>)
+  return cleanCompetitorText(project.description || projectDetail.description || wantDetail.description || '')
+}
+
+function buyerScoutSignals(result: KworkBuyerScout | null | undefined) {
+  const aggregate = objectOrDefault(result?.aggregate, {} as Record<string, unknown>)
+  return Array.isArray(aggregate.market_signals) ? (aggregate.market_signals as Array<Record<string, unknown>>) : []
+}
+
+function buyerQuerySuggestions(result: KworkBuyerScout | null | undefined) {
+  const aggregate = objectOrDefault(result?.aggregate, {} as Record<string, unknown>)
+  return Array.isArray(aggregate.query_suggestions)
+    ? (aggregate.query_suggestions as Array<Record<string, unknown>>)
+    : []
+}
+
+function buyerLotsNeedTokenMode(result: KworkBuyerScout | null | undefined) {
+  const probes = Array.isArray(result?.probes) ? (result?.probes as Array<Record<string, unknown>>) : []
+  return probes.some((probe) => objectOrDefault(probe.meta, {} as Record<string, unknown>).token_required === true)
+}
+
+function buyerProjectViews(project: Record<string, unknown>) {
+  const wantDetail = objectOrDefault(project.want_detail, {} as Record<string, unknown>)
+  return finiteNumber(project.views) ?? finiteNumber(wantDetail.views)
+}
+
+function buyerProjectHistory(project: Record<string, unknown>) {
+  const history = objectOrDefault(project.buyer_history, {} as Record<string, unknown>)
+  const projectDetail = objectOrDefault(project.project_detail, {} as Record<string, unknown>)
+  const wantDetail = objectOrDefault(project.want_detail, {} as Record<string, unknown>)
+  const username = String(
+    project.username || projectDetail.username || wantDetail.username || history.username || '',
+  ).trim()
+  const total =
+    finiteNumber(history.total) ??
+    finiteNumber(history.projects_count) ??
+    finiteNumber(project.user_projects_count) ??
+    finiteNumber(projectDetail.user_projects_count)
+  const active =
+    finiteNumber(history.active_count) ??
+    finiteNumber(project.user_active_projects_count) ??
+    finiteNumber(projectDetail.user_active_projects_count)
+  const hired =
+    finiteNumber(project.user_hired_percent) ??
+    finiteNumber(projectDetail.user_hired_percent) ??
+    finiteNumber(wantDetail.user_hired_percent)
+  const projects = Array.isArray(history.projects)
+    ? (history.projects as Array<Record<string, unknown>>).slice(0, 3)
+    : []
+  const url = String(project.buyer_projects_url || projectDetail.buyer_projects_url || history.url || '').trim()
+  return { username, total, active, hired, projects, url, status: String(history.status || '') }
+}
+
+function snapshotDemandCount(value: unknown) {
+  const demand = objectOrDefault(value, {} as Record<string, unknown>)
+  return finiteNumber(demand.wants_count) ?? finiteNumber(demand.count) ?? 0
+}
+
+function snapshotSampleCount(value: unknown) {
+  const demand = objectOrDefault(value, {} as Record<string, unknown>)
+  return finiteNumber(demand.sample_count) ?? (Array.isArray(demand.sample) ? demand.sample.length : 0)
+}
+
+function priceRulesSummary(value: unknown) {
+  const priceRules = objectOrDefault(value, {} as Record<string, unknown>)
+  if (!priceRules || priceRules.status === 'skipped') return ''
+  const prices = objectOrDefault(priceRules.prices, priceRules as Record<string, unknown>)
+  const min = finiteNumber(prices.minPrice ?? prices.min_price ?? priceRules.minPrice)
+  const max = finiteNumber(prices.maxPrice ?? prices.max_price ?? priceRules.maxPrice)
+  if (min !== null || max !== null) return `${formatPrice(min)} - ${formatPrice(max)}`
+  return String(priceRules.status || '')
+}
+
+function snapshotSeedName(seed: unknown) {
+  const value = objectOrDefault(seed, {} as Record<string, unknown>)
+  return String(value.name || value.title || value.category_name || value.category_id || 'slice')
+}
+
+function buyerProbeSummary(probe: Record<string, unknown>) {
+  const filters = objectOrDefault(probe.filters, {} as Record<string, unknown>)
+  const bits = [
+    probe.query ? `query=${String(probe.query)}` : '',
+    filters.kworks_filter_to !== undefined ? `offers<=${String(filters.kworks_filter_to)}` : '',
+    filters.kworks_filter_from !== undefined ? `offers>=${String(filters.kworks_filter_from)}` : '',
+    filters.price_from !== undefined ? `price>=${formatNumber(String(filters.price_from))}` : '',
+    filters.price_to !== undefined ? `price<=${formatNumber(String(filters.price_to))}` : '',
+  ].filter(Boolean)
+  return bits.join(' · ')
 }
 
 function valuesToNumbers(value: unknown): number[] {
@@ -232,12 +545,102 @@ function optionLabels(control: KworkFormControl, ids: number[]) {
   return ids.map((id) => labels.get(id) || `#${id}`)
 }
 
+function selectionTouchesDynamicChildren(control: KworkFormControl, beforeIds: number[], afterIds: number[]) {
+  const childOptionIds = new Set(
+    (control.options || [])
+      .filter((option) => option.has_child)
+      .map((option) => Number(option.id))
+      .filter((optionId) => Number.isFinite(optionId)),
+  )
+  if (!childOptionIds.size) return false
+  return [...beforeIds, ...afterIds].some((optionId) => childOptionIds.has(Number(optionId)))
+}
+
 function findControlForOption(controls: KworkFormControl[], optionId: number) {
   return controls.find((control) => (control.options || []).some((option) => Number(option.id) === Number(optionId)))
 }
 
 function hasSelectableOptions(control: KworkFormControl) {
   return !control.disabled && !!control.options?.some((option) => !option.disabled)
+}
+
+function controlTypeLabel(control: KworkFormControl) {
+  if (control.disabled) return 'недоступно'
+  if (control.multiple) return 'несколько'
+  if (control.type === 'radio') return 'один вариант'
+  if (control.type === 'select') return 'список'
+  if (control.type === 'checkbox') return 'галочки'
+  return control.type || 'поле'
+}
+
+function cleanCompetitorText(value: unknown) {
+  if (value === null || value === undefined) return ''
+  if (Array.isArray(value)) return value.map(cleanCompetitorText).filter(Boolean).join(' ')
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    for (const key of [
+      'volume_service_in_kwork',
+      'unit_and_quantity',
+      'service_size',
+      'description',
+      'title',
+      'name',
+      'label',
+      'text',
+      'value',
+    ]) {
+      const nested = cleanCompetitorText(record[key])
+      if (nested) return nested
+    }
+    return ''
+  }
+  let text = String(value || '')
+  if (/volume_type_id|base_volume|volume_types/i.test(text)) {
+    const serviceSizeMatch = text.match(/['"]volume_service_in_kwork['"]\s*:\s*['"]([^'"]*)['"]/i)
+    text = serviceSizeMatch?.[1] || ''
+  }
+  if (!text.trim()) return ''
+  if (text.includes('&')) {
+    const container = document.createElement('div')
+    container.innerHTML = text
+    text = container.textContent || container.innerText || text
+  }
+  if (/<[a-z][\s\S]*>/i.test(text)) {
+    const container = document.createElement('div')
+    container.innerHTML = text
+    text = container.textContent || container.innerText || text
+  }
+  return text
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function competitorServiceSize(item: KworkCompetitor) {
+  const raw = item.raw && typeof item.raw === 'object' ? (item.raw as Record<string, unknown>) : {}
+  return cleanCompetitorText(
+    item.service_size ||
+      raw.volume_service_in_kwork ||
+      raw.unit_and_quantity ||
+      raw.service_size ||
+      raw.volume ||
+      raw.gwork ||
+      '',
+  )
+}
+
+function competitorDescription(item: KworkCompetitor) {
+  const raw = item.raw && typeof item.raw === 'object' ? (item.raw as Record<string, unknown>) : {}
+  return cleanCompetitorText(
+    item.description ||
+      raw.kwork_description ||
+      raw.description ||
+      raw.short_description ||
+      raw.shortDescription ||
+      raw.preview_description ||
+      raw.gdesc ||
+      '',
+  )
 }
 
 function useDebouncedValue<T>(value: T, delayMs: number, resetKey?: unknown) {
@@ -289,6 +692,8 @@ function controlLabel(control: KworkFormControl) {
 }
 
 function CompetitorCard({ item }: { item: KworkCompetitor }) {
+  const description = competitorDescription(item)
+  const serviceSize = competitorServiceSize(item)
   return (
     <article className="overflow-hidden rounded-md border border-surface-700 bg-surface-900/40">
       <div className="aspect-[3/2] bg-surface-950">
@@ -305,7 +710,7 @@ function CompetitorCard({ item }: { item: KworkCompetitor }) {
           <div className="min-w-0">
             <div className="line-clamp-2 text-sm font-medium text-zinc-100">{item.title || `#${item.id || '-'}`}</div>
             <div className="mt-1 truncate text-[11px] text-zinc-500">
-              {item.worker || 'seller'} {item.seller_level ? `· ${item.seller_level}` : ''}
+              {item.worker || 'продавец'} {item.seller_level ? `· ${item.seller_level}` : ''}
             </div>
           </div>
           {item.share_url && (
@@ -326,12 +731,16 @@ function CompetitorCard({ item }: { item: KworkCompetitor }) {
           {item.reviews && <span>{formatNumber(item.reviews)} отзывов</span>}
           {item.is_best && <span>топ</span>}
         </div>
-        {item.service_size && <div className="text-xs text-zinc-300">{item.service_size}</div>}
-        {item.description ? (
-          <div className="max-h-28 overflow-hidden text-xs leading-relaxed text-zinc-400">{item.description}</div>
+        {serviceSize && <div className="text-xs text-zinc-300">{serviceSize}</div>}
+        {description ? (
+          <div className="max-h-28 overflow-hidden text-xs leading-relaxed text-zinc-400">{description}</div>
         ) : (
           <div className="text-xs text-zinc-600">
-            {item.detail_status === 'error' ? 'Описание не удалось забрать' : 'Описание загружается из карточки'}
+            {item.detail_status === 'error'
+              ? 'Описание не удалось забрать'
+              : item.detail_status === 'details_off'
+                ? 'Описание выключено для скорости'
+                : 'Включи «описания», чтобы докачать описание через API'}
           </div>
         )}
       </div>
@@ -340,32 +749,71 @@ function CompetitorCard({ item }: { item: KworkCompetitor }) {
 }
 
 export default function KworkMarket() {
-  const [selectedRootId, setSelectedRootId] = useState<number | null>(null)
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
-  const [selectedClassifierId, setSelectedClassifierId] = useState<number | undefined>()
-  const [includeDemand, setIncludeDemand] = useState(false)
+  const persisted = useMemo(() => readKworkMarketState(), [])
+  const [selectedRootId, setSelectedRootId] = useState<number | null>(() => numberOrNull(persisted.selectedRootId))
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(() => numberOrNull(persisted.selectedCategoryId))
+  const [selectedClassifierId, setSelectedClassifierId] = useState<number | undefined>(() => numberOrUndefined(persisted.selectedClassifierId))
+  const [includeDemand, setIncludeDemand] = useState(() => boolOrDefault(persisted.includeDemand, false))
+  const [includeCompetitorDetails, setIncludeCompetitorDetails] = useState(() => boolOrDefault(persisted.includeCompetitorDetails, false))
+  const [scanWantDetails, setScanWantDetails] = useState(() => boolOrDefault(persisted.scanWantDetails, false))
+  const [scanPriceRules, setScanPriceRules] = useState(() => boolOrDefault(persisted.scanPriceRules, false))
+  const [scanSellerDetails, setScanSellerDetails] = useState(() => boolOrDefault(persisted.scanSellerDetails, false))
+  const [scanAccountContext, setScanAccountContext] = useState(() => boolOrDefault(persisted.scanAccountContext, false))
+  const [buyerBudgetMax, setBuyerBudgetMax] = useState(() => Number(persisted.buyerBudgetMax || 5000))
   const [showDemandHelp, setShowDemandHelp] = useState(false)
-  const [serviceSummary, setServiceSummary] = useState('телеграм бота или автоматизацию')
-  const [audience, setAudience] = useState('малый бизнес, эксперты и команды')
-  const [price, setPrice] = useState(1000)
-  const [workTime, setWorkTime] = useState(3)
-  const [useLlm, setUseLlm] = useState(true)
-  const [generateImage, setGenerateImage] = useState(true)
+  const [marketScanLoading, setMarketScanLoading] = useState(false)
+  const [marketScanError, setMarketScanError] = useState<string | null>(null)
+  const [marketScanResult, setMarketScanResult] = useState<KworkMarketIntelligenceSnapshot | null>(() =>
+    objectOrDefault(persisted.marketScanResult, null as unknown as KworkMarketIntelligenceSnapshot | null),
+  )
+  const [buyerScoutResult, setBuyerScoutResult] = useState<KworkBuyerScout | null>(() =>
+    objectOrDefault(persisted.buyerScoutResult, null as unknown as KworkBuyerScout | null),
+  )
+  const [marketHistoryLoading, setMarketHistoryLoading] = useState(false)
+  const [marketHistory, setMarketHistory] = useState<KworkMarketIntelligenceHistory | null>(null)
+  const [serviceSummary, setServiceSummary] = useState(() => stringOrDefault(persisted.serviceSummary, ''))
+  const [audience, setAudience] = useState(() => stringOrDefault(persisted.audience, ''))
+  const [price, setPrice] = useState(() => Number(persisted.price || 1000))
+  const [workTime, setWorkTime] = useState(() => Number(persisted.workTime || 3))
+  const [useLlm, setUseLlm] = useState(() => boolOrDefault(persisted.useLlm, true))
+  const [generateImage, setGenerateImage] = useState(() => boolOrDefault(persisted.generateImage, true))
   const [draftLoading, setDraftLoading] = useState(false)
   const [draftError, setDraftError] = useState<string | null>(null)
-  const [draftResult, setDraftResult] = useState<KworkDraftResult | null>(null)
-  const [publishResult, setPublishResult] = useState<Record<string, any> | null>(null)
-  const [autoClassifierKey, setAutoClassifierKey] = useState('')
-  const [formManifest, setFormManifest] = useState<KworkFormManifest | null>(null)
-  const [attributeSelection, setAttributeSelection] = useState<Record<string, unknown>>({})
+  const [draftResult, setDraftResult] = useState<KworkDraftResult | null>(() =>
+    objectOrDefault(persisted.draftResult, null as unknown as KworkDraftResult | null),
+  )
+  const [publishResult, setPublishResult] = useState<Record<string, any> | null>(() =>
+    objectOrDefault(persisted.publishResult, null as unknown as Record<string, any> | null),
+  )
+  const [autoClassifierKey, setAutoClassifierKey] = useState(() => stringOrDefault(persisted.autoClassifierKey, ''))
+  const [formManifest, setFormManifest] = useState<KworkFormManifest | null>(() =>
+    objectOrDefault(persisted.formManifest, null as unknown as KworkFormManifest | null),
+  )
+  const [attributeSelection, setAttributeSelection] = useState<Record<string, unknown>>(() =>
+    objectOrDefault(persisted.attributeSelection, {}),
+  )
   const [manifestLoading, setManifestLoading] = useState(false)
   const [manifestError, setManifestError] = useState<string | null>(null)
   const [verificationOpening, setVerificationOpening] = useState(false)
-  const [fieldNotice, setFieldNotice] = useState<FieldChangeNotice | null>(null)
+  const [fieldNotice, setFieldNotice] = useState<FieldChangeNotice | null>(() =>
+    objectOrDefault(persisted.fieldNotice, null as unknown as FieldChangeNotice | null),
+  )
   const [suggestingControl, setSuggestingControl] = useState<string | null>(null)
-  const [classifierTrail, setClassifierTrail] = useState<KworkClassifier[]>([])
+  const [classifierTrail, setClassifierTrail] = useState<KworkClassifier[]>(() =>
+    arrayOrDefault<KworkClassifier>(persisted.classifierTrail, []),
+  )
+  const [publishConfirmation, setPublishConfirmation] = useState<Record<string, any> | null>(null)
+  const [publishConfirmInput, setPublishConfirmInput] = useState('')
   const manifestTimerRef = useRef<number | undefined>()
   const manifestRequestRef = useRef(0)
+  const categoryResetRef = useRef(selectedCategoryId)
+  const skipInitialManifestReloadRef = useRef(
+    Boolean(
+      persisted.formManifest ||
+        (persisted.attributeSelection && Object.keys(objectOrDefault(persisted.attributeSelection, {})).length) ||
+        persisted.draftResult,
+    ),
+  )
 
   const {
     data: categoriesData,
@@ -378,19 +826,77 @@ export default function KworkMarket() {
   const flatCategories = useMemo(() => flattenCategories(topCategories), [topCategories])
 
   useEffect(() => {
-    if (selectedRootId || topCategories.length === 0) return
+    if (selectedRootId || selectedCategoryId || topCategories.length === 0) return
     const root = topCategories.find((item) => /разработка/i.test(item.name || '')) || topCategories[0]
     setSelectedRootId(root.id)
     setSelectedCategoryId(preferredChild(root)?.id || root.id)
-  }, [selectedRootId, topCategories])
+  }, [selectedRootId, selectedCategoryId, topCategories])
 
   useEffect(() => {
+    if (categoryResetRef.current === selectedCategoryId) return
+    categoryResetRef.current = selectedCategoryId
     setSelectedClassifierId(undefined)
     setClassifierTrail([])
     setAttributeSelection({})
     setFormManifest(null)
     setFieldNotice(null)
   }, [selectedCategoryId])
+
+  useEffect(() => {
+    writeKworkMarketState({
+      selectedRootId,
+      selectedCategoryId,
+      selectedClassifierId,
+      includeDemand,
+      includeCompetitorDetails,
+      scanWantDetails,
+      scanPriceRules,
+      scanSellerDetails,
+      scanAccountContext,
+      buyerBudgetMax,
+      serviceSummary,
+      audience,
+      price,
+      workTime,
+      useLlm,
+      generateImage,
+      autoClassifierKey,
+      formManifest,
+      attributeSelection,
+      fieldNotice,
+      classifierTrail,
+      draftResult,
+      publishResult,
+      buyerScoutResult,
+      marketScanResult,
+    })
+  }, [
+    selectedRootId,
+    selectedCategoryId,
+    selectedClassifierId,
+    includeDemand,
+    includeCompetitorDetails,
+    scanWantDetails,
+    scanPriceRules,
+    scanSellerDetails,
+    scanAccountContext,
+    buyerBudgetMax,
+    serviceSummary,
+    audience,
+    price,
+    workTime,
+    useLlm,
+    generateImage,
+    autoClassifierKey,
+    formManifest,
+    attributeSelection,
+    fieldNotice,
+    classifierTrail,
+    draftResult,
+    publishResult,
+    buyerScoutResult,
+    marketScanResult,
+  ])
 
   const selectedRoot = topCategories.find((item) => item.id === selectedRootId)
   const rootChildren = selectedRoot?.children || []
@@ -454,9 +960,9 @@ export default function KworkMarket() {
         ? api.getKworkMarketMetrics({
             category_id: selectedCategoryId,
             classifier_id: selectedClassifierId,
-            include_demand: includeDemand,
-            include_competitor_details: true,
-            competitor_detail_limit: 2,
+            include_demand: false,
+            include_competitor_details: includeCompetitorDetails,
+            competitor_detail_limit: includeCompetitorDetails ? 6 : 0,
             attribute_selection: debouncedAttributeSelection,
             attribute_controls: debouncedManifestControls,
           })
@@ -470,8 +976,23 @@ export default function KworkMarket() {
             filter_requests: [],
             demand: { status: 'skipped' },
           }),
-    [selectedCategoryId, selectedClassifierId, includeDemand, attributeSelectionSignature, manifestControlsSignature],
+    [
+      selectedCategoryId,
+      selectedClassifierId,
+      includeCompetitorDetails,
+      attributeSelectionSignature,
+      manifestControlsSignature,
+    ],
+    objectOrDefault(persisted.metrics, undefined as unknown as KworkMarketMetrics | undefined),
   )
+
+  useEffect(() => {
+    if (!metrics) return
+    writeKworkMarketState({
+      ...readKworkMarketState(),
+      metrics,
+    })
+  }, [metrics])
 
   const requiredAttributes: KworkAttributeFlat[] = useMemo(
     () => (attributesData?.flat || []).filter((item) => item.required),
@@ -485,8 +1006,53 @@ export default function KworkMarket() {
     (metrics.classifier_id || undefined) === (selectedClassifierId || undefined)
   const visibleMetrics = metricsMatchesSelection ? metrics : undefined
   const selectedClassifier = visibleMetrics?.classifiers?.find((item) => item.id === selectedClassifierId)
+  const marketScanSeeds = useMemo(
+    () =>
+      buildMarketScanSeeds(
+        selectedCategoryId
+          ? {
+              name:
+                selectedClassifier?.name ||
+                classifierTrail[classifierTrail.length - 1]?.name ||
+                selectedCategory?.name ||
+                `Category ${selectedCategoryId}`,
+              category_id: selectedCategoryId,
+              ...(selectedClassifierId ? { classifier_id: selectedClassifierId } : {}),
+            }
+          : undefined,
+      ),
+    [selectedCategoryId, selectedCategory?.name, selectedClassifierId, selectedClassifier?.name, classifierTrail],
+  )
   const demand = demandView(visibleMetrics?.demand, includeDemand)
   const competitors = visibleMetrics?.competitors || []
+  const marketInsights = visibleMetrics?.market_insights
+  const marketInsightBullets = (marketInsights?.bullets || []).filter(Boolean).slice(0, 6)
+  const marketInsightRecommendations = (marketInsights?.recommendations || []).filter(Boolean).slice(0, 5)
+  const marketInsightClassifiers = useMemo(
+    () =>
+      ((marketInsights?.top_classifiers?.length ? marketInsights.top_classifiers : visibleMetrics?.classifiers) || [])
+        .map((item) => ({
+          id: String(item.id || ''),
+          name: String(item.name || item.id || '').trim(),
+          kworks_count: Number(item.kworks_count || 0),
+        }))
+        .filter((item) => item.name && item.kworks_count > 0)
+        .sort((a, b) => b.kworks_count - a.kworks_count),
+    [marketInsights?.top_classifiers, visibleMetrics?.classifiers],
+  )
+  const marketInsightTerms = useMemo(() => {
+    const seen = new Set<string>()
+    return [...(marketInsights?.title_terms || []), ...(marketInsights?.description_terms || [])]
+      .filter((item) => {
+        const term = String(item.term || '').trim().toLowerCase()
+        if (!term || seen.has(term)) return false
+        seen.add(term)
+        return true
+      })
+      .slice(0, 10)
+  }, [marketInsights?.title_terms, marketInsights?.description_terms])
+  const wideClassifierRows = marketInsightClassifiers.slice(0, 3)
+  const narrowClassifierRows = [...marketInsightClassifiers].reverse().slice(0, 3)
   const loading = categoriesLoading || attributesLoading || pricesLoading || metricsLoading
   const anyError = categoriesError || attributesError || pricesError || metricsError
   const coverVisionImagesSeen = Number(draftResult?.image?.competitor_images_seen || 0)
@@ -496,6 +1062,42 @@ export default function KworkMarket() {
   const coverPromptRoute =
     typeof coverPromptContext?.prompt_writer_route === 'string' ? coverPromptContext.prompt_writer_route : ''
   const publishManualVerification = manualVerificationFromPublishResult(publishResult)
+  const marketOpportunityRows = useMemo(
+    () => (marketScanResult?.aggregate.top_opportunities || []).filter(hasMeaningfulMarketOpportunity).slice(0, 6),
+    [marketScanResult],
+  )
+  const marketSupplyRows = useMemo(
+    () => (Array.isArray(marketScanResult?.supply) ? marketScanResult.supply : []).slice(0, 8),
+    [marketScanResult],
+  )
+  const marketQueryDemandRows = useMemo(
+    () =>
+      Object.entries(objectOrDefault(marketScanResult?.query_demand, {} as Record<string, unknown>))
+        .map(([query, value]) => ({ query, value: objectOrDefault(value, {} as Record<string, unknown>) }))
+        .slice(0, 8),
+    [marketScanResult],
+  )
+  const marketSellerRows = useMemo(
+    () => (Array.isArray(marketScanResult?.seller_intelligence) ? marketScanResult.seller_intelligence : []).slice(0, 6),
+    [marketScanResult],
+  )
+  const buyerSignals = useMemo(() => buyerScoutSignals(buyerScoutResult).slice(0, 5), [buyerScoutResult])
+  const buyerSuggestions = useMemo(() => buyerQuerySuggestions(buyerScoutResult).slice(0, 5), [buyerScoutResult])
+  const buyerSummary = useMemo(
+    () => objectOrDefault(buyerScoutResult?.aggregate?.buyer_summary, {} as Record<string, unknown>),
+    [buyerScoutResult],
+  )
+  const buyerNextActions = useMemo(
+    () => (Array.isArray(buyerSummary.next_actions) ? (buyerSummary.next_actions as string[]) : []).slice(0, 5),
+    [buyerSummary],
+  )
+  const buyerBestWindows = useMemo(
+    () =>
+      (Array.isArray(buyerSummary.best_windows) ? (buyerSummary.best_windows as Array<Record<string, unknown>>) : [])
+        .slice(0, 6),
+    [buyerSummary],
+  )
+  const buyerNeedsTokenMode = useMemo(() => buyerLotsNeedTokenMode(buyerScoutResult), [buyerScoutResult])
 
   const loadFormManifest = async (
     selection: Record<string, unknown> = attributeSelection,
@@ -559,6 +1161,10 @@ export default function KworkMarket() {
 
   useEffect(() => {
     if (!selectedCategoryId) return
+    if (skipInitialManifestReloadRef.current) {
+      skipInitialManifestReloadRef.current = false
+      return
+    }
     loadFormManifest({}, undefined)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategoryId])
@@ -612,6 +1218,65 @@ export default function KworkMarket() {
     refetchAttributes()
     refetchPrices()
     refetchMetrics()
+  }
+
+  const runMarketScan = async () => {
+    if (marketScanLoading) return
+    setMarketScanLoading(true)
+    setMarketScanError(null)
+    try {
+      const buyerScout = await api.getKworkBuyerScout({
+        max_probes: 10,
+        project_page_limit: 2,
+        per_probe_limit: 12,
+        top_limit: 24,
+        include_project_details: scanWantDetails,
+        include_want_details: scanWantDetails,
+        include_buyer_history: scanWantDetails,
+        detail_limit: scanWantDetails ? 8 : 4,
+        buyer_history_limit: scanWantDetails ? 6 : 0,
+        budget_max: Math.max(0, Math.min(Number(buyerBudgetMax) || 5000, 150000)),
+        include_query_suggestions: true,
+        query_suggestion_limit: 5,
+        write_file: true,
+      })
+      setBuyerScoutResult(buyerScout)
+
+      const result = await api.getKworkMarketIntelligenceSnapshot({
+        seeds: marketScanSeeds,
+        max_seeds: marketScanSeeds.length,
+        pages: 1,
+        include_demand: true,
+        include_competitor_details: includeCompetitorDetails,
+        competitor_detail_limit: includeCompetitorDetails ? 6 : 0,
+        include_seller_details: scanSellerDetails,
+        seller_detail_limit: scanSellerDetails ? 4 : 0,
+        include_want_details: scanWantDetails,
+        want_detail_limit: scanWantDetails ? 4 : 0,
+        include_price_rules: scanPriceRules,
+        include_account_context: scanAccountContext,
+        write_file: true,
+      })
+      setMarketScanResult(result)
+    } catch (e) {
+      setMarketScanError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setMarketScanLoading(false)
+    }
+  }
+
+  const loadMarketHistory = async () => {
+    if (marketHistoryLoading) return
+    setMarketHistoryLoading(true)
+    setMarketScanError(null)
+    try {
+      const result = await api.getKworkMarketIntelligenceHistory(20)
+      setMarketHistory(result)
+    } catch (e) {
+      setMarketScanError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setMarketHistoryLoading(false)
+    }
   }
 
   const resetClassifier = () => {
@@ -668,7 +1333,7 @@ export default function KworkMarket() {
     worker: item.worker,
     rating: item.rating,
     reviews: item.reviews,
-    description: item.description,
+    description: competitorDescription(item),
     image_url: item.image_url,
     service_size: item.service_size,
     instruction: item.instruction,
@@ -708,7 +1373,7 @@ export default function KworkMarket() {
         lang: 'ru',
       })
       const afterIds = selectedOptionIds(result.selection, control)
-      const nextIds = afterIds.length ? afterIds : result.selected_ids
+      const nextIds = afterIds.length ? afterIds : result.selected_ids || []
       const context = [
         selectedCategory?.label ? `рубрика: ${selectedCategory.label}` : '',
         classifierTrail.length ? `срез: ${classifierTrail.map((item) => item.name).join(' / ')}` : '',
@@ -716,7 +1381,8 @@ export default function KworkMarket() {
         competitorExamples.length ? `учтено примеров: ${competitorExamples.length}` : '',
         includeDemand ? `спрос: ${demand.value}` : '',
       ].filter(Boolean)
-      setAttributeSelection(result.selection)
+      const nextSelection = result.selection || attributeSelection
+      setAttributeSelection(nextSelection)
       setFieldNotice({
         control: control.name,
         controlLabel: controlLabel(control),
@@ -730,7 +1396,9 @@ export default function KworkMarket() {
         confidence: result.confidence,
         context,
       })
-      await loadFormManifest(result.selection)
+      if (selectionTouchesDynamicChildren(control, beforeIds, nextIds)) {
+        await loadFormManifest(nextSelection)
+      }
     } catch (e) {
       setManifestError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -740,6 +1408,7 @@ export default function KworkMarket() {
 
   const createDraft = async () => {
     if (!selectedCategoryId) return
+    const cleanAudience = audience.trim()
     setDraftLoading(true)
     setDraftError(null)
     setPublishResult(null)
@@ -750,13 +1419,13 @@ export default function KworkMarket() {
         classifier_id: selectedClassifierId,
         classifier_name: selectedClassifier?.name,
         service_summary: serviceSummary,
-        audience,
+        audience: cleanAudience,
         price,
         work_time: workTime,
         use_llm: useLlm,
         generate_image: generateImage,
         cover_text: serviceSummary,
-        cover_subtitle: audience,
+        cover_subtitle: cleanAudience,
         use_cover_prompt_llm: true,
         use_competitor_image_analysis: generateImage,
         market_context: marketContext,
@@ -818,16 +1487,33 @@ export default function KworkMarket() {
         return
       }
       const phrase = preflight.confirmation_phrase || 'ОПУБЛИКОВАТЬ'
-      const confirmation = window.prompt(`Введите ${phrase}, чтобы опубликовать кворк на Kwork`)
-      if (confirmation !== phrase) {
-        setDraftError('Публикация отменена: фраза подтверждения не совпала.')
-        return
-      }
-      const result = await api.publishKworkDraft(liveDraft, false, {
-        confirm_token: preflight.token,
-        confirmation,
+      setPublishConfirmation({ phrase, token: preflight.token, draft: liveDraft })
+      setPublishConfirmInput('')
+      setDraftError(null)
+    } catch (e) {
+      setDraftError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setDraftLoading(false)
+    }
+  }
+
+  const confirmPublishLive = async () => {
+    if (!publishConfirmation?.draft || !publishConfirmation?.token) return
+    const phrase = String(publishConfirmation.phrase || 'ОПУБЛИКОВАТЬ')
+    if (publishConfirmInput.trim() !== phrase) {
+      setDraftError('Фраза подтверждения не совпала.')
+      return
+    }
+    setDraftLoading(true)
+    setDraftError(null)
+    try {
+      const result = await api.publishKworkDraft(publishConfirmation.draft, false, {
+        confirm_token: String(publishConfirmation.token),
+        confirmation: phrase,
       })
       setPublishResult(result)
+      setPublishConfirmation(null)
+      setPublishConfirmInput('')
       if (!result.ok) {
         const manual = manualVerificationFromPublishResult(result)
         setDraftError(manual?.detail || result.detail || 'Kwork не принял публикацию')
@@ -839,14 +1525,20 @@ export default function KworkMarket() {
     }
   }
 
+  const cancelPublishLive = () => {
+    setPublishConfirmation(null)
+    setPublishConfirmInput('')
+    setDraftError('Публикация отменена.')
+  }
+
   return (
     <div className="space-y-5 p-6 max-lg:p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="page-kicker">kwork market</div>
+          <div className="page-kicker">kwork рынок</div>
           <h1 className="text-xl font-semibold text-white">Кворки: категории, конкуренты, черновик</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <label
             className="flex items-center gap-2 rounded-md border border-surface-600 px-3 py-1.5 text-xs text-zinc-400"
             title="Запрашивает биржу заказов Kwork для выбранной рубрики/среза. Нужно только для оценки спроса, на публикацию не влияет."
@@ -860,6 +1552,101 @@ export default function KworkMarket() {
             спрос по заказам
             <Info className="h-3.5 w-3.5 text-zinc-600" />
           </label>
+          <label
+            className="flex items-center gap-2 rounded-md border border-surface-600 px-3 py-1.5 text-xs text-zinc-400"
+            title="Докачивает описания конкурентов через быстрый API getKworkDetails. Включайте, когда нужны примеры для ИИ."
+          >
+            <input
+              type="checkbox"
+              checked={includeCompetitorDetails}
+              onChange={(event) => setIncludeCompetitorDetails(event.target.checked)}
+              className="h-3.5 w-3.5 accent-brand-500"
+            />
+            описания
+          </label>
+          <label
+            className="flex items-center gap-2 rounded-md border border-surface-600 px-3 py-1.5 text-xs text-zinc-400"
+            title="Добавляет правила цен Kwork к широкому снимку рынка. Медленнее обычного scan."
+          >
+            <input
+              type="checkbox"
+              checked={scanPriceRules}
+              onChange={(event) => setScanPriceRules(event.target.checked)}
+              className="h-3.5 w-3.5 accent-brand-500"
+            />
+            цены
+          </label>
+          <label
+            className="flex items-center gap-2 rounded-md border border-surface-600 px-3 py-1.5 text-xs text-zinc-400"
+            title="Докачивает подробности заказов с биржи Kwork. Это тяжелая опция."
+          >
+            <input
+              type="checkbox"
+              checked={scanWantDetails}
+              onChange={(event) => setScanWantDetails(event.target.checked)}
+              className="h-3.5 w-3.5 accent-brand-500"
+            />
+            заказы
+          </label>
+          <label
+            className="flex items-center gap-2 rounded-md border border-surface-600 px-3 py-1.5 text-xs text-zinc-400"
+            title="Докачивает профили продавцов, портфолио и отзывы для глубокого анализа. Это тяжелая опция."
+          >
+            <input
+              type="checkbox"
+              checked={scanSellerDetails}
+              onChange={(event) => setScanSellerDetails(event.target.checked)}
+              className="h-3.5 w-3.5 accent-brand-500"
+            />
+            продавцы
+          </label>
+          <label
+            className="flex items-center gap-2 rounded-md border border-surface-600 px-3 py-1.5 text-xs text-zinc-400"
+            title="Добавляет краткий контекст твоего аккаунта к анализу рынка."
+          >
+            <input
+              type="checkbox"
+              checked={scanAccountContext}
+              onChange={(event) => setScanAccountContext(event.target.checked)}
+              className="h-3.5 w-3.5 accent-brand-500"
+            />
+            мой аккаунт
+          </label>
+          <label
+            className="flex items-center gap-2 rounded-md border border-surface-600 px-3 py-1.5 text-xs text-zinc-400"
+            title="Buyer scout budget cap. For a fresh account keep it near 5000."
+          >
+            до ₽
+            <input
+              type="number"
+              min={0}
+              max={150000}
+              step={500}
+              value={buyerBudgetMax}
+              onChange={(event) => setBuyerBudgetMax(Math.max(0, Math.min(Number(event.target.value) || 0, 150000)))}
+              className="w-20 bg-transparent text-right text-zinc-200 outline-none"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={runMarketScan}
+            disabled={marketScanLoading}
+            className="btn btn-ghost py-1.5 text-xs"
+            title="Собрать широкий снимок рынка через API и сохранить JSON в docs/kwork_market_snapshots"
+          >
+            {marketScanLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BarChart3 className="h-3.5 w-3.5" />}
+            Скан рынка
+          </button>
+          <button
+            type="button"
+            onClick={loadMarketHistory}
+            disabled={marketHistoryLoading}
+            className="btn btn-ghost py-1.5 text-xs"
+            title="Показать историю сканов рынка из index.jsonl"
+          >
+            {marketHistoryLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            История
+          </button>
           <button
             type="button"
             onClick={() => setShowDemandHelp((value) => !value)}
@@ -896,6 +1683,524 @@ export default function KworkMarket() {
         <div className="flex items-center gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{anyError}</span>
+        </div>
+      )}
+
+      {marketScanError && (
+        <div className="flex items-center gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{marketScanError}</span>
+        </div>
+      )}
+
+      {buyerScoutResult && (
+        <div className="rounded-md border border-brand-500/30 bg-brand-600/10 px-3 py-2 text-xs text-brand-100">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div className="font-medium text-white">Живые лоты покупателей</div>
+              <div className="text-[11px] text-brand-100/60">
+                Ранжирование по /projects и /getWantsCount: мало откликов, бюджет, история покупателя
+              </div>
+            </div>
+            <div className="text-brand-100/60">{buyerScoutResult.generated_at}</div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2 max-lg:grid-cols-2 max-sm:grid-cols-1">
+            {[
+              ['проверок', formatNumber(buyerScoutResult.aggregate.probe_count), 'наборов фильтров'],
+              ['лотов', formatNumber(buyerScoutResult.aggregate.unique_projects), 'уникальных заказов'],
+              ['без откликов', formatNumber(buyerScoutResult.aggregate.zero_offer_count), 'самое раннее окно'],
+              ['мало откликов', formatNumber(buyerScoutResult.aggregate.low_offer_count), '0..5 предложений'],
+            ].map(([label, value, sub]) => (
+              <div key={label} className="min-w-0 rounded-md border border-brand-500/20 bg-surface-950/35 p-2">
+                <div className="mono-label truncate">{label}</div>
+                <div className="mt-1 text-lg font-semibold text-white">{value}</div>
+                <div className="mt-1 truncate text-[11px] text-brand-100/60">{sub}</div>
+              </div>
+            ))}
+          </div>
+
+          {(!!buyerNextActions.length || !!buyerBestWindows.length) && (
+            <div className="mt-3 grid grid-cols-[1.1fr_1fr] gap-2 max-xl:grid-cols-1">
+              {!!buyerNextActions.length && (
+                <div className="rounded-md border border-brand-500/20 bg-surface-950/35 p-3">
+                  <div className="mb-2 text-xs font-medium text-white">Next actions</div>
+                  <div className="space-y-1.5">
+                    {buyerNextActions.map((item) => (
+                      <div key={item} className="flex items-start gap-2 text-[11px] leading-relaxed text-brand-100/75">
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {!!buyerBestWindows.length && (
+                <div className="rounded-md border border-brand-500/20 bg-surface-950/35 p-3">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="text-xs font-medium text-white">Best search windows</div>
+                    <div className="text-[11px] text-brand-100/50">
+                      budget {formatNumber(String(buyerSummary.budget_max || buyerBudgetMax))}
+                    </div>
+                  </div>
+                  <div className="grid gap-1.5">
+                    {buyerBestWindows.map((windowRow) => (
+                      <div
+                        key={`${String(windowRow.name || windowRow.query)}-${String(windowRow.categories || '')}`}
+                        className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded border border-surface-700 bg-surface-950/40 px-2 py-1.5 text-[11px]"
+                      >
+                        <div className="min-w-0">
+                          <div className="truncate text-brand-100">{String(windowRow.name || windowRow.query || 'probe')}</div>
+                          <div className="truncate text-zinc-600">
+                            c={String(windowRow.categories || 'all')}
+                            {windowRow.query ? ` · ${String(windowRow.query)}` : ''}
+                            {windowRow.source ? ` · ${String(windowRow.source)}` : ''}
+                          </div>
+                        </div>
+                        <div className="text-right text-white">{formatNumber(String(windowRow.count || 0))}</div>
+                        <div className="text-right text-zinc-500">{formatNumber(String(windowRow.sample_count || 0))} seen</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!!buyerSignals.length && (
+            <div className="mt-3 grid grid-cols-5 gap-2 max-2xl:grid-cols-3 max-lg:grid-cols-2 max-sm:grid-cols-1">
+              {buyerSignals.map((signal) => {
+                const projects = Array.isArray(signal.projects) ? (signal.projects as Array<Record<string, unknown>>) : []
+                const probes = Array.isArray(signal.probes) ? (signal.probes as Array<Record<string, unknown>>) : []
+                return (
+                  <div
+                    key={String(signal.kind || signal.label)}
+                    className="min-w-0 rounded-md border border-brand-500/20 bg-surface-950/35 p-2"
+                  >
+                    <div className="mono-label truncate">{String(signal.label || signal.kind || 'сигнал')}</div>
+                    <div className="mt-1 text-lg font-semibold text-white">{formatNumber(String(signal.value ?? 0))}</div>
+                    <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-brand-100/65">
+                      {String(signal.detail || '')}
+                    </div>
+                    {!!projects.length && (
+                      <div className="mt-2 space-y-1">
+                        {projects.slice(0, 2).map((project) => (
+                          <div key={String(project.id || project.title)} className="truncate text-[11px] text-zinc-400">
+                            {String(project.title || project.id || '-')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {!!probes.length && (
+                      <div className="mt-2 space-y-1">
+                        {probes.slice(0, 2).map((probe) => (
+                          <div key={String(probe.name || probe.query)} className="truncate text-[11px] text-zinc-400">
+                            {String(probe.name || probe.query || 'probe')} · {formatNumber(String(probe.count || 0))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {!!buyerSuggestions.length && (
+            <div className="mt-3 rounded-md border border-brand-500/20 bg-surface-950/35 p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="text-xs font-medium text-white">Buyer keyword hints</div>
+                <div className="text-[11px] text-brand-100/60">/want-search/suggest</div>
+              </div>
+              <div className="grid grid-cols-5 gap-2 max-2xl:grid-cols-3 max-lg:grid-cols-2 max-sm:grid-cols-1">
+                {buyerSuggestions.map((group) => {
+                  const suggestions = Array.isArray(group.suggestions)
+                    ? (group.suggestions as Array<Record<string, unknown>>)
+                    : []
+                  return (
+                    <div key={String(group.query)} className="min-w-0 rounded border border-surface-700 bg-surface-950/40 p-2">
+                      <div className="mono-label truncate">{String(group.query || 'query')}</div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {suggestions.slice(0, 5).map((item) => (
+                          <span
+                            key={String(item.suggestion || item.excerpt)}
+                            className="rounded border border-brand-500/20 bg-brand-600/10 px-1.5 py-0.5 text-[11px] text-brand-100"
+                          >
+                            {String(item.suggestion || item.excerpt || '')}
+                          </span>
+                        ))}
+                        {!suggestions.length && <span className="text-[11px] text-zinc-600">нет подсказок</span>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {!!buyerScoutResult.top?.length && (
+            <div className="mt-3 grid grid-cols-2 gap-2 max-xl:grid-cols-1">
+              {buyerScoutResult.top.slice(0, 8).map((project) => {
+                const description = buyerProjectDescription(project)
+                const views = buyerProjectViews(project)
+                const history = buyerProjectHistory(project)
+                return (
+                  <article key={String(project.id)} className="min-w-0 rounded-md border border-brand-500/20 bg-surface-950/35 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="line-clamp-2 text-sm font-semibold text-white">
+                          {String(project.title || `#${String(project.id || '-')}`)}
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-brand-100/70">
+                          <span>балл {formatNumber(String(project.score || 0))}</span>
+                          <span>откликов {formatNumber(String(project.offers ?? 0))}</span>
+                          <span>бюджет {buyerProjectBudget(project)}</span>
+                          {views !== null && <span>просмотров {formatNumber(views)}</span>}
+                          {Boolean(project.matched_probe) && <span>{String(project.matched_probe)}</span>}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 gap-1">
+                        {history.url && (
+                          <a
+                            href={history.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-md border border-surface-600 px-2 py-1 text-[11px] text-zinc-400 transition hover:text-white"
+                            title="История лотов покупателя"
+                          >
+                            история
+                          </a>
+                        )}
+                        {Boolean(project.id) && (
+                          <a
+                            href={`https://kwork.ru/new_offer?project=${encodeURIComponent(String(project.id))}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-md border border-surface-600 p-1 text-zinc-400 transition hover:text-white"
+                            title="Предложить услугу"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                    {(history.username || history.total !== null || history.active !== null || history.hired !== null) && (
+                      <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-zinc-400">
+                        {history.username && <span className="text-brand-100">покупатель {history.username}</span>}
+                        {history.total !== null && <span>лотов всего {formatNumber(history.total)}</span>}
+                        {history.active !== null && <span>активных {formatNumber(history.active)}</span>}
+                        {history.hired !== null && <span>нанимает {formatNumber(history.hired)}%</span>}
+                      </div>
+                    )}
+                    {!!history.projects.length && (
+                      <div className="mt-2 space-y-1 rounded border border-surface-700/70 bg-surface-950/35 p-2">
+                        <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">ещё лоты покупателя</div>
+                        {history.projects.map((historyProject) => (
+                          <div key={String(historyProject.id)} className="flex items-center justify-between gap-2 text-[11px] text-zinc-400">
+                            <span className="min-w-0 truncate">{String(historyProject.title || `#${historyProject.id || '-'}`)}</span>
+                            <span className="shrink-0 text-zinc-500">
+                              {formatNumber(String(historyProject.offers ?? 0))} откл.
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {description && <p className="mt-2 line-clamp-4 text-[11px] leading-relaxed text-zinc-400">{description}</p>}
+                  </article>
+                )
+              })}
+            </div>
+          )}
+
+          {!!buyerScoutResult.probes?.length && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {buyerScoutResult.probes.slice(0, 10).map((probe) => (
+                <span
+                  key={String(probe.name || probe.query || JSON.stringify(probe.filters || {}))}
+                  className="rounded border border-brand-500/25 bg-surface-950/35 px-2 py-1 text-[11px] text-brand-100"
+                  title={buyerProbeSummary(probe)}
+                >
+                  {String(probe.name || probe.query || 'probe')}: {formatNumber(String(probe.count || 0))}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {buyerNeedsTokenMode && (
+            <div className="mt-2 rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-100">
+              Buyer lots need token-mode auth. Current Session Hub is cookie-only, so PSR skipped slow /projects calls and kept keyword hints.
+            </div>
+          )}
+
+          {!!buyerScoutResult.endpoint_errors?.length && !buyerNeedsTokenMode && (
+            <div className="mt-2 rounded border border-red-500/25 bg-red-500/10 px-2 py-1 text-[11px] text-red-200">
+              Buyer API errors: {buyerScoutResult.endpoint_errors.length}. Details are saved in JSON.
+            </div>
+          )}
+
+          {buyerScoutResult.file_path && (
+            <div className="mt-2 break-all rounded border border-brand-500/20 bg-surface-950/40 px-2 py-1 text-[11px] text-brand-100/70">
+              snapshot: {buyerScoutResult.file_path}
+            </div>
+          )}
+        </div>
+      )}
+
+      {marketScanResult && (
+        <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <div className="font-medium text-white">Снимок рынка</div>
+            <div className="text-emerald-200/70">{marketScanResult.generated_at}</div>
+          </div>
+          <div className="grid grid-cols-4 gap-2 max-lg:grid-cols-2 max-sm:grid-cols-1">
+            {[
+              ['срезы', formatNumber(marketScanResult.aggregate.seed_count), 'сколько рубрик проверено'],
+              ['кворки', formatNumber(marketScanResult.aggregate.cards_seen), 'карточек просмотрено'],
+              ['продавцы', formatNumber(marketScanResult.aggregate.unique_sellers_seen), 'уникальных исполнителей'],
+              ['профили', formatNumber(marketScanResult.aggregate.seller_profiles_collected), 'профилей докачано'],
+            ].map(([label, value, sub]) => (
+              <div key={label} className="min-w-0 rounded-md border border-emerald-500/20 bg-surface-950/35 p-2">
+                <div className="mono-label truncate">{label}</div>
+                <div className="mt-1 text-lg font-semibold text-white">{value}</div>
+                <div className="mt-1 truncate text-[11px] text-emerald-200/60">{sub}</div>
+              </div>
+            ))}
+          </div>
+          {!!marketSupplyRows.length && (
+            <div className="mt-3 rounded-md border border-emerald-500/20 bg-surface-950/30 p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="text-xs font-medium text-white">Supply snapshot</div>
+                <div className="text-[11px] text-emerald-200/60">/kworks by seed</div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 max-xl:grid-cols-1">
+                {marketSupplyRows.map((row, index) => {
+                  const seed = objectOrDefault(row.seed, {} as Record<string, unknown>)
+                  const cards = Array.isArray(row.cards) ? (row.cards as Array<Record<string, unknown>>) : []
+                  const demandRow = objectOrDefault(row.demand, {} as Record<string, unknown>)
+                  const classifiers = Array.isArray(row.classifiers) ? (row.classifiers as Array<Record<string, unknown>>) : []
+                  const priceText = priceRulesSummary(row.price_rules)
+                  return (
+                    <div
+                      key={`${String(seed.category_id || index)}-${String(seed.classifier_id || '')}`}
+                      className="min-w-0 rounded border border-surface-700 bg-surface-950/35 p-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="truncate text-xs font-medium text-emerald-50">{snapshotSeedName(seed)}</div>
+                          <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-emerald-100/65">
+                            <span>c={String(seed.category_id || '-')}</span>
+                            {seed.classifier_id ? <span>classifier={String(seed.classifier_id)}</span> : null}
+                            <span>kworks {formatNumber(String(row.kworks_count || 0))}</span>
+                            <span>wants {formatNumber(snapshotDemandCount(demandRow))}</span>
+                            <span>sample {formatNumber(cards.length)}</span>
+                          </div>
+                        </div>
+                        {row.timings_ms && (
+                          <div className="shrink-0 text-[11px] text-zinc-500">
+                            {formatNumber(String(objectOrDefault(row.timings_ms, {} as Record<string, unknown>).total || 0))}ms
+                          </div>
+                        )}
+                      </div>
+                      {!!classifiers.length && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {classifiers.slice(0, 5).map((classifier) => (
+                            <span key={String(classifier.id || classifier.name)} className="rounded border border-surface-700 px-1.5 py-0.5 text-[10px] text-zinc-400">
+                              {String(classifier.name || classifier.id)}: {formatNumber(String(classifier.kworks_count || 0))}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {!!cards.length && (
+                        <div className="mt-2 space-y-1">
+                          {cards.slice(0, 3).map((card) => (
+                            <div key={String(card.id || card.title)} className="flex items-center justify-between gap-2 text-[11px] text-zinc-400">
+                              <span className="min-w-0 truncate">{String(card.title || card.id || '-')}</span>
+                              <span className="shrink-0 text-emerald-100/70">{formatPrice(card.price as number | string | null)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {(snapshotSampleCount(demandRow) > 0 || priceText) && (
+                        <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-zinc-500">
+                          {snapshotSampleCount(demandRow) > 0 && <span>demand sample {formatNumber(snapshotSampleCount(demandRow))}</span>}
+                          {priceText && <span>price rules {priceText}</span>}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {!!marketQueryDemandRows.length && (
+            <div className="mt-3 rounded-md border border-sky-500/20 bg-sky-500/10 p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="text-xs font-medium text-white">Demand snapshot</div>
+                <div className="text-[11px] text-sky-100/60">/projects and /getWantsCount</div>
+              </div>
+              <div className="grid grid-cols-4 gap-2 max-xl:grid-cols-2 max-sm:grid-cols-1">
+                {marketQueryDemandRows.map(({ query, value }) => {
+                  const sample = Array.isArray(value.sample) ? (value.sample as Array<Record<string, unknown>>) : []
+                  return (
+                    <div key={query} className="min-w-0 rounded border border-sky-500/20 bg-surface-950/35 p-2">
+                      <div className="truncate text-xs font-medium text-sky-50">{query || 'all'}</div>
+                      <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-sky-100/70">
+                        <span>wants {formatNumber(snapshotDemandCount(value))}</span>
+                        <span>sample {formatNumber(snapshotSampleCount(value))}</span>
+                        <span>{String(value.status || 'unknown')}</span>
+                      </div>
+                      {!!sample.length && (
+                        <div className="mt-2 space-y-1">
+                          {sample.slice(0, 2).map((project) => (
+                            <div key={String(project.id || project.title)} className="truncate text-[11px] text-zinc-400">
+                              {String(project.title || project.id || '-')} · {formatNumber(String(project.offers ?? 0))} откл.
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {!!marketOpportunityRows.length && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {marketOpportunityRows.map((row) => (
+                <span
+                  key={`${String(row.seed_name || row.category_id)}-${String(row.classifier_id || '')}`}
+                  className="rounded border border-emerald-500/25 bg-surface-950/35 px-2 py-1 text-[11px] text-emerald-100"
+                  title={`спрос=${String(row.demand_wants_count ?? '-')} конкуренты=${String(row.supply_kworks_count ?? '-')}`}
+                >
+                  {marketOpportunityLabel(row)}
+                </span>
+              ))}
+            </div>
+          )}
+          {!!marketSellerRows.length && (
+            <div className="mt-3 rounded-md border border-purple-500/20 bg-purple-500/10 p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="text-xs font-medium text-white">Seller intelligence</div>
+                <div className="text-[11px] text-purple-100/60">profile, portfolio, reviews</div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 max-xl:grid-cols-1">
+                {marketSellerRows.map((seller) => {
+                  const portfolio = objectOrDefault(seller.portfolio, {} as Record<string, unknown>)
+                  const reviews = objectOrDefault(seller.reviews, {} as Record<string, unknown>)
+                  const allReviews = objectOrDefault(reviews.all, {} as Record<string, unknown>)
+                  const negativeReviews = objectOrDefault(reviews.negative, {} as Record<string, unknown>)
+                  const sampleKworks = Array.isArray(seller.sample_kworks) ? (seller.sample_kworks as Array<Record<string, unknown>>) : []
+                  return (
+                    <div key={String(seller.username || seller.id)} className="min-w-0 rounded border border-purple-500/20 bg-surface-950/35 p-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="truncate text-xs font-medium text-purple-50">{String(seller.username || seller.display_name || seller.id || '-')}</div>
+                          <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-purple-100/70">
+                            {seller.level ? <span>{String(seller.level)}</span> : null}
+                            {seller.rating ? <span>rating {String(seller.rating)}</span> : null}
+                            {seller.reviews_count ? <span>reviews {formatNumber(String(seller.reviews_count))}</span> : null}
+                            {seller.active_kworks_count ? <span>active {formatNumber(String(seller.active_kworks_count))}</span> : null}
+                          </div>
+                        </div>
+                        <span className="shrink-0 text-[11px] text-zinc-500">{String(seller.status || '')}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-zinc-400">
+                        <span>portfolio {formatNumber(String(portfolio.total ?? portfolio.sample_count ?? 0))}</span>
+                        <span>reviews {formatNumber(String(allReviews.total ?? allReviews.sample_count ?? 0))}</span>
+                        <span>negative {formatNumber(String(negativeReviews.total ?? negativeReviews.sample_count ?? 0))}</span>
+                      </div>
+                      {!!sampleKworks.length && (
+                        <div className="mt-2 space-y-1">
+                          {sampleKworks.slice(0, 2).map((kwork) => (
+                            <div key={String(kwork.id || kwork.title)} className="truncate text-[11px] text-zinc-500">
+                              {String(kwork.title || kwork.id || '-')}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {Array.isArray(seller.errors) && seller.errors.length > 0 && (
+                        <div className="mt-2 line-clamp-2 text-[11px] text-amber-200/80">{String(seller.errors[0])}</div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {Array.isArray(marketScanResult.aggregate.top_sellers) && marketScanResult.aggregate.top_sellers.length > 0 && (
+            <div className="mt-2 rounded border border-surface-700 bg-surface-950/30 px-2 py-1 text-[11px] text-zinc-500">
+              <span className="mr-2 text-zinc-400">sample seller concentration:</span>
+              {marketScanResult.aggregate.top_sellers.slice(0, 8).map((item) => {
+                const tuple = Array.isArray(item) ? item : []
+                return (
+                  <span key={String(tuple[0])} className="mr-2 inline-block">
+                    {String(tuple[0] || '-')}: {formatNumber(String(tuple[1] || 0))}
+                  </span>
+                )
+              })}
+            </div>
+          )}
+          {marketScanResult.account_context && marketScanResult.account_context.status !== 'skipped' && (
+            <div className="mt-2 rounded border border-brand-500/25 bg-brand-600/10 px-2 py-1 text-[11px] text-brand-100">
+              <span className="text-brand-200/70">аккаунт:</span>{' '}
+              {String(marketScanResult.account_context.username || marketScanResult.account_context.status || 'unknown')}
+              {marketScanResult.account_context.active_kworks_count !== undefined
+                ? ` · активных ${String(marketScanResult.account_context.active_kworks_count)}`
+                : ''}
+              {marketScanResult.account_context.offers_count !== undefined
+                ? ` · откликов ${String(marketScanResult.account_context.offers_count)}`
+                : ''}
+            </div>
+          )}
+          {(marketScanResult.file_path || marketScanResult.latest_path || marketScanResult.index_path) && (
+            <div className="mt-2 space-y-1 rounded border border-emerald-500/20 bg-surface-950/40 px-2 py-1 text-[11px] text-emerald-200/80">
+              {[
+                ['снимок', marketScanResult.file_path],
+                ['последний', marketScanResult.latest_path],
+                ['история', marketScanResult.index_path],
+              ]
+                .filter(([, value]) => value)
+                .map(([label, value]) => (
+                  <div key={label} className="break-all">
+                    <span className="text-emerald-300/80">{label}:</span> {value}
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {marketHistory && (
+        <div className="rounded-md border border-brand-500/30 bg-brand-600/10 px-3 py-2 text-xs text-brand-100">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <div className="font-medium text-white">История сканов</div>
+            <div className="text-brand-100/60">
+              {marketHistory.entry_count} записей · {String(marketHistory.latest?.generated_at || 'нет последнего')}
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            {marketHistory.entries.slice(-5).reverse().map((entry, index) => {
+              const aggregate = (entry.aggregate || {}) as Record<string, unknown>
+              const top = Array.isArray(entry.top_opportunities) ? (entry.top_opportunities[0] as Record<string, unknown>) : {}
+              return (
+                <div
+                  key={`${String(entry.generated_at || index)}-${String(entry.file_path || '')}`}
+                  className="grid grid-cols-[170px_1fr] gap-2 rounded border border-brand-500/20 bg-surface-950/35 px-2 py-1.5 max-md:grid-cols-1"
+                >
+                  <div className="min-w-0 truncate text-brand-100/70">{String(entry.generated_at || '-')}</div>
+                  <div className="min-w-0 truncate text-brand-50">
+                    кворки {formatNumber(Number(aggregate.cards_seen || 0))} · продавцы{' '}
+                    {formatNumber(Number(aggregate.unique_sellers_seen || 0))} · лучший срез{' '}
+                    {String(top.seed_name || top.category_id || '-')}:{' '}
+                    {String(top.opportunity_score ?? top.demand_per_1000_kworks ?? '-')}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="mt-2 break-all rounded border border-brand-500/20 bg-surface-950/35 px-2 py-1 text-[11px] text-brand-100/70">
+            {marketHistory.index_path}
+          </div>
         </div>
       )}
 
@@ -1032,7 +2337,7 @@ export default function KworkMarket() {
                             {!!control.options?.length && (
                               <button
                                 onClick={() => suggestControl(control)}
-                                disabled={!!suggestingControl || !useLlm}
+                                disabled={!!suggestingControl}
                                 className="rounded-md border border-brand-500/40 bg-brand-600/15 p-1 text-brand-200 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                                 title="ИИ выберет пункт по услуге, аудитории, срезу и конкурентам"
                               >
@@ -1043,7 +2348,7 @@ export default function KworkMarket() {
                                 )}
                               </button>
                             )}
-                            <span>{control.multiple ? 'checkbox' : control.type}</span>
+                            <span>{controlTypeLabel(control)}</span>
                           </div>
                         </div>
                         <div className="grid gap-1.5">
@@ -1065,16 +2370,20 @@ export default function KworkMarket() {
                                   name={`slice-${control.name}`}
                                   checked={selected}
                                   disabled={option.disabled}
-                                  onChange={(event) => {
-                                    const next = setSelectionValue(
-                                      attributeSelection,
-                                      control,
-                                      option.id,
-                                      event.target.checked,
-                                    )
-                                    setAttributeSelection(next)
+                                onChange={(event) => {
+                                  const beforeIds = selectedOptionIds(attributeSelection, control)
+                                  const next = setSelectionValue(
+                                    attributeSelection,
+                                    control,
+                                    option.id,
+                                    event.target.checked,
+                                  )
+                                  const afterIds = selectedOptionIds(next, control)
+                                  setAttributeSelection(next)
+                                  if (selectionTouchesDynamicChildren(control, beforeIds, afterIds)) {
                                     scheduleFormManifest(next, selectedClassifierId)
-                                  }}
+                                  }
+                                }}
                                   className="h-3.5 w-3.5 accent-brand-500"
                                 />
                                 <span className="min-w-0 flex-1 truncate">{option.label || `#${option.id}`}</span>
@@ -1098,6 +2407,109 @@ export default function KworkMarket() {
               <MetricTile label="твоя цена" value={formatPrice(price)} sub="настраивается вручную" />
               <MetricTile label="примеров для ИИ" value={competitors.filter((item) => item.description).length} sub="описания конкурентов" />
             </div>
+
+            {marketInsights && (
+              <div className="grid grid-cols-[1.15fr_0.85fr] gap-3 max-xl:grid-cols-1">
+                <div className="rounded-md border border-brand-500/25 bg-brand-600/10 p-3">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-white">
+                      <BarChart3 className="h-4 w-4 text-brand-300" />
+                      Что видно по рынку
+                    </div>
+                    <div className="text-[11px] text-brand-100/60">
+                      выборка {formatNumber(marketInsights.sample_size)} из {formatNumber(marketInsights.kworks_count || visibleMetrics?.kworks_count)}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 max-md:grid-cols-1">
+                    <div className="rounded-md border border-surface-700 bg-surface-950/35 p-2">
+                      <div className="mono-label">цена в топе</div>
+                      <div className="mt-1 text-sm font-semibold text-white">
+                        {formatPrice(marketInsights.price?.min)} - {formatPrice(marketInsights.price?.max)}
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">медиана {formatPrice(marketInsights.price?.median)}</div>
+                    </div>
+                    <div className="rounded-md border border-surface-700 bg-surface-950/35 p-2">
+                      <div className="mono-label">доверие</div>
+                      <div className="mt-1 text-sm font-semibold text-white">
+                        {formatNumber(marketInsights.trust?.reviews_100_plus)}/{formatNumber(marketInsights.trust?.sample_size)}
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">карточек с 100+ отзывами</div>
+                    </div>
+                    <div className="rounded-md border border-surface-700 bg-surface-950/35 p-2">
+                      <div className="mono-label">концентрация</div>
+                      <div className="mt-1 text-sm font-semibold text-white">
+                        {formatPercent(marketInsights.concentration?.repeat_share)}
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">мест у повторяющихся продавцов</div>
+                    </div>
+                  </div>
+                  {!!marketInsightBullets.length && (
+                    <div className="mt-3 grid gap-1.5 text-xs text-zinc-300">
+                      {marketInsightBullets.map((item) => (
+                        <div key={item} className="rounded border border-brand-500/15 bg-surface-950/25 px-2 py-1.5">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-md border border-emerald-500/25 bg-emerald-500/10 p-3">
+                  <div className="mb-3 flex items-center gap-2 text-sm font-medium text-white">
+                    <Sparkles className="h-4 w-4 text-emerald-300" />
+                    Что делать с кворком
+                  </div>
+                  {!!marketInsightRecommendations.length && (
+                    <div className="grid gap-1.5 text-xs text-emerald-50/90">
+                      {marketInsightRecommendations.map((item) => (
+                        <div key={item} className="rounded border border-emerald-500/15 bg-surface-950/25 px-2 py-1.5">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {!!marketInsightTerms.length && (
+                    <div className="mt-3">
+                      <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-emerald-100/70">
+                        <Tags className="h-3.5 w-3.5" />
+                        частые слова
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {marketInsightTerms.map((item) => (
+                          <span key={String(item.term)} className="rounded border border-emerald-500/20 bg-surface-950/35 px-2 py-1 text-[11px] text-emerald-100">
+                            {marketTermLabel(item)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {!!marketInsightClassifiers.length && (
+                    <div className="mt-3 grid gap-2 text-[11px] text-zinc-400">
+                      <div>
+                        <div className="mb-1 text-zinc-500">крупные срезы</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {wideClassifierRows.map((item) => (
+                            <span key={`wide-${item.id}`} className="rounded border border-surface-700 bg-surface-950/30 px-2 py-1">
+                              {item.name}: {formatNumber(item.kworks_count)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="mb-1 text-zinc-500">узкие срезы из ответа API</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {narrowClassifierRows.map((item) => (
+                            <span key={`narrow-${item.id}`} className="rounded border border-surface-700 bg-surface-950/30 px-2 py-1">
+                              {item.name}: {formatNumber(item.kworks_count)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-[1fr_420px] gap-4 max-2xl:grid-cols-1">
               <div className="card">
@@ -1133,9 +2545,14 @@ export default function KworkMarket() {
                       className="input mt-1 min-h-[72px] w-full resize-y"
                     />
                   </label>
-                  <label className="block text-xs text-zinc-500">
-                    Для кого
-                    <input value={audience} onChange={(event) => setAudience(event.target.value)} className="input mt-1 w-full" />
+                    <label className="block text-xs text-zinc-500">
+                    Для кого, если нужно
+                    <input
+                      value={audience}
+                      onChange={(event) => setAudience(event.target.value)}
+                      className="input mt-1 w-full"
+                      placeholder="можно оставить пустым"
+                    />
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block text-xs text-zinc-500">
@@ -1276,7 +2693,7 @@ export default function KworkMarket() {
                                 {!control.disabled && !!control.options?.length && (
                                   <button
                                     onClick={() => suggestControl(control)}
-                                    disabled={!!suggestingControl || !useLlm}
+                                    disabled={!!suggestingControl}
                                     className="rounded-md border border-brand-500/40 bg-brand-600/15 p-1 text-brand-200 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                                     title="ИИ выберет или пересмотрит пункт по услуге, аудитории, срезу и конкурентам"
                                   >
@@ -1287,7 +2704,7 @@ export default function KworkMarket() {
                                     )}
                                   </button>
                                 )}
-                                <span>{control.disabled ? 'disabled' : control.multiple ? 'checkbox' : control.type}</span>
+                                <span>{controlTypeLabel(control)}</span>
                               </div>
                             </div>
                             {control.options?.length ? (
@@ -1311,14 +2728,18 @@ export default function KworkMarket() {
                                         checked={selected}
                                         disabled={control.disabled || option.disabled}
                                         onChange={(event) => {
+                                          const beforeIds = selectedOptionIds(attributeSelection, control)
                                           const next = setSelectionValue(
                                             attributeSelection,
                                             control,
                                             option.id,
                                             event.target.checked,
                                           )
+                                          const afterIds = selectedOptionIds(next, control)
                                           setAttributeSelection(next)
-                                          scheduleFormManifest(next, selectedClassifierId)
+                                          if (selectionTouchesDynamicChildren(control, beforeIds, afterIds)) {
+                                            scheduleFormManifest(next, selectedClassifierId)
+                                          }
                                         }}
                                         className="h-3.5 w-3.5 accent-brand-500"
                                       />
@@ -1387,13 +2808,37 @@ export default function KworkMarket() {
                       )}
                     </div>
                   )}
+                  {publishConfirmation && (
+                    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+                      <div className="font-medium text-white">Подтвердить публикацию на Kwork</div>
+                      <div className="mt-1 text-amber-100/75">
+                        Введите фразу <span className="font-semibold text-amber-50">{String(publishConfirmation.phrase)}</span>,
+                        чтобы отправить кворк в Kwork.
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <input
+                          value={publishConfirmInput}
+                          onChange={(event) => setPublishConfirmInput(event.target.value)}
+                          className="input min-w-[220px] flex-1"
+                          placeholder={String(publishConfirmation.phrase)}
+                        />
+                        <button onClick={confirmPublishLive} disabled={draftLoading} className="btn btn-primary py-1.5 text-xs">
+                          {draftLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                          Отправить
+                        </button>
+                        <button onClick={cancelPublishLive} disabled={draftLoading} className="btn btn-ghost py-1.5 text-xs">
+                          Отмена
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <button onClick={createDraft} disabled={!selectedCategoryId || draftLoading} className="btn btn-primary">
                       {draftLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
                       Сгенерировать
                     </button>
                     <button onClick={dryRunPublish} disabled={!draftResult?.draft || draftLoading} className="btn btn-ghost">
-                      Dry-run
+                      Проверить
                     </button>
                     <button onClick={publishLive} disabled={!draftResult?.draft || draftLoading} className="btn btn-ghost">
                       Опубликовать
@@ -1413,7 +2858,7 @@ export default function KworkMarket() {
                       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-zinc-500">
                         <span>
                           {draftResult.image.status === 'generated_local_fallback' ? 'локальная fallback-обложка' : draftResult.image.status}
-                          {draftResult.image.prompt_source ? ` · prompt: ${draftResult.image.prompt_source}` : ''}
+                          {draftResult.image.prompt_source ? ` · промпт: ${draftResult.image.prompt_source}` : ''}
                           {draftResult.image.text_overlay ? ' · текст наложен' : ''}
                         </span>
                         {hasCoverVisionAnalysis && (
@@ -1426,7 +2871,7 @@ export default function KworkMarket() {
                         )}
                         {coverPromptRoute && (
                           <span className="rounded border border-brand-500/30 bg-brand-600/10 px-1.5 py-0.5 text-[11px] text-brand-200">
-                            writer: {coverPromptRoute}
+                            автор промпта: {coverPromptRoute}
                           </span>
                         )}
                         {coverPromptContext && (
@@ -1443,7 +2888,7 @@ export default function KworkMarket() {
                       )}
                       {draftResult.image.prompt && (
                         <details className="rounded-md border border-surface-700 bg-surface-950/60 p-3 text-xs text-zinc-500">
-                          <summary className="cursor-pointer text-zinc-400">prompt обложки</summary>
+                          <summary className="cursor-pointer text-zinc-400">промпт обложки</summary>
                           <div className="mt-2 max-h-36 overflow-auto whitespace-pre-wrap">{draftResult.image.prompt}</div>
                         </details>
                       )}
@@ -1451,12 +2896,12 @@ export default function KworkMarket() {
                         <details className="rounded-md border border-surface-700 bg-surface-950/60 p-3 text-xs text-zinc-500">
                           <summary className="cursor-pointer text-zinc-400">диагностика обложки</summary>
                           <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] max-sm:grid-cols-1">
-                            <div>route: {coverPromptRoute || '-'}</div>
-                            <div>prompt images: {formatNumber(coverContextNumber(coverPromptContext, 'prompt_images_sent'))}</div>
-                            <div>competitors sent: {formatNumber(coverContextNumber(coverPromptContext, 'competitor_images_sent'))}</div>
-                            <div>history sent: {formatNumber(coverContextNumber(coverPromptContext, 'history_images_sent'))}</div>
-                            <div>history known: {formatNumber(coverContextNumber(coverPromptContext, 'recent_history_count'))}</div>
-                            <div>sidecar: {draftResult.image.sidecar_path || '-'}</div>
+                            <div>маршрут: {coverPromptRoute || '-'}</div>
+                            <div>картинок в промпте: {formatNumber(coverContextNumber(coverPromptContext, 'prompt_images_sent'))}</div>
+                            <div>конкурентов отправлено: {formatNumber(coverContextNumber(coverPromptContext, 'competitor_images_sent'))}</div>
+                            <div>истории отправлено: {formatNumber(coverContextNumber(coverPromptContext, 'history_images_sent'))}</div>
+                            <div>истории найдено: {formatNumber(coverContextNumber(coverPromptContext, 'recent_history_count'))}</div>
+                            <div>метаданные: {draftResult.image.sidecar_path || '-'}</div>
                           </div>
                           {typeof coverPromptContext.warning === 'string' && coverPromptContext.warning && (
                             <div className="mt-2 rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-amber-200/80">
@@ -1477,11 +2922,11 @@ export default function KworkMarket() {
                   <div className="mb-3 text-sm font-medium text-zinc-200">Предпросмотр</div>
                   <div className="space-y-3 text-xs">
                     <div>
-                      <div className="mono-label">title</div>
+                      <div className="mono-label">заголовок</div>
                       <div className="mt-1 text-base font-medium text-white">{draftResult.draft.title}</div>
                     </div>
                     <div>
-                      <div className="mono-label">description</div>
+                      <div className="mono-label">описание</div>
                       <div className="mt-1 max-h-52 overflow-auto whitespace-pre-wrap text-zinc-300">
                         {draftResult.draft.description}
                       </div>
@@ -1489,12 +2934,12 @@ export default function KworkMarket() {
                     <div className="grid grid-cols-3 gap-2 text-zinc-500">
                       <span>цена: {formatPrice(draftResult.draft.price)}</span>
                       <span>срок: {draftResult.draft.work_time} дн.</span>
-                      <span>cat: {draftResult.draft.category_id}</span>
+                      <span>рубрика: {draftResult.draft.category_id}</span>
                     </div>
                     {publishResult?.payload && (
                       <details className="rounded-md border border-surface-700 bg-surface-950/60 p-3">
                         <summary className="cursor-pointer text-zinc-400">
-                          {publishResult.dry_run ? 'payload dry-run' : publishResult.ok ? 'опубликовано' : 'публикация не прошла'}
+                          {publishResult.dry_run ? 'проверочный payload' : publishResult.ok ? 'опубликовано' : 'публикация не прошла'}
                         </summary>
                         {publishResult.detail && <div className="mt-2 text-xs text-zinc-400">{publishResult.detail}</div>}
                         <pre className="mt-2 max-h-56 overflow-auto text-[11px] text-zinc-500">

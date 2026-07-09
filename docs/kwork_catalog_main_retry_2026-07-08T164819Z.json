@@ -1,0 +1,287 @@
+{
+  "timestamp_utc": "2026-07-08T16:48:19.191786+00:00",
+  "purpose": "Retry disputed catalogMain/catalogMainv2 taxonomy endpoints after proxy rotation",
+  "proxy": {
+    "before": {
+      "running": true,
+      "profileId": "f86f2270-bbc6-4b57-afed-a2a290ff0eea",
+      "profileName": "russia3",
+      "country": null,
+      "proxyUrl": "http://127.0.0.1:17990",
+      "host": "127.0.0.1",
+      "port": 17990
+    },
+    "rotate": {
+      "running": true,
+      "profileId": "77261ba3-cc95-4ed6-bff4-c8b4b61f2b26",
+      "profileName": "russia4",
+      "country": null,
+      "proxyUrl": "http://127.0.0.1:17990",
+      "host": "127.0.0.1",
+      "port": 17990
+    },
+    "after": {
+      "running": true,
+      "profileId": "77261ba3-cc95-4ed6-bff4-c8b4b61f2b26",
+      "profileName": "russia4",
+      "country": null,
+      "proxyUrl": "http://127.0.0.1:17990",
+      "host": "127.0.0.1",
+      "port": 17990
+    },
+    "effective_proxy_url": "http://127.0.0.1:17990"
+  },
+  "auth": "installed-library mobile basic header; no account token",
+  "results": [
+    {
+      "name": "catalogMain",
+      "path": "/catalogMain",
+      "params": {},
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 88,
+      "elapsed_ms": 1215,
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Необходима авторизация",
+        "response_type": "NoneType",
+        "response": null
+      },
+      "body_kind": "json"
+    },
+    {
+      "name": "catalogMainv2",
+      "path": "/catalogMainv2",
+      "params": {},
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 31785,
+      "elapsed_ms": 132,
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "popular_categories_block",
+          "catalog_service_block",
+          "other_services_block"
+        ],
+        "popular_categories_block": 3,
+        "popular_categories_block_sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "order": 0
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "order": 1
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "order": 2
+          }
+        ],
+        "catalog_service_block": 7,
+        "catalog_service_block_sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "order": 0
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "order": 1
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "order": 2
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "order": 3
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "order": 4
+          }
+        ],
+        "other_services_block": 10,
+        "other_services_block_sample": [
+          {
+            "name": "Ссылки",
+            "category_id": 59,
+            "order": 0
+          },
+          {
+            "name": "Продвижение сайта в топ",
+            "category_id": 273,
+            "order": 1
+          },
+          {
+            "name": "Новый сайт",
+            "category_id": 37,
+            "classifier_id": 5016,
+            "order": 2
+          },
+          {
+            "name": "Доработка сайта",
+            "category_id": 38,
+            "classifier_id": 1271,
+            "order": 3
+          },
+          {
+            "name": "Яндекс Директ",
+            "category_id": 49,
+            "classifier_id": 206,
+            "order": 4
+          }
+        ]
+      },
+      "body_kind": "json"
+    },
+    {
+      "name": "catalogRubrics_empty",
+      "path": "/catalogRubrics",
+      "params": {},
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 129,
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5
+          }
+        ]
+      },
+      "body_kind": "json"
+    },
+    {
+      "name": "catalogCategories_rubricId_11",
+      "path": "/catalogCategories",
+      "params": {
+        "rubricId": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 1000,
+      "elapsed_ms": 115,
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 9,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "kworks_count"
+        ],
+        "sample": [
+          {
+            "id": 38,
+            "name": "Доработка и настройка сайта",
+            "rubric_description": "",
+            "order": 1,
+            "kworks_count": 13664
+          },
+          {
+            "id": 37,
+            "name": "Создание сайта",
+            "rubric_description": "",
+            "order": 2,
+            "kworks_count": 24193
+          },
+          {
+            "id": 41,
+            "name": "Скрипты, боты и mini apps",
+            "rubric_description": "",
+            "order": 3,
+            "kworks_count": 37914
+          },
+          {
+            "id": 79,
+            "name": "Верстка",
+            "rubric_description": "",
+            "order": 4,
+            "kworks_count": 6509
+          },
+          {
+            "id": 80,
+            "name": "Десктоп программирование",
+            "rubric_description": "",
+            "order": 5,
+            "kworks_count": 5201
+          }
+        ]
+      },
+      "body_kind": "json"
+    }
+  ]
+}

@@ -862,11 +862,18 @@ class ProposalDB:
                     (project_id, row["platform"]),
                 ).fetchone()
                 if candidate:
-                    self.record_candidate_action(
-                        candidate["candidate_id"],
-                        "client_responded",
-                        actor="inbox",
-                        payload={"response": response_text[:200]},
+                    conn.execute(
+                        """
+                        INSERT INTO candidate_actions (candidate_id, action, actor, payload, created_at)
+                        VALUES (?, ?, ?, ?, ?)
+                        """,
+                        (
+                            candidate["candidate_id"],
+                            "client_responded",
+                            "inbox",
+                            _to_json({"response": response_text[:200]}),
+                            _now(),
+                        ),
                     )
                 conn.commit()
             else:

@@ -1,0 +1,1497 @@
+{
+  "generated_at": "2026-07-08T13:56:33Z",
+  "source": "psr.kwork_market_intelligence_snapshot",
+  "config": {
+    "max_seeds": 2,
+    "pages": 1,
+    "include_demand": false,
+    "include_competitor_details": false,
+    "competitor_detail_limit": 0
+  },
+  "seeds": [
+    {
+      "name": "Дизайн для маркетплейсов",
+      "category_id": 286,
+      "classifier_id": 1433413,
+      "seed_kworks_count": 82701
+    },
+    {
+      "name": "Ссылки",
+      "category_id": 59,
+      "seed_kworks_count": 45358
+    }
+  ],
+  "supply": [
+    {
+      "seed": {
+        "name": "Дизайн для маркетплейсов",
+        "category_id": 286,
+        "classifier_id": 1433413,
+        "seed_kworks_count": 82701
+      },
+      "kworks_count": 82945,
+      "classifiers": [
+        {
+          "id": 1433712,
+          "name": "Ozon",
+          "kworks_count": 10676,
+          "raw": {
+            "id": 1433712,
+            "name": "Ozon",
+            "kworks_count": 10676,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1433714,
+          "name": "Wildberries",
+          "kworks_count": 51807,
+          "raw": {
+            "id": 1433714,
+            "name": "Wildberries",
+            "kworks_count": 51807,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1433717,
+          "name": "Яндекс Маркет",
+          "kworks_count": 505,
+          "raw": {
+            "id": 1433717,
+            "name": "Яндекс Маркет",
+            "kworks_count": 505,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1433720,
+          "name": "Авито",
+          "kworks_count": 1061,
+          "raw": {
+            "id": 1433720,
+            "name": "Авито",
+            "kworks_count": 1061,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1433721,
+          "name": "Другие",
+          "kworks_count": 20057,
+          "raw": {
+            "id": 1433721,
+            "name": "Другие",
+            "kworks_count": 20057,
+            "visibility": 1
+          }
+        }
+      ],
+      "cards": [
+        {
+          "id": 14100522,
+          "title": "Инфографика для Ozon: дизайн с продуманной логикой подачи",
+          "price": 2000,
+          "classifier_id": 1433712,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/72/14100522-6a30de26915c1.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/14100522/infografika-dlya-ozon-dizayn-s-produmannoy-logikoy-podachi",
+          "worker": "IrinaDana",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/36/6809248-7.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 553,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 14100522,
+            "category_id": 286,
+            "title": "Инфографика для Ozon: дизайн с продуманной логикой подачи",
+            "url": "/e-commerce-social-network/14100522/infografika-dlya-ozon-dizayn-s-produmannoy-logikoy-podachi",
+            "share_url": "https://kwork.ru/e-commerce-social-network/14100522/infografika-dlya-ozon-dizayn-s-produmannoy-logikoy-podachi",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/72/14100522-6a30de26915c1.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/72/14100522-6a30de26915c1.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/72/14100522-6a30de26915c1.jpg"
+            },
+            "price": 2000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 6809248,
+              "username": "IrinaDana",
+              "fullname": "Дана",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/36/6809248-7.jpg",
+              "rating": 5,
+              "reviews_count": 553,
+              "rating_count": 431,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1433712,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 42207254,
+          "title": "Дизайн слайда инфографики",
+          "price": 1000,
+          "classifier_id": 1433714,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/62/42207254-69b99b0491b50.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/42207254/dizayn-slayda-infografiki",
+          "worker": "IG_designed",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/45/4540417-11.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 76,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 42207254,
+            "category_id": 286,
+            "title": "Дизайн слайда инфографики",
+            "url": "/e-commerce-social-network/42207254/dizayn-slayda-infografiki",
+            "share_url": "https://kwork.ru/e-commerce-social-network/42207254/dizayn-slayda-infografiki",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/62/42207254-69b99b0491b50.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/62/42207254-69b99b0491b50.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/62/42207254-69b99b0491b50.jpg"
+            },
+            "price": 1000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 4540417,
+              "username": "IG_designed",
+              "fullname": "Игорь",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/45/4540417-11.jpg",
+              "rating": 5,
+              "reviews_count": 76,
+              "rating_count": 63,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433714,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 43576198,
+          "title": "Инфографика. Карточка товара для маркетплейса",
+          "price": 1000,
+          "classifier_id": 1433714,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/43/43576198-6a156cd78549d.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/43576198/infografika-kartochka-tovara-dlya-marketpleysa",
+          "worker": "hudozhnik_portrait",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/21/638735-31.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 407,
+          "is_best": false,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 43576198,
+            "category_id": 286,
+            "title": "Инфографика. Карточка товара для маркетплейса",
+            "url": "/e-commerce-social-network/43576198/infografika-kartochka-tovara-dlya-marketpleysa",
+            "share_url": "https://kwork.ru/e-commerce-social-network/43576198/infografika-kartochka-tovara-dlya-marketpleysa",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/43/43576198-6a156cd78549d.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/43/43576198-6a156cd78549d.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/43/43576198-6a156cd78549d.jpg"
+            },
+            "price": 1000,
+            "is_price_from": true,
+            "is_best": false,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 638735,
+              "username": "hudozhnik_portrait",
+              "fullname": "Елена",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/21/638735-31.jpg",
+              "rating": 5,
+              "reviews_count": 407,
+              "rating_count": 354,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1433714,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 25359731,
+          "title": "Дизайн и инфографика карточки товара для маркетплейса WB",
+          "price": 1500,
+          "classifier_id": 1433714,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/56/25359731-65ab10bdef2bc.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/25359731/dizayn-i-infografika-kartochki-tovara-dlya-marketpleysa-wb",
+          "worker": "Leilamad",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/48/14579742-7.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 189,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 25359731,
+            "category_id": 286,
+            "title": "Дизайн и инфографика карточки товара для маркетплейса WB",
+            "url": "/e-commerce-social-network/25359731/dizayn-i-infografika-kartochki-tovara-dlya-marketpleysa-wb",
+            "share_url": "https://kwork.ru/e-commerce-social-network/25359731/dizayn-i-infografika-kartochki-tovara-dlya-marketpleysa-wb",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/56/25359731-65ab10bdef2bc.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/56/25359731-65ab10bdef2bc.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/56/25359731-65ab10bdef2bc.jpg"
+            },
+            "price": 1500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 14579742,
+              "username": "Leilamad",
+              "fullname": "Лейла",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/48/14579742-7.jpg",
+              "rating": 5,
+              "reviews_count": 189,
+              "rating_count": 165,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433714,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 21805649,
+          "title": "Дизайн инфографики, карточка товара для маркетплейса Wildberries",
+          "price": 2000,
+          "classifier_id": 1433714,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/02/21805649-6a0af02f8cbd4.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/21805649/dizayn-infografiki-kartochka-tovara-dlya-marketpleysa-wildberries",
+          "worker": "Vitaliy_DSGN",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/27/9628615-75.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 575,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 21805649,
+            "category_id": 286,
+            "title": "Дизайн инфографики, карточка товара для маркетплейса Wildberries",
+            "url": "/e-commerce-social-network/21805649/dizayn-infografiki-kartochka-tovara-dlya-marketpleysa-wildberries",
+            "share_url": "https://kwork.ru/e-commerce-social-network/21805649/dizayn-infografiki-kartochka-tovara-dlya-marketpleysa-wildberries",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/02/21805649-6a0af02f8cbd4.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/02/21805649-6a0af02f8cbd4.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/02/21805649-6a0af02f8cbd4.jpg"
+            },
+            "price": 2000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 9628615,
+              "username": "Vitaliy_DSGN",
+              "fullname": "Виталий Царук",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/27/9628615-75.jpg",
+              "rating": 5,
+              "reviews_count": 575,
+              "rating_count": 493,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433714,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 17334546,
+          "title": "Инфографика для маркетплейса, дизайн карточек: Wildberries",
+          "price": 1000,
+          "classifier_id": 1433714,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/91/17334546-6a227e7e21255.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/17334546/infografika-dlya-marketpleysa-dizayn-kartochek-wildberries",
+          "worker": "linskayaa",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/31/1461517-7.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 195,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 17334546,
+            "category_id": 286,
+            "title": "Инфографика для маркетплейса, дизайн карточек: Wildberries",
+            "url": "/e-commerce-social-network/17334546/infografika-dlya-marketpleysa-dizayn-kartochek-wildberries",
+            "share_url": "https://kwork.ru/e-commerce-social-network/17334546/infografika-dlya-marketpleysa-dizayn-kartochek-wildberries",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/91/17334546-6a227e7e21255.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/91/17334546-6a227e7e21255.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/91/17334546-6a227e7e21255.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1461517,
+              "username": "linskayaa",
+              "fullname": "Анна",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/31/1461517-7.jpg",
+              "rating": 5,
+              "reviews_count": 195,
+              "rating_count": 144,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433714,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 21490541,
+          "title": "Дизайн карточки для маркетплейса Wildberries",
+          "price": 2500,
+          "classifier_id": 1433714,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/39/21490541-6553810279f44.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/21490541/dizayn-kartochki-dlya-marketpleysa-wildberries",
+          "worker": "kery_k",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/49/1982770-4.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 215,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 21490541,
+            "category_id": 286,
+            "title": "Дизайн карточки для маркетплейса Wildberries",
+            "url": "/e-commerce-social-network/21490541/dizayn-kartochki-dlya-marketpleysa-wildberries",
+            "share_url": "https://kwork.ru/e-commerce-social-network/21490541/dizayn-kartochki-dlya-marketpleysa-wildberries",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/39/21490541-6553810279f44.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/39/21490541-6553810279f44.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/39/21490541-6553810279f44.jpg"
+            },
+            "price": 2500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1982770,
+              "username": "kery_k",
+              "fullname": "Карина",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/49/1982770-4.jpg",
+              "rating": 5,
+              "reviews_count": 215,
+              "rating_count": 163,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433714,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 14686355,
+          "title": "Дизайн карточки товара, инфографика для маркетплейса Wildberries",
+          "price": 2000,
+          "classifier_id": 1433714,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/78/14686355-6a0af01904009.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/14686355/dizayn-kartochki-tovara-infografika-dlya-marketpleysa-wildberries",
+          "worker": "Vitaliy_DSGN",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/27/9628615-75.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 575,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 14686355,
+            "category_id": 286,
+            "title": "Дизайн карточки товара, инфографика для маркетплейса Wildberries",
+            "url": "/e-commerce-social-network/14686355/dizayn-kartochki-tovara-infografika-dlya-marketpleysa-wildberries",
+            "share_url": "https://kwork.ru/e-commerce-social-network/14686355/dizayn-kartochki-tovara-infografika-dlya-marketpleysa-wildberries",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/78/14686355-6a0af01904009.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/78/14686355-6a0af01904009.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/78/14686355-6a0af01904009.jpg"
+            },
+            "price": 2000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 9628615,
+              "username": "Vitaliy_DSGN",
+              "fullname": "Виталий Царук",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/27/9628615-75.jpg",
+              "rating": 5,
+              "reviews_count": 575,
+              "rating_count": 493,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433714,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 36214125,
+          "title": "Инфографика для маркетплейсов, дизайн карточек товаров WB",
+          "price": 1000,
+          "classifier_id": 1433714,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/76/36214125-696f54601f147.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/36214125/infografika-dlya-marketpleysov-dizayn-kartochek-tovarov-wb",
+          "worker": "Mikhail_Aksenov",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/03/17975669-8.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 90,
+          "is_best": false,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 36214125,
+            "category_id": 286,
+            "title": "Инфографика для маркетплейсов, дизайн карточек товаров WB",
+            "url": "/e-commerce-social-network/36214125/infografika-dlya-marketpleysov-dizayn-kartochek-tovarov-wb",
+            "share_url": "https://kwork.ru/e-commerce-social-network/36214125/infografika-dlya-marketpleysov-dizayn-kartochek-tovarov-wb",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/76/36214125-696f54601f147.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/76/36214125-696f54601f147.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/76/36214125-696f54601f147.jpg"
+            },
+            "price": 1000,
+            "is_price_from": true,
+            "is_best": false,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 17975669,
+              "username": "Mikhail_Aksenov",
+              "fullname": "Михаил Аксёнов",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/03/17975669-8.jpg",
+              "rating": 5,
+              "reviews_count": 90,
+              "rating_count": 86,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433714,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 40880470,
+          "title": "Продающая инфографика для маркетплейса ВБ, дизайн карточки WB 2026",
+          "price": 1500,
+          "classifier_id": 1433714,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/49/40880470-698f4bfb537f3.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/40880470/prodayushchaya-infografika-dlya-marketpleysa-vb-dizayn-kartochki-wb-2026",
+          "worker": "maxfrancisco",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/23/721919-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1626,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 40880470,
+            "category_id": 286,
+            "title": "Продающая инфографика для маркетплейса ВБ, дизайн карточки WB 2026",
+            "url": "/e-commerce-social-network/40880470/prodayushchaya-infografika-dlya-marketpleysa-vb-dizayn-kartochki-wb-2026",
+            "share_url": "https://kwork.ru/e-commerce-social-network/40880470/prodayushchaya-infografika-dlya-marketpleysa-vb-dizayn-kartochki-wb-2026",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/49/40880470-698f4bfb537f3.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/49/40880470-698f4bfb537f3.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/49/40880470-698f4bfb537f3.jpg"
+            },
+            "price": 1500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 721919,
+              "username": "maxfrancisco",
+              "fullname": "Максим",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/23/721919-1.jpg",
+              "rating": 5,
+              "reviews_count": 1626,
+              "rating_count": 1034,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1433714,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        }
+      ],
+      "demand": {
+        "status": "skipped"
+      },
+      "timings_ms": {
+        "total": 529
+      }
+    },
+    {
+      "seed": {
+        "name": "Ссылки",
+        "category_id": 59,
+        "seed_kworks_count": 45358
+      },
+      "kworks_count": 45412,
+      "classifiers": [
+        {
+          "id": 1379472,
+          "name": "Статейные и крауд",
+          "kworks_count": 19115,
+          "raw": {
+            "id": 1379472,
+            "name": "Статейные и крауд",
+            "kworks_count": 19115,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1379027,
+          "name": "Форумные",
+          "kworks_count": 6854,
+          "raw": {
+            "id": 1379027,
+            "name": "Форумные",
+            "kworks_count": 6854,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1379024,
+          "name": "Каталоги сайтов",
+          "kworks_count": 2219,
+          "raw": {
+            "id": 1379024,
+            "name": "Каталоги сайтов",
+            "kworks_count": 2219,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1379022,
+          "name": "В комментариях",
+          "kworks_count": 2189,
+          "raw": {
+            "id": 1379022,
+            "name": "В комментариях",
+            "kworks_count": 2189,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1378934,
+          "name": "В соцсетях",
+          "kworks_count": 2806,
+          "raw": {
+            "id": 1378934,
+            "name": "В соцсетях",
+            "kworks_count": 2806,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1378848,
+          "name": "В профилях",
+          "kworks_count": 10212,
+          "raw": {
+            "id": 1378848,
+            "name": "В профилях",
+            "kworks_count": 10212,
+            "visibility": 1
+          }
+        }
+      ],
+      "cards": [
+        {
+          "id": 505350,
+          "title": "Комплекс Эффективных Естественных Ссылок",
+          "price": 5000,
+          "classifier_id": 1379700,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/38/505350-1540008738.jpg",
+          "share_url": "https://kwork.ru/links/505350/kompleks-effektivnykh-estestvennykh-ssylok",
+          "worker": "andrush",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/16/1068-3.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1690,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 505350,
+            "category_id": 59,
+            "title": "Комплекс Эффективных Естественных Ссылок",
+            "url": "/links/505350/kompleks-effektivnykh-estestvennykh-ssylok",
+            "share_url": "https://kwork.ru/links/505350/kompleks-effektivnykh-estestvennykh-ssylok",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/38/505350-1540008738.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/38/505350-1540008738.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/38/505350-1540008738.jpg"
+            },
+            "price": 5000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1068,
+              "username": "andrush",
+              "fullname": "Облачное СЕО",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/16/1068-3.jpg",
+              "rating": 5,
+              "reviews_count": 1690,
+              "rating_count": 1690,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1379700,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 13993338,
+          "title": "Реализую ссылочную стратегию сроком на 1 месяц",
+          "price": 10000,
+          "classifier_id": 1379700,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/27/13993338-6a1c1256d7a0c.jpg",
+          "share_url": "https://kwork.ru/links/13993338/realizuyu-ssylochnuyu-strategiyu-srokom-na-1-mesyats",
+          "worker": "Alexey_Zaitsev",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/01/839780-10.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 4.9,
+          "reviews": 3204,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 13993338,
+            "category_id": 59,
+            "title": "Реализую ссылочную стратегию сроком на 1 месяц",
+            "url": "/links/13993338/realizuyu-ssylochnuyu-strategiyu-srokom-na-1-mesyats",
+            "share_url": "https://kwork.ru/links/13993338/realizuyu-ssylochnuyu-strategiyu-srokom-na-1-mesyats",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/27/13993338-6a1c1256d7a0c.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/27/13993338-6a1c1256d7a0c.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/27/13993338-6a1c1256d7a0c.jpg"
+            },
+            "price": 10000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 839780,
+              "username": "Alexey_Zaitsev",
+              "fullname": "Алексей Зайцев",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/01/839780-10.jpg",
+              "rating": 4.9,
+              "reviews_count": 3204,
+              "rating_count": 3204,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379700,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 36462076,
+          "title": "Внешняя ссылка с главной страницы PBN на 1 год - Игры",
+          "price": 3000,
+          "classifier_id": 1379567,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/13/36462076-6a3fa84e79b25.jpg",
+          "share_url": "https://kwork.ru/links/36462076/vneshnyaya-ssylka-s-glavnoy-stranitsy-pbn-na-1-god-igry",
+          "worker": "MDevostator",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/14/1354-4.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1085,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 36462076,
+            "category_id": 59,
+            "title": "Внешняя ссылка с главной страницы PBN на 1 год - Игры",
+            "url": "/links/36462076/vneshnyaya-ssylka-s-glavnoy-stranitsy-pbn-na-1-god-igry",
+            "share_url": "https://kwork.ru/links/36462076/vneshnyaya-ssylka-s-glavnoy-stranitsy-pbn-na-1-god-igry",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/13/36462076-6a3fa84e79b25.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/13/36462076-6a3fa84e79b25.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/13/36462076-6a3fa84e79b25.jpg"
+            },
+            "price": 3000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1354,
+              "username": "MDevostator",
+              "fullname": "Владислав Бобров",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/14/1354-4.jpg",
+              "rating": 5,
+              "reviews_count": 1085,
+              "rating_count": 1085,
+              "is_online": true,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379567,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 37836615,
+          "title": "Размещу 10 крауд-ссылок на зарубежных форумах",
+          "price": 7000,
+          "classifier_id": 1379370,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/21/37836615-676ea8cd97f26.jpg",
+          "share_url": "https://kwork.ru/links/37836615/razmeshchu-10-kraud-ssylok-na-zarubezhnykh-forumakh",
+          "worker": "SEO_KRAUD_PROF",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/32/581974-2.jpg",
+          "seller_level": "",
+          "rating": 5,
+          "reviews": 3,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 37836615,
+            "category_id": 59,
+            "title": "Размещу 10 крауд-ссылок на зарубежных форумах",
+            "url": "/links/37836615/razmeshchu-10-kraud-ssylok-na-zarubezhnykh-forumakh",
+            "share_url": "https://kwork.ru/links/37836615/razmeshchu-10-kraud-ssylok-na-zarubezhnykh-forumakh",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/21/37836615-676ea8cd97f26.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/21/37836615-676ea8cd97f26.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/21/37836615-676ea8cd97f26.jpg"
+            },
+            "price": 7000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 581974,
+              "username": "SEO_KRAUD_PROF",
+              "fullname": "МАКС",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/32/581974-2.jpg",
+              "rating": 5,
+              "reviews_count": 3,
+              "rating_count": 3,
+              "is_online": false,
+              "level_description": ""
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379370,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 5730766,
+          "title": "Вывод в ТОП через ссылочную пирамиду GOV, EDU, WIKI: 9000+ ссылок",
+          "price": 5000,
+          "classifier_id": 1379700,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/54/5730766-6426f05abcf6f.jpg",
+          "share_url": "https://kwork.ru/links/5730766/vyvod-v-top-cherez-ssylochnuyu-piramidu-gov-edu-wiki-9000-ssylok",
+          "worker": "ARK1",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/59/227345-2.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 4.8,
+          "reviews": 1792,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 5730766,
+            "category_id": 59,
+            "title": "Вывод в ТОП через ссылочную пирамиду GOV, EDU, WIKI: 9000+ ссылок",
+            "url": "/links/5730766/vyvod-v-top-cherez-ssylochnuyu-piramidu-gov-edu-wiki-9000-ssylok",
+            "share_url": "https://kwork.ru/links/5730766/vyvod-v-top-cherez-ssylochnuyu-piramidu-gov-edu-wiki-9000-ssylok",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/54/5730766-6426f05abcf6f.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/54/5730766-6426f05abcf6f.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/54/5730766-6426f05abcf6f.jpg"
+            },
+            "price": 5000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 227345,
+              "username": "ARK1",
+              "fullname": "Валентиныч",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/59/227345-2.jpg",
+              "rating": 4.8,
+              "reviews_count": 1792,
+              "rating_count": 1792,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1379700,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 45697671,
+          "title": "Официальное размещение на DTF.RU: аккаунт с PRO подпиской без удаления",
+          "price": 3500,
+          "classifier_id": 1379700,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/47/45697671-68ec0e03a5230.jpg",
+          "share_url": "https://kwork.ru/links/45697671/ofitsialnoe-razmeshchenie-na-dtf-ru-akkaunt-s-pro-podpiskoy-bez-udaleniya",
+          "worker": "olegda",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/28/5847348-3.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1127,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 45697671,
+            "category_id": 59,
+            "title": "Официальное размещение на DTF.RU: аккаунт с PRO подпиской без удаления",
+            "url": "/links/45697671/ofitsialnoe-razmeshchenie-na-dtf-ru-akkaunt-s-pro-podpiskoy-bez-udaleniya",
+            "share_url": "https://kwork.ru/links/45697671/ofitsialnoe-razmeshchenie-na-dtf-ru-akkaunt-s-pro-podpiskoy-bez-udaleniya",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/47/45697671-68ec0e03a5230.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/47/45697671-68ec0e03a5230.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/47/45697671-68ec0e03a5230.jpg"
+            },
+            "price": 3500,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 5847348,
+              "username": "olegda",
+              "fullname": "Олег",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/28/5847348-3.jpg",
+              "rating": 5,
+              "reviews_count": 1127,
+              "rating_count": 1121,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1379700,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 11754545,
+          "title": "Прогон GSA Search Engine Ranker Ру+Бурж. 5-10-20к обратных ссылок",
+          "price": 750,
+          "classifier_id": 1378881,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/53/11754545-1608653964.jpg",
+          "share_url": "https://kwork.ru/links/11754545/progon-gsa-search-engine-ranker-ru-burzh-5-10-20k-obratnykh-ssylok",
+          "worker": "effovenon",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/06/245646-3.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 4.9,
+          "reviews": 1128,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 11754545,
+            "category_id": 59,
+            "title": "Прогон GSA Search Engine Ranker Ру+Бурж. 5-10-20к обратных ссылок",
+            "url": "/links/11754545/progon-gsa-search-engine-ranker-ru-burzh-5-10-20k-obratnykh-ssylok",
+            "share_url": "https://kwork.ru/links/11754545/progon-gsa-search-engine-ranker-ru-burzh-5-10-20k-obratnykh-ssylok",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/53/11754545-1608653964.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/53/11754545-1608653964.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/53/11754545-1608653964.jpg"
+            },
+            "price": 750,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 245646,
+              "username": "effovenon",
+              "fullname": "Алена",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/06/245646-3.jpg",
+              "rating": 4.9,
+              "reviews_count": 1128,
+              "rating_count": 1128,
+              "is_online": true,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1378881,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 2920738,
+          "title": "20шт SEO ссылок с форумов в новых темах + бонус",
+          "price": 1000,
+          "classifier_id": 1379370,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/34/2920738-699b65a285bba.jpg",
+          "share_url": "https://kwork.ru/links/2920738/20sht-seo-ssylok-s-forumov-v-novykh-temakh-bonus",
+          "worker": "SEOcraud",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/18/902267-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 2195,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 2920738,
+            "category_id": 59,
+            "title": "20шт SEO ссылок с форумов в новых темах + бонус",
+            "url": "/links/2920738/20sht-seo-ssylok-s-forumov-v-novykh-temakh-bonus",
+            "share_url": "https://kwork.ru/links/2920738/20sht-seo-ssylok-s-forumov-v-novykh-temakh-bonus",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/34/2920738-699b65a285bba.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/34/2920738-699b65a285bba.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/34/2920738-699b65a285bba.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 902267,
+              "username": "SEOcraud",
+              "fullname": "Александр",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/18/902267-1.jpg",
+              "rating": 5,
+              "reviews_count": 2195,
+              "rating_count": 2195,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1379370,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 17369290,
+          "title": "500 супер PBN Dofollow ссылок, зарубежный метод",
+          "price": 4500,
+          "classifier_id": 1379574,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/97/17369290-67ceee70a398e.jpg",
+          "share_url": "https://kwork.ru/links/17369290/500-super-pbn-dofollow-ssylok-zarubezhniy-metod",
+          "worker": "SeoStounik",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/33/3345561-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1336,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 17369290,
+            "category_id": 59,
+            "title": "500 супер PBN Dofollow ссылок, зарубежный метод",
+            "url": "/links/17369290/500-super-pbn-dofollow-ssylok-zarubezhniy-metod",
+            "share_url": "https://kwork.ru/links/17369290/500-super-pbn-dofollow-ssylok-zarubezhniy-metod",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/97/17369290-67ceee70a398e.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/97/17369290-67ceee70a398e.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/97/17369290-67ceee70a398e.jpg"
+            },
+            "price": 4500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 3345561,
+              "username": "SeoStounik",
+              "fullname": "Сергей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/33/3345561-1.jpg",
+              "rating": 5,
+              "reviews_count": 1336,
+              "rating_count": 1336,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1379574,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 28094880,
+          "title": "Внешняя ссылка для сайта с главной страницы PBN на 1 год",
+          "price": 2000,
+          "classifier_id": 1379567,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/56/28094880-64b54a469a361.jpg",
+          "share_url": "https://kwork.ru/links/28094880/vneshnyaya-ssylka-dlya-sayta-s-glavnoy-stranitsy-pbn-na-1-god",
+          "worker": "MDevostator",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/14/1354-4.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1085,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 28094880,
+            "category_id": 59,
+            "title": "Внешняя ссылка для сайта с главной страницы PBN на 1 год",
+            "url": "/links/28094880/vneshnyaya-ssylka-dlya-sayta-s-glavnoy-stranitsy-pbn-na-1-god",
+            "share_url": "https://kwork.ru/links/28094880/vneshnyaya-ssylka-dlya-sayta-s-glavnoy-stranitsy-pbn-na-1-god",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/56/28094880-64b54a469a361.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/56/28094880-64b54a469a361.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/56/28094880-64b54a469a361.jpg"
+            },
+            "price": 2000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1354,
+              "username": "MDevostator",
+              "fullname": "Владислав Бобров",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/14/1354-4.jpg",
+              "rating": 5,
+              "reviews_count": 1085,
+              "rating_count": 1085,
+              "is_online": true,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379567,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "demand": {
+        "status": "skipped"
+      },
+      "timings_ms": {
+        "total": 250
+      }
+    }
+  ],
+  "query_demand": {},
+  "aggregate": {
+    "seed_count": 2,
+    "cards_seen": 20,
+    "unique_sellers_seen": 18,
+    "top_sellers": [
+      [
+        "Vitaliy_DSGN",
+        2
+      ],
+      [
+        "MDevostator",
+        2
+      ],
+      [
+        "IrinaDana",
+        1
+      ],
+      [
+        "IG_designed",
+        1
+      ],
+      [
+        "hudozhnik_portrait",
+        1
+      ],
+      [
+        "Leilamad",
+        1
+      ],
+      [
+        "linskayaa",
+        1
+      ],
+      [
+        "kery_k",
+        1
+      ],
+      [
+        "Mikhail_Aksenov",
+        1
+      ],
+      [
+        "maxfrancisco",
+        1
+      ],
+      [
+        "andrush",
+        1
+      ],
+      [
+        "Alexey_Zaitsev",
+        1
+      ],
+      [
+        "SEO_KRAUD_PROF",
+        1
+      ],
+      [
+        "ARK1",
+        1
+      ],
+      [
+        "olegda",
+        1
+      ],
+      [
+        "effovenon",
+        1
+      ],
+      [
+        "SEOcraud",
+        1
+      ],
+      [
+        "SeoStounik",
+        1
+      ]
+    ],
+    "category_counts": [
+      [
+        "286",
+        10
+      ],
+      [
+        "59",
+        10
+      ]
+    ]
+  },
+  "timings_ms": {
+    "total": 2167
+  }
+}

@@ -125,6 +125,9 @@ export const api = {
       state_parser: string
     }>('/api/kwork/status'),
 
+  getKworkVerificationStatus: (writeFile = false) =>
+    request<KworkVerificationStatus>(`/api/kwork/verification-status?write_file=${writeFile ? 'true' : 'false'}`),
+
   inspectKworkProject: (projectId: string) =>
     request<{
       ok: boolean
@@ -171,6 +174,36 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(params),
     }),
+
+  getKworkWebCatalog: (alias: string, options?: { page?: number; page_size?: number; include_raw?: boolean }) => {
+    const qs = new URLSearchParams()
+    if (options?.page !== undefined) qs.set('page', String(options.page))
+    if (options?.page_size !== undefined) qs.set('page_size', String(options.page_size))
+    if (options?.include_raw !== undefined) qs.set('include_raw', String(options.include_raw))
+    const suffix = qs.toString() ? `?${qs.toString()}` : ''
+    return request<KworkWebCatalogSummary>(`/api/kwork/market/web-catalog/${encodeURIComponent(alias)}${suffix}`)
+  },
+
+  getKworkWebCatalogSnapshot: (payload: KworkWebCatalogSnapshotRequest = {}) =>
+    request<KworkWebCatalogSnapshot>('/api/kwork/market/web-catalog-snapshot', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getKworkMarketIntelligenceSnapshot: (payload: KworkMarketIntelligenceRequest = {}) =>
+    request<KworkMarketIntelligenceSnapshot>('/api/kwork/market/intelligence-snapshot', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getKworkBuyerScout: (payload: KworkBuyerScoutRequest = {}) =>
+    request<KworkBuyerScout>('/api/kwork/market/buyer-scout', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getKworkMarketIntelligenceHistory: (limit = 20) =>
+    request<KworkMarketIntelligenceHistory>(`/api/kwork/market/intelligence-history?limit=${limit}`),
 
   createKworkDraft: (payload: KworkDraftRequest) =>
     request<KworkDraftResult>('/api/kwork/autopublish/draft', {
@@ -267,6 +300,18 @@ export const api = {
     request<{ ok: boolean; updated: string[] }>('/api/settings/env', {
       method: 'PUT',
       body: JSON.stringify({ values }),
+    }),
+  getNetworkStatus: (probe = true) =>
+    request<NetworkStatus>(`/api/settings/network/status?probe=${probe ? 'true' : 'false'}`),
+  startVpnteProxy: (payload?: VpnteActionPayload) =>
+    request<VpnteActionResult>('/api/settings/network/vpnte/start', {
+      method: 'POST',
+      body: JSON.stringify(payload ?? {}),
+    }),
+  rotateVpnteProxy: (payload?: VpnteActionPayload) =>
+    request<VpnteActionResult>('/api/settings/network/vpnte/rotate', {
+      method: 'POST',
+      body: JSON.stringify(payload ?? {}),
     }),
   getFilters: () => request<{ data: FiltersData }>('/api/settings/filters'),
   updateFilters: (data: FiltersData) =>
@@ -430,6 +475,33 @@ export interface KworkDemandSnapshot {
   filter_params?: Record<string, unknown>
 }
 
+export interface KworkMarketInsights {
+  sample_size?: number
+  kworks_count?: number
+  price?: {
+    min?: number | null
+    median?: number | null
+    max?: number | null
+    sample_size?: number
+  }
+  trust?: {
+    reviews_100_plus?: number
+    sample_size?: number
+    threshold?: number
+  }
+  concentration?: {
+    repeated_sellers?: Array<{ seller: string; cards: number }>
+    repeated_cards?: number
+    sample_size?: number
+    repeat_share?: number
+  }
+  title_terms?: Array<{ term: string; count: number }>
+  description_terms?: Array<{ term: string; count: number }>
+  top_classifiers?: Array<{ id?: number | string; name?: string; kworks_count?: number }>
+  bullets?: string[]
+  recommendations?: string[]
+}
+
 export interface KworkMarketMetrics {
   category_id?: number
   classifier_id?: number
@@ -447,6 +519,143 @@ export interface KworkMarketMetrics {
   }
   filter_requests?: Array<Record<string, unknown>>
   demand: KworkDemandSnapshot
+  market_insights?: KworkMarketInsights
+}
+
+export interface KworkWebCatalogSummary {
+  alias: string
+  endpoint: string
+  url: string
+  request_params: Record<string, unknown>
+  status_code: number
+  content_type?: string
+  bytes: number
+  protection_status: 'ok' | 'blocked' | 'http_error' | 'parse_error' | 'empty_or_invalid_alias' | string
+  success?: boolean
+  state_keys?: string[]
+  view_keys?: string[]
+  filters?: Record<string, unknown>
+  kworks?: Record<string, unknown>
+  body_prefix?: string
+  raw?: Record<string, unknown>
+}
+
+export interface KworkWebCatalogSnapshotRequest {
+  aliases?: string[]
+  page?: number
+  page_size?: number
+  delay_seconds?: number
+  include_raw?: boolean
+  write_file?: boolean
+}
+
+export interface KworkWebCatalogSnapshot {
+  generated_at: string
+  source: string
+  config: Record<string, unknown>
+  results: KworkWebCatalogSummary[]
+  errors: Array<Record<string, unknown>>
+  aggregate: {
+    alias_count: number
+    ok_count: number
+    blocked_count: number
+    empty_or_invalid_alias_count: number
+    status_counts: Array<[string, number]>
+  }
+  timings_ms?: Record<string, number>
+  file_path?: string
+}
+
+export interface KworkMarketIntelligenceRequest {
+  seeds?: Array<Record<string, unknown>>
+  max_seeds?: number
+  pages?: number
+  include_demand?: boolean
+  demand_queries?: string[]
+  include_competitor_details?: boolean
+  competitor_detail_limit?: number
+  include_seller_details?: boolean
+  seller_detail_limit?: number
+  include_want_details?: boolean
+  want_detail_limit?: number
+  include_price_rules?: boolean
+  include_account_context?: boolean
+  write_file?: boolean
+}
+
+export interface KworkMarketIntelligenceSnapshot {
+  generated_at: string
+  source: string
+  config: Record<string, unknown>
+  seeds: Array<Record<string, unknown>>
+  supply: Array<Record<string, unknown>>
+  query_demand: Record<string, unknown>
+  seller_intelligence: Array<Record<string, unknown>>
+  account_context?: Record<string, unknown>
+  market_rankings: Array<Record<string, unknown>>
+  aggregate: {
+    seed_count: number
+    cards_seen: number
+    unique_sellers_seen: number
+    seller_profiles_collected?: number
+    top_opportunities?: Array<Record<string, unknown>>
+    top_sellers: Array<[string, number]>
+    category_counts: Array<[string, number]>
+  }
+  timings_ms?: Record<string, number>
+  file_path?: string
+  latest_path?: string
+  index_path?: string
+}
+
+export interface KworkBuyerScoutRequest {
+  probes?: Array<Record<string, unknown>>
+  max_probes?: number
+  page?: number
+  project_page_limit?: number
+  per_probe_limit?: number
+  top_limit?: number
+  include_project_details?: boolean
+  include_want_details?: boolean
+  include_buyer_history?: boolean
+  detail_limit?: number
+  buyer_history_limit?: number
+  budget_max?: number
+  include_query_suggestions?: boolean
+  query_suggestion_limit?: number
+  write_file?: boolean
+}
+
+export interface KworkBuyerScout {
+  generated_at: string
+  source: string
+  status: string
+  config: Record<string, unknown>
+  probes: Array<Record<string, unknown>>
+  top: Array<Record<string, unknown>>
+  aggregate: {
+    probe_count: number
+    unique_projects: number
+    zero_offer_count: number
+    low_offer_count: number
+    top_score?: number | null
+    market_signals?: Array<Record<string, unknown>>
+    query_suggestions?: Array<Record<string, unknown>>
+    buyer_summary?: Record<string, unknown>
+  }
+  endpoint_errors?: Array<Record<string, unknown>>
+  timings_ms?: Record<string, number>
+  file_path?: string
+}
+
+export interface KworkMarketIntelligenceHistory {
+  root: string
+  latest_path: string
+  index_path: string
+  latest?: Record<string, unknown> | null
+  entries: Array<Record<string, unknown>>
+  entry_count: number
+  exists: boolean
 }
 
 export interface KworkPriceRules {
@@ -621,6 +830,57 @@ export interface KworkPublishPreflightResult {
   confirmation_phrase?: string
 }
 
+export interface VpnteStatus {
+  ok: boolean
+  enabled: boolean
+  running: boolean
+  proxy_url?: string
+  cached_proxy?: string
+  fallback_proxy?: string
+  detail?: string
+  rotate_on_next?: boolean
+  strict?: boolean
+  country?: string
+  profile_id?: string
+  port?: string
+  control_url?: string
+  control_url_source?: string
+  token_configured?: boolean
+  token_source?: string
+  endpoint_file_exists?: boolean
+  token_file_exists?: boolean
+  appdata_dir?: string
+  raw?: Record<string, unknown>
+}
+
+export interface SessionHubNetworkStatus {
+  ok: boolean
+  url: string
+  health_url: string
+  status_code?: number | null
+  detail?: string
+  cache_entries?: number | null
+  proxy_isolated: boolean
+}
+
+export interface NetworkStatus {
+  vpnte: VpnteStatus
+  session_hub: SessionHubNetworkStatus
+}
+
+export interface VpnteActionPayload {
+  country?: string
+  profile_id?: string
+  port?: number
+}
+
+export interface VpnteActionResult {
+  ok: boolean
+  detail?: string
+  status?: Record<string, unknown>
+  network: NetworkStatus
+}
+
 export interface OverviewMetrics {
   parsed: number
   queued: number
@@ -783,12 +1043,54 @@ export interface HealthData {
   active_orders: number
   busy_risk: boolean
   captcha_required: boolean
+  captcha_api_flag?: boolean
+  captcha_status?: string
+  captcha_check_error?: string
+  manual_verification_required?: boolean
   unread_notifications: number
   username: string
   level: string
   rating: number
   reviews_count: number
   paused_kworks: number[]
+}
+
+export interface KworkVerificationStatus {
+  generated_at: string
+  source: string
+  status: 'ok' | 'manual_required' | 'api_flag_only' | 'error' | string
+  detail: string
+  captcha_required: boolean
+  manual_verification_required: boolean
+  web_session_ok: boolean
+  smartcaptcha_scripts_seen: boolean
+  cookie_count: number
+  captcha_status?: {
+    ok?: boolean
+    required?: boolean
+    source?: string
+    error?: string
+    response_type?: string
+  }
+  pages: Array<{
+    path: string
+    status_code: number
+    final_url: string
+    evidence?: {
+      manual_required?: boolean
+      script_matches?: string[]
+      strong_matches?: string[]
+      weak_matches?: string[]
+      challenge_url?: boolean
+      challenge_status?: boolean
+      has_new_form?: boolean
+    }
+    error?: string
+    timings_ms?: Record<string, number>
+  }>
+  errors: Array<{ stage?: string; path?: string; detail?: string }>
+  timings_ms?: Record<string, number>
+  file_path?: string
 }
 
 // ── Skipped ─────────────────────────────────────────────────────────────────

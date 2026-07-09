@@ -1,0 +1,136 @@
+{
+  "timestamp_utc": "2026-07-08T16:11:01.195241+00:00",
+  "purpose": "Validate basic-auth public OpenAPI endpoints for market signals after unauthenticated 401 probe.",
+  "proxy": {
+    "proxyUrl": "http://<redacted_ip>:17990",
+    "profileName": "kazakhstan1"
+  },
+  "auth": {
+    "basic_attempted": true,
+    "values_stored": false
+  },
+  "source": "https://raw.githubusercontent.com/kesha1225/kwork/master/docs/openapi.json plus live api.kwork.ru validation",
+  "previous_unauthenticated_artifact": "C:/psr/docs/kwork_public_market_signal_probe_2026-07-08T160926Z.json",
+  "results": [
+    {
+      "name": "positiveReviewsCount_cat15",
+      "method": "POST",
+      "url": "https://api.kwork.ru/positiveReviewsCount",
+      "params": {
+        "category_id": "15"
+      },
+      "status_code": 401,
+      "content_type": "text/html",
+      "body_len": 172,
+      "auth": "basic_only_values_not_stored",
+      "body_kind": "text",
+      "body_sample_redacted": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+    },
+    {
+      "name": "positiveReviewsCount_cat15_attr208",
+      "method": "POST",
+      "url": "https://api.kwork.ru/positiveReviewsCount",
+      "params": {
+        "category_id": "15",
+        "attribute_id": "208"
+      },
+      "status_code": 401,
+      "content_type": "text/html",
+      "body_len": 172,
+      "auth": "basic_only_values_not_stored",
+      "body_kind": "text",
+      "body_sample_redacted": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+    },
+    {
+      "name": "searchKworksCatalogQuery_telegram",
+      "method": "POST",
+      "url": "https://api.kwork.ru/searchKworksCatalogQuery",
+      "params": {
+        "query": "telegram"
+      },
+      "status_code": 401,
+      "content_type": "text/html",
+      "body_len": 172,
+      "auth": "basic_only_values_not_stored",
+      "body_kind": "text",
+      "body_sample_redacted": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+    },
+    {
+      "name": "search_telegram_bot",
+      "method": "POST",
+      "url": "https://api.kwork.ru/search",
+      "params": {
+        "query": "telegram bot",
+        "limit": "5",
+        "page": "1"
+      },
+      "status_code": 401,
+      "content_type": "text/html",
+      "body_len": 172,
+      "auth": "basic_only_values_not_stored",
+      "body_kind": "text",
+      "body_sample_redacted": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+    },
+    {
+      "name": "search_cat15_telegram_bot",
+      "method": "POST",
+      "url": "https://api.kwork.ru/search",
+      "params": {
+        "query": "telegram bot",
+        "categoryId": "15",
+        "limit": "5",
+        "page": "1"
+      },
+      "status_code": 401,
+      "content_type": "text/html",
+      "body_len": 172,
+      "auth": "basic_only_values_not_stored",
+      "body_kind": "text",
+      "body_sample_redacted": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+    },
+    {
+      "name": "getKworkLinksTable_36214125",
+      "method": "POST",
+      "url": "https://api.kwork.ru/getKworkLinksTable",
+      "params": {
+        "id": "36214125",
+        "page": "1"
+      },
+      "status_code": 401,
+      "content_type": "text/html",
+      "body_len": 172,
+      "auth": "basic_only_values_not_stored",
+      "body_kind": "text",
+      "body_sample_redacted": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+    },
+    {
+      "name": "getKworkLinksTablev2_36214125",
+      "method": "POST",
+      "url": "https://api.kwork.ru/getKworkLinksTablev2",
+      "params": {
+        "id": "36214125",
+        "page": "1"
+      },
+      "status_code": 401,
+      "content_type": "text/html",
+      "body_len": 172,
+      "auth": "basic_only_values_not_stored",
+      "body_kind": "text",
+      "body_sample_redacted": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+    },
+    {
+      "name": "category_15",
+      "method": "POST",
+      "url": "https://api.kwork.ru/category",
+      "params": {
+        "category_id": "15"
+      },
+      "status_code": 401,
+      "content_type": "text/html",
+      "body_len": 172,
+      "auth": "basic_only_values_not_stored",
+      "body_kind": "text",
+      "body_sample_redacted": "<html>\r\n<head><title>401 Authorization Required</title></head>\r\n<body>\r\n<center><h1>401 Authorization Required</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n"
+    }
+  ]
+}

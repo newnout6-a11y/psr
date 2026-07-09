@@ -10,18 +10,22 @@ type ElectronApi = {
   openKworkVerification?: (url?: string) => Promise<KworkVerificationOpenResult>
 }
 
-const ROBOT_CHECK_RE =
-  /(manual_verification_required|smartcaptcha|smart-captcha|smartcaptcha\.cloud\.yandex\.ru|captcha-api\.yandex|smart-token|не робот|я не робот|подтвердите, что вы не робот|большой нагрузк|автоматическ(?:ие|ими)? скрипт|robot check|bot check|manual robot check)/i
+const STRONG_ROBOT_CHECK_RE =
+  /(manual_verification_required|not_access\.php|captcha_required\s*[:=]\s*true|manual_verification_required\s*[:=]\s*true|Kwork requires a manual|requires a manual SmartCaptcha|ручн\w*\s+провер|подтвердите,\s*что\s*вы\s*не\s*робот|я\s*не\s*робот|robot check|bot check|manual robot check)/i
 
 const NEGATIVE_ROBOT_CHECK_RE =
-  /(captcha_required\s*[:=]\s*false|getCaptchaStatus\s*=\s*true|ignored|ignore|игнор|не требует|not required)/i
+  /(manual_verification_required\s*[:=]\s*false|captcha_required\s*[:=]\s*false|getCaptchaStatus\s*=\s*true|api_flag_only|ignored|ignore|игнор|не требует|not required|no manual captcha|did not show a manual challenge|without web challenge evidence|вероятно нет заказов)/i
+
+const NORMAL_KWORK_NEW_PAGE_RE =
+  /Kwork\s+manual_verification_required:\s*status=200\s+url=https?:\/\/(?:www\.)?kwork\.ru\/new\b/i
 
 export function isKworkManualVerificationSignal(message: unknown): boolean {
   const text = String(message ?? '')
   if (!text) return false
+  if (NORMAL_KWORK_NEW_PAGE_RE.test(text)) return false
   if (NEGATIVE_ROBOT_CHECK_RE.test(text)) return false
-  if (ROBOT_CHECK_RE.test(text)) return true
-  return /kwork/i.test(text) && /(robot check|bot check|manual verification|подтвердите.*не робот)/i.test(text)
+  if (STRONG_ROBOT_CHECK_RE.test(text)) return true
+  return /kwork/i.test(text) && /(manual verification required|manual captcha challenge|подтвердите.*не робот)/i.test(text)
 }
 
 export async function openKworkVerificationWindow(url = KWORK_VERIFICATION_URL) {

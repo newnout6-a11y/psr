@@ -1,0 +1,287 @@
+{
+  "timestamp_utc": "2026-07-08T16:02:55.732563+00:00",
+  "purpose": "Validate real upstream OpenAPI parameter signatures for portfolioList and userReviews after proxy rotation.",
+  "proxy": {
+    "running": true,
+    "profileName": "kazakhstan1",
+    "country": "Kazakhstan",
+    "proxyUrl": "http://<redacted_ip>:17990"
+  },
+  "auth": {
+    "attempted": true,
+    "acquired": true,
+    "status_code": 200,
+    "content_type": "application/json; charset=utf-8",
+    "success": true,
+    "error": null
+  },
+  "results": [
+    {
+      "name": "portfolioList_3280_all_p1",
+      "endpoint": "portfolioList",
+      "params": {
+        "user_id": "3280",
+        "category_id": "all",
+        "page": "1"
+      },
+      "needs_token": "<redacted>",
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json; charset=utf-8",
+        "body_len": 11941,
+        "body_kind": "json",
+        "json_type": "dict",
+        "success": true,
+        "json_keys": [
+          "fcmTokenLost",
+          "response",
+          "success"
+        ],
+        "response_keys": [
+          "paging",
+          "portfolio"
+        ],
+        "portfolio_type": "list",
+        "portfolio_count": 12,
+        "paging": {
+          "page": 1,
+          "total": 30,
+          "limit": 12,
+          "pages": 3
+        },
+        "summary": {
+          "fcmTokenLost": "<redacted>",
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "portfolioList_9628615_all_p1",
+      "endpoint": "portfolioList",
+      "params": {
+        "user_id": "9628615",
+        "category_id": "all",
+        "page": "1"
+      },
+      "needs_token": "<redacted>",
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json; charset=utf-8",
+        "body_len": 10163,
+        "body_kind": "json",
+        "json_type": "dict",
+        "success": true,
+        "json_keys": [
+          "response",
+          "success"
+        ],
+        "response_keys": [
+          "paging",
+          "portfolio"
+        ],
+        "portfolio_type": "list",
+        "portfolio_count": 12,
+        "paging": {
+          "page": 1,
+          "total": 254,
+          "limit": 12,
+          "pages": 22
+        },
+        "summary": {
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "portfolioList_9628615_cat15_p1",
+      "endpoint": "portfolioList",
+      "params": {
+        "user_id": "9628615",
+        "category_id": "15",
+        "page": "1"
+      },
+      "needs_token": "<redacted>",
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json; charset=utf-8",
+        "body_len": 95,
+        "body_kind": "json",
+        "json_type": "dict",
+        "success": true,
+        "json_keys": [
+          "response",
+          "success"
+        ],
+        "response_keys": [
+          "paging",
+          "portfolio"
+        ],
+        "portfolio_type": "list",
+        "portfolio_count": 0,
+        "paging": {
+          "page": 1,
+          "total": 0,
+          "limit": 12,
+          "pages": 1
+        },
+        "summary": {
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "userReviews_3280_all_p1",
+      "endpoint": "userReviews",
+      "params": {
+        "user_id": "3280",
+        "type": "all",
+        "page": "1"
+      },
+      "needs_token": "<redacted>",
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json; charset=utf-8",
+        "body_len": 17722,
+        "body_kind": "json",
+        "json_type": "dict",
+        "success": true,
+        "json_keys": [
+          "paging",
+          "response",
+          "success"
+        ],
+        "response_type": "list",
+        "response_count": 30,
+        "item0_keys": [
+          "auto_mode",
+          "bad",
+          "good",
+          "id",
+          "kwork",
+          "review_display_id",
+          "text",
+          "time_added",
+          "writer"
+        ],
+        "paging": {
+          "page": 1,
+          "total": 1761,
+          "limit": 30,
+          "pages": 59
+        },
+        "summary": {
+          "paging": {
+            "page": 1,
+            "total": 1761,
+            "limit": 30,
+            "pages": 59
+          },
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "userReviews_3280_positive_p1",
+      "endpoint": "userReviews",
+      "params": {
+        "user_id": "3280",
+        "type": "positive",
+        "page": "1"
+      },
+      "needs_token": "<redacted>",
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json; charset=utf-8",
+        "body_len": 17722,
+        "body_kind": "json",
+        "json_type": "dict",
+        "success": true,
+        "json_keys": [
+          "paging",
+          "response",
+          "success"
+        ],
+        "response_type": "list",
+        "response_count": 30,
+        "item0_keys": [
+          "auto_mode",
+          "bad",
+          "good",
+          "id",
+          "kwork",
+          "review_display_id",
+          "text",
+          "time_added",
+          "writer"
+        ],
+        "paging": {
+          "page": 1,
+          "total": 1743,
+          "limit": 30,
+          "pages": 59
+        },
+        "summary": {
+          "paging": {
+            "page": 1,
+            "total": 1743,
+            "limit": 30,
+            "pages": 59
+          },
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "userReviews_3280_negative_p1",
+      "endpoint": "userReviews",
+      "params": {
+        "user_id": "3280",
+        "type": "negative",
+        "page": "1"
+      },
+      "needs_token": "<redacted>",
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json; charset=utf-8",
+        "body_len": 17628,
+        "body_kind": "json",
+        "json_type": "dict",
+        "success": true,
+        "json_keys": [
+          "paging",
+          "response",
+          "success"
+        ],
+        "response_type": "list",
+        "response_count": 18,
+        "item0_keys": [
+          "answer",
+          "auto_mode",
+          "bad",
+          "good",
+          "id",
+          "kwork",
+          "review_display_id",
+          "text",
+          "time_added",
+          "writer"
+        ],
+        "paging": {
+          "page": 1,
+          "total": 18,
+          "limit": 30,
+          "pages": 1
+        },
+        "summary": {
+          "paging": {
+            "page": 1,
+            "total": 18,
+            "limit": 30,
+            "pages": 1
+          },
+          "success": true
+        }
+      }
+    }
+  ]
+}

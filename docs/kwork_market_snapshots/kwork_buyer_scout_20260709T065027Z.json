@@ -1,0 +1,189 @@
+{
+  "generated_at": "2026-07-09T06:50:27Z",
+  "source": "psr.kwork_buyer_scout",
+  "status": "empty",
+  "config": {
+    "max_probes": 10,
+    "page": 1,
+    "per_probe_limit": 20,
+    "top_limit": 40,
+    "include_project_details": true,
+    "include_want_details": false,
+    "detail_limit": 12
+  },
+  "probes": [
+    {
+      "name": "telegram_bot_low_offer_ru",
+      "categories": "all",
+      "query": "телеграм бот",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 5014
+      }
+    },
+    {
+      "name": "telegram_bot_zero_ru",
+      "categories": "all",
+      "query": "телеграм бот",
+      "filters": {
+        "kworks_filter_to": 0
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 4735
+      }
+    },
+    {
+      "name": "telegram_low_offer_en",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 4791
+      }
+    },
+    {
+      "name": "telegram_budget30_low_offer",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "price_from": 30000,
+        "kworks_filter_to": 5
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 4661
+      }
+    },
+    {
+      "name": "python_bot_low_offer_ru",
+      "categories": "all",
+      "query": "python бот",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 4760
+      }
+    },
+    {
+      "name": "automation_low_offer_ru",
+      "categories": "all",
+      "query": "автоматизация",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 4711
+      }
+    },
+    {
+      "name": "site_zero_ru",
+      "categories": "all",
+      "query": "сайт",
+      "filters": {
+        "kworks_filter_to": 0
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 4595
+      }
+    },
+    {
+      "name": "site_rework_low_offer_ru",
+      "categories": "all",
+      "query": "доработка сайта",
+      "filters": {
+        "kworks_filter_to": 10
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 4782
+      }
+    },
+    {
+      "name": "wordpress_low_offer",
+      "categories": "all",
+      "query": "wordpress",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 4774
+      }
+    },
+    {
+      "name": "bitrix_low_offer",
+      "categories": "all",
+      "query": "bitrix",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 4636
+      }
+    }
+  ],
+  "top": [],
+  "aggregate": {
+    "probe_count": 10,
+    "unique_projects": 0,
+    "zero_offer_count": 0,
+    "low_offer_count": 0,
+    "top_score": null
+  },
+  "endpoint_errors": [],
+  "timings_ms": {
+    "total": 48016
+  }
+}

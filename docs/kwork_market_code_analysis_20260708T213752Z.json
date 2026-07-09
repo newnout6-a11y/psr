@@ -1,0 +1,2047 @@
+{
+  "generated_at": "2026-07-08T21:37:52.109471+00:00",
+  "mode": "backend-code-only; category broad plus max-to-min classifier probes",
+  "categories": [
+    {
+      "category_id": 38,
+      "category_name": "????????? ? ????????? ?????",
+      "broad": {
+        "category_id": 38,
+        "classifier_id": null,
+        "kworks_count": 13626,
+        "price": {
+          "min": 500,
+          "median": 1250,
+          "max": 7000,
+          "sample_size": 10
+        },
+        "trust": {
+          "reviews_100_plus": 10,
+          "sample_size": 10,
+          "threshold": 100
+        },
+        "concentration": {
+          "repeated_sellers": [
+            {
+              "seller": "OlegTixomirov",
+              "cards": 2
+            },
+            {
+              "seller": "quattrovod",
+              "cards": 2
+            }
+          ],
+          "repeated_cards": 4,
+          "sample_size": 10,
+          "repeat_share": 0.4
+        },
+        "title_terms": [
+          {
+            "term": "битрикс",
+            "count": 5
+          },
+          {
+            "term": "wordpress",
+            "count": 3
+          },
+          {
+            "term": "обновление",
+            "count": 2
+          },
+          {
+            "term": "php",
+            "count": 2
+          },
+          {
+            "term": "drupal",
+            "count": 1
+          },
+          {
+            "term": "доработаю",
+            "count": 1
+          },
+          {
+            "term": "лечение",
+            "count": 1
+          },
+          {
+            "term": "удаление",
+            "count": 1
+          }
+        ],
+        "description_terms": [
+          {
+            "term": "php",
+            "count": 11
+          },
+          {
+            "term": "cms",
+            "count": 5
+          },
+          {
+            "term": "wordpress",
+            "count": 5
+          },
+          {
+            "term": "работы",
+            "count": 5
+          },
+          {
+            "term": "версию",
+            "count": 5
+          },
+          {
+            "term": "если",
+            "count": 4
+          },
+          {
+            "term": "работ",
+            "count": 4
+          },
+          {
+            "term": "лет",
+            "count": 4
+          }
+        ],
+        "top_classifiers": [
+          {
+            "id": 1271,
+            "name": "Доработка сайта",
+            "kworks_count": 6905,
+            "raw": {
+              "id": 1271,
+              "name": "Доработка сайта",
+              "kworks_count": 6905,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 1275,
+            "name": "Настройка сайта",
+            "kworks_count": 1559,
+            "raw": {
+              "id": 1275,
+              "name": "Настройка сайта",
+              "kworks_count": 1559,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 1273,
+            "name": "Защита и лечение сайта",
+            "kworks_count": 930,
+            "raw": {
+              "id": 1273,
+              "name": "Защита и лечение сайта",
+              "kworks_count": 930,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 1587,
+            "name": "Ускорение сайта",
+            "kworks_count": 790,
+            "raw": {
+              "id": 1587,
+              "name": "Ускорение сайта",
+              "kworks_count": 790,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 1276,
+            "name": "Плагины и темы",
+            "kworks_count": 1197,
+            "raw": {
+              "id": 1276,
+              "name": "Плагины и темы",
+              "kworks_count": 1197,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 1272,
+            "name": "Исправление ошибок",
+            "kworks_count": 1237,
+            "raw": {
+              "id": 1272,
+              "name": "Исправление ошибок",
+              "kworks_count": 1237,
+              "visibility": 1
+            }
+          }
+        ],
+        "competitors_sample": 10,
+        "descriptions_loaded": 6,
+        "service_loaded": 5,
+        "raw_bad_count": 0,
+        "timings_ms": {
+          "kworks": 904,
+          "competitor_details": 4652,
+          "total": 5558
+        },
+        "bullets": [
+          "В выбранном срезе найдено 13626 кворков.",
+          "Цена в топе: от 500 ₽ до 7000 ₽, медиана 1250 ₽.",
+          "Порог доверия высокий: 10/10 карточек в выборке имеют 100+ отзывов.",
+          "Есть концентрация выдачи: повторяются продавцы OlegTixomirov (2), quattrovod (2).",
+          "Частые темы в заголовках: битрикс, wordpress, обновление, php, drupal, доработаю.",
+          "Частые темы в описаниях: php, cms, wordpress, работы, версию, если."
+        ],
+        "recommendations": [
+          "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+          "Базовую цену лучше держать около медианы среза: примерно 1250 ₽.",
+          "В заголовке стоит явно назвать технологию/тип услуги: битрикс, wordpress, обновление, php.",
+          "Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез.",
+          "Проверь более узкие срезы: Доработка сайта (6905), Настройка сайта (1559), Защита и лечение сайта (930)."
+        ],
+        "sample_titles": [
+          "Настройка и доработка сайта на Wordpress",
+          "Доработка и настройка сайта на Drupal 7",
+          "Wordpress - доработаю сайт",
+          "Лечение сайта на 1С Битрикс, удаление вирусов, устранение уязвимостей"
+        ]
+      },
+      "ranked_classifiers": [
+        {
+          "id": 1271,
+          "name": "Доработка сайта",
+          "kworks_count": 6905,
+          "raw": {
+            "id": 1271,
+            "name": "Доработка сайта",
+            "kworks_count": 6905,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1275,
+          "name": "Настройка сайта",
+          "kworks_count": 1559,
+          "raw": {
+            "id": 1275,
+            "name": "Настройка сайта",
+            "kworks_count": 1559,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1272,
+          "name": "Исправление ошибок",
+          "kworks_count": 1237,
+          "raw": {
+            "id": 1272,
+            "name": "Исправление ошибок",
+            "kworks_count": 1237,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1276,
+          "name": "Плагины и темы",
+          "kworks_count": 1197,
+          "raw": {
+            "id": 1276,
+            "name": "Плагины и темы",
+            "kworks_count": 1197,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1273,
+          "name": "Защита и лечение сайта",
+          "kworks_count": 930,
+          "raw": {
+            "id": 1273,
+            "name": "Защита и лечение сайта",
+            "kworks_count": 930,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1587,
+          "name": "Ускорение сайта",
+          "kworks_count": 790,
+          "raw": {
+            "id": 1587,
+            "name": "Ускорение сайта",
+            "kworks_count": 790,
+            "visibility": 1
+          }
+        }
+      ],
+      "probes": [
+        {
+          "category_id": 38,
+          "classifier_id": 1271,
+          "kworks_count": 7472,
+          "price": {
+            "min": 500,
+            "median": 1000,
+            "max": 65000,
+            "sample_size": 10
+          },
+          "trust": {
+            "reviews_100_plus": 8,
+            "sample_size": 10,
+            "threshold": 100
+          },
+          "concentration": {
+            "repeated_sellers": [],
+            "repeated_cards": 0,
+            "sample_size": 10,
+            "repeat_share": 0.0
+          },
+          "title_terms": [
+            {
+              "term": "wordpress",
+              "count": 2
+            },
+            {
+              "term": "битрикс",
+              "count": 2
+            },
+            {
+              "term": "профессиональные",
+              "count": 1
+            },
+            {
+              "term": "доработки",
+              "count": 1
+            },
+            {
+              "term": "исправление",
+              "count": 1
+            },
+            {
+              "term": "ошибок",
+              "count": 1
+            },
+            {
+              "term": "cms",
+              "count": 1
+            },
+            {
+              "term": "1с-битрикс",
+              "count": 1
+            }
+          ],
+          "description_terms": [
+            {
+              "term": "работы",
+              "count": 5
+            },
+            {
+              "term": "wordpress",
+              "count": 5
+            },
+            {
+              "term": "ошибки",
+              "count": 4
+            },
+            {
+              "term": "перенос",
+              "count": 4
+            },
+            {
+              "term": "правка",
+              "count": 4
+            },
+            {
+              "term": "меня",
+              "count": 3
+            },
+            {
+              "term": "задачи",
+              "count": 3
+            },
+            {
+              "term": "заказов",
+              "count": 3
+            }
+          ],
+          "top_classifiers": [],
+          "competitors_sample": 10,
+          "descriptions_loaded": 6,
+          "service_loaded": 6,
+          "raw_bad_count": 0,
+          "timings_ms": {
+            "kworks": 383,
+            "competitor_details": 3010,
+            "total": 3395
+          },
+          "bullets": [
+            "В выбранном срезе найдено 7472 кворков.",
+            "Цена в топе: от 500 ₽ до 65000 ₽, медиана 1000 ₽.",
+            "Порог доверия высокий: 8/10 карточек в выборке имеют 100+ отзывов.",
+            "Частые темы в заголовках: wordpress, битрикс, профессиональные, доработки, исправление, ошибок.",
+            "Частые темы в описаниях: работы, wordpress, ошибки, перенос, правка, меня."
+          ],
+          "recommendations": [
+            "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+            "Базовую цену лучше держать около медианы среза: примерно 1000 ₽.",
+            "В заголовке стоит явно назвать технологию/тип услуги: wordpress, битрикс, профессиональные, доработки."
+          ],
+          "sample_titles": [
+            "Профессиональные доработки и исправление ошибок на CMS 1С-Битрикс",
+            "Профессиональная доработка сайта",
+            "Wordpress - доработаю сайт",
+            "Помогу с переносом товаров, заказов, клиентов Opencart на новую версию"
+          ],
+          "classifier_name": "Доработка сайта",
+          "classifier_rank_count": 6905
+        },
+        {
+          "category_id": 38,
+          "classifier_id": 1275,
+          "kworks_count": 1697,
+          "price": {
+            "min": 500,
+            "median": 1250,
+            "max": 7000,
+            "sample_size": 10
+          },
+          "trust": {
+            "reviews_100_plus": 10,
+            "sample_size": 10,
+            "threshold": 100
+          },
+          "concentration": {
+            "repeated_sellers": [],
+            "repeated_cards": 0,
+            "sample_size": 10,
+            "repeat_share": 0.0
+          },
+          "title_terms": [
+            {
+              "term": "wordpress",
+              "count": 5
+            },
+            {
+              "term": "битрикс",
+              "count": 3
+            },
+            {
+              "term": "обновление",
+              "count": 2
+            },
+            {
+              "term": "php",
+              "count": 2
+            },
+            {
+              "term": "установка",
+              "count": 2
+            },
+            {
+              "term": "cms",
+              "count": 2
+            },
+            {
+              "term": "переходом",
+              "count": 1
+            },
+            {
+              "term": "opencart",
+              "count": 1
+            }
+          ],
+          "description_terms": [
+            {
+              "term": "php",
+              "count": 12
+            },
+            {
+              "term": "версии",
+              "count": 6
+            },
+            {
+              "term": "обновление",
+              "count": 5
+            },
+            {
+              "term": "битрикс",
+              "count": 5
+            },
+            {
+              "term": "после",
+              "count": 5
+            },
+            {
+              "term": "обновления",
+              "count": 5
+            },
+            {
+              "term": "версию",
+              "count": 5
+            },
+            {
+              "term": "ядра",
+              "count": 4
+            }
+          ],
+          "top_classifiers": [],
+          "competitors_sample": 10,
+          "descriptions_loaded": 6,
+          "service_loaded": 6,
+          "raw_bad_count": 0,
+          "timings_ms": {
+            "kworks": 302,
+            "competitor_details": 3423,
+            "total": 3726
+          },
+          "bullets": [
+            "В выбранном срезе найдено 1697 кворков.",
+            "Цена в топе: от 500 ₽ до 7000 ₽, медиана 1250 ₽.",
+            "Порог доверия высокий: 10/10 карточек в выборке имеют 100+ отзывов.",
+            "Частые темы в заголовках: wordpress, битрикс, обновление, php, установка, cms.",
+            "Частые темы в описаниях: php, версии, обновление, битрикс, после, обновления."
+          ],
+          "recommendations": [
+            "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+            "Базовую цену лучше держать около медианы среза: примерно 1250 ₽.",
+            "В заголовке стоит явно назвать технологию/тип услуги: wordpress, битрикс, обновление, php."
+          ],
+          "sample_titles": [
+            "Обновление 1С Битрикс с переходом на php 8",
+            "Настройка сайта на 1С Битрикс",
+            "Установка настройка opencart wordpress",
+            "Обновление CMS Bitrix Битрикс на PHP 8"
+          ],
+          "classifier_name": "Настройка сайта",
+          "classifier_rank_count": 1559
+        },
+        {
+          "category_id": 38,
+          "classifier_id": 1272,
+          "kworks_count": 1386,
+          "price": {
+            "min": 500,
+            "median": 1250,
+            "max": 2500,
+            "sample_size": 10
+          },
+          "trust": {
+            "reviews_100_plus": 10,
+            "sample_size": 10,
+            "threshold": 100
+          },
+          "concentration": {
+            "repeated_sellers": [],
+            "repeated_cards": 0,
+            "sample_size": 10,
+            "repeat_share": 0.0
+          },
+          "title_terms": [
+            {
+              "term": "wordpress",
+              "count": 5
+            },
+            {
+              "term": "помощь",
+              "count": 4
+            },
+            {
+              "term": "исправление",
+              "count": 3
+            },
+            {
+              "term": "ошибки",
+              "count": 3
+            },
+            {
+              "term": "битрикс",
+              "count": 3
+            },
+            {
+              "term": "ошибок",
+              "count": 2
+            },
+            {
+              "term": "cms",
+              "count": 2
+            },
+            {
+              "term": "сайтом",
+              "count": 2
+            }
+          ],
+          "description_terms": [
+            {
+              "term": "ошибки",
+              "count": 9
+            },
+            {
+              "term": "wordpress",
+              "count": 6
+            },
+            {
+              "term": "проблемы",
+              "count": 6
+            },
+            {
+              "term": "после",
+              "count": 5
+            },
+            {
+              "term": "восстановлю",
+              "count": 4
+            },
+            {
+              "term": "работу",
+              "count": 4
+            },
+            {
+              "term": "устранение",
+              "count": 4
+            },
+            {
+              "term": "чтобы",
+              "count": 3
+            }
+          ],
+          "top_classifiers": [],
+          "competitors_sample": 10,
+          "descriptions_loaded": 6,
+          "service_loaded": 6,
+          "raw_bad_count": 0,
+          "timings_ms": {
+            "kworks": 311,
+            "competitor_details": 4509,
+            "total": 4821
+          },
+          "bullets": [
+            "В выбранном срезе найдено 1386 кворков.",
+            "Цена в топе: от 500 ₽ до 2500 ₽, медиана 1250 ₽.",
+            "Порог доверия высокий: 10/10 карточек в выборке имеют 100+ отзывов.",
+            "Частые темы в заголовках: wordpress, помощь, исправление, ошибки, битрикс, ошибок.",
+            "Частые темы в описаниях: ошибки, wordpress, проблемы, после, восстановлю, работу."
+          ],
+          "recommendations": [
+            "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+            "Базовую цену лучше держать около медианы среза: примерно 1250 ₽.",
+            "В заголовке стоит явно назвать технологию/тип услуги: wordpress, помощь, исправление, ошибки."
+          ],
+          "sample_titles": [
+            "Исправление ошибок сайта на CMS WordPress",
+            "Помощь с сайтом на WordPress",
+            "Исправлю ошибки на 1С Битрикс",
+            "WordPress, Битрикс, MODX, OpenCart: скорая помощь для ваших сайтов"
+          ],
+          "classifier_name": "Исправление ошибок",
+          "classifier_rank_count": 1237
+        },
+        {
+          "category_id": 38,
+          "classifier_id": 1276,
+          "kworks_count": 1227,
+          "price": {
+            "min": 500,
+            "median": 750,
+            "max": 2000,
+            "sample_size": 10
+          },
+          "trust": {
+            "reviews_100_plus": 9,
+            "sample_size": 10,
+            "threshold": 100
+          },
+          "concentration": {
+            "repeated_sellers": [
+              {
+                "seller": "webshop-dev",
+                "cards": 2
+              },
+              {
+                "seller": "EmOne",
+                "cards": 2
+              }
+            ],
+            "repeated_cards": 4,
+            "sample_size": 10,
+            "repeat_share": 0.4
+          },
+          "title_terms": [
+            {
+              "term": "установка",
+              "count": 4
+            },
+            {
+              "term": "opencart",
+              "count": 4
+            },
+            {
+              "term": "wordpress",
+              "count": 2
+            },
+            {
+              "term": "модуля",
+              "count": 2
+            },
+            {
+              "term": "ocstore",
+              "count": 2
+            },
+            {
+              "term": "плагинов",
+              "count": 2
+            },
+            {
+              "term": "установлю",
+              "count": 2
+            },
+            {
+              "term": "обновлениями",
+              "count": 2
+            }
+          ],
+          "description_terms": [
+            {
+              "term": "модуля",
+              "count": 5
+            },
+            {
+              "term": "установка",
+              "count": 4
+            },
+            {
+              "term": "wordpress",
+              "count": 4
+            },
+            {
+              "term": "лент",
+              "count": 3
+            },
+            {
+              "term": "также",
+              "count": 3
+            },
+            {
+              "term": "источники",
+              "count": 3
+            },
+            {
+              "term": "если",
+              "count": 3
+            },
+            {
+              "term": "помогу",
+              "count": 3
+            }
+          ],
+          "top_classifiers": [],
+          "competitors_sample": 10,
+          "descriptions_loaded": 6,
+          "service_loaded": 0,
+          "raw_bad_count": 0,
+          "timings_ms": {
+            "kworks": 324,
+            "competitor_details": 4057,
+            "total": 4382
+          },
+          "bullets": [
+            "В выбранном срезе найдено 1227 кворков.",
+            "Цена в топе: от 500 ₽ до 2000 ₽, медиана 750 ₽.",
+            "Порог доверия высокий: 9/10 карточек в выборке имеют 100+ отзывов.",
+            "Есть концентрация выдачи: повторяются продавцы webshop-dev (2), EmOne (2).",
+            "Частые темы в заголовках: установка, opencart, wordpress, модуля, ocstore, плагинов.",
+            "Частые темы в описаниях: модуля, установка, wordpress, лент, также, источники."
+          ],
+          "recommendations": [
+            "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+            "Базовую цену лучше держать около медианы среза: примерно 750 ₽.",
+            "В заголовке стоит явно назвать технологию/тип услуги: установка, opencart, wordpress, модуля.",
+            "Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез."
+          ],
+          "sample_titles": [
+            "Настройка лент WPGrabber для WordPress",
+            "Установка модуля Opencart",
+            "Установка модулей на CMS Opencart, OcStore",
+            "Обновление сайта и плагинов Wordpress"
+          ],
+          "classifier_name": "Плагины и темы",
+          "classifier_rank_count": 1197
+        },
+        {
+          "category_id": 38,
+          "classifier_id": 1273,
+          "kworks_count": 1013,
+          "price": {
+            "min": 500,
+            "median": 2500,
+            "max": 7000,
+            "sample_size": 10
+          },
+          "trust": {
+            "reviews_100_plus": 10,
+            "sample_size": 10,
+            "threshold": 100
+          },
+          "concentration": {
+            "repeated_sellers": [
+              {
+                "seller": "freax",
+                "cards": 2
+              }
+            ],
+            "repeated_cards": 2,
+            "sample_size": 10,
+            "repeat_share": 0.2
+          },
+          "title_terms": [
+            {
+              "term": "удаление",
+              "count": 4
+            },
+            {
+              "term": "вирусов",
+              "count": 4
+            },
+            {
+              "term": "лечение",
+              "count": 3
+            },
+            {
+              "term": "битрикс",
+              "count": 3
+            },
+            {
+              "term": "вирусы",
+              "count": 2
+            },
+            {
+              "term": "bitrix",
+              "count": 2
+            },
+            {
+              "term": "поиск",
+              "count": 2
+            },
+            {
+              "term": "сайтах",
+              "count": 2
+            }
+          ],
+          "description_terms": [
+            {
+              "term": "вирусы",
+              "count": 8
+            },
+            {
+              "term": "безопасности",
+              "count": 7
+            },
+            {
+              "term": "если",
+              "count": 7
+            },
+            {
+              "term": "сайте",
+              "count": 5
+            },
+            {
+              "term": "файлы",
+              "count": 5
+            },
+            {
+              "term": "кода",
+              "count": 4
+            },
+            {
+              "term": "после",
+              "count": 4
+            },
+            {
+              "term": "cms",
+              "count": 4
+            }
+          ],
+          "top_classifiers": [
+            {
+              "id": 1547,
+              "name": "Защита",
+              "kworks_count": 386,
+              "raw": {
+                "id": 1547,
+                "name": "Защита",
+                "kworks_count": 386,
+                "visibility": 1
+              }
+            },
+            {
+              "id": 1548,
+              "name": "Лечение",
+              "kworks_count": 262,
+              "raw": {
+                "id": 1548,
+                "name": "Лечение",
+                "kworks_count": 262,
+                "visibility": 1
+              }
+            },
+            {
+              "id": 1549,
+              "name": "Восстановление доступа",
+              "kworks_count": 52,
+              "raw": {
+                "id": 1549,
+                "name": "Восстановление доступа",
+                "kworks_count": 52,
+                "visibility": 1
+              }
+            },
+            {
+              "id": 576124,
+              "name": "Установка SSL",
+              "kworks_count": 210,
+              "raw": {
+                "id": 576124,
+                "name": "Установка SSL",
+                "kworks_count": 210,
+                "visibility": 1
+              }
+            }
+          ],
+          "competitors_sample": 10,
+          "descriptions_loaded": 6,
+          "service_loaded": 0,
+          "raw_bad_count": 0,
+          "timings_ms": {
+            "kworks": 279,
+            "competitor_details": 3461,
+            "total": 3741
+          },
+          "bullets": [
+            "В выбранном срезе найдено 1013 кворков.",
+            "Цена в топе: от 500 ₽ до 7000 ₽, медиана 2500 ₽.",
+            "Порог доверия высокий: 10/10 карточек в выборке имеют 100+ отзывов.",
+            "Есть концентрация выдачи: повторяются продавцы freax (2).",
+            "Частые темы в заголовках: удаление, вирусов, лечение, битрикс, вирусы, bitrix.",
+            "Частые темы в описаниях: вирусы, безопасности, если, сайте, файлы, кода."
+          ],
+          "recommendations": [
+            "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+            "Базовую цену лучше держать около медианы среза: примерно 2500 ₽.",
+            "В заголовке стоит явно назвать технологию/тип услуги: удаление, вирусов, лечение, битрикс.",
+            "Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез.",
+            "Проверь более узкие срезы: Защита (386), Лечение (262), Восстановление доступа (52)."
+          ],
+          "sample_titles": [
+            "Лечение сайта на 1С Битрикс, удаление вируса",
+            "Лечение сайта на 1С Битрикс, удаление вирусов, устранение уязвимостей",
+            "Сканирование сайта на 1С-Битрикс на вирусы и вредоносный код",
+            "Лечение сайта на 1C Bitrix, удаление вирусов после взлома Битрикс"
+          ],
+          "classifier_name": "Защита и лечение сайта",
+          "classifier_rank_count": 930
+        },
+        {
+          "category_id": 38,
+          "classifier_id": 1587,
+          "kworks_count": 829,
+          "price": {
+            "min": 1000,
+            "median": 2750,
+            "max": 15000,
+            "sample_size": 10
+          },
+          "trust": {
+            "reviews_100_plus": 10,
+            "sample_size": 10,
+            "threshold": 100
+          },
+          "concentration": {
+            "repeated_sellers": [
+              {
+                "seller": "EmOne",
+                "cards": 2
+              },
+              {
+                "seller": "LEOnidUKG",
+                "cards": 2
+              },
+              {
+                "seller": "itolimp",
+                "cards": 2
+              }
+            ],
+            "repeated_cards": 6,
+            "sample_size": 10,
+            "repeat_share": 0.6
+          },
+          "title_terms": [
+            {
+              "term": "ускорение",
+              "count": 9
+            },
+            {
+              "term": "pagespeed",
+              "count": 6
+            },
+            {
+              "term": "оптимизация",
+              "count": 5
+            },
+            {
+              "term": "скорости",
+              "count": 4
+            },
+            {
+              "term": "wordpress",
+              "count": 4
+            },
+            {
+              "term": "google",
+              "count": 3
+            },
+            {
+              "term": "insights",
+              "count": 2
+            },
+            {
+              "term": "speed",
+              "count": 2
+            }
+          ],
+          "description_terms": [
+            {
+              "term": "все",
+              "count": 10
+            },
+            {
+              "term": "изображений",
+              "count": 10
+            },
+            {
+              "term": "оптимизация",
+              "count": 8
+            },
+            {
+              "term": "сжатие",
+              "count": 8
+            },
+            {
+              "term": "google",
+              "count": 7
+            },
+            {
+              "term": "плагин",
+              "count": 7
+            },
+            {
+              "term": "pagespeed",
+              "count": 7
+            },
+            {
+              "term": "стандарт",
+              "count": 6
+            }
+          ],
+          "top_classifiers": [],
+          "competitors_sample": 10,
+          "descriptions_loaded": 6,
+          "service_loaded": 0,
+          "raw_bad_count": 0,
+          "timings_ms": {
+            "kworks": 291,
+            "competitor_details": 4574,
+            "total": 4867
+          },
+          "bullets": [
+            "В выбранном срезе найдено 829 кворков.",
+            "Цена в топе: от 1000 ₽ до 15000 ₽, медиана 2750 ₽.",
+            "Порог доверия высокий: 10/10 карточек в выборке имеют 100+ отзывов.",
+            "Есть концентрация выдачи: повторяются продавцы EmOne (2), LEOnidUKG (2), itolimp (2).",
+            "Частые темы в заголовках: ускорение, pagespeed, оптимизация, скорости, wordpress, google.",
+            "Частые темы в описаниях: все, изображений, оптимизация, сжатие, google, плагин."
+          ],
+          "recommendations": [
+            "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+            "Базовую цену лучше держать около медианы среза: примерно 2750 ₽.",
+            "В заголовке стоит явно назвать технологию/тип услуги: ускорение, pagespeed, оптимизация, скорости.",
+            "Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез."
+          ],
+          "sample_titles": [
+            "Ускорение сайта, Оптимизация скорости по PageSpeed Wordpress Elementor",
+            "Ускорение и оптимизация OpenCart и OCStore",
+            "Ускорение сайта на Вордпресс по канонам Гугл Пейдж Спид",
+            "Повышение скорости и оценки сайта по тесту Google PageSpeed"
+          ],
+          "classifier_name": "Ускорение сайта",
+          "classifier_rank_count": 790
+        }
+      ],
+      "errors": []
+    },
+    {
+      "category_id": 37,
+      "category_name": "???????? ?????",
+      "broad": {
+        "category_id": 37,
+        "classifier_id": null,
+        "kworks_count": 24155,
+        "price": {
+          "min": 1000,
+          "median": 10000,
+          "max": 35000,
+          "sample_size": 10
+        },
+        "trust": {
+          "reviews_100_plus": 10,
+          "sample_size": 10,
+          "threshold": 100
+        },
+        "concentration": {
+          "repeated_sellers": [
+            {
+              "seller": "Smaulik",
+              "cards": 2
+            }
+          ],
+          "repeated_cards": 2,
+          "sample_size": 10,
+          "repeat_share": 0.2
+        },
+        "title_terms": [
+          {
+            "term": "лендинг",
+            "count": 4
+          },
+          {
+            "term": "ключ",
+            "count": 4
+          },
+          {
+            "term": "tilda",
+            "count": 3
+          },
+          {
+            "term": "wordpress",
+            "count": 3
+          },
+          {
+            "term": "любой",
+            "count": 2
+          },
+          {
+            "term": "сложности",
+            "count": 2
+          },
+          {
+            "term": "cms",
+            "count": 2
+          },
+          {
+            "term": "elementor",
+            "count": 2
+          }
+        ],
+        "description_terms": [
+          {
+            "term": "https",
+            "count": 46
+          },
+          {
+            "term": "com",
+            "count": 8
+          },
+          {
+            "term": "установка",
+            "count": 7
+          },
+          {
+            "term": "cms",
+            "count": 4
+          },
+          {
+            "term": "wordpress",
+            "count": 4
+          },
+          {
+            "term": "после",
+            "count": 4
+          },
+          {
+            "term": "сдачи",
+            "count": 4
+          },
+          {
+            "term": "все",
+            "count": 4
+          }
+        ],
+        "top_classifiers": [
+          {
+            "id": 5016,
+            "name": "Новый сайт",
+            "kworks_count": 21094,
+            "raw": {
+              "id": 5016,
+              "name": "Новый сайт",
+              "kworks_count": 21094,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 5017,
+            "name": "Копия сайта",
+            "kworks_count": 1028,
+            "raw": {
+              "id": 5017,
+              "name": "Копия сайта",
+              "kworks_count": 1028,
+              "visibility": 1
+            }
+          }
+        ],
+        "competitors_sample": 10,
+        "descriptions_loaded": 6,
+        "service_loaded": 0,
+        "raw_bad_count": 0,
+        "timings_ms": {
+          "kworks": 556,
+          "competitor_details": 4240,
+          "total": 4798
+        },
+        "bullets": [
+          "В выбранном срезе найдено 24155 кворков.",
+          "Цена в топе: от 1000 ₽ до 35000 ₽, медиана 10000 ₽.",
+          "Порог доверия высокий: 10/10 карточек в выборке имеют 100+ отзывов.",
+          "Есть концентрация выдачи: повторяются продавцы Smaulik (2).",
+          "Частые темы в заголовках: лендинг, ключ, tilda, wordpress, любой, сложности.",
+          "Частые темы в описаниях: https, com, установка, cms, wordpress, после."
+        ],
+        "recommendations": [
+          "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+          "Базовую цену лучше держать около медианы среза: примерно 10000 ₽.",
+          "В заголовке стоит явно назвать технологию/тип услуги: лендинг, ключ, tilda, wordpress.",
+          "Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез.",
+          "Проверь более узкие срезы: Новый сайт (21094), Копия сайта (1028)."
+        ],
+        "sample_titles": [
+          "Лендинг на Tilda для любой сферы и сложности",
+          "Создам сайт c удобной CMS под ключ",
+          "Создам продающий лендинг под ключ",
+          "Одностраничный сайт landing на Wordpress"
+        ]
+      },
+      "ranked_classifiers": [
+        {
+          "id": 5016,
+          "name": "Новый сайт",
+          "kworks_count": 21094,
+          "raw": {
+            "id": 5016,
+            "name": "Новый сайт",
+            "kworks_count": 21094,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5017,
+          "name": "Копия сайта",
+          "kworks_count": 1028,
+          "raw": {
+            "id": 5017,
+            "name": "Копия сайта",
+            "kworks_count": 1028,
+            "visibility": 1
+          }
+        }
+      ],
+      "probes": [
+        {
+          "category_id": 37,
+          "classifier_id": 5016,
+          "kworks_count": 23174,
+          "price": {
+            "min": 1000,
+            "median": 10000,
+            "max": 35000,
+            "sample_size": 10
+          },
+          "trust": {
+            "reviews_100_plus": 10,
+            "sample_size": 10,
+            "threshold": 100
+          },
+          "concentration": {
+            "repeated_sellers": [
+              {
+                "seller": "Smaulik",
+                "cards": 2
+              }
+            ],
+            "repeated_cards": 2,
+            "sample_size": 10,
+            "repeat_share": 0.2
+          },
+          "title_terms": [
+            {
+              "term": "лендинг",
+              "count": 4
+            },
+            {
+              "term": "ключ",
+              "count": 4
+            },
+            {
+              "term": "tilda",
+              "count": 3
+            },
+            {
+              "term": "wordpress",
+              "count": 3
+            },
+            {
+              "term": "любой",
+              "count": 2
+            },
+            {
+              "term": "сложности",
+              "count": 2
+            },
+            {
+              "term": "elementor",
+              "count": 2
+            },
+            {
+              "term": "cms",
+              "count": 2
+            }
+          ],
+          "description_terms": [
+            {
+              "term": "https",
+              "count": 34
+            },
+            {
+              "term": "com",
+              "count": 8
+            },
+            {
+              "term": "установка",
+              "count": 7
+            },
+            {
+              "term": "меня",
+              "count": 6
+            },
+            {
+              "term": "cms",
+              "count": 5
+            },
+            {
+              "term": "wordpress",
+              "count": 5
+            },
+            {
+              "term": "создание",
+              "count": 4
+            },
+            {
+              "term": "все",
+              "count": 4
+            }
+          ],
+          "top_classifiers": [
+            {
+              "id": 10,
+              "name": "Лендинг",
+              "kworks_count": 12120,
+              "raw": {
+                "id": 10,
+                "name": "Лендинг",
+                "kworks_count": 12120,
+                "visibility": 1
+              }
+            },
+            {
+              "id": 18,
+              "name": "Интернет-магазин",
+              "kworks_count": 3751,
+              "raw": {
+                "id": 18,
+                "name": "Интернет-магазин",
+                "kworks_count": 3751,
+                "visibility": 1
+              }
+            },
+            {
+              "id": 42,
+              "name": "Инфосайт",
+              "kworks_count": 1294,
+              "raw": {
+                "id": 42,
+                "name": "Инфосайт",
+                "kworks_count": 1294,
+                "visibility": 1
+              }
+            },
+            {
+              "id": 2,
+              "name": "Визитка",
+              "kworks_count": 1690,
+              "raw": {
+                "id": 2,
+                "name": "Визитка",
+                "kworks_count": 1690,
+                "visibility": 1
+              }
+            },
+            {
+              "id": 50,
+              "name": "Интернет-сервис",
+              "kworks_count": 1871,
+              "raw": {
+                "id": 50,
+                "name": "Интернет-сервис",
+                "kworks_count": 1871,
+                "visibility": 1
+              }
+            },
+            {
+              "id": 34,
+              "name": "Блог",
+              "kworks_count": 240,
+              "raw": {
+                "id": 34,
+                "name": "Блог",
+                "kworks_count": 240,
+                "visibility": 1
+              }
+            },
+            {
+              "id": 26,
+              "name": "Форум",
+              "kworks_count": 130,
+              "raw": {
+                "id": 26,
+                "name": "Форум",
+                "kworks_count": 130,
+                "visibility": 1
+              }
+            }
+          ],
+          "competitors_sample": 10,
+          "descriptions_loaded": 6,
+          "service_loaded": 0,
+          "raw_bad_count": 0,
+          "timings_ms": {
+            "kworks": 327,
+            "competitor_details": 726,
+            "total": 1055
+          },
+          "bullets": [
+            "В выбранном срезе найдено 23174 кворков.",
+            "Цена в топе: от 1000 ₽ до 35000 ₽, медиана 10000 ₽.",
+            "Порог доверия высокий: 10/10 карточек в выборке имеют 100+ отзывов.",
+            "Есть концентрация выдачи: повторяются продавцы Smaulik (2).",
+            "Частые темы в заголовках: лендинг, ключ, tilda, wordpress, любой, сложности.",
+            "Частые темы в описаниях: https, com, установка, меня, cms, wordpress."
+          ],
+          "recommendations": [
+            "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+            "Базовую цену лучше держать около медианы среза: примерно 10000 ₽.",
+            "В заголовке стоит явно назвать технологию/тип услуги: лендинг, ключ, tilda, wordpress.",
+            "Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез.",
+            "Проверь более узкие срезы: Лендинг (12120), Интернет-магазин (3751), Инфосайт (1294)."
+          ],
+          "sample_titles": [
+            "Лендинг на Tilda для любой сферы и сложности",
+            "Создание сайта на WordPress и Elementor Pro",
+            "Одностраничный сайт landing на Wordpress",
+            "Создам сайт c удобной CMS под ключ"
+          ],
+          "classifier_name": "Новый сайт",
+          "classifier_rank_count": 21094
+        },
+        {
+          "category_id": 37,
+          "classifier_id": 5017,
+          "kworks_count": 1020,
+          "price": {
+            "min": 500,
+            "median": 750,
+            "max": 30000,
+            "sample_size": 10
+          },
+          "trust": {
+            "reviews_100_plus": 10,
+            "sample_size": 10,
+            "threshold": 100
+          },
+          "concentration": {
+            "repeated_sellers": [],
+            "repeated_cards": 0,
+            "sample_size": 10,
+            "repeat_share": 0.0
+          },
+          "title_terms": [
+            {
+              "term": "копия",
+              "count": 5
+            },
+            {
+              "term": "landing",
+              "count": 4
+            },
+            {
+              "term": "page",
+              "count": 4
+            },
+            {
+              "term": "лендинга",
+              "count": 2
+            },
+            {
+              "term": "админка",
+              "count": 2
+            },
+            {
+              "term": "форм",
+              "count": 2
+            },
+            {
+              "term": "вашу",
+              "count": 2
+            },
+            {
+              "term": "почту",
+              "count": 2
+            }
+          ],
+          "description_terms": [
+            {
+              "term": "все",
+              "count": 8
+            },
+            {
+              "term": "формы",
+              "count": 5
+            },
+            {
+              "term": "копирование",
+              "count": 5
+            },
+            {
+              "term": "хостинг",
+              "count": 4
+            },
+            {
+              "term": "копию",
+              "count": 4
+            },
+            {
+              "term": "лендинга",
+              "count": 4
+            },
+            {
+              "term": "редактирование",
+              "count": 4
+            },
+            {
+              "term": "поэтому",
+              "count": 4
+            }
+          ],
+          "top_classifiers": [],
+          "competitors_sample": 10,
+          "descriptions_loaded": 6,
+          "service_loaded": 0,
+          "raw_bad_count": 0,
+          "timings_ms": {
+            "kworks": 321,
+            "competitor_details": 4840,
+            "total": 5163
+          },
+          "bullets": [
+            "В выбранном срезе найдено 1020 кворков.",
+            "Цена в топе: от 500 ₽ до 30000 ₽, медиана 750 ₽.",
+            "Порог доверия высокий: 10/10 карточек в выборке имеют 100+ отзывов.",
+            "Частые темы в заголовках: копия, landing, page, лендинга, админка, форм.",
+            "Частые темы в описаниях: все, формы, копирование, хостинг, копию, лендинга."
+          ],
+          "recommendations": [
+            "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+            "Базовую цену лучше держать около медианы среза: примерно 750 ₽.",
+            "В заголовке стоит явно назвать технологию/тип услуги: копия, landing, page, лендинга."
+          ],
+          "sample_titles": [
+            "Копия сайта",
+            "Точная копия лендинга html + админ-панель",
+            "Копия сайта на платформах tilda, flexbe, platformalp, creatium",
+            "Копия сайта, лендинга + админка + перенастройка форм на вашу почту"
+          ],
+          "classifier_name": "Копия сайта",
+          "classifier_rank_count": 1028
+        }
+      ],
+      "errors": []
+    },
+    {
+      "category_id": 41,
+      "category_name": "???????, ???? ? mini apps",
+      "broad": {
+        "category_id": 41,
+        "classifier_id": null,
+        "kworks_count": 38117,
+        "price": {
+          "min": 500,
+          "median": 1750,
+          "max": 50000,
+          "sample_size": 10
+        },
+        "trust": {
+          "reviews_100_plus": 8,
+          "sample_size": 10,
+          "threshold": 100
+        },
+        "concentration": {
+          "repeated_sellers": [
+            {
+              "seller": "ameganix",
+              "cards": 2
+            }
+          ],
+          "repeated_cards": 2,
+          "sample_size": 10,
+          "repeat_share": 0.2
+        },
+        "title_terms": [
+          {
+            "term": "скрипт",
+            "count": 3
+          },
+          {
+            "term": "разработка",
+            "count": 3
+          },
+          {
+            "term": "бота",
+            "count": 3
+          },
+          {
+            "term": "напишу",
+            "count": 3
+          },
+          {
+            "term": "php",
+            "count": 2
+          },
+          {
+            "term": "калькулятор",
+            "count": 2
+          },
+          {
+            "term": "telegram",
+            "count": 2
+          },
+          {
+            "term": "jquery",
+            "count": 1
+          }
+        ],
+        "description_terms": [
+          {
+            "term": "скрипт",
+            "count": 2
+          },
+          {
+            "term": "php",
+            "count": 2
+          },
+          {
+            "term": "данных",
+            "count": 2
+          },
+          {
+            "term": "работа",
+            "count": 2
+          },
+          {
+            "term": "скрипты",
+            "count": 2
+          },
+          {
+            "term": "данном",
+            "count": 1
+          },
+          {
+            "term": "кворке",
+            "count": 1
+          },
+          {
+            "term": "новый",
+            "count": 1
+          }
+        ],
+        "top_classifiers": [
+          {
+            "id": 211,
+            "name": "Парсеры",
+            "kworks_count": 2900,
+            "raw": {
+              "id": 211,
+              "name": "Парсеры",
+              "kworks_count": 2900,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 3587,
+            "name": "Чат-боты",
+            "kworks_count": 16769,
+            "raw": {
+              "id": 3587,
+              "name": "Чат-боты",
+              "kworks_count": 16769,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 7352,
+            "name": "Скрипты",
+            "kworks_count": 7555,
+            "raw": {
+              "id": 7352,
+              "name": "Скрипты",
+              "kworks_count": 7555,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 3934090,
+            "name": "Telegram Mini Apps",
+            "kworks_count": 1838,
+            "raw": {
+              "id": 3934090,
+              "name": "Telegram Mini Apps",
+              "kworks_count": 1838,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 5548694,
+            "name": "ИИ-агенты",
+            "kworks_count": 991,
+            "raw": {
+              "id": 5548694,
+              "name": "ИИ-агенты",
+              "kworks_count": 991,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 4158112,
+            "name": "ИИ-боты",
+            "kworks_count": 2921,
+            "raw": {
+              "id": 4158112,
+              "name": "ИИ-боты",
+              "kworks_count": 2921,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 4158119,
+            "name": "Машинное обучение",
+            "kworks_count": 358,
+            "raw": {
+              "id": 4158119,
+              "name": "Машинное обучение",
+              "kworks_count": 358,
+              "visibility": 1
+            }
+          },
+          {
+            "id": 5503256,
+            "name": "Интернет вещей (IoT)",
+            "kworks_count": 190,
+            "raw": {
+              "id": 5503256,
+              "name": "Интернет вещей (IoT)",
+              "kworks_count": 190,
+              "visibility": 1
+            }
+          }
+        ],
+        "competitors_sample": 10,
+        "descriptions_loaded": 1,
+        "service_loaded": 1,
+        "raw_bad_count": 0,
+        "timings_ms": {
+          "kworks": 348,
+          "competitor_details": 2053,
+          "total": 2402
+        },
+        "bullets": [
+          "В выбранном срезе найдено 38117 кворков.",
+          "Цена в топе: от 500 ₽ до 50000 ₽, медиана 1750 ₽.",
+          "Порог доверия высокий: 8/10 карточек в выборке имеют 100+ отзывов.",
+          "Есть концентрация выдачи: повторяются продавцы ameganix (2).",
+          "Частые темы в заголовках: скрипт, разработка, бота, напишу, php, калькулятор.",
+          "Частые темы в описаниях: скрипт, php, данных, работа, скрипты, данном."
+        ],
+        "recommendations": [
+          "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.",
+          "Базовую цену лучше держать около медианы среза: примерно 1750 ₽.",
+          "В заголовке стоит явно назвать технологию/тип услуги: скрипт, разработка, бота, напишу.",
+          "Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез.",
+          "Проверь более узкие срезы: Парсеры (2900), Чат-боты (16769), Скрипты (7555)."
+        ],
+        "sample_titles": [
+          "PHP, JS, JQuery скрипт",
+          "Калькулятор для сайта Vue JS, JavaScript, PHP, HTML",
+          "Разработка Telegram БОТА + исходники и поддержка",
+          "Калькулятор для сайта"
+        ]
+      },
+      "ranked_classifiers": [
+        {
+          "id": 3587,
+          "name": "Чат-боты",
+          "kworks_count": 16769,
+          "raw": {
+            "id": 3587,
+            "name": "Чат-боты",
+            "kworks_count": 16769,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 7352,
+          "name": "Скрипты",
+          "kworks_count": 7555,
+          "raw": {
+            "id": 7352,
+            "name": "Скрипты",
+            "kworks_count": 7555,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 4158112,
+          "name": "ИИ-боты",
+          "kworks_count": 2921,
+          "raw": {
+            "id": 4158112,
+            "name": "ИИ-боты",
+            "kworks_count": 2921,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 211,
+          "name": "Парсеры",
+          "kworks_count": 2900,
+          "raw": {
+            "id": 211,
+            "name": "Парсеры",
+            "kworks_count": 2900,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3934090,
+          "name": "Telegram Mini Apps",
+          "kworks_count": 1838,
+          "raw": {
+            "id": 3934090,
+            "name": "Telegram Mini Apps",
+            "kworks_count": 1838,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5548694,
+          "name": "ИИ-агенты",
+          "kworks_count": 991,
+          "raw": {
+            "id": 5548694,
+            "name": "ИИ-агенты",
+            "kworks_count": 991,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 4158119,
+          "name": "Машинное обучение",
+          "kworks_count": 358,
+          "raw": {
+            "id": 4158119,
+            "name": "Машинное обучение",
+            "kworks_count": 358,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5503256,
+          "name": "Интернет вещей (IoT)",
+          "kworks_count": 190,
+          "raw": {
+            "id": 5503256,
+            "name": "Интернет вещей (IoT)",
+            "kworks_count": 190,
+            "visibility": 1
+          }
+        }
+      ],
+      "probes": [],
+      "errors": [
+        {
+          "scope": "classifier:3587",
+          "classifier_id": 3587,
+          "classifier_name": "Чат-боты",
+          "type": "KworkHTTPException",
+          "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+        },
+        {
+          "scope": "classifier:7352",
+          "classifier_id": 7352,
+          "classifier_name": "Скрипты",
+          "type": "KworkHTTPException",
+          "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+        },
+        {
+          "scope": "classifier:4158112",
+          "classifier_id": 4158112,
+          "classifier_name": "ИИ-боты",
+          "type": "KworkHTTPException",
+          "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+        },
+        {
+          "scope": "classifier:5548694",
+          "classifier_id": 5548694,
+          "classifier_name": "ИИ-агенты",
+          "type": "KworkHTTPException",
+          "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+        },
+        {
+          "scope": "classifier:4158119",
+          "classifier_id": 4158119,
+          "classifier_name": "Машинное обучение",
+          "type": "KworkHTTPException",
+          "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+        },
+        {
+          "scope": "classifier:5503256",
+          "classifier_id": 5503256,
+          "classifier_name": "Интернет вещей (IoT)",
+          "type": "KworkHTTPException",
+          "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+        }
+      ]
+    },
+    {
+      "category_id": 25,
+      "category_name": "??????? ? ????????",
+      "broad": null,
+      "ranked_classifiers": [],
+      "probes": [],
+      "errors": [
+        {
+          "scope": "broad",
+          "type": "KworkHTTPException",
+          "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+        }
+      ]
+    },
+    {
+      "category_id": 59,
+      "category_name": "??????",
+      "broad": null,
+      "ranked_classifiers": [],
+      "probes": [],
+      "errors": [
+        {
+          "scope": "broad",
+          "type": "KworkHTTPException",
+          "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+        }
+      ]
+    },
+    {
+      "category_id": 74,
+      "category_name": "????????? ? ??????-??????",
+      "broad": null,
+      "ranked_classifiers": [],
+      "probes": [],
+      "errors": [
+        {
+          "scope": "broad",
+          "type": "KworkHTTPException",
+          "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "category_id": 41,
+      "scope": "classifier:3587",
+      "classifier_id": 3587,
+      "classifier_name": "Чат-боты",
+      "type": "KworkHTTPException",
+      "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+    },
+    {
+      "category_id": 41,
+      "scope": "classifier:7352",
+      "classifier_id": 7352,
+      "classifier_name": "Скрипты",
+      "type": "KworkHTTPException",
+      "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+    },
+    {
+      "category_id": 41,
+      "scope": "classifier:4158112",
+      "classifier_id": 4158112,
+      "classifier_name": "ИИ-боты",
+      "type": "KworkHTTPException",
+      "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+    },
+    {
+      "category_id": 41,
+      "scope": "classifier:5548694",
+      "classifier_id": 5548694,
+      "classifier_name": "ИИ-агенты",
+      "type": "KworkHTTPException",
+      "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+    },
+    {
+      "category_id": 41,
+      "scope": "classifier:4158119",
+      "classifier_id": 4158119,
+      "classifier_name": "Машинное обучение",
+      "type": "KworkHTTPException",
+      "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+    },
+    {
+      "category_id": 41,
+      "scope": "classifier:5503256",
+      "classifier_id": 5503256,
+      "classifier_name": "Интернет вещей (IoT)",
+      "type": "KworkHTTPException",
+      "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+    },
+    {
+      "category_id": 25,
+      "scope": "broad",
+      "type": "KworkHTTPException",
+      "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+    },
+    {
+      "category_id": 59,
+      "scope": "broad",
+      "type": "KworkHTTPException",
+      "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+    },
+    {
+      "category_id": 74,
+      "scope": "broad",
+      "type": "KworkHTTPException",
+      "message": "HTTP 403 for POST /kworks: {\"ipAdress\":\"194.110.207.209\"}"
+    }
+  ]
+}

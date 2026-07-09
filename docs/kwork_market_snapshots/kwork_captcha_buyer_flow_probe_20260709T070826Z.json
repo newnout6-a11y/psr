@@ -1,0 +1,188 @@
+{
+  "generated_at": "2026-07-09T07:08:26.488913+00:00",
+  "project_id": 3202311,
+  "checks": {
+    "mobile_token_api": {
+      "getCaptchaStatus": {
+        "status": "ok",
+        "keys": [
+          "fcmTokenLost",
+          "response",
+          "success"
+        ],
+        "response_type": "dict",
+        "response_preview": null
+      },
+      "getCurrentVersions": {
+        "status": "ok",
+        "keys": [
+          "response",
+          "success"
+        ],
+        "response_type": "dict",
+        "response_preview": null
+      },
+      "getBadgesInfo": {
+        "status": "ok",
+        "keys": [
+          "response",
+          "success"
+        ],
+        "response_type": "dict",
+        "response_preview": null
+      },
+      "exchangeInfo": {
+        "status": "error",
+        "detail": "KworkException: Unknown API error"
+      },
+      "KworkExtensions.get_captcha_status": {
+        "status": "ok",
+        "value": true
+      },
+      "projects/check_is_template_wrapper": {
+        "status": "ok",
+        "keys": [
+          "headers",
+          "json",
+          "status",
+          "text",
+          "url"
+        ],
+        "json_keys": [
+          "data",
+          "success"
+        ],
+        "json_preview": {
+          "success": true,
+          "data": {
+            "error": "Необходима авторизация"
+          }
+        }
+      }
+    },
+    "web_session": {
+      "new_offer_page": {
+        "status_code": 200,
+        "final_url": "https://kwork.ru/new_offer?project=3202311",
+        "content_type": "text/html; charset=UTF-8",
+        "history": [],
+        "html_flags": {
+          "len": 107717,
+          "has_smartcaptcha": true,
+          "has_not_access": false,
+          "has_new_offer_marker": true,
+          "has_offer_textarea": false,
+          "title": "Предложить услугу - Kwork",
+          "matched_markers": [
+            "smartcaptcha"
+          ]
+        },
+        "text_preview": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=34_cors\" type=\"text/css\" media=\"screen\"><link rel=\"preconnect\" href=\"https://cdn-edge.kwork.ru\"><meta name=\"format-detection\" content=\"telephone=no\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta property=\"og:image\" content=\"https://cdn-edge.kwork.ru/images/large_logo.jpg\"/><meta property=\"og:image:width\" content=\"250\"/><meta property=\"og"
+      },
+      "project_page": {
+        "status_code": 200,
+        "final_url": "https://kwork.ru/projects/3202311/view",
+        "content_type": "text/html; charset=UTF-8",
+        "history": [
+          302
+        ],
+        "html_flags": {
+          "len": 123423,
+          "has_smartcaptcha": true,
+          "has_not_access": false,
+          "has_new_offer_marker": false,
+          "has_offer_textarea": false,
+          "title": "Нужно создать 5&ndash;6 Telegram Stories с упоминанием - Kwork",
+          "matched_markers": [
+            "smartcaptcha"
+          ]
+        },
+        "text_preview": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=34_cors\" type=\"text/css\" media=\"screen\"><link rel=\"preconnect\" href=\"https://cdn-edge.kwork.ru\"><meta name=\"format-detection\" content=\"telephone=no\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta property=\"og:image\" content=\"https://cdn-edge.kwork.ru/images/large_logo.jpg\"/><meta property=\"og:image:width\" content=\"250\"/><meta property=\"og"
+      },
+      "check_offer_notify": {
+        "status_code": 200,
+        "final_url": "https://kwork.ru/wants/3202311/check_offer_notify",
+        "content_type": "application/json",
+        "history": [],
+        "json_keys": [
+          "data",
+          "success"
+        ],
+        "json_preview": {
+          "success": true,
+          "data": {
+            "isUserNeedPortfolio": false,
+            "isUserNeedPortfolioNotify": false,
+            "isUserNeedKworkNotify": false,
+            "userNeedPortfolioRubricName": "",
+            "categoryId": "46",
+            "parentCategoryId": 45,
+            "classificationId": 281,
+            "urlForCreatePortfolio": "/portfolio?popupCategory=46&popupAttribute=281&isPopupOpen=1",
+            "isNeural": false
+          }
+        }
+      },
+      "check_is_template_direct": {
+        "status_code": 200,
+        "final_url": "https://kwork.ru/projects/check_is_template",
+        "content_type": "application/json",
+        "history": [],
+        "json_keys": [
+          "data",
+          "success"
+        ],
+        "json_preview": {
+          "success": true,
+          "data": []
+        }
+      }
+    }
+  },
+  "session_hub": {
+    "health_status": 200,
+    "health": {
+      "status": "ok",
+      "message": "Session Hub is running and ready.",
+      "cache_entries": 1
+    },
+    "cookies_status": 200,
+    "cookie_count": 14,
+    "cookie_names": [
+      "RORSSQIHEK",
+      "_kmfvt",
+      "_kmid",
+      "_kmwl",
+      "accept_cookie_device_id",
+      "csrf_user_token",
+      "list_type_sdisplay",
+      "referrer_url",
+      "seo_activation_request_uri",
+      "seo_activation_set_time",
+      "seo_activation_source",
+      "show_mobile_app_banner_date",
+      "slrememberme",
+      "uad"
+    ]
+  },
+  "proxy_url": "http://127.0.0.1:17990",
+  "conclusion": {
+    "captcha_status_response": {
+      "status": "ok",
+      "keys": [
+        "fcmTokenLost",
+        "response",
+        "success"
+      ],
+      "response_type": "dict",
+      "response_preview": null
+    },
+    "new_offer_blocked_by_captcha": true,
+    "new_offer_has_form_markers": true,
+    "safe_offer_preflight_endpoints": [
+      "GET /wants/{id}/check_offer_notify",
+      "POST /projects/check_is_template"
+    ],
+    "stateful_endpoint_not_retested": "POST /api/offer/addview"
+  }
+}

@@ -36,6 +36,35 @@ window.stateData={
 </body></html>
 """
 
+PROJECTS_PAGINATED_HTML = """
+<html><body>
+<script>
+window.stateData={
+  "wants": {
+    "data": [
+      {
+        "id": 3202311,
+        "name": "Нужно создать 5&ndash;6 Telegram Stories с упоминанием",
+        "description": "Есть готовые промоматериалы",
+        "priceLimit": "30000.00",
+        "possiblePriceLimit": 90000,
+        "date_create": "2026-06-21 21:06:50",
+        "category_id": "46",
+        "kwork_count": "",
+        "user": {
+          "USERID": 13492958,
+          "username": "Salvador1w1332",
+          "data": {"wants_hired_percent": "37"}
+        }
+      }
+    ],
+    "total": 4
+  }
+};window.nextChunk=true;
+</script>
+</body></html>
+"""
+
 
 DETAIL_HTML = """
 <html><body>
@@ -76,6 +105,20 @@ def test_kwork_state_projects_from_html():
     assert project.platform_data["category_id"] == "41"
     assert project.platform_data["files"][0]["name"] == "tz.pdf"
     assert project.platform_data["user"]["username"] == "irindra"
+
+
+def test_kwork_state_projects_from_wants_data_html():
+    projects = KworkStateDataParser.projects_from_html(PROJECTS_PAGINATED_HTML)
+    assert len(projects) == 1
+
+    project = projects[0]
+    assert project.id == "3202311"
+    assert project.title == "Нужно создать 5–6 Telegram Stories с упоминанием"
+    assert project.budget == 30000.0
+    assert project.client_user_id == "13492958"
+    assert project.client_hired_percent == 37
+    assert project.platform_data["possible_price_limit"] == 90000
+    assert project.platform_data["user"]["username"] == "Salvador1w1332"
 
 
 def test_kwork_state_project_detail_from_html():

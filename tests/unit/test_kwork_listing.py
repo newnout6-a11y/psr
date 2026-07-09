@@ -8,6 +8,7 @@ from src.platforms.kwork_listing import (
     KworkWebListingClient,
     form_pairs_to_structured_payload,
     is_kwork_manual_verification_page,
+    manual_verification_response,
     parse_classification_html,
     parse_new_form_snapshot,
     parse_save_kwork_response,
@@ -135,6 +136,82 @@ def test_kwork_manual_verification_page_detects_smartcaptcha():
     result = parse_save_kwork_response(403, html, "https://kwork.ru/")
     assert result["ok"] is False
     assert result["code"] == "manual_verification_required"
+
+
+def test_kwork_manual_verification_detects_real_russian_robot_text():
+    html = """
+    <html>
+      <script src="https://smartcaptcha.cloud.yandex.ru/captcha.js"></script>
+      <p>Подтвердите, что вы не робот</p>
+    </html>
+    """
+
+    result = manual_verification_response(403, html, "https://kwork.ru/not_access.php")
+
+    assert result is not None
+    assert result["code"] == "manual_verification_required"
+    assert "Подтвердите, что вы не робот" in result["evidence"]["weak_matches"]
+
+
+def test_kwork_manual_verification_ignores_weak_text_on_normal_new_form():
+    html = """
+    <html>
+      <body>
+        <form class="js-kwork-save-form" action="/save_kwork">
+          <input type="hidden" name="csrftoken" value="csrf-1">
+          <input type="hidden" name="draft_id" value="777">
+          <input name="title" value="">
+          <textarea name="description"></textarea>
+        </form>
+        <p>Мы ограничиваем автоматические скрипты при большой нагрузке.</p>
+      </body>
+    </html>
+    """
+
+    assert not is_kwork_manual_verification_page(html, "https://kwork.ru/new")
+    assert manual_verification_response(200, html, "https://kwork.ru/new") is None
+
+
+def test_kwork_manual_verification_ignores_global_smartcaptcha_script_on_normal_page():
+    html = """
+    <html>
+      <head>
+        <script>
+          window.appData = {
+            isYandexSmartCaptcha: true,
+            yandexSmartCaptchaToken: "smart-token",
+            yandexSmartCaptchaPublicKey: "key"
+          };
+        </script>
+        <script src="https://smartcaptcha.yandexcloud.net/captcha.js?render=onload"></script>
+      </head>
+      <body>
+        <h1>Предложить услугу</h1>
+        <div id="app"></div>
+      </body>
+    </html>
+    """
+
+    assert not is_kwork_manual_verification_page(html, "https://kwork.ru/new_offer?project=3202311")
+    assert manual_verification_response(200, html, "https://kwork.ru/new_offer?project=3202311") is None
+
+
+def test_kwork_manual_verification_detects_not_access_weak_challenge():
+    html = """
+    <html>
+      <body>
+        <p>Подтвердите, что вы не робот.</p>
+        <p>Запросы похожи на автоматические скрипты при большой нагрузке.</p>
+      </body>
+    </html>
+    """
+
+    result = manual_verification_response(403, html, "https://kwork.ru/not_access.php")
+
+    assert result is not None
+    assert result["code"] == "manual_verification_required"
+    assert result["evidence"]["challenge_url"] is True
+    assert result["evidence"]["challenge_status"] is True
 
 
 def test_form_pairs_to_structured_payload_matches_kwork_save_shape():

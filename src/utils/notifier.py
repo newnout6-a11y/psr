@@ -1143,13 +1143,14 @@ class TelegramNotifier:
         try:
             import tempfile
             import httpx
+            from src.utils.vpnte_proxy import kwork_http_proxy_url
 
             # Получаем cookies из Session Hub
             cookies = {}
             if platform == "kwork":
                 hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
                 try:
-                    async with httpx.AsyncClient(timeout=10) as client:
+                    async with httpx.AsyncClient(timeout=10, trust_env=False) as client:
                         resp = await client.get(f"{hub_url}?domain=kwork.ru")
                         if resp.status_code == 200:
                             data = resp.json()
@@ -1175,7 +1176,12 @@ class TelegramNotifier:
             file_path = tmp_dir / safe_name
 
             async with httpx.AsyncClient(
-                timeout=60, follow_redirects=True, trust_env=False, cookies=cookies, headers=headers
+                timeout=60,
+                follow_redirects=True,
+                proxy=kwork_http_proxy_url(rotate=False) if platform == "kwork" else None,
+                trust_env=False,
+                cookies=cookies,
+                headers=headers,
             ) as client:
                 resp = await client.get(url)
                 if resp.status_code == 200:

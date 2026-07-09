@@ -1,0 +1,2568 @@
+{
+  "generated_at": "2026-07-09T10:24:09.653340+00:00",
+  "endpoint": "https://kwork.ru/want-search/suggest",
+  "session_hub_cookie_count": 15,
+  "case_count": 40,
+  "useful_count": 40,
+  "useful": [
+    {
+      "field": "keyword",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "query",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 1416,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 7,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "<b>telegram</b>"
+            },
+            {
+              "suggestion": "telegram ???",
+              "excerpt": "<b>telegram</b> ???"
+            },
+            {
+              "suggestion": "телеграм бот ии",
+              "excerpt": "<b>телеграм</b> бот ии"
+            },
+            {
+              "suggestion": "Создать телеграм бота",
+              "excerpt": "Создать <b>телеграм</b> бота"
+            },
+            {
+              "suggestion": "бот для телеграм",
+              "excerpt": "бот для <b>телеграм</b>"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "q",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "term",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "search",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "value",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "text",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "input",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "keyword",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "query",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 42,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 0,
+          "sample": []
+        }
+      }
+    },
+    {
+      "field": "q",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "term",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "search",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "value",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "text",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "input",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "keyword",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "query",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 42,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 0,
+          "sample": []
+        }
+      }
+    },
+    {
+      "field": "q",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "term",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "search",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "value",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "text",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "input",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "keyword",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "query",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 1130,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 7,
+          "sample": [
+            {
+              "suggestion": "wordpress",
+              "excerpt": "<b>wordpress</b>"
+            },
+            {
+              "suggestion": "wordpress контент",
+              "excerpt": "<b>wordpress</b> контент"
+            },
+            {
+              "suggestion": "wordpress форма",
+              "excerpt": "<b>wordpress</b> форма"
+            },
+            {
+              "suggestion": "WP, wordpress, вп",
+              "excerpt": "WP, <b>wordpress</b>, вп"
+            },
+            {
+              "suggestion": "php wordpress",
+              "excerpt": "php <b>wordpress</b>"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "q",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "term",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "search",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "value",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "cases": [
+    {
+      "field": "keyword",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "query",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 1416,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 7,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "<b>telegram</b>"
+            },
+            {
+              "suggestion": "telegram ???",
+              "excerpt": "<b>telegram</b> ???"
+            },
+            {
+              "suggestion": "телеграм бот ии",
+              "excerpt": "<b>телеграм</b> бот ии"
+            },
+            {
+              "suggestion": "Создать телеграм бота",
+              "excerpt": "Создать <b>телеграм</b> бота"
+            },
+            {
+              "suggestion": "бот для телеграм",
+              "excerpt": "бот для <b>телеграм</b>"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "q",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "term",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "search",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "value",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "text",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "input",
+      "value": "telegram",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "keyword",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "query",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 42,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 0,
+          "sample": []
+        }
+      }
+    },
+    {
+      "field": "q",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "term",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "search",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "value",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "text",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "input",
+      "value": "????????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "keyword",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "query",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 42,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 0,
+          "sample": []
+        }
+      }
+    },
+    {
+      "field": "q",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "term",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "search",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "value",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "text",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "input",
+      "value": "???",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "keyword",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "query",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 1130,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 7,
+          "sample": [
+            {
+              "suggestion": "wordpress",
+              "excerpt": "<b>wordpress</b>"
+            },
+            {
+              "suggestion": "wordpress контент",
+              "excerpt": "<b>wordpress</b> контент"
+            },
+            {
+              "suggestion": "wordpress форма",
+              "excerpt": "<b>wordpress</b> форма"
+            },
+            {
+              "suggestion": "WP, wordpress, вп",
+              "excerpt": "WP, <b>wordpress</b>, вп"
+            },
+            {
+              "suggestion": "php wordpress",
+              "excerpt": "php <b>wordpress</b>"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "q",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "term",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "search",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "value",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "text",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "input",
+      "value": "wordpress",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "keyword",
+      "value": "????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "query",
+      "value": "????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 42,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 0,
+          "sample": []
+        }
+      }
+    },
+    {
+      "field": "q",
+      "value": "????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "term",
+      "value": "????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "search",
+      "value": "????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "value",
+      "value": "????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "text",
+      "value": "????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "field": "input",
+      "value": "????",
+      "status_code": 200,
+      "content_type": "application/json",
+      "text_len": 296,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "json_type": "dict",
+      "success": true,
+      "keys": [
+        "data",
+        "success"
+      ],
+      "data_type": "dict",
+      "data_keys": [
+        "suggestions"
+      ],
+      "data_compact": {
+        "suggestions": {
+          "count": 3,
+          "sample": [
+            {
+              "suggestion": "telegram",
+              "excerpt": "telegram"
+            },
+            {
+              "suggestion": "телеграм бот",
+              "excerpt": "телеграм бот"
+            },
+            {
+              "suggestion": "bitrix",
+              "excerpt": "bitrix"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

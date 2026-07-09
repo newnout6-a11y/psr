@@ -1,0 +1,149 @@
+{
+  "generated_at": "2026-07-08T15:06:01Z",
+  "probes": [
+    {
+      "alias": "design",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "programming",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "links",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "script-programming",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "website-development",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "frontend",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "mobile-apps",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "smm",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "logo",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "traffic",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "information-bases",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    },
+    {
+      "alias": "imagegeneration",
+      "category_get_status": 403,
+      "category_get_bytes": 1726,
+      "category_get_content_type": "text/html; charset=UTF-8",
+      "category_title_hint": false,
+      "post_status": 403,
+      "post_content_type": "text/html; charset=UTF-8",
+      "post_bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n</head>\n<body>\n\t<div style=\"text-align: center; margin-top"
+    }
+  ]
+}

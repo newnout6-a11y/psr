@@ -1,0 +1,1648 @@
+{
+  "generated_at": "2026-07-08T22:10:09Z",
+  "source": "codex.backend_buyer_query_probe",
+  "buyer_demand_queries": [
+    {
+      "query": "telegram",
+      "filters": {},
+      "status": "ok",
+      "count": 39,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3211971,
+          "title": "Создание Телеграмм бота",
+          "price": 40000,
+          "offers": 139,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 120000,
+          "user_projects_count": 3,
+          "user_hired_percent": 0,
+          "description": "Техническое задание:<br>Суть проекта : Создать телеграмм бота, который будет показывать наличие топлива на заправках города и городов<br>1. Необходимо создать телеграмм бота<br>2. Необходимо создать парсер информации, который будет брать информацию с официальных сайтов компаний, и подгружать в телеграмм, тем самым отображая реальное наличие топлива и его виды в телеграмме<br>3. Настроить телеграмм бота на систему подписок ",
+          "skills": []
+        },
+        {
+          "id": 3203050,
+          "title": "Массовые отметки пользователей в Telegram Stories",
+          "price": 30000,
+          "offers": 2,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "Есть готовые Stories и база пользователей для отметок. Требуется исполнитель, который сможет качественно и в срок выполнить массовые отметки пользователей в Telegram.<br>Объём работы:<br>&mdash; Около 10 000 отметок по готовой базе;<br>&mdash; Контент для публикации предоставляется;<br>&mdash; От исполнителя требуется только работа с отметками.<br>Требования:<br>&mdash; Опыт работы с Telegram Stories;<br>&mdash; Понимание ограничений и особенност",
+          "skills": []
+        },
+        {
+          "id": 3211504,
+          "title": "Нужен Telegram CRM bot",
+          "price": 1000,
+          "offers": 23,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 3000,
+          "user_projects_count": 417,
+          "user_hired_percent": 37,
+          "description": "Telegram CRM-системы<br>&mdash; учет клиентов и заявок<br>&mdash; управление сотрудниками (управление доступами для сотрудников)<br>&mdash; Поиск по датам, словам, номерам телефонов<br>&mdash; напоминания и автоматические уведомления<br>&mdash; работа через простой интерфейс прямо в боте<br>&mdash; удобный интерфейс как в приложении<br>&mdash; оформление заказов и услуг<br>&mdash; личные кабинеты пользователей<br>&mdash; распределение задач<br>Бо",
+          "skills": []
+        },
+        {
+          "id": 3107236,
+          "title": "Привлечение покупателей в Telegram Mini App",
+          "price": 20000,
+          "offers": 0,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": true,
+          "possible_price_limit": 60000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "Ищу исполнителей для привлечения пользователей в Telegram Mini App.<br>Оплата только за целевое действие &mdash; пользователь должен совершить покупку внутри приложения.<br>❗ Важно:<br>&mdash; Платные рекламные каналы НЕ интересуют<br>&mdash; Интересует только УБТ (условно-бесплатный трафик)<br>&mdash; GEO: весь мир (все страны, где актуален Telegram)<br>&mdash; Объёмы: любые, готовы масштабироваться<br>Оплата за подтверждённую покупку.",
+          "skills": []
+        },
+        {
+          "id": 3212955,
+          "title": "Работа в Telegram проекте , Frolov Sport",
+          "price": 500,
+          "offers": 10,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 1500,
+          "user_projects_count": 3,
+          "user_hired_percent": 0,
+          "description": "Приглашаю в Команду: Стань Частью Моего Амбициозного Telegram - Проекта!<br>--------------------------------------<br>Привет! Я активно развиваю &laquo; Frolov Sport &raquo; в Telegram и ищу талантливых , энергичных и ответственных людей , которые готовы внести свой вклад в создание по-настоящему крутого и вовлекающего контента.<br>------------<br>Кого я ищу:<br>Я верю , что сильная команда &mdash; это ключ к успеху. Если ты горишь идеями , не бо",
+          "skills": []
+        },
+        {
+          "id": 3203045,
+          "title": "Отметки пользователей в Telegram Stories",
+          "price": 33000,
+          "offers": 1,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 99000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "<br>Предоставляется база для отметок &mdash; около 10 000 пользователей.<br>Все материалы для публикации готовы и будут переданы исполнителю.<br>Требования:<br>&mdash; Опыт работы с упоминаниями<br>&mdash; Понимание лимитов и особенностей отметок пользователей в Telegram;<br>&mdash; Умение выполнять большой объём отметок без ошибок и пропусков;<br>&mdash; Соблюдение сроков выполнения.<br>Оплата:<br>&mdash; Рассматриваем стоимость от 3 рублей за о",
+          "skills": []
+        },
+        {
+          "id": 3190904,
+          "title": "Нужно создать 5-6 Telegram Stories с упоминанием",
+          "price": 23000,
+          "offers": 4,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 69000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": " <br>Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы <br>Создать 5-6 Telegram Stories и упомянуть людей из базы<br>Есть база для упоминания около 5&ndash;6 тысяч пользователей;<br>Материалы для работы предоставляются;<br>Нужен человек с опытом создания Telegram Stories и пониманием особенностей платформы.<br>В отклике просьба прислать:<br>Примеры выполненных работ;<br>Срок выполнения;<br>Стоимость за ве",
+          "skills": []
+        },
+        {
+          "id": 3212972,
+          "title": "Настроить рекламу для телеграм бота",
+          "price": 5000,
+          "offers": 9,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 8,
+          "user_hired_percent": 17,
+          "description": "Есть телеграм бот, онлайн тест нужен человек таргетолог который настроит рекламу на тг бота ИИ-эндокринолога ",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 39,
+          "limit": 12,
+          "pages": 4
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 2719
+    },
+    {
+      "query": "телеграм бот",
+      "filters": {},
+      "status": "ok",
+      "count": 59,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3212972,
+          "title": "Настроить рекламу для телеграм бота",
+          "price": 5000,
+          "offers": 9,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 8,
+          "user_hired_percent": 17,
+          "description": "Есть телеграм бот, онлайн тест нужен человек таргетолог который настроит рекламу на тг бота ИИ-эндокринолога ",
+          "skills": []
+        },
+        {
+          "id": 3211971,
+          "title": "Создание Телеграмм бота",
+          "price": 40000,
+          "offers": 139,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 120000,
+          "user_projects_count": 3,
+          "user_hired_percent": 0,
+          "description": "Техническое задание:<br>Суть проекта : Создать телеграмм бота, который будет показывать наличие топлива на заправках города и городов<br>1. Необходимо создать телеграмм бота<br>2. Необходимо создать парсер информации, который будет брать информацию с официальных сайтов компаний, и подгружать в телеграмм, тем самым отображая реальное наличие топлива и его виды в телеграмме<br>3. Настроить телеграмм бота на систему подписок ",
+          "skills": []
+        },
+        {
+          "id": 3211504,
+          "title": "Нужен Telegram CRM bot",
+          "price": 1000,
+          "offers": 23,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 3000,
+          "user_projects_count": 417,
+          "user_hired_percent": 37,
+          "description": "Telegram CRM-системы<br>&mdash; учет клиентов и заявок<br>&mdash; управление сотрудниками (управление доступами для сотрудников)<br>&mdash; Поиск по датам, словам, номерам телефонов<br>&mdash; напоминания и автоматические уведомления<br>&mdash; работа через простой интерфейс прямо в боте<br>&mdash; удобный интерфейс как в приложении<br>&mdash; оформление заказов и услуг<br>&mdash; личные кабинеты пользователей<br>&mdash; распределение задач<br>Бо",
+          "skills": []
+        },
+        {
+          "id": 3213647,
+          "title": "Телеграм юзер бот",
+          "price": 2500,
+          "offers": 13,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 7500,
+          "user_projects_count": 322,
+          "user_hired_percent": 63,
+          "description": "Срочно требуется разработать юзер бота именно котторый связан с Ии и может овтечать людям входит в группы и ссылки и читать сообщение и при необходимости совпадение слов писать сообщение. Нужен продвинутый который может капчу пройти",
+          "skills": []
+        },
+        {
+          "id": 3213361,
+          "title": "Собрать ТГ бота на Leadtex по готовому сценарию",
+          "price": 1000,
+          "offers": 12,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": false,
+          "possible_price_limit": 1000,
+          "user_projects_count": 3,
+          "user_hired_percent": 100,
+          "description": "Что предоставляется:<br> &bull; доступ к Leadtex;<br> &bull; готовый сценарий воронки;<br> &bull; тексты сообщений;;<br> &bull; ссылки;<br> &bull; логика работы бота.<br>1) Что нужно сделать:<br>Собрать структуру бота<br>Создать стартовый экран, главное меню, все ветки сценария, сообщения, кнопки и переходы между блоками.<br>2) Загрузить материалы<br>Добавить в бот все предоставленные материалы: тексты, изображения, PDF-файлы, ссылки и уроки.<br>",
+          "skills": []
+        },
+        {
+          "id": 3212735,
+          "title": "Нужен Парсинг бот в тг",
+          "price": 5000,
+          "offers": 64,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 81,
+          "user_hired_percent": 30,
+          "description": "Нужен парсинг бот, который будет ключевым словам по всему тг искать интересные слова   которые похожие на мою  услугу. Жду подходящих предложений",
+          "skills": []
+        },
+        {
+          "id": 3213162,
+          "title": "Тестирование ботов и срм",
+          "price": 500,
+          "offers": 14,
+          "category_id": 81,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 1500,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Тестирование ботов, срм, откатка и помощь в кодинге. На длительный период. Оплата ща разные блоки работ зависит от конкретной задачи.",
+          "skills": []
+        },
+        {
+          "id": 3212981,
+          "title": "Вывод бота в топ телег",
+          "price": 5000,
+          "offers": 2,
+          "category_id": 273,
+          "parent_category_id": 17,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 15,
+          "user_hired_percent": 0,
+          "description": "Добрый день! Необходимо вывести бота в топ по ключевым запросам: &quot;доставка из Китая&quot;, &quot;карго из Китая&quot;, &quot;посылки из Китая&quot; ну или любой другой релевантный запрос. Бот прокладку можем сами подготовить. Напишите, пожалуйста, сроки исходя из опыта и стоимость.",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 59,
+          "limit": 12,
+          "pages": 5
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 480
+    },
+    {
+      "query": "бот",
+      "filters": {},
+      "status": "ok",
+      "count": 29,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3212735,
+          "title": "Нужен Парсинг бот в тг",
+          "price": 5000,
+          "offers": 64,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 81,
+          "user_hired_percent": 30,
+          "description": "Нужен парсинг бот, который будет ключевым словам по всему тг искать интересные слова   которые похожие на мою  услугу. Жду подходящих предложений",
+          "skills": []
+        },
+        {
+          "id": 3213162,
+          "title": "Тестирование ботов и срм",
+          "price": 500,
+          "offers": 14,
+          "category_id": 81,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 1500,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Тестирование ботов, срм, откатка и помощь в кодинге. На длительный период. Оплата ща разные блоки работ зависит от конкретной задачи.",
+          "skills": []
+        },
+        {
+          "id": 3213361,
+          "title": "Собрать ТГ бота на Leadtex по готовому сценарию",
+          "price": 1000,
+          "offers": 12,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": false,
+          "possible_price_limit": 1000,
+          "user_projects_count": 3,
+          "user_hired_percent": 100,
+          "description": "Что предоставляется:<br> &bull; доступ к Leadtex;<br> &bull; готовый сценарий воронки;<br> &bull; тексты сообщений;;<br> &bull; ссылки;<br> &bull; логика работы бота.<br>1) Что нужно сделать:<br>Собрать структуру бота<br>Создать стартовый экран, главное меню, все ветки сценария, сообщения, кнопки и переходы между блоками.<br>2) Загрузить материалы<br>Добавить в бот все предоставленные материалы: тексты, изображения, PDF-файлы, ссылки и уроки.<br>",
+          "skills": []
+        },
+        {
+          "id": 3212981,
+          "title": "Вывод бота в топ телег",
+          "price": 5000,
+          "offers": 2,
+          "category_id": 273,
+          "parent_category_id": 17,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 15,
+          "user_hired_percent": 0,
+          "description": "Добрый день! Необходимо вывести бота в топ по ключевым запросам: &quot;доставка из Китая&quot;, &quot;карго из Китая&quot;, &quot;посылки из Китая&quot; ну или любой другой релевантный запрос. Бот прокладку можем сами подготовить. Напишите, пожалуйста, сроки исходя из опыта и стоимость.",
+          "skills": []
+        },
+        {
+          "id": 3212972,
+          "title": "Настроить рекламу для телеграм бота",
+          "price": 5000,
+          "offers": 9,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 8,
+          "user_hired_percent": 17,
+          "description": "Есть телеграм бот, онлайн тест нужен человек таргетолог который настроит рекламу на тг бота ИИ-эндокринолога ",
+          "skills": []
+        },
+        {
+          "id": 3213647,
+          "title": "Телеграм юзер бот",
+          "price": 2500,
+          "offers": 13,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 7500,
+          "user_projects_count": 322,
+          "user_hired_percent": 63,
+          "description": "Срочно требуется разработать юзер бота именно котторый связан с Ии и может овтечать людям входит в группы и ссылки и читать сообщение и при необходимости совпадение слов писать сообщение. Нужен продвинутый который может капчу пройти",
+          "skills": []
+        },
+        {
+          "id": 3211971,
+          "title": "Создание Телеграмм бота",
+          "price": 40000,
+          "offers": 139,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 120000,
+          "user_projects_count": 3,
+          "user_hired_percent": 0,
+          "description": "Техническое задание:<br>Суть проекта : Создать телеграмм бота, который будет показывать наличие топлива на заправках города и городов<br>1. Необходимо создать телеграмм бота<br>2. Необходимо создать парсер информации, который будет брать информацию с официальных сайтов компаний, и подгружать в телеграмм, тем самым отображая реальное наличие топлива и его виды в телеграмме<br>3. Настроить телеграмм бота на систему подписок ",
+          "skills": []
+        },
+        {
+          "id": 3204600,
+          "title": "Вывести канал в ТОП поиска малоизвестной тематике",
+          "price": 30000,
+          "offers": 2,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "Задача: вывести Telegram канал или бота  в ТОП поиска Telegram по целевому запросу и удержать позиции не менее 30 дней.<br>Требования к результату:<br>&bull; Бот должен находиться в ТОПе по согласованному ключевому запросу.<br>&bull; Позиции должны сохраняться минимум 1 месяц после завершения работ.<br>&bull; Опыт вывода ботов или каналов в поиск Telegram.<br>При отклике обязательно укажите:<br>1. Какой метод продвижения планируете использовать.<",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 29,
+          "limit": 12,
+          "pages": 3
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 505
+    },
+    {
+      "query": "автоматизация",
+      "filters": {},
+      "status": "ok",
+      "count": 19,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3213203,
+          "title": "Автоматизация комментариев",
+          "price": 3000,
+          "offers": 21,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 9000,
+          "user_projects_count": 35,
+          "user_hired_percent": 29,
+          "description": "Нужно сделать автоматизацию комментариев + подкомментариев. <br>Берутся куки, оставляется комментарий, одновременно под этим комментарием нужно оставить от 5-10 подкомментариев по моему запросу. <br>Доступ управления обязательно через бота в тг, закинул ссылку &gt; оставился нужный мне комментарий( рандомно чтобы было) моментально оставились под этим комментом, другие подкоменты.",
+          "skills": []
+        },
+        {
+          "id": 3213205,
+          "title": "Настроить в sendpulse на WA архитектуру автоматизации",
+          "price": 10000,
+          "offers": 13,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 30000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Архитектура автоматизации Clubrent<br>Источник данных &mdash; Beds24. Система бронирования автоматически сообщает о каждом заезде за день до даты check-in (по одной брони &mdash; одно уведомление).<br>Обработка &mdash; Make. Принимает данные брони, проверяет, что бронь подтверждена и заезд завтра, и определяет язык гостя (ES/EN/RU/UK).<br>Отправка &mdash; SendPulse WhatsApp. По языку гостя отправляется приветственное сообщение pre_checkin, затем ",
+          "skills": []
+        },
+        {
+          "id": 3212993,
+          "title": "Настрить под ключ AI-агента для соц.сетей.Автоматизация",
+          "price": 15000,
+          "offers": 14,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 45000,
+          "user_projects_count": 18,
+          "user_hired_percent": 44,
+          "description": "Мне нужен специалист по автоматизации, который настроит связку из готовых сервисов для создания полноценной системы (AI-агента) под мои задачи. Система должна работать по принципу &laquo;загрузил видео &mdash; получил готовые короткие видео, публикации и обработанных лидов&raquo;.<br>Что должно быть сделано:<br>Настроить авто нарезку длинных видео на короткие ролики с субтитрами (ч/з сервис AI-нарезки).<br>Настроить авто публикацию готовых коротк",
+          "skills": []
+        },
+        {
+          "id": 3047634,
+          "title": "Первый этап проекта: концепция и прототипирование",
+          "price": 500,
+          "offers": 1,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": false,
+          "possible_price_limit": 500,
+          "user_projects_count": 5,
+          "user_hired_percent": 50,
+          "description": "На данном этапе проводится быстрое изучение сообщества с целью определить логику первого шага взаимодействия с пользователем (&laquo;ВК-витрина&raquo;). Структура и общий подход к визуальной подаче и автоматизации.<br>В рамках этапа:<br>&ndash; мини-аудит текущего состояния сообщества (сильные и слабые стороны, отвлекающие элементы, зоны, которые можно скрыть или упростить);<br>&ndash; предложение простой и понятной логики первого шага продвижени",
+          "skills": []
+        },
+        {
+          "id": 3212653,
+          "title": "Внедрить AmoCRM + МойСклад",
+          "price": 35000,
+          "offers": 17,
+          "category_id": 81,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 105000,
+          "user_projects_count": 29,
+          "user_hired_percent": 24,
+          "description": "Компания в сфере интерьерного декора. Нужно внедрить AmoCRM для менеджеров-декораторов и МойСклад для логиста-закупщика. Работа по готовому ТЗ: воронки, поля, автоматизации и интеграции согласованы &mdash; нужно настроить и протестировать.<br>Нужно сделать<br>AmoCRM<br>Настройка аккаунта с нуля4-5 воронок продаж<br>Обязательные поля карточек<br>Права доступа для 5 ролей<br>Каналы коммуникации<br>WhatsApp WABA &mdash; переписки привязаны к сделке<",
+          "skills": []
+        },
+        {
+          "id": 3212902,
+          "title": "Создание ПО для игры",
+          "price": 50000,
+          "offers": 11,
+          "category_id": 40,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 150000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "В поисках инженера-программиста<br>Мы ищем специалиста, который готов погрузиться в мир обратной инженерии, разработки инжект-лаунчеров для игр и анализа сетевых пакетов. Ты умеешь искать уязвимости? Возможно пригодится опыт в cheat engine.<br>Твои задачи:<br>Разработка инжект-лаунчера для игры<br>Проведение обратной инженерии игровых компонентов<br>Анализ и обработка сетевых пакетов<br>Автоматизация процессов взаимодействия клиента с сайтом игры",
+          "skills": []
+        },
+        {
+          "id": 3213549,
+          "title": "Bitrix24 настройка системы управления продуктом",
+          "price": 25000,
+          "offers": 4,
+          "category_id": 81,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 75000,
+          "user_projects_count": 32,
+          "user_hired_percent": 36,
+          "description": "Нужен интегратор, который доведёт систему до рабочего состояния &mdash; по готовому детальному ТЗ.<br>У нас есть чёткая схема жизненного цикла нового продукта &mdash; от идеи до запуска партии. 5 этапов, несколько участников, логистические переходы между этапами, циклы итераций. Всё это сейчас живёт в головах и чатах.<br>Нужно перенести это в Bitrix24: настроить проект с задачами, зависимостями, диаграммой Ганта и дашбордом для руководителя &mdas",
+          "skills": []
+        },
+        {
+          "id": 3027955,
+          "title": "Упаковка,контентная стратегия и продакт-менеджмент в ВК",
+          "price": 9000,
+          "offers": 2,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 27000,
+          "user_projects_count": 5,
+          "user_hired_percent": 50,
+          "description": "Упаковка и подготовка сообщества под проект, создание визуальной и смысловой части, формирование логики взаимодействия пользователя с сообществом и разработкой всей структуры воронки. Работа выполняется в единой стилистике согласованной с заказчиком.<br>Работа включает:<br>&bull; аудит текущего состояния и выстраивание логики продвижения;   <br>&bull; разработка структуры услуг и меню с пошаговым описанием;                                        ",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 19,
+          "limit": 12,
+          "pages": 2
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 748
+    },
+    {
+      "query": "python",
+      "filters": {},
+      "status": "ok",
+      "count": 5,
+      "sample_count": 5,
+      "sample": [
+        {
+          "id": 3213259,
+          "title": "Автообработка аудио продаж: Whisper + Claude в дашборд",
+          "price": 4000,
+          "offers": 22,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": false,
+          "possible_price_limit": 4000,
+          "user_projects_count": 2,
+          "user_hired_percent": 0,
+          "description": "Нужен скрипт на Python для автоматической обработки аудиозаписей продаж с диктофона Edic-mini Tiny. Продавец записывает диалоги с клиентами, файлы выгружаются на корпоративный Яндекс Диск. Скрипт должен:<br>1. Отслеживать появление новых аудиофайлов в указанной папке на Яндекс Диске.<br>2. Превращать аудио в текст (транскрибация) через OpenAI Whisper API<br>3. Анализировать текст через Claude по нашем готовом шаблонам (методике продаж) &mdash; оц",
+          "skills": []
+        },
+        {
+          "id": 3212321,
+          "title": "Разработка скрипта для анализа футбольного матча",
+          "price": 10000,
+          "offers": 27,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": false,
+          "possible_price_limit": 10000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Разработка скрипта для анализа футбольного матча (нарезка моментов + стат-ка игровых действий)<br>полное ТЗ приложено файлом (прошу изучить)<br>Нужен скрипт на Python для автоматической обработки футбольных матчей. На вход подается видео файл. На выходе &mdash; персональная нарезка действий конкретного игрока и статистика его передач.<br>Функциональные требования:<br>Идентификация игрока. <br>Нарезка моментов с игроком.  Все клипы сохраняются в о",
+          "skills": []
+        },
+        {
+          "id": 3209739,
+          "title": "Донастройка AmoCRM + оптимизация интеграции SaleBot",
+          "price": 11000,
+          "offers": 6,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 33000,
+          "user_projects_count": 8,
+          "user_hired_percent": 50,
+          "description": "1) Интеграция AMO через мост (коннектор - Сейлбот) уже выполнена<br>&bull; помочь определить кол-во пользователей по бизнес‑логике, подключить аккаунты,<br>настроить роли / доступы)<br>&bull;помочь улучшить этапы, комментарии, поля, причины отказа, задачи и теги (наработки есть)<br>2) Обучение работе с AMO (запись экрана на созвоне)<br>3) Внедрение базовой аналитики для фаундера, маркетологов и напоминание для продажников плана продаж<br>4) Перен",
+          "skills": []
+        },
+        {
+          "id": 3212334,
+          "title": "Фронт правки, доработки по сайту",
+          "price": 5000,
+          "offers": 86,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Несложные фронт правки по списку (ТЗ).<br>Изменить текст, добавить картинки, изменить блок, добавить блок и др. <br>Есть несколько сайтов, можем поработать сразу по всем. <br>Стек языков: HTML, CSS, JavaScript, jQuery, Bootstrap.<br>Хорошо если есть знание и этих языков: PHP, MySQL, Python, WordPress. ",
+          "skills": []
+        },
+        {
+          "id": 3213275,
+          "title": "Провести интеграцию между 1С клиента и нашим back-end",
+          "price": 1500,
+          "offers": 14,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 4500,
+          "user_projects_count": 3,
+          "user_hired_percent": 50,
+          "description": "Провести интеграцию между 1С клиента и нашим back-end (api)<br>Язык разработки: PHP, Python<br>База данных: PostgresSQL<br>Ставка 1500 руб/час",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 5,
+          "limit": 12,
+          "pages": 1
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 584
+    },
+    {
+      "query": "сайт",
+      "filters": {},
+      "status": "ok",
+      "count": 100,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3213440,
+          "title": "Разработка сайта на WordPress",
+          "price": 60000,
+          "offers": 50,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 180000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Ищу опытного WordPress-разработчика для создания современного сайта компании по продаже противопожарных дверей.<br>Наш текущий сайт морально устарел<br>---<br>Что необходимо сделать:<br>Разработать сайт на WordPress, взяв за основу сайт конкурента (ссылки отправлю в лс)<br>Необходимо реализовать аналогичную структуру, функционал и внешний вид.<br>Разработка нового дизайна не требуется.<br>Мы используем существующий сайт как референс.<br>Весь конт",
+          "skills": []
+        },
+        {
+          "id": 3212691,
+          "title": "Сделать копию сайта",
+          "price": 5000,
+          "offers": 42,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 124,
+          "user_hired_percent": 60,
+          "description": "Добрый день<br>Мне нужно перенести мой сайт artiant.ru на другую платформу.<br>Скорее все лучше Wordpress с версткой на Элементоре, чтобы можно было легко вносить изменения.<br>Откликайтесь только с отзывами, пожалуйста.",
+          "skills": []
+        },
+        {
+          "id": 3206832,
+          "title": "Коммуникация с сайтами",
+          "price": 500,
+          "offers": 0,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": false,
+          "possible_price_limit": 500,
+          "user_projects_count": 499,
+          "user_hired_percent": 67,
+          "description": "Отправить информацию о проекте через формы обратной связи минимум на 100 сайтах<br>Зафиксировать результат в таблице<br>Немного о нас<br>Мы передовая социальная сеть, доступная в App Store и Google Play<br>Также у нас 741 000 подписчиков на YouTube<br>Сейчас мы активно ищем стратегических бизнес-партнеров и расширяем международное присутствие 😊<br>Буду очень рада видеть вас в команде ❤",
+          "skills": []
+        },
+        {
+          "id": 2798882,
+          "title": "Оформление разделов на сайте wordpress",
+          "price": 500,
+          "offers": 4,
+          "category_id": 24,
+          "parent_category_id": 15,
+          "allow_higher_price": false,
+          "possible_price_limit": 500,
+          "user_projects_count": 140,
+          "user_hired_percent": 47,
+          "description": "Продвинутый пользователь wordpress, дизаин<br>Требуется оформление разделов на сайте wordpress.<br>Навыки дизаина, вырезать-встроить.<br>Ознакомиться с админ-частью wordpress(опыт наполнения других сайтов приветсвуется).<br>1 Раздел 500р. Суммарный объем 50+ разделов<br>На постоянную основу",
+          "skills": []
+        },
+        {
+          "id": 3212053,
+          "title": "Разработка Сайта",
+          "price": 45000,
+          "offers": 124,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 135000,
+          "user_projects_count": 24,
+          "user_hired_percent": 18,
+          "description": "Добрый день<br>Интересует разработка сайт каталога товаров <br>https://ms-line.pro/ <br>Сайт для btb продаж с корзиной и функционалом как пример <br>Карточка товара динамическая , все материалы ( изображение будут предоставлены )",
+          "skills": []
+        },
+        {
+          "id": 702238,
+          "title": "Комплексное продвижение сайта",
+          "price": 30000,
+          "offers": 2,
+          "category_id": 43,
+          "parent_category_id": 17,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 25,
+          "user_hired_percent": 53,
+          "description": "Необходимо продвижение сайта для компании mramorov. Предложения рассматриваются только с комментариями по сайту( аудит делать не нужно) кратко по делу несколько слов. Если Вы просите ссылку на сайт, сразу нет.",
+          "skills": []
+        },
+        {
+          "id": 3213517,
+          "title": "Разработать сайт для маркетингового агентства на Tilda",
+          "price": 1000,
+          "offers": 23,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 3000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Ищем опытного и ответственного веб-дизайнера / разработчика на Tilda для создания современного сайта для нашего маркетингового агентства.<br>Нам нужен стильный, минималистичный и конвертящий digital-продукт, который будет вызывать доверие у крупного бизнеса и подчеркивать нашу экспертность. Шаблонные решения не интересуют, приветствуется грамотная работа с Zero Block и аккуратная анимация.",
+          "skills": []
+        },
+        {
+          "id": 3213071,
+          "title": "Генерация html сайтов",
+          "price": 40000,
+          "offers": 101,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 120000,
+          "user_projects_count": 25,
+          "user_hired_percent": 31,
+          "description": "В поисках человека на постоянную работу по генерации html сайтов на разных языках.<br>Основные требования - минимальные знания html и seo. Генерация будет проходить двумя инструментами lovable.dev и chatgp.  <br>Не менее 2 сайтов в день. <br>Исполнитель должен знать что такое titile,description и метатеги, составлять грамотно список ключевых слов, уметь работать с ai и промтами, проявлять креативность.",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 100,
+          "limit": 12,
+          "pages": 9
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 401
+    },
+    {
+      "query": "доработка сайта",
+      "filters": {},
+      "status": "ok",
+      "count": 100,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3165725,
+          "title": "Доработка сайта на October CMS",
+          "price": 30000,
+          "offers": 15,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 44,
+          "user_hired_percent": 50,
+          "description": "Ищу разработчика для доработки сайта на October CMS (americanbutler.ru)<br>Сайт уже работает, но реализован нестабильно и требует системной переработки.<br>Основные проблемы:<br>&mdash; &ldquo;плавающая&rdquo; верстка<br>&mdash; часть страниц грузится через клики/тапы (плохо для SEO/UX)<br>&mdash; архитектура на &ldquo;костылях&rdquo;<br>&mdash; не совсем удобная админка<br>&mdash; есть технические проблемы, влияющие на SEO<br>Что нужно:<br>&mdas",
+          "skills": []
+        },
+        {
+          "id": 2928053,
+          "title": "Доработка сайта на вордпресс для агенства недвижимоасти",
+          "price": 55000,
+          "offers": 19,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 165000,
+          "user_projects_count": 56,
+          "user_hired_percent": 43,
+          "description": "Нужно доработать сайт по шаблону который я предоставлю , нужно в совершенстве разбираться в ворд пресс для то го чтобы легко дороботать сайт , это что касаеться визуально <br>2 часть подготовить и настроить сайт к работе  и заполнения сайта проектами и информвацией которую я предоставлю <br>3 ведения сайта вывод сайта в топ. работа как с яндекс так и с гугл поисковиками <br>нужен специалист с опытом разроботки и ведения сайтов недвижимости только",
+          "skills": []
+        },
+        {
+          "id": 3212319,
+          "title": "Добработка сайта на MODX",
+          "price": 30000,
+          "offers": 35,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 23,
+          "user_hired_percent": 43,
+          "description": "Требуется разработчик MODX для технических доработок сайта по рекомендациям SEO-специалистов.<br>Что нужно делать:<br>Вносить технические рекомендации SEO-специалистов.<br>Выполнять доработки шаблонов и функционала сайта на MODX.<br>Исправлять технические ошибки, влияющие на индексацию и производительность.<br>Настраивать:<br>метатеги;<br>микроразметку;<br>канонические URL;<br>редиректы;<br>robots.txt;<br>sitemap.xml;<br>пагинацию;<br>хлебные кро",
+          "skills": []
+        },
+        {
+          "id": 3213262,
+          "title": "Доработка сайта, добавить страницы с описанием",
+          "price": 30000,
+          "offers": 61,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 22,
+          "user_hired_percent": 53,
+          "description": "В данном разделе сайта https://mangostroy.ru/krovelnye-raboty/ переделать текст страницы на более общий и создать подразделы с более детальным описанием каждого вида кровельных работ.<br>Добавить подразделы с описанием и фотографиями(текст и фото предоставлю, но его необходимо изменить через ИИ)<br>Монтаж мембранной кровли<br>Монтаж мягкой кровли<br>Монтаж наплавляемой кровли<br>Монтаж плоской кровли<br>Монтаж металлочерепицы<br>Монтаж фальцевой ",
+          "skills": []
+        },
+        {
+          "id": 3212577,
+          "title": "Доработка сайта на яндекс кит",
+          "price": 10000,
+          "offers": 12,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": false,
+          "possible_price_limit": 10000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Подробное ТЗ: https://docs.google.com/document/d/1Q6rShid5F9iMNvp-9IIw9a9mDSHD9_acXK1qEam5rdU/edit?usp=sharing<br>На сайте уже есть все товары, которые нужно оставить. Они имеют приоритет 1 в каталоге (рис 1), все лишние имеют приоритет 50. Нужно чтобы:<br>подтягивались актуальные остатки на эти товары из СРМ<br>при парсинге остатков не добавлялись другие товары и категории товаров (рис 2) из СРМ и вообще никакая информация, кроме остатков на опу",
+          "skills": []
+        },
+        {
+          "id": 3213102,
+          "title": "Доработать сайт (форум)",
+          "price": 10000,
+          "offers": 25,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 30000,
+          "user_projects_count": 9,
+          "user_hired_percent": 100,
+          "description": "Сайт justtime.ru а именно форум на нем. Раньше очень хорошо индексировался в поисковиках без доп затрат. Сам иногда искал в интернете ответ на какой нибудь юридический вопрос и находил его в итоге на своем же форуме. Последнее время он совсем не показывается и не индексируется, хотя ничего не поменялось, а эксклюзивных тем и вопросов на форуме очень много и собирались они долгие годы. Интересно что бы специалист посмотрел что вдруг стало не так и",
+          "skills": []
+        },
+        {
+          "id": 3213521,
+          "title": "Доработка веб-дизайна в формате HTML",
+          "price": 5000,
+          "offers": 25,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 61,
+          "user_hired_percent": 60,
+          "description": "Требуется доработать существующий веб-дизайн в HTML и привести его к уровню и визуальной стилистике Apple.<br>Необходимо:<br>&mdash; адаптировать дизайн под мобильные устройства и планшеты;<br>&mdash; убрать лишние тени, градиенты и другие визуальные элементы, перегружающие интерфейс;<br>&mdash; переработать типографику в стиле Apple;<br>&mdash; обновить иконки, сделав их более минималистичными и соответствующими общей концепции;<br>&mdash; перер",
+          "skills": []
+        },
+        {
+          "id": 3212520,
+          "title": "Доработка CRM: AI-скрипты, рекомендации лидов, звонки",
+          "price": 5000,
+          "offers": 11,
+          "category_id": 38,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 6,
+          "user_hired_percent": 0,
+          "description": "Нужно доработать самописную CRM на чистом PHP для сайта Belstanok.<br>.<br>Задача: добавить в таблицу лидов новые колонки с AI-скриптами для клиента/поставщика, блок &laquo;Кому предложить товар&raquo; в карточке товара, а также подготовить интеграцию AI-логики на основе данных из CRM.<br>Важно сделать простую и удобную реализацию без перегруза интерфейса: кнопки, копирование готового скрипта, поле дополнительного контекста, рекомендации по лидам",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 100,
+          "limit": 12,
+          "pages": 9
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 441
+    },
+    {
+      "query": "bitrix",
+      "filters": {},
+      "status": "ok",
+      "count": 3,
+      "sample_count": 3,
+      "sample": [
+        {
+          "id": 3213438,
+          "title": "Битрикс 24 BI конструктор помощь с созданием отчётов",
+          "price": 2000,
+          "offers": 5,
+          "category_id": 41,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 6000,
+          "user_projects_count": 10,
+          "user_hired_percent": 0,
+          "description": "Формируем отчёт в битриксе 24 в BI конструкторе, столкнулись с проблемой вывода нужных данных и переноса дополнительных данных из других источников. <br>Нужен человек который либо подскажет как сделать или сделает за нас",
+          "skills": []
+        },
+        {
+          "id": 3117473,
+          "title": "Bitrix24 тех поддержка портала на 1 месяц",
+          "price": 15000,
+          "offers": 0,
+          "category_id": 81,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 45000,
+          "user_projects_count": 102,
+          "user_hired_percent": 37,
+          "description": "Bitrix24 тех поддержка портала на 1 месяц <br>Нужен специалист для поддержки CRM Bitrix24 Облако на период 1 месяц.<br>С опытом ведения компаний типа БФЛ<br>звонки, бизнес процессы, интеграции c мессенджерами и т.д.<br>Задачи:<br>Подержание работоспособности CRM системы до 20 пользователей<br>Требования:<br>Опыт работы с Bitrix24 от 2 лет в компаниях типа БФЛ, <br>звонки, бизнес процессы, интеграции c мессенджерами и т.д.<br>Быстрое реагирование ",
+          "skills": []
+        },
+        {
+          "id": 3212350,
+          "title": "Техническое сопровождение Bitrix и телефонии",
+          "price": 30000,
+          "offers": 22,
+          "category_id": 81,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 4,
+          "user_hired_percent": 0,
+          "description": "Ищем специалиста на постоянное поддержание технических вопросов в компании. Занятость 1-2 часа максимум в день, но нужна высокая оперативность в решении технических вопросов и контроля исправности CRm системы и телефонии",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 3,
+          "limit": 12,
+          "pages": 1
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 319
+    },
+    {
+      "query": "wordpress",
+      "filters": {},
+      "status": "ok",
+      "count": 26,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3212747,
+          "title": "Настроить reverse proxy для WordPress и Tilda",
+          "price": 10000,
+          "offers": 20,
+          "category_id": 255,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 30000,
+          "user_projects_count": 29,
+          "user_hired_percent": 56,
+          "description": "Если совсем коротко: нам нужно данные на сайт пускать через reverse-proxy, что 2 CMS использовать (и Tilda и Wordpress), но домен оставался один и не вводился субдомен или второй сайт. Этот прокси нужно сделать и куда то запихнуть, вероятно в Яндекс Клауд (у нас мошности). <br>Чуть подробнее: мы статьи на сайт вкладываем через Tilda и они попадают в блог - страница с карточками статей, но там почти кончился лимит на страницы. Теперь хотим страниц",
+          "skills": []
+        },
+        {
+          "id": 3213440,
+          "title": "Разработка сайта на WordPress",
+          "price": 60000,
+          "offers": 50,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 180000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Ищу опытного WordPress-разработчика для создания современного сайта компании по продаже противопожарных дверей.<br>Наш текущий сайт морально устарел<br>---<br>Что необходимо сделать:<br>Разработать сайт на WordPress, взяв за основу сайт конкурента (ссылки отправлю в лс)<br>Необходимо реализовать аналогичную структуру, функционал и внешний вид.<br>Разработка нового дизайна не требуется.<br>Мы используем существующий сайт как референс.<br>Весь конт",
+          "skills": []
+        },
+        {
+          "id": 2798882,
+          "title": "Оформление разделов на сайте wordpress",
+          "price": 500,
+          "offers": 4,
+          "category_id": 24,
+          "parent_category_id": 15,
+          "allow_higher_price": false,
+          "possible_price_limit": 500,
+          "user_projects_count": 140,
+          "user_hired_percent": 47,
+          "description": "Продвинутый пользователь wordpress, дизаин<br>Требуется оформление разделов на сайте wordpress.<br>Навыки дизаина, вырезать-встроить.<br>Ознакомиться с админ-частью wordpress(опыт наполнения других сайтов приветсвуется).<br>1 Раздел 500р. Суммарный объем 50+ разделов<br>На постоянную основу",
+          "skills": []
+        },
+        {
+          "id": 3199486,
+          "title": "Медицинский сайт на Wordpress",
+          "price": 3000,
+          "offers": 15,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 9000,
+          "user_projects_count": 417,
+          "user_hired_percent": 37,
+          "description": "Нужен сайт на вордпресс <br>с медицинской тематикой<br>Главная страница<br>Услуги (Каталог услуг)<br>Новости (Каталог новостей)<br>Вопрос ответ (каталог)<br>Настроить основные модули в т.ч. сео, мультиязычность и т.д.<br>Видео странички для видео загруженных на ютуб.<br>Контакты и другие основные страницы. <br>Адаптация под моб версию и планшеты и все браузеры.<br>Никаких конструкторов. чистый вордпресс!<br>Наполнение сайта буду делать сам. Главн",
+          "skills": []
+        },
+        {
+          "id": 3067386,
+          "title": "Ведение блога Wordpress",
+          "price": 500,
+          "offers": 1,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": false,
+          "possible_price_limit": 500,
+          "user_projects_count": 140,
+          "user_hired_percent": 47,
+          "description": "Игровая тематика, игры онлайн<br>Навыки фотошопа<br>Желателен опыт работы в wordpress<br>-Если опыта нет, разобраться,<br>500р, В кворк входит работа с 1 разделом, 100-150 карточек. Для регулярного сотрудничества свободный график 4000-месяц~ вести можно когда удобно",
+          "skills": []
+        },
+        {
+          "id": 3208623,
+          "title": "Новый сайт на WordPress",
+          "price": 4000,
+          "offers": 14,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 12000,
+          "user_projects_count": 417,
+          "user_hired_percent": 37,
+          "description": "Нужен сайт по бухгалтерии на вордпресс<br>Дизайн возьмем с другого сайта <br>Пример вот такой как в приложении<br>Главная страница, каталог услуг, Услуги, Каталог и сами Вопрос-ответ, + новости и также, <br>Отзывы, Контакты, SEO, мультиязычность, мультирегиональность, страница с видео с Ютуб,  страница Цены, Тарифы, и другие основные блоки для сайта.<br>Пример сайта buxgalteria.  uz<br>Никаких конструкторов!!! чистый код",
+          "skills": []
+        },
+        {
+          "id": 3212291,
+          "title": "SEO-сайт на WordPress (аналог eco-service.kz)",
+          "price": 50000,
+          "offers": 36,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 150000,
+          "user_projects_count": 2,
+          "user_hired_percent": 0,
+          "description": "Цель: создание SEO-сайта для привлечения заявок по ремонту техники с масштабируемой структурой.<br>Структура: страницы формируются по связке Город + Категория техники + Бренд, например:<br>/stiralnye-mashiny/<br>/stiralnye-mashiny/bosch/<br>/almaty/stiralnye-mashiny/bosch/<br>(папки или поддомены &mdash; обсуждается).<br>Требования:<br>WordPress на Astra/GeneratePress/Hello Elementor (без тяжелых тем).<br>Elementor Pro только для динамических шаб",
+          "skills": []
+        },
+        {
+          "id": 3212289,
+          "title": "Разработка SEO-сайта на WordPress",
+          "price": 70000,
+          "offers": 24,
+          "category_id": 37,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 200000,
+          "user_projects_count": 2,
+          "user_hired_percent": 0,
+          "description": "Приветствую!<br>Ищу опытного WordPress-разработчика для создания сайта-лидогенератора сервисного центра по ремонту бытовой и цифровой техники. За основу &mdash; структура eco-service. kz<br>Необходимо:<br>Развернуть WordPress на легкой теме (Astra/Hello Elementor или Gutenberg) с высокой скоростью (80+ Google PageSpeed Mobile).<br>Настроить мультирегиональность на поддоменах (almaty. site. kz, astana. site. kz и др.) с динамической заменой города",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 26,
+          "limit": 12,
+          "pages": 3
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 426
+    }
+  ],
+  "low_offer_queries": [
+    {
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 17,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3203050,
+          "title": "Массовые отметки пользователей в Telegram Stories",
+          "price": 30000,
+          "offers": 2,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "Есть готовые Stories и база пользователей для отметок. Требуется исполнитель, который сможет качественно и в срок выполнить массовые отметки пользователей в Telegram.<br>Объём работы:<br>&mdash; Около 10 000 отметок по готовой базе;<br>&mdash; Контент для публикации предоставляется;<br>&mdash; От исполнителя требуется только работа с отметками.<br>Требования:<br>&mdash; Опыт работы с Telegram Stories;<br>&mdash; Понимание ограничений и особенност",
+          "skills": []
+        },
+        {
+          "id": 3107236,
+          "title": "Привлечение покупателей в Telegram Mini App",
+          "price": 20000,
+          "offers": 0,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": true,
+          "possible_price_limit": 60000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "Ищу исполнителей для привлечения пользователей в Telegram Mini App.<br>Оплата только за целевое действие &mdash; пользователь должен совершить покупку внутри приложения.<br>❗ Важно:<br>&mdash; Платные рекламные каналы НЕ интересуют<br>&mdash; Интересует только УБТ (условно-бесплатный трафик)<br>&mdash; GEO: весь мир (все страны, где актуален Telegram)<br>&mdash; Объёмы: любые, готовы масштабироваться<br>Оплата за подтверждённую покупку.",
+          "skills": []
+        },
+        {
+          "id": 3203045,
+          "title": "Отметки пользователей в Telegram Stories",
+          "price": 33000,
+          "offers": 1,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 99000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "<br>Предоставляется база для отметок &mdash; около 10 000 пользователей.<br>Все материалы для публикации готовы и будут переданы исполнителю.<br>Требования:<br>&mdash; Опыт работы с упоминаниями<br>&mdash; Понимание лимитов и особенностей отметок пользователей в Telegram;<br>&mdash; Умение выполнять большой объём отметок без ошибок и пропусков;<br>&mdash; Соблюдение сроков выполнения.<br>Оплата:<br>&mdash; Рассматриваем стоимость от 3 рублей за о",
+          "skills": []
+        },
+        {
+          "id": 3190904,
+          "title": "Нужно создать 5-6 Telegram Stories с упоминанием",
+          "price": 23000,
+          "offers": 4,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 69000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": " <br>Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы <br>Создать 5-6 Telegram Stories и упомянуть людей из базы<br>Есть база для упоминания около 5&ndash;6 тысяч пользователей;<br>Материалы для работы предоставляются;<br>Нужен человек с опытом создания Telegram Stories и пониманием особенностей платформы.<br>В отклике просьба прислать:<br>Примеры выполненных работ;<br>Срок выполнения;<br>Стоимость за ве",
+          "skills": []
+        },
+        {
+          "id": 3202311,
+          "title": "Нужно создать 5&ndash;6 Telegram Stories с упоминанием",
+          "price": 30000,
+          "offers": 0,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 139,
+          "user_hired_percent": 37,
+          "description": "Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы.<br>Есть база для упоминания около 10к пользователей.<br>Материалы для работы предоставляются.<br>Нужен человек с опытом создания Telegram Stories и пониманием особенностей платформы.<br>Приемлемая цена: 3 рубля за одно упоминание и ниже.<br>В отклике просьба прислать:<br>Примеры выполненных работ;<br>Срок выполнения;<br>Стоимость за весь объём.",
+          "skills": []
+        },
+        {
+          "id": 3213124,
+          "title": "Рассылка в телеграм по мебели",
+          "price": 10000,
+          "offers": 5,
+          "category_id": 108,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 30000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Нужно разослать со своих телеграм аккаунтов по моей базе заготовленный оффер по изготовлению мебели и передать контакты заинтересованных. Оплата 500 рублей за квал. лид, объем сообщений можно делать неограниченный. Квалифицирует ОП с нашей стороны, передаю прозрачную статистику. Диалогов с клиентами вам вести не нужно, только первое сообщение и передавать контакты<br>Откликайтесь сразу с предложением сколько Вы лидов можете принести, сколько есть",
+          "skills": []
+        },
+        {
+          "id": 3204600,
+          "title": "Вывести канал в ТОП поиска малоизвестной тематике",
+          "price": 30000,
+          "offers": 2,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "Задача: вывести Telegram канал или бота  в ТОП поиска Telegram по целевому запросу и удержать позиции не менее 30 дней.<br>Требования к результату:<br>&bull; Бот должен находиться в ТОПе по согласованному ключевому запросу.<br>&bull; Позиции должны сохраняться минимум 1 месяц после завершения работ.<br>&bull; Опыт вывода ботов или каналов в поиск Telegram.<br>При отклике обязательно укажите:<br>1. Какой метод продвижения планируете использовать.<",
+          "skills": []
+        },
+        {
+          "id": 2739370,
+          "title": "Поиск информации, постинг",
+          "price": 500,
+          "offers": 5,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": false,
+          "possible_price_limit": 500,
+          "user_projects_count": 140,
+          "user_hired_percent": 47,
+          "description": "Нужен активный пользователь twitch, телеграм, telegram youtube, discord<br>Задача -распространение информации по каналам. Постинг 1 пост-сообщение.<br>График свободный.",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 17,
+          "limit": 12,
+          "pages": 2
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 708
+    },
+    {
+      "query": "телеграм бот",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 23,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3212981,
+          "title": "Вывод бота в топ телег",
+          "price": 5000,
+          "offers": 2,
+          "category_id": 273,
+          "parent_category_id": 17,
+          "allow_higher_price": true,
+          "possible_price_limit": 15000,
+          "user_projects_count": 15,
+          "user_hired_percent": 0,
+          "description": "Добрый день! Необходимо вывести бота в топ по ключевым запросам: &quot;доставка из Китая&quot;, &quot;карго из Китая&quot;, &quot;посылки из Китая&quot; ну или любой другой релевантный запрос. Бот прокладку можем сами подготовить. Напишите, пожалуйста, сроки исходя из опыта и стоимость.",
+          "skills": []
+        },
+        {
+          "id": 3203050,
+          "title": "Массовые отметки пользователей в Telegram Stories",
+          "price": 30000,
+          "offers": 2,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "Есть готовые Stories и база пользователей для отметок. Требуется исполнитель, который сможет качественно и в срок выполнить массовые отметки пользователей в Telegram.<br>Объём работы:<br>&mdash; Около 10 000 отметок по готовой базе;<br>&mdash; Контент для публикации предоставляется;<br>&mdash; От исполнителя требуется только работа с отметками.<br>Требования:<br>&mdash; Опыт работы с Telegram Stories;<br>&mdash; Понимание ограничений и особенност",
+          "skills": []
+        },
+        {
+          "id": 3107236,
+          "title": "Привлечение покупателей в Telegram Mini App",
+          "price": 20000,
+          "offers": 0,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": true,
+          "possible_price_limit": 60000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "Ищу исполнителей для привлечения пользователей в Telegram Mini App.<br>Оплата только за целевое действие &mdash; пользователь должен совершить покупку внутри приложения.<br>❗ Важно:<br>&mdash; Платные рекламные каналы НЕ интересуют<br>&mdash; Интересует только УБТ (условно-бесплатный трафик)<br>&mdash; GEO: весь мир (все страны, где актуален Telegram)<br>&mdash; Объёмы: любые, готовы масштабироваться<br>Оплата за подтверждённую покупку.",
+          "skills": []
+        },
+        {
+          "id": 3203045,
+          "title": "Отметки пользователей в Telegram Stories",
+          "price": 33000,
+          "offers": 1,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 99000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "<br>Предоставляется база для отметок &mdash; около 10 000 пользователей.<br>Все материалы для публикации готовы и будут переданы исполнителю.<br>Требования:<br>&mdash; Опыт работы с упоминаниями<br>&mdash; Понимание лимитов и особенностей отметок пользователей в Telegram;<br>&mdash; Умение выполнять большой объём отметок без ошибок и пропусков;<br>&mdash; Соблюдение сроков выполнения.<br>Оплата:<br>&mdash; Рассматриваем стоимость от 3 рублей за о",
+          "skills": []
+        },
+        {
+          "id": 3190904,
+          "title": "Нужно создать 5-6 Telegram Stories с упоминанием",
+          "price": 23000,
+          "offers": 4,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 69000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": " <br>Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы <br>Создать 5-6 Telegram Stories и упомянуть людей из базы<br>Есть база для упоминания около 5&ndash;6 тысяч пользователей;<br>Материалы для работы предоставляются;<br>Нужен человек с опытом создания Telegram Stories и пониманием особенностей платформы.<br>В отклике просьба прислать:<br>Примеры выполненных работ;<br>Срок выполнения;<br>Стоимость за ве",
+          "skills": []
+        },
+        {
+          "id": 3202311,
+          "title": "Нужно создать 5&ndash;6 Telegram Stories с упоминанием",
+          "price": 30000,
+          "offers": 0,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 139,
+          "user_hired_percent": 37,
+          "description": "Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы.<br>Есть база для упоминания около 10к пользователей.<br>Материалы для работы предоставляются.<br>Нужен человек с опытом создания Telegram Stories и пониманием особенностей платформы.<br>Приемлемая цена: 3 рубля за одно упоминание и ниже.<br>В отклике просьба прислать:<br>Примеры выполненных работ;<br>Срок выполнения;<br>Стоимость за весь объём.",
+          "skills": []
+        },
+        {
+          "id": 3213124,
+          "title": "Рассылка в телеграм по мебели",
+          "price": 10000,
+          "offers": 5,
+          "category_id": 108,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 30000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Нужно разослать со своих телеграм аккаунтов по моей базе заготовленный оффер по изготовлению мебели и передать контакты заинтересованных. Оплата 500 рублей за квал. лид, объем сообщений можно делать неограниченный. Квалифицирует ОП с нашей стороны, передаю прозрачную статистику. Диалогов с клиентами вам вести не нужно, только первое сообщение и передавать контакты<br>Откликайтесь сразу с предложением сколько Вы лидов можете принести, сколько есть",
+          "skills": []
+        },
+        {
+          "id": 3204600,
+          "title": "Вывести канал в ТОП поиска малоизвестной тематике",
+          "price": 30000,
+          "offers": 2,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 16,
+          "user_hired_percent": 23,
+          "description": "Задача: вывести Telegram канал или бота  в ТОП поиска Telegram по целевому запросу и удержать позиции не менее 30 дней.<br>Требования к результату:<br>&bull; Бот должен находиться в ТОПе по согласованному ключевому запросу.<br>&bull; Позиции должны сохраняться минимум 1 месяц после завершения работ.<br>&bull; Опыт вывода ботов или каналов в поиск Telegram.<br>При отклике обязательно укажите:<br>1. Какой метод продвижения планируете использовать.<",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 23,
+          "limit": 12,
+          "pages": 2
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 384
+    },
+    {
+      "query": "сайт",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 23,
+      "sample_count": 12,
+      "sample": [
+        {
+          "id": 3206832,
+          "title": "Коммуникация с сайтами",
+          "price": 500,
+          "offers": 0,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": false,
+          "possible_price_limit": 500,
+          "user_projects_count": 499,
+          "user_hired_percent": 67,
+          "description": "Отправить информацию о проекте через формы обратной связи минимум на 100 сайтах<br>Зафиксировать результат в таблице<br>Немного о нас<br>Мы передовая социальная сеть, доступная в App Store и Google Play<br>Также у нас 741 000 подписчиков на YouTube<br>Сейчас мы активно ищем стратегических бизнес-партнеров и расширяем международное присутствие 😊<br>Буду очень рада видеть вас в команде ❤",
+          "skills": []
+        },
+        {
+          "id": 2798882,
+          "title": "Оформление разделов на сайте wordpress",
+          "price": 500,
+          "offers": 4,
+          "category_id": 24,
+          "parent_category_id": 15,
+          "allow_higher_price": false,
+          "possible_price_limit": 500,
+          "user_projects_count": 140,
+          "user_hired_percent": 47,
+          "description": "Продвинутый пользователь wordpress, дизаин<br>Требуется оформление разделов на сайте wordpress.<br>Навыки дизаина, вырезать-встроить.<br>Ознакомиться с админ-частью wordpress(опыт наполнения других сайтов приветсвуется).<br>1 Раздел 500р. Суммарный объем 50+ разделов<br>На постоянную основу",
+          "skills": []
+        },
+        {
+          "id": 702238,
+          "title": "Комплексное продвижение сайта",
+          "price": 30000,
+          "offers": 2,
+          "category_id": 43,
+          "parent_category_id": 17,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 25,
+          "user_hired_percent": 53,
+          "description": "Необходимо продвижение сайта для компании mramorov. Предложения рассматриваются только с комментариями по сайту( аудит делать не нужно) кратко по делу несколько слов. Если Вы просите ссылку на сайт, сразу нет.",
+          "skills": []
+        },
+        {
+          "id": 3210268,
+          "title": "Необходимо найти клиентов на разработку сайтов",
+          "price": 30000,
+          "offers": 1,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": true,
+          "possible_price_limit": 90000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Интересуют проекты:<br>* сайты на Tilda;<br>* лендинги;<br>* корпоративные сайты;<br>* интернет-магазины;<br>* редизайн сайтов;<br>* дизайн интерфейсов.<br>Поиск можно вести через любые площадки, подразумевающие что там есть наша ЦА<br>Минимальная стоимость проекта &mdash; 50 000 ₽.<br>Оплата за результат:<br>* десять процентов от стоимости проекта за найденного клиента;<br>* двадцать процентов если клиент доведен до заключения сделки.<br>Оплата ",
+          "skills": []
+        },
+        {
+          "id": 2805198,
+          "title": "Юзабилити-консультация для конструктора сайтов",
+          "price": 1500,
+          "offers": 1,
+          "category_id": 81,
+          "parent_category_id": 11,
+          "allow_higher_price": false,
+          "possible_price_limit": 1500,
+          "user_projects_count": 12,
+          "user_hired_percent": 100,
+          "description": "Мы &mdash; Nicepage, динамичная интернет-компания, которая создает и развивает конструктор сайтов. У нас конструктор сайтов, и мы работаем над улучшением его понятности для новых пользователей.   <br>Что нужно будет делать: <br>1) Запускаете демонстрацию экрана в популярном сервисе в браузере, ставить дополнительно не нужно<br>2) Скачиваете и устанавливаете последнюю сборку нашего конструкторв.<br>3) Начинаете делать свой сайт (лэндинг) с помощью",
+          "skills": []
+        },
+        {
+          "id": 2542334,
+          "title": "Настроить таргет на ВК и на сайт",
+          "price": 3000,
+          "offers": 3,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 9000,
+          "user_projects_count": 32,
+          "user_hired_percent": 13,
+          "description": "Нужно подготовить и провести 4 рекламные компании из ВК с , 5-10 вариантами  креативов, заголовков и текстов<br>2 разных продукта на группу ВК и 2 разных продукта на сайт:<br>Продукты:<br>1. обучение личным продажам (есть плей лист в ВК); <br>2. построение отдела продаж (есть плей лист в ВК);<br>в отклике укажите стоимость клика /лида и какие бюджет и сроки нужны для теста",
+          "skills": []
+        },
+        {
+          "id": 3213082,
+          "title": "Ручная регистрация сайта в справочниках и каталогах",
+          "price": 6000,
+          "offers": 5,
+          "category_id": 59,
+          "parent_category_id": 17,
+          "allow_higher_price": true,
+          "possible_price_limit": 18000,
+          "user_projects_count": 4,
+          "user_hired_percent": 67,
+          "description": "Нужно вручную зарегистрировать сайт компании (производство офисных перегородок, Санкт-Петербург) в 25 качественных справочниках, каталогах организаций и отраслевых B2B-площадках строительной/отделочной тематики.<br>Требования к площадкам: DR от 20, живой трафик от 500 визитов/мес, в индексе Яндекса и Google. Не менее 50&ndash;60% dofollow. Автопрогоны запрещены &mdash; только ручная работа.<br>Срок: 1 неделя.<br>Перед стартом &mdash; согласование",
+          "skills": []
+        },
+        {
+          "id": 3213459,
+          "title": "Ищу партнера по поиску клиентов на разработку сайтов",
+          "price": 1000,
+          "offers": 0,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": true,
+          "possible_price_limit": 3000,
+          "user_projects_count": 7,
+          "user_hired_percent": 0,
+          "description": " Я занимаюсь:<br>Созданием современных лендингов;<br>доработкой существующих сайтов;<br>обновлением и улучшением дизайна;<br>адаптацией сайтов под мобильные устройства;<br>исправлением ошибок и внесением изменений.<br> Как работаем:<br>1. Вы находите клиента.<br>2. Я выполняю заказ.<br>3. После получения оплаты вы получаете 20% от стоимости заказа.<br>  Ищу человека для долгосрочного сотрудничества. Если умеете находить клиентов &mdash; пишите!",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 23,
+          "limit": 12,
+          "pages": 2
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 429
+    },
+    {
+      "query": "автоматизация",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 7,
+      "sample_count": 7,
+      "sample": [
+        {
+          "id": 3047634,
+          "title": "Первый этап проекта: концепция и прототипирование",
+          "price": 500,
+          "offers": 1,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": false,
+          "possible_price_limit": 500,
+          "user_projects_count": 5,
+          "user_hired_percent": 50,
+          "description": "На данном этапе проводится быстрое изучение сообщества с целью определить логику первого шага взаимодействия с пользователем (&laquo;ВК-витрина&raquo;). Структура и общий подход к визуальной подаче и автоматизации.<br>В рамках этапа:<br>&ndash; мини-аудит текущего состояния сообщества (сильные и слабые стороны, отвлекающие элементы, зоны, которые можно скрыть или упростить);<br>&ndash; предложение простой и понятной логики первого шага продвижени",
+          "skills": []
+        },
+        {
+          "id": 3213549,
+          "title": "Bitrix24 настройка системы управления продуктом",
+          "price": 25000,
+          "offers": 4,
+          "category_id": 81,
+          "parent_category_id": 11,
+          "allow_higher_price": true,
+          "possible_price_limit": 75000,
+          "user_projects_count": 32,
+          "user_hired_percent": 36,
+          "description": "Нужен интегратор, который доведёт систему до рабочего состояния &mdash; по готовому детальному ТЗ.<br>У нас есть чёткая схема жизненного цикла нового продукта &mdash; от идеи до запуска партии. 5 этапов, несколько участников, логистические переходы между этапами, циклы итераций. Всё это сейчас живёт в головах и чатах.<br>Нужно перенести это в Bitrix24: настроить проект с задачами, зависимостями, диаграммой Ганта и дашбордом для руководителя &mdas",
+          "skills": []
+        },
+        {
+          "id": 3027955,
+          "title": "Упаковка,контентная стратегия и продакт-менеджмент в ВК",
+          "price": 9000,
+          "offers": 2,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 27000,
+          "user_projects_count": 5,
+          "user_hired_percent": 50,
+          "description": "Упаковка и подготовка сообщества под проект, создание визуальной и смысловой части, формирование логики взаимодействия пользователя с сообществом и разработкой всей структуры воронки. Работа выполняется в единой стилистике согласованной с заказчиком.<br>Работа включает:<br>&bull; аудит текущего состояния и выстраивание логики продвижения;   <br>&bull; разработка структуры услуг и меню с пошаговым описанием;                                        ",
+          "skills": []
+        },
+        {
+          "id": 3211575,
+          "title": "Поиск клиентов постоянно",
+          "price": 40000,
+          "offers": 0,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": true,
+          "possible_price_limit": 120000,
+          "user_projects_count": 24,
+          "user_hired_percent": 44,
+          "description": "Ищу партнёра по привлечению клиентов на IT-разработку<br>Я закрываю разработку &mdash; вы приводите заказы.<br>Условия:<br>- 20% от стоимости каждого заказа, который приходит от вас.<br>- Процент выплачиваю после получения оплаты от клиента, вы ничем не рискуете.<br>- Работаю вдолгую: приводите клиентов регулярно и это стабильный доход для вас.<br>Что делаю:<br>Сайты, веб-приложения, боты, интеграции, автоматизация, доработка проектов. Стек почти",
+          "skills": []
+        },
+        {
+          "id": 3212358,
+          "title": "Настроить и вести холодную рассылку в зарубеж.соц.сети",
+          "price": 7000,
+          "offers": 2,
+          "category_id": 108,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 21000,
+          "user_projects_count": 3,
+          "user_hired_percent": 0,
+          "description": "Ищем специалиста с опытом настройки и ведения холодных рассылок в крупной зарубежной соц.сети через мессенджер.<br>Необходимо чтобы у вас были кейсы.<br>Что нужно сделать:<br>- Подобрать аккаунты (5 штук).<br>- Настроить рабочую инфраструктуру для рассылки (антидетект-браузер, прокси и пр).<br>- Подготовить аккаунты к работе: заполнение профилей, прогрев.<br>- Запустить рассылку и контролировать ее работу.<br>- Еженедельно предоставлять отчетност",
+          "skills": []
+        },
+        {
+          "id": 3207872,
+          "title": "Тестирование AI-агента &laquo;Анализ рынка&raquo;",
+          "price": 20000,
+          "offers": 5,
+          "category_id": 84,
+          "parent_category_id": 83,
+          "allow_higher_price": true,
+          "possible_price_limit": 60000,
+          "user_projects_count": 2,
+          "user_hired_percent": 0,
+          "description": "Интересуют специалисты, которые регулярно анализируют рынок, конкурентов и целевую аудиторию.<br>Любые страны и любые ниши.<br>Агент помогает анализировать:<br>&bull; конкурентов;<br>&bull; целевую аудиторию;<br>&bull; сегменты рынка;<br>&bull; спрос;<br>&bull; точки роста.<br>Ищу маркетологов, которым интересно протестировать инструмент и дать профессиональную обратную связь.<br>НЕ НУЖНЫ услуги по разработке AI, чат-ботов, промтов и автоматизаци",
+          "skills": []
+        },
+        {
+          "id": 3210726,
+          "title": "Продвижение готового IT-сервиса",
+          "price": 1000,
+          "offers": 0,
+          "category_id": 46,
+          "parent_category_id": 45,
+          "allow_higher_price": true,
+          "possible_price_limit": 3000,
+          "user_projects_count": 1,
+          "user_hired_percent": 0,
+          "description": "Требуется специалист для продвижения готового IT-продукта (инструмент для автоматизации онлайн-продаж и интернет-магазинов).<br>Что нужно делать:<br>Проводить презентацию возможностей нашего сервиса для сферы малого бизнеса.&nbsp;<br>Основная цель &mdash; предложить бесплатное тестирование готового решения",
+          "skills": []
+        }
+      ],
+      "meta": {
+        "paging": {
+          "page": 1,
+          "total": 7,
+          "limit": 12,
+          "pages": 1
+        },
+        "connects": {
+          "all_connects": 30,
+          "active_connects": 30,
+          "update_time": 1786222800
+        }
+      },
+      "probe_ms": 488
+    }
+  ],
+  "timings_ms": {
+    "total": 8638
+  }
+}

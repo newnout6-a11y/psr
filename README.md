@@ -80,7 +80,7 @@ psr/
 На этой машине корректный Python расположен здесь:
 
 ```text
-C:\Users\Redmi\AppData\Local\Programs\Python\Python312\python.exe
+C:\Users\Redmi\AppData\Local\Python\pythoncore-3.14-64\python.exe
 ```
 
 Для удобства в репозитории есть `py.ps1`:
@@ -124,7 +124,7 @@ C:\Program Files\nodejs
 Copy-Item .env.example .env
 ```
 
-2. Заполни минимум:
+1. Заполни минимум:
 
 ```env
 GROQ_API_KEY=
@@ -137,7 +137,7 @@ ADMIN_CHAT_ID=
 TELEGRAM_TRANSPORT=auto
 ```
 
-3. Ключевые переменные:
+1. Ключевые переменные:
 
 - `GROQ_API_KEY`: основной рабочий LLM;
 - `AI_SCORE_THRESHOLD`: порог AI-скоринга;
@@ -154,8 +154,14 @@ TELEGRAM_TRANSPORT=auto
 - `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`: опциональный MTProto fallback без `api.telegram.org`;
 - `BROWSER_HEADLESS`: headless браузер;
 - `SESSION_HUB_URL`, `SESSION_HUB_REQUIRED`: источник кук;
+- `KWORK_SESSION_HUB_COOKIE_TTL`: кэш кук Session Hub в PSR; запрос к Hub идёт локально без proxy/env.
 - `OSINT_ENABLED` и `OSINT_*`: OSINT и probiv;
 - `PROXY_URL`: прокси для API и сетевых вызовов.
+- `VPNTE_PROXY_ENABLED=1`: использовать внешний прокси VPN Tunnel Enforcer как источник прокси для PSR. PSR держит один локальный proxy URL, а VPNTE ротирует VPN-профиль за ним.
+- `VPNTE_PROXY_ROTATE_ON_NEXT`: ротировать VPNTE external proxy на каждом `ProxyRotator.next()`; по умолчанию `true`.
+- `VPNTE_PROXY_TIMEOUT`, `VPNTE_PROXY_CACHE_TTL`: timeout control API и кэш active proxy URL, чтобы PSR не дёргал VPNTE control endpoint на каждый Kwork request.
+- `VPNTE_PROXY_COUNTRY`, `VPNTE_PROXY_PROFILE_ID`, `VPNTE_PROXY_PORT`: опциональный выбор страны, конкретного профиля и порта во внешнем proxy VPNTE.
+- `VPNTE_CONTROL_URL`, `VPNTE_CONTROL_TOKEN`: ручные override; обычно PSR сам читает endpoint/token из `%APPDATA%\VPN Tunnel Enforcer`.
 
 Дополнительные фильтры проекта живут в [config/filters.yaml](/C:/psr/config/filters.yaml). В рантайме реально применяются:
 

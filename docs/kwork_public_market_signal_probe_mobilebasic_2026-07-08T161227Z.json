@@ -1,0 +1,343 @@
+{
+  "timestamp_utc": "2026-07-08T16:12:27.662269+00:00",
+  "purpose": "Validate public/mobile-basic OpenAPI endpoints for Kwork market signals.",
+  "proxy": {
+    "proxyUrl": "http://<redacted_ip>:17990",
+    "profileName": "kazakhstan1"
+  },
+  "auth": {
+    "mobile_basic_header": true,
+    "user_secrets_stored": false
+  },
+  "source": "Installed kwork library AUTH_HEADER plus upstream OpenAPI and live api.kwork.ru validation",
+  "previous_failed_artifacts": [
+    "C:/psr/docs/kwork_public_market_signal_probe_2026-07-08T160926Z.json",
+    "C:/psr/docs/kwork_public_market_signal_probe_basic_2026-07-08T161101Z.json"
+  ],
+  "results": [
+    {
+      "name": "positiveReviewsCount_cat15",
+      "endpoint": "positiveReviewsCount",
+      "params": {
+        "category_id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 33,
+      "auth": "mobile_basic_header",
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true
+      },
+      "body_sample_redacted": "{\"success\": true, \"response\": false}"
+    },
+    {
+      "name": "positiveReviewsCount_cat15_attr208",
+      "endpoint": "positiveReviewsCount",
+      "params": {
+        "category_id": "15",
+        "attribute_id": "208"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 33,
+      "auth": "mobile_basic_header",
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true
+      },
+      "body_sample_redacted": "{\"success\": true, \"response\": false}"
+    },
+    {
+      "name": "searchKworksCatalogQuery_telegram",
+      "endpoint": "searchKworksCatalogQuery",
+      "params": {
+        "query": "telegram"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 859,
+      "auth": "mobile_basic_header",
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 9,
+        "response_item_keys": [
+          "suggestion",
+          "excerpt"
+        ]
+      },
+      "body_sample_redacted": "{\"success\": true, \"response\": [{\"suggestion\": \"телеграм\\\\\\\\\", \"excerpt\": \"<b>телеграм</b>\\\\\\\\\"}, {\"suggestion\": \"telegram чат\", \"excerpt\": \"<b>telegram</b> чат\"}]}"
+    },
+    {
+      "name": "search_telegram_bot",
+      "endpoint": "search",
+      "params": {
+        "query": "telegram bot",
+        "limit": "5",
+        "page": "1"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 6373,
+      "auth": "mobile_basic_header",
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "kworks_count",
+          "kworks",
+          "classifiers",
+          "searchCategories",
+          "paging"
+        ],
+        "kworks_count": 5,
+        "kworks_item_keys": [
+          "id",
+          "category_id",
+          "category_name",
+          "status_id",
+          "status_name",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "activity",
+          "edits_list",
+          "not_available_for_company",
+          "classifier_id",
+          "is_viewed",
+          "isSubscription",
+          "badges"
+        ],
+        "classifiers_count": 6,
+        "classifiers_item_keys": [
+          "id",
+          "name",
+          "kworks_count",
+          "visibility",
+          "isCatalogItem"
+        ],
+        "searchCategories_count": 0,
+        "paging_keys": [
+          "pages",
+          "page",
+          "total",
+          "limit"
+        ]
+      },
+      "body_sample_redacted": "{\"success\": true, \"response\": {\"kworks_count\": 1577, \"kworks\": [{\"id\": 47829638, \"category_id\": 41, \"category_name\": \"Скрипты, боты и mini apps\", \"status_id\": 7, \"status_name\": \"Активные\", \"title\": \"Создание Telegram-Bot + админка + полный код\", \"url\": \"/script-programming/47829638/sozdanie-telegram-bot-adminka-polniy-kod\", \"share_url\": \"https://kwork.ru/script-programming/47829638/sozdanie-telegram-bot-adminka-polniy-kod\", \"image_url\": \"https://cdn-edge.kwork.ru/pics/t3/74/47829638-696924cd4b092.jpg\", \"cover\": {\"phone\": \"<redacted>\", \"tablet\": \"https://cdn-edge.kwork.ru/pics/t3/74/47829638-696924cd4b092.jpg\"}, \"price\": 5000, \"is_price_from\": false, \"is_from\": false, \"is_best\": false, \"is_hidden\": false, \"is_favorite\": false, \"lang\": \"ru\", \"worker\": {\"id\": 22678374, \"username\": \"DaniilNich\", \"fullname\": \"Даниил\", \"profilepicture\": \"https://cdn-edge.kwork.ru/files/avatar/small/22/22678374"
+    },
+    {
+      "name": "search_cat15_telegram_bot",
+      "endpoint": "search",
+      "params": {
+        "query": "telegram bot",
+        "categoryId": "15",
+        "limit": "5",
+        "page": "1"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3862,
+      "auth": "mobile_basic_header",
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "kworks_count",
+          "kworks",
+          "classifiers",
+          "searchCategories",
+          "paging"
+        ],
+        "kworks_count": 3,
+        "kworks_item_keys": [
+          "id",
+          "category_id",
+          "category_name",
+          "status_id",
+          "status_name",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "activity",
+          "edits_list",
+          "not_available_for_company",
+          "classifier_id",
+          "is_viewed",
+          "isSubscription",
+          "badges"
+        ],
+        "classifiers_count": 3,
+        "classifiers_item_keys": [
+          "id",
+          "name",
+          "kworks_count",
+          "visibility",
+          "isCatalogItem"
+        ],
+        "searchCategories_count": 0,
+        "paging_keys": [
+          "pages",
+          "page",
+          "total",
+          "limit"
+        ]
+      },
+      "body_sample_redacted": "{\"success\": true, \"response\": {\"kworks_count\": 3, \"kworks\": [{\"id\": 40063977, \"category_id\": 286, \"category_name\": \"Маркетплейсы и соцсети\", \"status_id\": 7, \"status_name\": \"Активные\", \"title\": \"Карточка товара для маркетплейсов\", \"url\": \"/e-commerce-social-network/40063977/kartochka-tovara-dlya-marketpleysov\", \"share_url\": \"https://kwork.ru/e-commerce-social-network/40063977/kartochka-tovara-dlya-marketpleysov\", \"image_url\": \"https://cdn-edge.kwork.ru/pics/t3/73/40063977-67e0e651d2ad3.jpg\", \"cover\": {\"phone\": \"<redacted>\", \"tablet\": \"https://cdn-edge.kwork.ru/pics/t3/73/40063977-67e0e651d2ad3.jpg\"}, \"price\": 500, \"is_price_from\": false, \"is_from\": false, \"is_best\": false, \"is_hidden\": false, \"is_favorite\": false, \"lang\": \"ru\", \"worker\": {\"id\": 18943061, \"username\": \"MEELAR\", \"fullname\": \"Исмаилбек\", \"profilepicture\": \"https://cdn-edge.kwork.ru/files/avatar/small/22/18943061-4.jpg\", \"rati"
+    },
+    {
+      "name": "getKworkLinksTable_36214125",
+      "endpoint": "getKworkLinksTable",
+      "params": {
+        "id": "36214125",
+        "page": "1"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 82,
+      "auth": "mobile_basic_header",
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "paging": {
+          "page": "1",
+          "total": 0,
+          "limit": 0,
+          "pages": 0
+        },
+        "response_type": "list",
+        "response_count": 0
+      },
+      "body_sample_redacted": "{\"success\": true, \"response\": [], \"paging\": {\"page\": \"1\", \"total\": 0, \"limit\": 0, \"pages\": 0}}"
+    },
+    {
+      "name": "getKworkLinksTablev2_36214125",
+      "endpoint": "getKworkLinksTablev2",
+      "params": {
+        "id": "36214125",
+        "page": "1"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 118,
+      "auth": "mobile_basic_header",
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "paging": {
+          "page": "1",
+          "total": 0,
+          "limit": 0,
+          "pages": 0
+        },
+        "response_type": "dict",
+        "response_keys": [
+          "link_headers",
+          "links_content"
+        ],
+        "link_headers_count": 0,
+        "links_content_count": 0
+      },
+      "body_sample_redacted": "{\"success\": true, \"response\": {\"link_headers\": [], \"links_content\": []}, \"paging\": {\"page\": \"1\", \"total\": 0, \"limit\": 0, \"pages\": 0}}"
+    },
+    {
+      "name": "category_15",
+      "endpoint": "category",
+      "params": {
+        "category_id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 221,
+      "auth": "mobile_basic_header",
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "id",
+          "name",
+          "mobile_description",
+          "base_volume",
+          "volume_type",
+          "attributes",
+          "positive_reviews_count"
+        ],
+        "id": 15,
+        "name": "Дизайн",
+        "mobile_description": "Логотипы, веб-дизайн, визитки",
+        "base_volume": null,
+        "volume_type": null,
+        "attributes_count": 0,
+        "positive_reviews_count": false
+      },
+      "body_sample_redacted": "{\"success\": true, \"response\": {\"id\": 15, \"name\": \"Дизайн\", \"mobile_description\": \"Логотипы, веб-дизайн, визитки\", \"base_volume\": null, \"volume_type\": null, \"attributes\": [], \"positive_reviews_count\": false}}"
+    }
+  ]
+}

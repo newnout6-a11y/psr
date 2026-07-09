@@ -1,0 +1,159 @@
+{
+  "generated_at": "2026-07-09T11:17:29Z",
+  "source": "psr.kwork_buyer_scout",
+  "status": "empty",
+  "config": {
+    "max_probes": 5,
+    "page": 1,
+    "per_probe_limit": 8,
+    "top_limit": 12,
+    "include_project_details": false,
+    "include_want_details": false,
+    "include_buyer_history": false,
+    "detail_limit": 8,
+    "buyer_history_limit": 6,
+    "budget_max": 5000,
+    "include_query_suggestions": true,
+    "query_suggestion_limit": 4
+  },
+  "probes": [
+    {
+      "name": "telegram_low_offer",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 5031
+      }
+    },
+    {
+      "name": "telegram_zero_offer",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 0,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "timings_ms": {
+        "total": 7074
+      }
+    }
+  ],
+  "top": [],
+  "aggregate": {
+    "probe_count": 2,
+    "unique_projects": 0,
+    "zero_offer_count": 0,
+    "low_offer_count": 0,
+    "top_score": null,
+    "market_signals": [],
+    "query_suggestions": [
+      {
+        "status": "ok",
+        "query": "telegram",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "telegram",
+            "excerpt": "telegram"
+          },
+          {
+            "suggestion": "telegram ???",
+            "excerpt": "telegram ???"
+          },
+          {
+            "suggestion": "телеграм бот ии",
+            "excerpt": "телеграм бот ии"
+          },
+          {
+            "suggestion": "Создать телеграм бота",
+            "excerpt": "Создать телеграм бота"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "query": "site",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "site",
+            "excerpt": "site"
+          },
+          {
+            "suggestion": "web site",
+            "excerpt": "web site"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "query": "python",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "python",
+            "excerpt": "python"
+          },
+          {
+            "suggestion": "бот на python",
+            "excerpt": "бот на python"
+          },
+          {
+            "suggestion": "telegram bot python",
+            "excerpt": "telegram bot python"
+          },
+          {
+            "suggestion": "питон python",
+            "excerpt": "питон python"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "query": "ai",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "ai",
+            "excerpt": "ai"
+          },
+          {
+            "suggestion": "ai о",
+            "excerpt": "ai о"
+          },
+          {
+            "suggestion": "AI агент автоматизация",
+            "excerpt": "AI агент автоматизация"
+          },
+          {
+            "suggestion": "AI ИИ",
+            "excerpt": "AI ИИ"
+          }
+        ]
+      }
+    ]
+  },
+  "endpoint_errors": [
+    {
+      "probe": "telegram_zero_offer",
+      "detail": "stopped buyer project fan-out after repeated slow empty responses"
+    }
+  ],
+  "timings_ms": {
+    "total": 14470
+  }
+}

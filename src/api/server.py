@@ -46,6 +46,12 @@ async def lifespan(app: FastAPI):
     logger.info("PSR API server shutting down")
     if app_state.cycle_task and not app_state.cycle_task.done():
         app_state.cycle_task.cancel()
+    try:
+        from src.platforms.kwork import get_kwork_service
+
+        await get_kwork_service().close()
+    except Exception as exc:
+        logger.debug(f"Kwork service shutdown cleanup skipped: {exc}")
 
 
 app = FastAPI(title="PSR Desktop API", version="1.0.0", lifespan=lifespan)

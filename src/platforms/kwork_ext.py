@@ -27,6 +27,7 @@ import time
 from typing import Any
 
 from loguru import logger
+from src.utils.vpnte_proxy import effective_proxy_url, rotate_vpnte_proxy_if_enabled, vpnte_proxy_enabled
 
 
 class RatePacer:
@@ -117,6 +118,9 @@ class ProxyRotator:
         self._bad_ttl = 300.0
 
     def next(self) -> str | None:
+        if vpnte_proxy_enabled():
+            rotate = os.getenv("VPNTE_PROXY_ROTATE_ON_NEXT", "1").strip().lower() not in {"0", "false", "no", "off"}
+            return effective_proxy_url(rotate=rotate, fallback=os.getenv("PROXY_URL") or None)
         if not self._proxies:
             return os.getenv("PROXY_URL") or None
         now = time.monotonic()
@@ -129,6 +133,12 @@ class ProxyRotator:
         return None
 
     def mark_bad(self, proxy: str) -> None:
+        if vpnte_proxy_enabled():
+            try:
+                rotate_vpnte_proxy_if_enabled()
+            except Exception as exc:
+                logger.warning(f"KworkExt: VPNTE proxy rotation after bad proxy failed: {exc}")
+            return
         if proxy:
             self._bad[proxy] = time.monotonic()
             logger.warning(f"KworkExt: прокси помечен как плохой на {self._bad_ttl}s: {proxy}")
@@ -386,7 +396,8 @@ class AccountHealthMonitor:
 
             connects = await connects_monitor.check(api)
             await success_monitor.check(api)
-            captcha = await KworkExtensions.get_captcha_status(api)
+            captcha_status = await KworkExtensions.get_captcha_status_detail(api)
+            captcha = bool(captcha_status.get("required"))
             badges = await KworkExtensions.get_badges_info(api)
 
             actor = {}
@@ -408,9 +419,12 @@ class AccountHealthMonitor:
                 self._paused_kworks = []
 
             has_orders = success_monitor.completed + success_monitor.cancelled > 0
-            captcha_required = captcha and has_orders
+            captcha_required = False
+            manual_verification_required = False
             if captcha and not has_orders:
                 logger.debug("KworkExt: getCaptchaStatus=true (вероятно нет заказов — игнорируем)")
+            if captcha and has_orders:
+                logger.debug("KworkExt: getCaptchaStatus=true, but no web manual-verification challenge was proven")
             self._cache = {
                 "connects_free": connects_monitor.free_amount,
                 "connects_total": connects.get("total_amount", 0),
@@ -420,6 +434,10 @@ class AccountHealthMonitor:
                 "active_orders": active_count,
                 "busy_risk": is_busy_risk,
                 "captcha_required": captcha_required,
+                "captcha_api_flag": captcha,
+                "captcha_status": "api_flag_only" if captcha else "ok",
+                "captcha_check_error": captcha_status.get("error", ""),
+                "manual_verification_required": manual_verification_required,
                 "unread_notifications": badges.get("notifications", 0),
                 "username": actor.get("username", ""),
                 "level": actor.get("level", actor.get("rating_level", "")),
@@ -430,7 +448,7 @@ class AccountHealthMonitor:
             self._last_check = now
 
             if captcha and success_monitor.completed + success_monitor.cancelled > 0:
-                logger.error("KworkExt: CAPTCHA требуется — аккаунт под подозрением!")
+                logger.debug("KworkExt: getCaptchaStatus=true, UI verification window is not opened without web challenge evidence")
             elif captcha:
                 logger.debug("KworkExt: getCaptchaStatus=true (вероятно нет заказов — игнорируем)")
             if is_busy_risk:
@@ -1179,12 +1197,47 @@ class KworkExtensions:
     @staticmethod
     async def get_captcha_status(api: Any) -> bool:
         """Требуется ли капча — детекция что аккаунт под подозрением."""
+        return bool((await KworkExtensions.get_captcha_status_detail(api)).get("required"))
+
+    @staticmethod
+    async def get_captcha_status_detail(api: Any) -> dict[str, Any]:
+        """Return raw getCaptchaStatus meaning without treating it as proven web challenge."""
         try:
             data = await api.request("post", "getCaptchaStatus", use_token=True)
             response = data.get("response") if isinstance(data, dict) else None
-            return bool(response) if response is not None else False
-        except Exception:
-            return False
+            required = False
+            if isinstance(response, bool):
+                required = response
+            elif isinstance(response, dict):
+                for key in (
+                    "show_captcha",
+                    "showCaptcha",
+                    "captcha_required",
+                    "captchaRequired",
+                    "need_captcha",
+                    "needCaptcha",
+                    "is_captcha",
+                    "isCaptcha",
+                    "captcha",
+                ):
+                    if key in response:
+                        required = bool(response.get(key))
+                        break
+            elif response is not None:
+                required = bool(response)
+            return {
+                "ok": True,
+                "required": required,
+                "source": "getCaptchaStatus",
+                "response_type": type(response).__name__,
+            }
+        except Exception as exc:
+            return {
+                "ok": False,
+                "required": False,
+                "source": "getCaptchaStatus",
+                "error": f"{type(exc).__name__}: {exc}",
+            }
 
     @staticmethod
     async def get_current_versions(api: Any) -> dict[str, Any]:
@@ -1298,7 +1351,9 @@ def _patch_request_pacing() -> None:
     original_request = KworkAPI.request
 
     async def _paced_request(self, method, endpoint, use_token=False, **kwargs):
-        await get_pacer().wait()
+        skip_pacing = bool(kwargs.pop("_psr_skip_pacing", False))
+        if not skip_pacing:
+            await get_pacer().wait()
         return await original_request(self, method, endpoint, use_token=use_token, **kwargs)
 
     KworkAPI.request = _paced_request

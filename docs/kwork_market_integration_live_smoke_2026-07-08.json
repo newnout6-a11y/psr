@@ -1,0 +1,236 @@
+{
+  "status": "ok",
+  "seed_count": 5,
+  "seeds": [
+    {
+      "name": "Маркетплейсы и соцсети",
+      "category_id": 286,
+      "seed_kworks_count": 91018,
+      "rubric_id": 15,
+      "source": "catalog_taxonomy"
+    },
+    {
+      "name": "Дизайн для маркетплейсов",
+      "category_id": 286,
+      "classifier_id": 1433413,
+      "seed_kworks_count": 82712,
+      "source": "catalog_mainv2"
+    },
+    {
+      "name": "Набор текста",
+      "category_id": 75,
+      "seed_kworks_count": 64279,
+      "rubric_id": 5,
+      "source": "catalog_taxonomy"
+    },
+    {
+      "name": "Переводы",
+      "category_id": 35,
+      "seed_kworks_count": 59864,
+      "rubric_id": 5,
+      "source": "catalog_taxonomy"
+    },
+    {
+      "name": "Тексты и наполнение сайта",
+      "category_id": 73,
+      "seed_kworks_count": 46322,
+      "rubric_id": 5,
+      "source": "catalog_taxonomy"
+    }
+  ],
+  "snapshot_aggregate": {
+    "seed_count": 2,
+    "cards_seen": 20,
+    "unique_sellers_seen": 17,
+    "seller_profiles_collected": 0,
+    "top_opportunities": [
+      {
+        "seed_name": "Маркетплейсы и соцсети",
+        "category_id": 286,
+        "classifier_id": null,
+        "supply_kworks_count": 91267,
+        "demand_wants_count": null,
+        "demand_status": "skipped",
+        "demand_per_1000_kworks": null,
+        "opportunity_score": null,
+        "sample_cards": 10,
+        "sample_unique_sellers": 9,
+        "seller_concentration": 0.2,
+        "sample_price_min": 500,
+        "sample_price_max": 2000,
+        "sample_price_avg": 950.0,
+        "demand_sample_offers_min": null,
+        "demand_sample_low_offer_count": 0,
+        "demand_sample_budget_avg": null,
+        "demand_sample_portfolio_required_count": 0,
+        "demand_sample_kwork_required_count": 0,
+        "demand_sample_higher_price_allowed_count": 0,
+        "top_sellers": [
+          [
+            "TeamUr_Design",
+            2
+          ],
+          [
+            "raga_ya",
+            1
+          ],
+          [
+            "qoweb",
+            1
+          ],
+          [
+            "IrinaDana",
+            1
+          ],
+          [
+            "Slashovvv",
+            1
+          ]
+        ],
+        "signals": {
+          "demand_level": "skipped",
+          "supply_level": "saturated",
+          "low_offer_demand": false,
+          "portfolio_heavy_demand": false,
+          "higher_price_allowed": false
+        }
+      },
+      {
+        "seed_name": "Дизайн для маркетплейсов",
+        "category_id": 286,
+        "classifier_id": 1433413,
+        "supply_kworks_count": 82954,
+        "demand_wants_count": null,
+        "demand_status": "skipped",
+        "demand_per_1000_kworks": null,
+        "opportunity_score": null,
+        "sample_cards": 10,
+        "sample_unique_sellers": 9,
+        "seller_concentration": 0.2,
+        "sample_price_min": 1000,
+        "sample_price_max": 2000,
+        "sample_price_avg": 1400.0,
+        "demand_sample_offers_min": null,
+        "demand_sample_low_offer_count": 0,
+        "demand_sample_budget_avg": null,
+        "demand_sample_portfolio_required_count": 0,
+        "demand_sample_kwork_required_count": 0,
+        "demand_sample_higher_price_allowed_count": 0,
+        "top_sellers": [
+          [
+            "Vitaliy_DSGN",
+            2
+          ],
+          [
+            "Catfi5h",
+            1
+          ],
+          [
+            "fot_skill",
+            1
+          ],
+          [
+            "IG_designed",
+            1
+          ],
+          [
+            "Leilamad",
+            1
+          ]
+        ],
+        "signals": {
+          "demand_level": "skipped",
+          "supply_level": "saturated",
+          "low_offer_demand": false,
+          "portfolio_heavy_demand": false,
+          "higher_price_allowed": false
+        }
+      }
+    ],
+    "top_sellers": [
+      [
+        "TeamUr_Design",
+        2
+      ],
+      [
+        "IrinaDana",
+        2
+      ],
+      [
+        "Vitaliy_DSGN",
+        2
+      ],
+      [
+        "raga_ya",
+        1
+      ],
+      [
+        "qoweb",
+        1
+      ],
+      [
+        "Slashovvv",
+        1
+      ],
+      [
+        "Arteezy_FM",
+        1
+      ],
+      [
+        "alina_galova",
+        1
+      ],
+      [
+        "amane_design",
+        1
+      ],
+      [
+        "Artkit",
+        1
+      ],
+      [
+        "Catfi5h",
+        1
+      ],
+      [
+        "fot_skill",
+        1
+      ],
+      [
+        "IG_designed",
+        1
+      ],
+      [
+        "Leilamad",
+        1
+      ],
+      [
+        "Helga_Ghost_93",
+        1
+      ],
+      [
+        "maxfrancisco",
+        1
+      ],
+      [
+        "Mikhail_Aksenov",
+        1
+      ]
+    ],
+    "category_counts": [
+      [
+        "286",
+        20
+      ]
+    ]
+  },
+  "supply_count": 2,
+  "first_supply_keys": [
+    "cards",
+    "classifiers",
+    "demand",
+    "kworks_count",
+    "seed",
+    "timings_ms"
+  ]
+}

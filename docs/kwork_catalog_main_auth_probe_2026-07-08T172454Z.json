@@ -1,0 +1,129 @@
+{
+  "timestamp_utc": "2026-07-08T17:24:54.881296+00:00",
+  "purpose": "Validate catalogMain with account token; credentials and token not stored",
+  "proxy_url": "http://127.0.0.1:17990",
+  "auth": "KworkAPI signIn token in memory only",
+  "results": [
+    {
+      "name": "catalogMain_auth_token",
+      "endpoint": "catalogMain",
+      "use_token": true,
+      "elapsed_ms": 1841,
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response",
+          "fcmTokenLost"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "rubrics",
+          "popular_categories",
+          "popular_kworks",
+          "viewed_kworks"
+        ]
+      }
+    },
+    {
+      "name": "catalogMainv2_auth_token",
+      "endpoint": "catalogMainv2",
+      "use_token": true,
+      "elapsed_ms": 161,
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "popular_categories_block",
+          "catalog_service_block",
+          "other_services_block"
+        ],
+        "popular_categories_block": 3,
+        "popular_categories_block_sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "order": 0
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "order": 1
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "order": 2
+          }
+        ],
+        "catalog_service_block": 7,
+        "catalog_service_block_sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "order": 0
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "order": 1
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "order": 2
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "order": 3
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "order": 4
+          }
+        ],
+        "other_services_block": 10,
+        "other_services_block_sample": [
+          {
+            "name": "Оформление",
+            "category_id": 270,
+            "classifier_id": 314398,
+            "order": 0
+          },
+          {
+            "name": "Новый сайт",
+            "category_id": 37,
+            "classifier_id": 5016,
+            "order": 1
+          },
+          {
+            "name": "Программы на заказ",
+            "category_id": 80,
+            "classifier_id": 975,
+            "order": 2
+          },
+          {
+            "name": "Защита и лечение сайта",
+            "category_id": 38,
+            "classifier_id": 1273,
+            "order": 3
+          },
+          {
+            "name": "Парсеры",
+            "category_id": 41,
+            "classifier_id": 211,
+            "order": 4
+          }
+        ]
+      }
+    }
+  ]
+}

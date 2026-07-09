@@ -1,0 +1,409 @@
+{
+  "generated_at": "2026-07-09T11:49:52Z",
+  "results": [
+    {
+      "name": "keyword_telegram",
+      "params": {
+        "keyword": "telegram"
+      },
+      "status_code": 200,
+      "url": "https://kwork.ru/projects?keyword=telegram",
+      "elapsed_ms": 1255,
+      "filter": {
+        "price_from": null,
+        "price_to": null,
+        "hiring_from": null,
+        "kworks_filters": null,
+        "prices_filters": null,
+        "keyword": "telegram"
+      },
+      "total": 10,
+      "projects_count": 10,
+      "sample": [
+        {
+          "id": "3211971",
+          "title": "Создание Телеграмм бота",
+          "budget": 40000.0,
+          "offers": 139,
+          "username": "accaunt1b"
+        },
+        {
+          "id": "3211504",
+          "title": "Нужен Telegram CRM bot",
+          "budget": 1000.0,
+          "offers": 14,
+          "username": "bpavelv"
+        },
+        {
+          "id": "3212956",
+          "title": "Настроить систему автоматического постинга",
+          "budget": 8000.0,
+          "offers": 49,
+          "username": "poldiminov"
+        },
+        {
+          "id": "3210602",
+          "title": "Создать мессенджер",
+          "budget": 1000.0,
+          "offers": 5,
+          "username": "melurnik"
+        },
+        {
+          "id": "3213503",
+          "title": "Разработка тг бота для женщин",
+          "budget": 5000.0,
+          "offers": 67,
+          "username": "artemrutman"
+        }
+      ]
+    },
+    {
+      "name": "keyword_telegram_offers0_5",
+      "params": {
+        "keyword": "telegram",
+        "kworks_filters": "0"
+      },
+      "status_code": 200,
+      "url": "https://kwork.ru/projects?keyword=telegram&kworks_filters=0",
+      "elapsed_ms": 465,
+      "filter": {
+        "price_from": null,
+        "price_to": null,
+        "hiring_from": null,
+        "kworks_filters": null,
+        "prices_filters": null,
+        "keyword": "telegram"
+      },
+      "total": 10,
+      "projects_count": 10,
+      "sample": [
+        {
+          "id": "3211971",
+          "title": "Создание Телеграмм бота",
+          "budget": 40000.0,
+          "offers": 139,
+          "username": "accaunt1b"
+        },
+        {
+          "id": "3211504",
+          "title": "Нужен Telegram CRM bot",
+          "budget": 1000.0,
+          "offers": 14,
+          "username": "bpavelv"
+        },
+        {
+          "id": "3212956",
+          "title": "Настроить систему автоматического постинга",
+          "budget": 8000.0,
+          "offers": 49,
+          "username": "poldiminov"
+        },
+        {
+          "id": "3210602",
+          "title": "Создать мессенджер",
+          "budget": 1000.0,
+          "offers": 5,
+          "username": "melurnik"
+        },
+        {
+          "id": "3213503",
+          "title": "Разработка тг бота для женщин",
+          "budget": 5000.0,
+          "offers": 67,
+          "username": "artemrutman"
+        }
+      ]
+    },
+    {
+      "name": "keyword_telegram_budget_1_3",
+      "params": {
+        "keyword": "telegram",
+        "prices_filters": "1"
+      },
+      "status_code": 200,
+      "url": "https://kwork.ru/projects?keyword=telegram&prices_filters=1",
+      "elapsed_ms": 483,
+      "filter": {
+        "price_from": null,
+        "price_to": null,
+        "hiring_from": null,
+        "kworks_filters": null,
+        "prices_filters": null,
+        "keyword": "telegram"
+      },
+      "total": 10,
+      "projects_count": 10,
+      "sample": [
+        {
+          "id": "3211971",
+          "title": "Создание Телеграмм бота",
+          "budget": 40000.0,
+          "offers": 139,
+          "username": "accaunt1b"
+        },
+        {
+          "id": "3211504",
+          "title": "Нужен Telegram CRM bot",
+          "budget": 1000.0,
+          "offers": 14,
+          "username": "bpavelv"
+        },
+        {
+          "id": "3212956",
+          "title": "Настроить систему автоматического постинга",
+          "budget": 8000.0,
+          "offers": 49,
+          "username": "poldiminov"
+        },
+        {
+          "id": "3210602",
+          "title": "Создать мессенджер",
+          "budget": 1000.0,
+          "offers": 5,
+          "username": "melurnik"
+        },
+        {
+          "id": "3213503",
+          "title": "Разработка тг бота для женщин",
+          "budget": 5000.0,
+          "offers": 67,
+          "username": "artemrutman"
+        }
+      ]
+    },
+    {
+      "name": "keyword_telegram_budget_3_10",
+      "params": {
+        "keyword": "telegram",
+        "prices_filters": "2"
+      },
+      "status_code": 200,
+      "url": "https://kwork.ru/projects?keyword=telegram&prices_filters=2",
+      "elapsed_ms": 424,
+      "filter": {
+        "price_from": null,
+        "price_to": null,
+        "hiring_from": null,
+        "kworks_filters": null,
+        "prices_filters": null,
+        "keyword": "telegram"
+      },
+      "total": 10,
+      "projects_count": 10,
+      "sample": [
+        {
+          "id": "3211971",
+          "title": "Создание Телеграмм бота",
+          "budget": 40000.0,
+          "offers": 139,
+          "username": "accaunt1b"
+        },
+        {
+          "id": "3211504",
+          "title": "Нужен Telegram CRM bot",
+          "budget": 1000.0,
+          "offers": 14,
+          "username": "bpavelv"
+        },
+        {
+          "id": "3212956",
+          "title": "Настроить систему автоматического постинга",
+          "budget": 8000.0,
+          "offers": 49,
+          "username": "poldiminov"
+        },
+        {
+          "id": "3210602",
+          "title": "Создать мессенджер",
+          "budget": 1000.0,
+          "offers": 5,
+          "username": "melurnik"
+        },
+        {
+          "id": "3213503",
+          "title": "Разработка тг бота для женщин",
+          "budget": 5000.0,
+          "offers": 67,
+          "username": "artemrutman"
+        }
+      ]
+    },
+    {
+      "name": "keyword_telegram_offers0_5_budget_1_3",
+      "params": {
+        "keyword": "telegram",
+        "kworks_filters": "0",
+        "prices_filters": "1"
+      },
+      "status_code": 200,
+      "url": "https://kwork.ru/projects?keyword=telegram&kworks_filters=0&prices_filters=1",
+      "elapsed_ms": 516,
+      "filter": {
+        "price_from": null,
+        "price_to": null,
+        "hiring_from": null,
+        "kworks_filters": null,
+        "prices_filters": null,
+        "keyword": "telegram"
+      },
+      "total": 10,
+      "projects_count": 10,
+      "sample": [
+        {
+          "id": "3211971",
+          "title": "Создание Телеграмм бота",
+          "budget": 40000.0,
+          "offers": 139,
+          "username": "accaunt1b"
+        },
+        {
+          "id": "3211504",
+          "title": "Нужен Telegram CRM bot",
+          "budget": 1000.0,
+          "offers": 14,
+          "username": "bpavelv"
+        },
+        {
+          "id": "3212956",
+          "title": "Настроить систему автоматического постинга",
+          "budget": 8000.0,
+          "offers": 49,
+          "username": "poldiminov"
+        },
+        {
+          "id": "3210602",
+          "title": "Создать мессенджер",
+          "budget": 1000.0,
+          "offers": 5,
+          "username": "melurnik"
+        },
+        {
+          "id": "3213503",
+          "title": "Разработка тг бота для женщин",
+          "budget": 5000.0,
+          "offers": 67,
+          "username": "artemrutman"
+        }
+      ]
+    },
+    {
+      "name": "keyword_python_offers0_5_budget_1_3",
+      "params": {
+        "keyword": "python",
+        "kworks_filters": "0",
+        "prices_filters": "1"
+      },
+      "status_code": 200,
+      "url": "https://kwork.ru/projects?keyword=python&kworks_filters=0&prices_filters=1",
+      "elapsed_ms": 484,
+      "filter": {
+        "price_from": null,
+        "price_to": null,
+        "hiring_from": null,
+        "kworks_filters": null,
+        "prices_filters": null,
+        "keyword": "python"
+      },
+      "total": 2,
+      "projects_count": 2,
+      "sample": [
+        {
+          "id": "3213750",
+          "title": "База инструментов Freedom/KASE + API",
+          "budget": 1000.0,
+          "offers": 5,
+          "username": "Evgeny343"
+        },
+        {
+          "id": "3209739",
+          "title": "Донастройка AmoCRM + оптимизация интеграции SaleBot",
+          "budget": 11000.0,
+          "offers": 6,
+          "username": "margarite_n"
+        }
+      ]
+    },
+    {
+      "name": "cat80_offers0_5_budget_1_3",
+      "params": {
+        "c": "80",
+        "kworks_filters": "0",
+        "prices_filters": "1"
+      },
+      "status_code": 200,
+      "url": "https://kwork.ru/projects?c=80&kworks_filters=0&prices_filters=1",
+      "elapsed_ms": 315,
+      "filter": {
+        "price_from": null,
+        "price_to": null,
+        "hiring_from": null,
+        "kworks_filters": null,
+        "prices_filters": null,
+        "keyword": null
+      },
+      "total": 4,
+      "projects_count": 4,
+      "sample": [
+        {
+          "id": "3212271",
+          "title": "1с розница 3.0 убрать окна в РМК",
+          "budget": 1000.0,
+          "offers": 5,
+          "username": "melkiishadr"
+        },
+        {
+          "id": "3213460",
+          "title": "Доработка веб-платформы (CRM), fullstack",
+          "budget": 1500.0,
+          "offers": 20,
+          "username": "52538"
+        },
+        {
+          "id": "3213415",
+          "title": "Интеграция RetailCRM и 1C Розница 2.3",
+          "budget": 1000.0,
+          "offers": 5,
+          "username": "KCart_amocrm"
+        },
+        {
+          "id": "3193245",
+          "title": "Доделать ПО FEAR-Harvester.exe [C#] [.exe]",
+          "budget": 25000.0,
+          "offers": 9,
+          "username": "FEAR-"
+        }
+      ]
+    },
+    {
+      "name": "cat80_keyword_1c",
+      "params": {
+        "c": "80",
+        "keyword": "1c",
+        "kworks_filters": "0",
+        "prices_filters": "1"
+      },
+      "status_code": 200,
+      "url": "https://kwork.ru/projects?c=80&keyword=1c&kworks_filters=0&prices_filters=1",
+      "elapsed_ms": 474,
+      "filter": {
+        "price_from": null,
+        "price_to": null,
+        "hiring_from": null,
+        "kworks_filters": null,
+        "prices_filters": null,
+        "keyword": "1c"
+      },
+      "total": 1,
+      "projects_count": 1,
+      "sample": [
+        {
+          "id": "3213415",
+          "title": "Интеграция RetailCRM и 1C Розница 2.3",
+          "budget": 1000.0,
+          "offers": 5,
+          "username": "KCart_amocrm"
+        }
+      ]
+    }
+  ]
+}

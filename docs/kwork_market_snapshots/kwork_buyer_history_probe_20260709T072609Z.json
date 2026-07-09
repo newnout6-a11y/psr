@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-07-09T07:26:13.942810+00:00",
+  "project_id": 3202311,
+  "project_raw_summary": {
+    "id": 3202311,
+    "title": "Нужно создать 5&ndash;6 Telegram Stories с упоминанием",
+    "username": "Salvador1w1332",
+    "user_id": 13492958,
+    "user_projects_count": 139,
+    "user_active_projects_count": 4,
+    "user_hired_percent": 37,
+    "offers": 0,
+    "price": 30000,
+    "possible_price_limit": 90000,
+    "category_id": 46,
+    "parent_category_id": 45
+  },
+  "username": "Salvador1w1332",
+  "user_id": 13492958,
+  "checks": {
+    "https://kwork.ru/projects/list/Salvador1w1332_parse_error": "AttributeError: type object 'KworkStateDataParser' has no attribute 'extract_state_data'",
+    "https://kwork.ru/projects/list/Salvador1w1332": {
+      "status_code": 200,
+      "final_url": "https://kwork.ru/projects/list/Salvador1w1332",
+      "len": 137443,
+      "title": "Фриланс проекты: Salvador1w1332",
+      "state_keys": [],
+      "parsed_projects_count": 0,
+      "parsed_projects": [],
+      "contains_username": true
+    },
+    "https://kwork.ru/projects/list/Salvador1w1332?page=1_parse_error": "AttributeError: type object 'KworkStateDataParser' has no attribute 'extract_state_data'",
+    "https://kwork.ru/projects/list/Salvador1w1332?page=1": {
+      "status_code": 200,
+      "final_url": "https://kwork.ru/projects/list/Salvador1w1332?page=1",
+      "len": 137453,
+      "title": "Фриланс проекты: Salvador1w1332",
+      "state_keys": [],
+      "parsed_projects_count": 0,
+      "parsed_projects": [],
+      "contains_username": true
+    }
+  }
+}

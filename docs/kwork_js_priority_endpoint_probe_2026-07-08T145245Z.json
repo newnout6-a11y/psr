@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-07-08T14:52:45Z",
+  "results": [
+    {
+      "method": "POST",
+      "path": "/api/order/getorderscount",
+      "status": 200,
+      "content_type": "application/json",
+      "location": null,
+      "body_prefix": "false"
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/getworkbaysellers",
+      "status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "location": null,
+      "body_prefix": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script></script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><link class=\"js-theme-f"
+    },
+    {
+      "method": "POST",
+      "path": "/portfolio_large/",
+      "status": 302,
+      "content_type": "text/html",
+      "location": "http://kwork.ru/portfolio_large",
+      "body_prefix": "<html>\r <head><title>302 Found</title></head>\r <body>\r <center><h1>302 Found</h1></center>\r <hr><center>nginx</center>\r </body>\r </html>\r "
+    },
+    {
+      "method": "POST",
+      "path": "/catalog_kworks_filters/",
+      "status": 302,
+      "content_type": "text/html",
+      "location": "http://kwork.ru/catalog_kworks_filters",
+      "body_prefix": "<html>\r <head><title>302 Found</title></head>\r <body>\r <center><h1>302 Found</h1></center>\r <hr><center>nginx</center>\r </body>\r </html>\r "
+    },
+    {
+      "method": "POST",
+      "path": "/api/portfolio/youtubelinkvalidate?url=https%3A%2F%2Fyoutu.be%2FdQw4w9WgXcQ",
+      "status": 401,
+      "content_type": "application/json",
+      "location": null,
+      "body_prefix": "\"\\u0414\\u043e\\u0441\\u0442\\u0443\\u043f \\u0437\\u0430\\u043f\\u0440\\u0435\\u0449\\u0435\\u043d\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/order/getorderscount",
+      "status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "location": null,
+      "body_prefix": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script></script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><link class=\"js-theme-f"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/getworkbaysellers",
+      "status": 200,
+      "content_type": "application/json",
+      "location": null,
+      "body_prefix": "{\"success\":false,\"data\":\"\\u041d\\u0435\\u043e\\u0431\\u0445\\u043e\\u0434\\u0438\\u043c\\u043e \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u043e\\u0432\\u0430\\u0442\\u044c\\u0441\\u044f\"}"
+    }
+  ]
+}

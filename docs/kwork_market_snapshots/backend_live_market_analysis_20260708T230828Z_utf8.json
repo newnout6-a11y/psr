@@ -1,0 +1,1267 @@
+{
+  "generated_at": "2026-07-08T23:08:28Z",
+  "source": "psr.backend_live_market_analysis_no_ui",
+  "encoding_note": "Probe queries were passed as unicode escapes to avoid PowerShell stdin mojibake.",
+  "seller_supply": [
+    {
+      "name": "Programming broad",
+      "category_id": 41,
+      "classifier_id": null,
+      "kworks_count": 38129,
+      "competitor_cards": 10,
+      "price_min": 500,
+      "price_median": 1000,
+      "price_max": 50000,
+      "top_workers_sample_frequency": [],
+      "top_competitors": [
+        {
+          "id": 9665780,
+          "title": "Разработка Telegram БОТА + исходники и поддержка",
+          "worker": null,
+          "price": 7000,
+          "rating": 4.8,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/9665780/razrabotka-telegram-bota-iskhodniki-i-podderzhka"
+        },
+        {
+          "id": 255535,
+          "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/255535/napishu-i-protestiruyu-sketch-dlya-arduino-esp32-esp8266"
+        },
+        {
+          "id": 181761,
+          "title": "PHP, JS, JQuery скрипт",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/181761/php-js-jquery-skript"
+        },
+        {
+          "id": 298844,
+          "title": "Калькулятор для сайта",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/298844/kalkulyator-dlya-sayta"
+        },
+        {
+          "id": 48839569,
+          "title": "Напишу Телеграм и MAX Бота с Mini app",
+          "worker": null,
+          "price": 10000,
+          "rating": 4.9,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/48839569/napishu-telegram-i-max-bota-s-mini-app"
+        },
+        {
+          "id": 5617675,
+          "title": "Скрипт по работе в Рутуб",
+          "worker": null,
+          "price": 50000,
+          "rating": 4.9,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/5617675/skript-po-rabote-v-rutub"
+        },
+        {
+          "id": 765930,
+          "title": "Разработка расширения для Chrome, Firefox, Яндекс. Браузер",
+          "worker": null,
+          "price": 2500,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/765930/razrabotka-rasshireniya-dlya-chrome-firefox-yandeks-brauzer"
+        },
+        {
+          "id": 32136318,
+          "title": "Разработка телеграм бота",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/32136318/razrabotka-telegram-bota"
+        }
+      ],
+      "classifiers": [
+        {
+          "id": 211,
+          "name": "Парсеры",
+          "kworks_count": 2900,
+          "raw": {
+            "id": 211,
+            "name": "Парсеры",
+            "kworks_count": 2900,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3587,
+          "name": "Чат-боты",
+          "kworks_count": 16769,
+          "raw": {
+            "id": 3587,
+            "name": "Чат-боты",
+            "kworks_count": 16769,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 7352,
+          "name": "Скрипты",
+          "kworks_count": 7555,
+          "raw": {
+            "id": 7352,
+            "name": "Скрипты",
+            "kworks_count": 7555,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3934090,
+          "name": "Telegram Mini Apps",
+          "kworks_count": 1838,
+          "raw": {
+            "id": 3934090,
+            "name": "Telegram Mini Apps",
+            "kworks_count": 1838,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5548694,
+          "name": "ИИ-агенты",
+          "kworks_count": 991,
+          "raw": {
+            "id": 5548694,
+            "name": "ИИ-агенты",
+            "kworks_count": 991,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 4158112,
+          "name": "ИИ-боты",
+          "kworks_count": 2921,
+          "raw": {
+            "id": 4158112,
+            "name": "ИИ-боты",
+            "kworks_count": 2921,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 4158119,
+          "name": "Машинное обучение",
+          "kworks_count": 358,
+          "raw": {
+            "id": 4158119,
+            "name": "Машинное обучение",
+            "kworks_count": 358,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5503256,
+          "name": "Интернет вещей (IoT)",
+          "kworks_count": 190,
+          "raw": {
+            "id": 5503256,
+            "name": "Интернет вещей (IoT)",
+            "kworks_count": 190,
+            "visibility": 1
+          }
+        }
+      ],
+      "timings_ms": {
+        "kworks": 671,
+        "total": 672
+      },
+      "filter_scope": {
+        "params": {},
+        "selected": [],
+        "count": 0,
+        "effective_classifier_ids": []
+      },
+      "cache_status": "miss"
+    },
+    {
+      "name": "Telegram category",
+      "category_id": 46,
+      "classifier_id": 281,
+      "kworks_count": 8779,
+      "competitor_cards": 10,
+      "price_min": 500,
+      "price_median": 1000,
+      "price_max": 25000,
+      "top_workers_sample_frequency": [],
+      "top_competitors": [
+        {
+          "id": 26741882,
+          "title": "Парсинг Телеграм. Сбор-чатов и групп Telegram по запросам и ключевикам",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/information-bases/26741882/parsing-telegram-sbor-chatov-i-grupp-telegram-po-zaprosam-i-klyuchevikam"
+        },
+        {
+          "id": 27895321,
+          "title": "Продающий Оффер для Телеграм под ключ: Рекламный Пост, Продающий Текст",
+          "worker": null,
+          "price": 3000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/business-copywriting/27895321/prodayushchiy-offer-dlya-telegram-pod-klyuch-reklamniy-post-prodayushchiy-tekst"
+        },
+        {
+          "id": 17232430,
+          "title": "Парсинг телеграм групп и каналов по вашим запросам - 1500 шт",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/information-bases/17232430/parsing-telegram-grupp-i-kanalov-po-vashim-zaprosam-1500-sht"
+        },
+        {
+          "id": 20859803,
+          "title": "Креатив для рекламы в Telegram + бонус",
+          "worker": null,
+          "price": 2000,
+          "rating": 4.9,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/business-copywriting/20859803/kreativ-dlya-reklamy-v-telegram-bonus"
+        },
+        {
+          "id": 22418731,
+          "title": "Настройка таргетинга в Телеграм. Консультация по рекламе",
+          "worker": null,
+          "price": 25000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/smm/22418731/nastroyka-targetinga-v-telegram-konsultatsiya-po-reklame"
+        },
+        {
+          "id": 41974015,
+          "title": "Парсинг Телеграм. Подбор чатов и каналов по вашим запросам - 50 шт",
+          "worker": null,
+          "price": 500,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/information-bases/41974015/parsing-telegram-podbor-chatov-i-kanalov-po-vashim-zaprosam-50-sht"
+        },
+        {
+          "id": 30701176,
+          "title": "Поиск каналов и чатов Телеграм по ключевым словам",
+          "worker": null,
+          "price": 500,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/information-bases/30701176/poisk-kanalov-i-chatov-telegram-po-klyuchevym-slovam"
+        },
+        {
+          "id": 27205605,
+          "title": "Живые комментарии на посты в Телеграм от реальных пользователей",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/smm/27205605/zhivie-kommentarii-na-posty-v-telegram-ot-realnykh-polzovateley"
+        }
+      ],
+      "classifiers": [
+        {
+          "id": 622,
+          "name": "Создание и настройка",
+          "kworks_count": 847,
+          "raw": {
+            "id": 622,
+            "name": "Создание и настройка",
+            "kworks_count": 847,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 285,
+          "name": "Ведение и администрирование",
+          "kworks_count": 1529,
+          "raw": {
+            "id": 285,
+            "name": "Ведение и администрирование",
+            "kworks_count": 1529,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5944,
+          "name": "Аудит и оптимизация",
+          "kworks_count": 311,
+          "raw": {
+            "id": 5944,
+            "name": "Аудит и оптимизация",
+            "kworks_count": 311,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 286,
+          "name": "Таргетинг и работа с ЦА",
+          "kworks_count": 556,
+          "raw": {
+            "id": 286,
+            "name": "Таргетинг и работа с ЦА",
+            "kworks_count": 556,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3882026,
+          "name": "Интеграция в блогах",
+          "kworks_count": 160,
+          "raw": {
+            "id": 3882026,
+            "name": "Интеграция в блогах",
+            "kworks_count": 160,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 770252,
+          "name": "Репосты и комментарии",
+          "kworks_count": 535,
+          "raw": {
+            "id": 770252,
+            "name": "Репосты и комментарии",
+            "kworks_count": 535,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 513107,
+          "name": "Оформление",
+          "kworks_count": 1056,
+          "raw": {
+            "id": 513107,
+            "name": "Оформление",
+            "kworks_count": 1056,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 513374,
+          "name": "Создание видео",
+          "kworks_count": 401,
+          "raw": {
+            "id": 513374,
+            "name": "Создание видео",
+            "kworks_count": 401,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 513585,
+          "name": "Написание постов",
+          "kworks_count": 2497,
+          "raw": {
+            "id": 513585,
+            "name": "Написание постов",
+            "kworks_count": 2497,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1167995,
+          "name": "Сбор баз данных",
+          "kworks_count": 190,
+          "raw": {
+            "id": 1167995,
+            "name": "Сбор баз данных",
+            "kworks_count": 190,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1167998,
+          "name": "Готовые базы данных",
+          "kworks_count": 672,
+          "raw": {
+            "id": 1167998,
+            "name": "Готовые базы данных",
+            "kworks_count": 672,
+            "visibility": 1
+          }
+        }
+      ],
+      "timings_ms": {
+        "kworks": 259,
+        "total": 259
+      },
+      "filter_scope": {
+        "params": {},
+        "selected": [],
+        "count": 0,
+        "effective_classifier_ids": [
+          281
+        ]
+      },
+      "cache_status": "miss"
+    },
+    {
+      "name": "Website development broad",
+      "category_id": 41,
+      "classifier_id": null,
+      "kworks_count": 38129,
+      "competitor_cards": 10,
+      "price_min": 500,
+      "price_median": 1000,
+      "price_max": 50000,
+      "top_workers_sample_frequency": [],
+      "top_competitors": [
+        {
+          "id": 9665780,
+          "title": "Разработка Telegram БОТА + исходники и поддержка",
+          "worker": null,
+          "price": 7000,
+          "rating": 4.8,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/9665780/razrabotka-telegram-bota-iskhodniki-i-podderzhka"
+        },
+        {
+          "id": 255535,
+          "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/255535/napishu-i-protestiruyu-sketch-dlya-arduino-esp32-esp8266"
+        },
+        {
+          "id": 181761,
+          "title": "PHP, JS, JQuery скрипт",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/181761/php-js-jquery-skript"
+        },
+        {
+          "id": 298844,
+          "title": "Калькулятор для сайта",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/298844/kalkulyator-dlya-sayta"
+        },
+        {
+          "id": 48839569,
+          "title": "Напишу Телеграм и MAX Бота с Mini app",
+          "worker": null,
+          "price": 10000,
+          "rating": 4.9,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/48839569/napishu-telegram-i-max-bota-s-mini-app"
+        },
+        {
+          "id": 5617675,
+          "title": "Скрипт по работе в Рутуб",
+          "worker": null,
+          "price": 50000,
+          "rating": 4.9,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/5617675/skript-po-rabote-v-rutub"
+        },
+        {
+          "id": 765930,
+          "title": "Разработка расширения для Chrome, Firefox, Яндекс. Браузер",
+          "worker": null,
+          "price": 2500,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/765930/razrabotka-rasshireniya-dlya-chrome-firefox-yandeks-brauzer"
+        },
+        {
+          "id": 32136318,
+          "title": "Разработка телеграм бота",
+          "worker": null,
+          "price": 1000,
+          "rating": 5,
+          "reviews_count": null,
+          "orders_done": null,
+          "detail_status": "details_off",
+          "url": "https://kwork.ru/script-programming/32136318/razrabotka-telegram-bota"
+        }
+      ],
+      "classifiers": [
+        {
+          "id": 211,
+          "name": "Парсеры",
+          "kworks_count": 2900,
+          "raw": {
+            "id": 211,
+            "name": "Парсеры",
+            "kworks_count": 2900,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3587,
+          "name": "Чат-боты",
+          "kworks_count": 16769,
+          "raw": {
+            "id": 3587,
+            "name": "Чат-боты",
+            "kworks_count": 16769,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 7352,
+          "name": "Скрипты",
+          "kworks_count": 7555,
+          "raw": {
+            "id": 7352,
+            "name": "Скрипты",
+            "kworks_count": 7555,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3934090,
+          "name": "Telegram Mini Apps",
+          "kworks_count": 1838,
+          "raw": {
+            "id": 3934090,
+            "name": "Telegram Mini Apps",
+            "kworks_count": 1838,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5548694,
+          "name": "ИИ-агенты",
+          "kworks_count": 991,
+          "raw": {
+            "id": 5548694,
+            "name": "ИИ-агенты",
+            "kworks_count": 991,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 4158112,
+          "name": "ИИ-боты",
+          "kworks_count": 2921,
+          "raw": {
+            "id": 4158112,
+            "name": "ИИ-боты",
+            "kworks_count": 2921,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 4158119,
+          "name": "Машинное обучение",
+          "kworks_count": 358,
+          "raw": {
+            "id": 4158119,
+            "name": "Машинное обучение",
+            "kworks_count": 358,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5503256,
+          "name": "Интернет вещей (IoT)",
+          "kworks_count": 190,
+          "raw": {
+            "id": 5503256,
+            "name": "Интернет вещей (IoT)",
+            "kworks_count": 190,
+            "visibility": 1
+          }
+        }
+      ],
+      "timings_ms": {
+        "kworks": 671,
+        "total": 672
+      },
+      "filter_scope": {
+        "params": {},
+        "selected": [],
+        "count": 0,
+        "effective_classifier_ids": []
+      },
+      "cache_status": "hit"
+    }
+  ],
+  "buyer_scout": {
+    "file_path": "C:\\psr\\docs\\kwork_market_snapshots\\kwork_buyer_scout_20260708T230828Z.json",
+    "status": "ok",
+    "aggregate": {
+      "probe_count": 8,
+      "unique_projects": 39,
+      "zero_offer_count": 9,
+      "low_offer_count": 27,
+      "top_score": 88.0
+    },
+    "probes": [
+      {
+        "name": "telegram_bot_low_offer",
+        "query": "телеграм бот",
+        "status": "ok",
+        "count": 22,
+        "sample_count": 12,
+        "zero_offer_in_sample": 3,
+        "low_offer_in_sample": 9,
+        "timings_ms": {
+          "total": 2599
+        },
+        "error": null
+      },
+      {
+        "name": "telegram_low_offer",
+        "query": "telegram",
+        "status": "ok",
+        "count": 16,
+        "sample_count": 12,
+        "zero_offer_in_sample": 2,
+        "low_offer_in_sample": 10,
+        "timings_ms": {
+          "total": 386
+        },
+        "error": null
+      },
+      {
+        "name": "automation_low_offer",
+        "query": "автоматизация",
+        "status": "ok",
+        "count": 6,
+        "sample_count": 6,
+        "zero_offer_in_sample": 2,
+        "low_offer_in_sample": 4,
+        "timings_ms": {
+          "total": 358
+        },
+        "error": null
+      },
+      {
+        "name": "site_zero_offer",
+        "query": "сайт",
+        "status": "ok",
+        "count": 5,
+        "sample_count": 5,
+        "zero_offer_in_sample": 5,
+        "low_offer_in_sample": 0,
+        "timings_ms": {
+          "total": 375
+        },
+        "error": null
+      },
+      {
+        "name": "website_maintenance_low_offer",
+        "query": "доработка сайта",
+        "status": "ok",
+        "count": 29,
+        "sample_count": 12,
+        "zero_offer_in_sample": 2,
+        "low_offer_in_sample": 7,
+        "timings_ms": {
+          "total": 379
+        },
+        "error": null
+      },
+      {
+        "name": "python_bot_low_offer",
+        "query": "python бот",
+        "status": "ok",
+        "count": 8,
+        "sample_count": 8,
+        "zero_offer_in_sample": 2,
+        "low_offer_in_sample": 6,
+        "timings_ms": {
+          "total": 371
+        },
+        "error": null
+      },
+      {
+        "name": "wordpress_low_offer",
+        "query": "wordpress",
+        "status": "ok",
+        "count": 4,
+        "sample_count": 4,
+        "zero_offer_in_sample": 0,
+        "low_offer_in_sample": 4,
+        "timings_ms": {
+          "total": 607
+        },
+        "error": null
+      },
+      {
+        "name": "bitrix_low_offer",
+        "query": "bitrix",
+        "status": "ok",
+        "count": 1,
+        "sample_count": 1,
+        "zero_offer_in_sample": 0,
+        "low_offer_in_sample": 1,
+        "timings_ms": {
+          "total": 326
+        },
+        "error": null
+      }
+    ],
+    "top_projects": [
+      {
+        "id": 3202311,
+        "score": 88.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Нужно создать 5–6 Telegram Stories с упоминанием",
+        "offers": 0,
+        "price": 30000,
+        "possible_price_limit": 90000,
+        "allow_higher_price": true,
+        "views": 2662,
+        "orders": 0,
+        "project_detail_offers": 0,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы. Есть база для упоминания около 10к пользователей. Материалы для работы предоставляются. Нужен человек с опытом создания Telegram Stories и пониманием особенностей платформы. Приемлемая цена: 3 рубля за одно упоминание и ниже. В отклике просьба прислать: Примеры выполненных работ; Срок выполнения; Стоимость за весь объём."
+      },
+      {
+        "id": 3211575,
+        "score": 88.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Поиск клиентов постоянно",
+        "offers": 0,
+        "price": 40000,
+        "possible_price_limit": 120000,
+        "allow_higher_price": true,
+        "views": 1192,
+        "orders": 0,
+        "project_detail_offers": 0,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Ищу партнёра по привлечению клиентов на IT-разработку Я закрываю разработку — вы приводите заказы. Условия: - 20% от стоимости каждого заказа, который приходит от вас. - Процент выплачиваю после получения оплаты от клиента, вы ничем не рискуете. - Работаю вдолгую: приводите клиентов регулярно и это стабильный доход для вас. Что делаю: Сайты, веб-приложения, боты, интеграции, автоматизация, доработка проектов. Стек почти любой — закрою практически любой входящий запрос. Вам не нужно разбираться в"
+      },
+      {
+        "id": 3192226,
+        "score": 88.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Поиск заказов",
+        "offers": 0,
+        "price": 30000,
+        "possible_price_limit": 90000,
+        "allow_higher_price": true,
+        "views": 2530,
+        "orders": 0,
+        "project_detail_offers": 0,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Приветствую, товарищи. Ваша задача- привлекать заказчиков к покупкам моих услуг. Сфера IT. Делаю сайты, боты, парсеры- и доработки проектов. Оплата- процент от заказа. Подробнее, обращаться в ЛС."
+      },
+      {
+        "id": 3213584,
+        "score": 83.0,
+        "matched_probe": "site_zero_offer",
+        "title": "Поиск заказчиков",
+        "offers": 0,
+        "price": 200000,
+        "possible_price_limit": 200000,
+        "allow_higher_price": true,
+        "views": 313,
+        "orders": 0,
+        "project_detail_offers": 0,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Привет! Нужно найти заказчика на мои услуги - разработка сайта, лендинга, визитки. Стек: HTML+CSS, TypeScript, React; NodeJS, C#. После заключения сделки ваши 20%"
+      },
+      {
+        "id": 3212022,
+        "score": 81.0,
+        "matched_probe": "telegram_low_offer",
+        "title": "Массовый инвайтинг +рассылка с отчетом",
+        "offers": 1,
+        "price": 10000,
+        "possible_price_limit": 30000,
+        "allow_higher_price": true,
+        "views": 639,
+        "orders": 0,
+        "project_detail_offers": 1,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Интересует сотрудничество по инвайтингу или рассылке в Telegram. Рассматриваю долгосрочную работу, поэтому хотелось бы узнать подробнее о ваших возможностях и условиях. В первую очередь интересует стоимость около 3 ₽ за человека. Планируются различные объёмы, начиная от небольших тестовых запусков и заканчивая более крупными партиями, поэтому важно понимать, какие максимальные объёмы вы можете выполнять в сутки и насколько стабильно работаете. Также хотелось бы узнать, предоставляете ли вы отчёт"
+      },
+      {
+        "id": 702238,
+        "score": 81.0,
+        "matched_probe": "website_maintenance_low_offer",
+        "title": "Комплексное продвижение сайта",
+        "offers": 2,
+        "price": 30000,
+        "possible_price_limit": 90000,
+        "allow_higher_price": true,
+        "views": 895,
+        "orders": 1,
+        "project_detail_offers": 2,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Необходимо продвижение сайта для компании mramorov. Предложения рассматриваются только с комментариями по сайту( аудит делать не нужно) кратко по делу несколько слов. Если Вы просите ссылку на сайт, сразу нет."
+      },
+      {
+        "id": 3117473,
+        "score": 81.0,
+        "matched_probe": "bitrix_low_offer",
+        "title": "Bitrix24 тех поддержка портала на 1 месяц",
+        "offers": 1,
+        "price": 15000,
+        "possible_price_limit": 45000,
+        "allow_higher_price": true,
+        "views": 12655,
+        "orders": 0,
+        "project_detail_offers": 1,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Bitrix24 тех поддержка портала на 1 месяц Нужен специалист для поддержки CRM Bitrix24 Облако на период 1 месяц. С опытом ведения компаний типа БФЛ звонки, бизнес процессы, интеграции c мессенджерами и т.д. Задачи: Подержание работоспособности CRM системы до 20 пользователей Требования: Опыт работы с Bitrix24 от 2 лет в компаниях типа БФЛ, звонки, бизнес процессы, интеграции c мессенджерами и т.д. Быстрое реагирование на проблемы ( 1-2 часа в рабочее время с 09 до 18 по МСК) Понятное согласование"
+      },
+      {
+        "id": 3203050,
+        "score": 76.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Массовые отметки пользователей в Telegram Stories",
+        "offers": 2,
+        "price": 30000,
+        "possible_price_limit": 90000,
+        "allow_higher_price": true,
+        "views": 1672,
+        "orders": 0,
+        "project_detail_offers": 2,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Есть готовые Stories и база пользователей для отметок. Требуется исполнитель, который сможет качественно и в срок выполнить массовые отметки пользователей в Telegram. Объём работы: — Около 10 000 отметок по готовой базе; — Контент для публикации предоставляется; — От исполнителя требуется только работа с отметками. Требования: — Опыт работы с Telegram Stories; — Понимание ограничений и особенностей отметок в Telegram; — Аккуратность и внимательность при работе с большим объёмом. В отклике укажит"
+      },
+      {
+        "id": 3203045,
+        "score": 76.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Отметки пользователей в Telegram Stories",
+        "offers": 1,
+        "price": 33000,
+        "possible_price_limit": 99000,
+        "allow_higher_price": true,
+        "views": 1591,
+        "orders": 0,
+        "project_detail_offers": 1,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Предоставляется база для отметок — около 10 000 пользователей. Все материалы для публикации готовы и будут переданы исполнителю. Требования: — Опыт работы с упоминаниями — Понимание лимитов и особенностей отметок пользователей в Telegram; — Умение выполнять большой объём отметок без ошибок и пропусков; — Соблюдение сроков выполнения. Оплата: — Рассматриваем стоимость от 3 рублей за одну отметку и ниже. В отклике просьба указать: — Опыт работы именно с отметками пользователей в Telegram Stories; "
+      },
+      {
+        "id": 3204600,
+        "score": 76.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Вывести канал в ТОП поиска малоизвестной тематике",
+        "offers": 2,
+        "price": 30000,
+        "possible_price_limit": 90000,
+        "allow_higher_price": true,
+        "views": 1264,
+        "orders": 0,
+        "project_detail_offers": 2,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Задача: вывести Telegram канал или бота в ТОП поиска Telegram по целевому запросу и удержать позиции не менее 30 дней. Требования к результату: • Бот должен находиться в ТОПе по согласованному ключевому запросу. • Позиции должны сохраняться минимум 1 месяц после завершения работ. • Опыт вывода ботов или каналов в поиск Telegram. При отклике обязательно укажите: 1. Какой метод продвижения планируете использовать. 2. Примеры аналогичных кейсов и результаты. 3. Сроки выполнения. 4. Гарантии удержан"
+      },
+      {
+        "id": 3211916,
+        "score": 76.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Поиск заказчиков на услуги маркетинга",
+        "offers": 1,
+        "price": 25000,
+        "possible_price_limit": 75000,
+        "allow_higher_price": true,
+        "views": 306,
+        "orders": 0,
+        "project_detail_offers": 1,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Ищу партнеров на комиссии Я исполнитель. Делаю: 🤖 Ботов для Telegram и Max 🌐 Сайты (лендинги, визитки, под ключ) 📲 Работу в TG и Max: инвайтинг в чаты, рассылка в ЛС, отметки в историях, нейрокомментинг ⭐ и куча других полезных для заказчиков плюсов Твоя задача: найти заказчика. Все переговоры, демо и закрытие сделки — на мне. Твой доход: % с платежа Выплата — сразу после оплаты от клиента. Любые способы привлечения заказчиков, абсолютно нет никакой разницы все условия обсуждаемы, готов к долгос"
+      },
+      {
+        "id": 3210268,
+        "score": 76.0,
+        "matched_probe": "website_maintenance_low_offer",
+        "title": "Необходимо найти клиентов на разработку сайтов",
+        "offers": 1,
+        "price": 30000,
+        "possible_price_limit": 90000,
+        "allow_higher_price": true,
+        "views": 661,
+        "orders": 0,
+        "project_detail_offers": 1,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": "Интересуют проекты: * сайты на Tilda; * лендинги; * корпоративные сайты; * интернет-магазины; * редизайн сайтов; * дизайн интерфейсов. Поиск можно вести через любые площадки, подразумевающие что там есть наша ЦА Минимальная стоимость проекта — 50 000 ₽. Оплата за результат: * десять процентов от стоимости проекта за найденного клиента; * двадцать процентов если клиент доведен до заключения сделки. Оплата производится после получения предоплаты от клиента. Предоставлю: * портфолио; * резюме; * пр"
+      },
+      {
+        "id": 3213549,
+        "score": 71.0,
+        "matched_probe": "telegram_low_offer",
+        "title": "Bitrix24 настройка системы управления продуктом",
+        "offers": 5,
+        "price": 25000,
+        "possible_price_limit": 75000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3027955,
+        "score": 71.0,
+        "matched_probe": "automation_low_offer",
+        "title": "Упаковка,контентная стратегия и продакт-менеджмент в ВК",
+        "offers": 2,
+        "price": 9000,
+        "possible_price_limit": 27000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3213610,
+        "score": 68.0,
+        "matched_probe": "telegram_low_offer",
+        "title": "Короткий опрос: письмо после заказа у 5 инет-магазинов",
+        "offers": 0,
+        "price": 1000,
+        "possible_price_limit": 3000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3212981,
+        "score": 66.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Вывод бота в топ телег",
+        "offers": 2,
+        "price": 5000,
+        "possible_price_limit": 15000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3190904,
+        "score": 66.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Нужно создать 5-6 Telegram Stories с упоминанием",
+        "offers": 4,
+        "price": 23000,
+        "possible_price_limit": 69000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3213124,
+        "score": 66.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Рассылка в телеграм по мебели",
+        "offers": 5,
+        "price": 10000,
+        "possible_price_limit": 30000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3123246,
+        "score": 66.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Пригласить друзей в ВК",
+        "offers": 1,
+        "price": 1000,
+        "possible_price_limit": 3000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3212358,
+        "score": 66.0,
+        "matched_probe": "automation_low_offer",
+        "title": "Настроить и вести холодную рассылку в зарубеж.соц.сети",
+        "offers": 2,
+        "price": 7000,
+        "possible_price_limit": 21000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3210726,
+        "score": 63.0,
+        "matched_probe": "automation_low_offer",
+        "title": "Продвижение готового IT-сервиса",
+        "offers": 0,
+        "price": 1000,
+        "possible_price_limit": 3000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3213459,
+        "score": 63.0,
+        "matched_probe": "site_zero_offer",
+        "title": "Ищу партнера по поиску клиентов на разработку сайтов",
+        "offers": 0,
+        "price": 1000,
+        "possible_price_limit": 3000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 2664819,
+        "score": 61.0,
+        "matched_probe": "website_maintenance_low_offer",
+        "title": "Доработка сайта Unisite",
+        "offers": 4,
+        "price": 5000,
+        "possible_price_limit": 15000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3213082,
+        "score": 61.0,
+        "matched_probe": "website_maintenance_low_offer",
+        "title": "Ручная регистрация сайта в справочниках и каталогах",
+        "offers": 5,
+        "price": 6000,
+        "possible_price_limit": 18000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3197822,
+        "score": 55.0,
+        "matched_probe": "wordpress_low_offer",
+        "title": "Сменить стилистику (дизайн) на WordPress",
+        "offers": 5,
+        "price": 1000,
+        "possible_price_limit": 3000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3213339,
+        "score": 51.0,
+        "matched_probe": "telegram_bot_low_offer",
+        "title": "Настройка автоворонки и оплат через Prodamus",
+        "offers": 4,
+        "price": 1500,
+        "possible_price_limit": 4500,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3213599,
+        "score": 51.0,
+        "matched_probe": "telegram_low_offer",
+        "title": "Опрос 5 владельцев интернет-магазинов",
+        "offers": 4,
+        "price": 1000,
+        "possible_price_limit": 3000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3211434,
+        "score": 51.0,
+        "matched_probe": "wordpress_low_offer",
+        "title": "Глубокое семантическое ядро",
+        "offers": 1,
+        "price": 4000,
+        "possible_price_limit": 4000,
+        "allow_higher_price": false,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 2542334,
+        "score": 46.0,
+        "matched_probe": "website_maintenance_low_offer",
+        "title": "Настроить таргет на ВК и на сайт",
+        "offers": 3,
+        "price": 3000,
+        "possible_price_limit": 9000,
+        "allow_higher_price": true,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      },
+      {
+        "id": 3206832,
+        "score": 44.0,
+        "matched_probe": "site_zero_offer",
+        "title": "Коммуникация с сайтами",
+        "offers": 0,
+        "price": 500,
+        "possible_price_limit": 500,
+        "allow_higher_price": false,
+        "views": null,
+        "orders": null,
+        "project_detail_offers": null,
+        "want_detail_offers": null,
+        "url": null,
+        "description_excerpt": ""
+      }
+    ],
+    "endpoint_errors": [],
+    "timings_ms": {
+      "total": 8145
+    }
+  },
+  "interpretation": {
+    "best_direction_now": "site_zero_offer",
+    "notes": [
+      "site_zero_offer: count=5, sample=5, zero=5, low=0",
+      "telegram_bot_low_offer: count=22, sample=12, zero=3, low=9",
+      "telegram_low_offer: count=16, sample=12, zero=2, low=10",
+      "website_maintenance_low_offer: count=29, sample=12, zero=2, low=7",
+      "python_bot_low_offer: count=8, sample=8, zero=2, low=6",
+      "automation_low_offer: count=6, sample=6, zero=2, low=4",
+      "wordpress_low_offer: count=4, sample=4, zero=0, low=4",
+      "bitrix_low_offer: count=1, sample=1, zero=0, low=1",
+      "seller Programming broad: kworks=38129, median_price=1000, cards=10",
+      "seller Telegram category: kworks=8779, median_price=1000, cards=10",
+      "seller Website development broad: kworks=38129, median_price=1000, cards=10"
+    ]
+  }
+}

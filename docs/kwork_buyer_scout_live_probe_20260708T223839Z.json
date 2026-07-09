@@ -1,0 +1,186 @@
+{
+  "generated_at": "2026-07-08T22:38:36Z",
+  "source": "codex.kwork_buyer_scout_live_probe",
+  "method": "bounded read-only probe of getWantsCount/projects/project/want",
+  "probes": [
+    {
+      "config": {
+        "name": "telegram_bot_low_offer",
+        "categories": "all",
+        "query": "телеграм бот",
+        "kworks_filter_to": 5
+      },
+      "errors": [],
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "elapsed_ms": 1296
+    },
+    {
+      "config": {
+        "name": "telegram_low_offer",
+        "categories": "all",
+        "query": "telegram",
+        "kworks_filter_to": 5
+      },
+      "errors": [],
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "elapsed_ms": 326
+    },
+    {
+      "config": {
+        "name": "automation_low_offer",
+        "categories": "all",
+        "query": "автоматизация",
+        "kworks_filter_to": 5
+      },
+      "errors": [],
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "elapsed_ms": 325
+    },
+    {
+      "config": {
+        "name": "wordpress_low_offer",
+        "categories": "all",
+        "query": "wordpress",
+        "kworks_filter_to": 5
+      },
+      "errors": [],
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "elapsed_ms": 325
+    },
+    {
+      "config": {
+        "name": "programming_category_low_offer",
+        "categories": "41",
+        "query": "",
+        "kworks_filter_to": 5
+      },
+      "errors": [],
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "elapsed_ms": 325
+    },
+    {
+      "config": {
+        "name": "website_maintenance_low_offer",
+        "categories": "all",
+        "query": "доработка сайта",
+        "kworks_filter_to": 10
+      },
+      "errors": [],
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "elapsed_ms": 328
+    },
+    {
+      "config": {
+        "name": "telegram_bot_zero_offer",
+        "categories": "all",
+        "query": "телеграм бот",
+        "kworks_filter_to": 0
+      },
+      "errors": [],
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "elapsed_ms": 327
+    },
+    {
+      "config": {
+        "name": "site_zero_offer",
+        "categories": "all",
+        "query": "сайт",
+        "kworks_filter_to": 0
+      },
+      "errors": [],
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "elapsed_ms": 328
+    }
+  ],
+  "top_ranked": [],
+  "endpoint_facts": {
+    "getWantsCount": {
+      "method": "POST",
+      "host": "api.kwork.ru",
+      "params_seen": [
+        "categories",
+        "query",
+        "kworks_filter_to",
+        "kworks_filter_from",
+        "price_from",
+        "price_to",
+        "hiring_from"
+      ],
+      "role": "cheap count for buyer lots"
+    },
+    "projects": {
+      "method": "POST",
+      "host": "api.kwork.ru",
+      "params_seen": [
+        "categories",
+        "page",
+        "query",
+        "kworks_filter_to",
+        "kworks_filter_from",
+        "price_from",
+        "price_to",
+        "hiring_from"
+      ],
+      "role": "buyer lot list"
+    },
+    "project": {
+      "method": "POST",
+      "host": "api.kwork.ru",
+      "params_seen": [
+        "id"
+      ],
+      "role": "project card detail",
+      "detail_probe": []
+    },
+    "want": {
+      "method": "POST",
+      "host": "api.kwork.ru",
+      "params_seen": [
+        "id"
+      ],
+      "role": "richer want detail candidate",
+      "detail_probe": []
+    }
+  },
+  "aggregate": {
+    "unique_projects": 0,
+    "top_score": null,
+    "zero_offer_count_in_seen": 0,
+    "low_offer_count_in_seen": 0
+  },
+  "timings_ms": {
+    "total": 4385
+  }
+}

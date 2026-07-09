@@ -1,0 +1,154 @@
+{
+  "generated_at": "2026-07-09T13:10:06Z",
+  "source": "psr.kwork_manual_verification_probe",
+  "captcha_status": {
+    "ok": false,
+    "required": false,
+    "source": "getCaptchaStatus",
+    "error": "KworkException: Некорректные значения параметров"
+  },
+  "web_pages": [
+    {
+      "path": "/",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/seller",
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 139270,
+      "manual_required": false,
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [
+          "SmartCaptcha",
+          "smart-token",
+          "smartcaptcha"
+        ],
+        "weak_matches": [],
+        "challenge_url": false,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "title_hint": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=34_cors\" type=\"text/css\" media=\"screen\"><link rel=\"alternate\" href=\"https://kwork.ru\" hreflang=\"ru\" /><link rel=\"alternate\" href=\"https://kwork.com\" hreflang=\"en\" /><"
+    },
+    {
+      "path": "/new",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/new",
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 728241,
+      "manual_required": false,
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [
+          "SmartCaptcha",
+          "smart-token",
+          "smartcaptcha"
+        ],
+        "weak_matches": [],
+        "challenge_url": false,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "title_hint": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=34_cors\" type=\"text/css\" media=\"screen\"><link rel=\"preconnect\" href=\"https://cdn-edge.kwork.ru\"><meta name=\"format-detection\" content=\"telephone=no\"><meta http-equiv="
+    },
+    {
+      "path": "/manage_kworks",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/manage_kworks",
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 170948,
+      "manual_required": false,
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [
+          "SmartCaptcha",
+          "smart-token",
+          "smartcaptcha"
+        ],
+        "weak_matches": [],
+        "challenge_url": false,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "title_hint": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=34_cors\" type=\"text/css\" media=\"screen\"><link rel=\"preconnect\" href=\"https://cdn-edge.kwork.ru\"><meta name=\"format-detection\" content=\"telephone=no\"><meta http-equiv="
+    },
+    {
+      "path": "/projects",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/projects",
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 378357,
+      "manual_required": false,
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [
+          "SmartCaptcha",
+          "smart-token",
+          "smartcaptcha"
+        ],
+        "weak_matches": [],
+        "challenge_url": false,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "title_hint": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=34_cors\" type=\"text/css\" media=\"screen\"><link rel=\"preconnect\" href=\"https://cdn-edge.kwork.ru\"><meta name=\"format-detection\" content=\"telephone=no\"><meta http-equiv="
+    },
+    {
+      "path": "/not-access",
+      "status_code": 404,
+      "final_url": "https://kwork.ru/not-access",
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 60429,
+      "manual_required": false,
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [],
+        "weak_matches": [],
+        "challenge_url": false,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "title_hint": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=34_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variables.css?ver=34b19c22abb558ff8f_cors\" type=\"text/css\" media=\"s"
+    },
+    {
+      "path": "/not_access",
+      "status_code": 404,
+      "final_url": "https://kwork.ru/not_access",
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 60429,
+      "manual_required": false,
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [],
+        "weak_matches": [],
+        "challenge_url": true,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "title_hint": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=34_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variables.css?ver=34b19c22abb558ff8f_cors\" type=\"text/css\" media=\"s"
+    },
+    {
+      "path": "/captcha",
+      "status_code": 404,
+      "final_url": "https://kwork.ru/captcha",
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 60429,
+      "manual_required": false,
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [],
+        "weak_matches": [],
+        "challenge_url": true,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "title_hint": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=34_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variables.css?ver=34b19c22abb558ff8f_cors\" type=\"text/css\" media=\"s"
+    }
+  ]
+}

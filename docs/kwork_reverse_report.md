@@ -7,7 +7,7 @@
 ## Sources
 
 - `kwork` package:
-  `C:\Users\Redmi\AppData\Local\Programs\Python\Python312\Lib\site-packages\kwork`
+  `C:\Users\Redmi\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\kwork`
 - PSR runtime data:
   `data/runtime/logs.db`, `data/runtime/proposals.db`, `data/runtime/logs.txt`
 - PSR code:

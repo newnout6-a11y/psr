@@ -371,6 +371,46 @@ class TestKworkExtensions:
         assert count == 42
 
     @pytest.mark.asyncio
+    async def test_get_captcha_status_reads_show_captcha_false(self, mock_api):
+        from src.platforms.kwork_ext import KworkExtensions
+
+        mock_api.request.return_value = {"success": True, "response": {"show_captcha": False}}
+        status = await KworkExtensions.get_captcha_status(mock_api)
+        assert status is False
+        mock_api.request.assert_called_with("post", "getCaptchaStatus", use_token=True)
+
+    @pytest.mark.asyncio
+    async def test_get_captcha_status_reads_show_captcha_true(self, mock_api):
+        from src.platforms.kwork_ext import KworkExtensions
+
+        mock_api.request.return_value = {"success": True, "response": {"show_captcha": True}}
+        status = await KworkExtensions.get_captcha_status(mock_api)
+        assert status is True
+
+    @pytest.mark.asyncio
+    async def test_get_captcha_status_detail_preserves_api_flag(self, mock_api):
+        from src.platforms.kwork_ext import KworkExtensions
+
+        mock_api.request.return_value = {"success": True, "response": {"show_captcha": True}}
+        detail = await KworkExtensions.get_captcha_status_detail(mock_api)
+
+        assert detail["ok"] is True
+        assert detail["required"] is True
+        assert detail["source"] == "getCaptchaStatus"
+
+    @pytest.mark.asyncio
+    async def test_get_captcha_status_detail_error_is_not_required(self, mock_api):
+        from src.platforms.kwork_ext import KworkExtensions
+
+        mock_api.request.side_effect = RuntimeError("bad params")
+        detail = await KworkExtensions.get_captcha_status_detail(mock_api)
+
+        assert detail["ok"] is False
+        assert detail["required"] is False
+        assert detail["source"] == "getCaptchaStatus"
+        assert "RuntimeError" in detail["error"]
+
+    @pytest.mark.asyncio
     async def test_check_is_template_not_flagged(self, mock_api):
         from src.platforms.kwork_ext import KworkExtensions
 
@@ -664,6 +704,49 @@ class TestAccountHealthMonitor:
         }
         text = m.get_summary_text()
         assert "Занят" in text or "⚠️" in text
+
+
+    @pytest.mark.asyncio
+    async def test_api_captcha_flag_is_not_manual_verification(self, monkeypatch):
+        import src.platforms.kwork_ext as kwork_ext
+        from src.platforms.kwork_ext import AccountHealthMonitor, KworkExtensions
+
+        class ConnectsMonitor:
+            free_amount = 30
+
+            async def check(self, api):
+                return {"total_amount": 30}
+
+        class SuccessMonitor:
+            completed = 1
+            cancelled = 0
+            active_orders = 0
+            success_rate = 100
+
+            async def check(self, api):
+                return None
+
+        class Api:
+            async def request(self, method, endpoint, **params):
+                return {"response": {"username": "seller"}}
+
+        async def fake_captcha_detail(api):
+            return {"ok": True, "required": True, "source": "getCaptchaStatus"}
+
+        async def fake_badges(api):
+            return {}
+
+        monkeypatch.setattr(kwork_ext, "get_connects_monitor", lambda: ConnectsMonitor())
+        monkeypatch.setattr(kwork_ext, "get_success_rate_monitor", lambda: SuccessMonitor())
+        monkeypatch.setattr(KworkExtensions, "get_captcha_status_detail", staticmethod(fake_captcha_detail))
+        monkeypatch.setattr(KworkExtensions, "get_badges_info", staticmethod(fake_badges))
+
+        health = await AccountHealthMonitor().check(Api())
+
+        assert health["captcha_api_flag"] is True
+        assert health["captcha_required"] is False
+        assert health["manual_verification_required"] is False
+        assert health["captcha_status"] == "api_flag_only"
 
 
 # ============================================================

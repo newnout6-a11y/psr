@@ -1,0 +1,733 @@
+{
+  "generated_at": "2026-07-09T12:24:57Z",
+  "source": "psr.kwork_buyer_scout",
+  "status": "ok",
+  "config": {
+    "max_probes": 5,
+    "page": 1,
+    "project_page_limit": 2,
+    "per_probe_limit": 8,
+    "top_limit": 20,
+    "include_project_details": false,
+    "include_want_details": false,
+    "include_buyer_history": false,
+    "detail_limit": 8,
+    "buyer_history_limit": 6,
+    "budget_max": 5000,
+    "include_query_suggestions": true,
+    "query_suggestion_limit": 4
+  },
+  "probes": [
+    {
+      "name": "telegram_low_offer",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "ok",
+      "count": 1,
+      "sample_count": 1,
+      "sample": [
+        {
+          "id": "3210602",
+          "title": "Создать мессенджер",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 5,
+          "time_left": null,
+          "max_days": 10,
+          "views": "2570",
+          "orders": null,
+          "date_create": "2026-07-04 10:09:55",
+          "date_expire": "2026-07-10 09:10:26",
+          "user_hired_percent": 0,
+          "user_id": 24589192,
+          "username": "melurnik",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/melurnik",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 24589192,
+            "username": "melurnik",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        }
+      ],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=telegram&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "telegram"
+        },
+        "paging": {
+          "page": 1,
+          "total": 1,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 1,
+          "sample_count": 1,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 1472
+      }
+    },
+    {
+      "name": "telegram_zero_offer",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 0,
+        "price_to": 5000
+      },
+      "status": "ok",
+      "count": 1,
+      "sample_count": 1,
+      "sample": [
+        {
+          "id": "3210602",
+          "title": "Создать мессенджер",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 5,
+          "time_left": null,
+          "max_days": 10,
+          "views": "2570",
+          "orders": null,
+          "date_create": "2026-07-04 10:09:55",
+          "date_expire": "2026-07-10 09:10:26",
+          "user_hired_percent": 0,
+          "user_id": 24589192,
+          "username": "melurnik",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/melurnik",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 24589192,
+            "username": "melurnik",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        }
+      ],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=telegram&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "telegram"
+        },
+        "paging": {
+          "page": 1,
+          "total": 1,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 1,
+          "sample_count": 1,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 755
+      }
+    },
+    {
+      "name": "site_zero_offer",
+      "categories": "all",
+      "query": "site",
+      "filters": {
+        "kworks_filter_to": 0,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=site&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "site"
+        },
+        "paging": {
+          "page": 1,
+          "total": 0,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 786
+      }
+    },
+    {
+      "name": "python_low_offer",
+      "categories": "all",
+      "query": "python",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "ok",
+      "count": 1,
+      "sample_count": 1,
+      "sample": [
+        {
+          "id": "3213750",
+          "title": "База инструментов Freedom/KASE + API",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 5,
+          "time_left": null,
+          "max_days": 10,
+          "views": "335",
+          "orders": null,
+          "date_create": "2026-07-09 09:19:58",
+          "date_expire": "2026-07-10 09:27:24",
+          "user_hired_percent": 55,
+          "user_id": 10673588,
+          "username": "Evgeny343",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/Evgeny343",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 10673588,
+            "username": "Evgeny343",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        }
+      ],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=python&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "python"
+        },
+        "paging": {
+          "page": 1,
+          "total": 1,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 1,
+          "sample_count": 1,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 1392
+      }
+    },
+    {
+      "name": "ai_low_offer",
+      "categories": "all",
+      "query": "ai",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "ok",
+      "count": 1,
+      "sample_count": 1,
+      "sample": [
+        {
+          "id": "3022438",
+          "title": "Скрипт на n8n, либо любой другой ЯП",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 500.0,
+          "possible_price_limit": 1500,
+          "offers": 2,
+          "time_left": null,
+          "max_days": 10,
+          "views": "38135",
+          "orders": null,
+          "date_create": "2025-11-17 19:35:29",
+          "date_expire": "2026-07-10 12:05:06",
+          "user_hired_percent": 57,
+          "user_id": 16693601,
+          "username": "igores1990",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/igores1990",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 16693601,
+            "username": "igores1990",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        }
+      ],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=ai&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "ai"
+        },
+        "paging": {
+          "page": 1,
+          "total": 1,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 1,
+          "sample_count": 1,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 997
+      }
+    }
+  ],
+  "top": [
+    {
+      "id": "3022438",
+      "title": "Скрипт на n8n, либо любой другой ЯП",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 500.0,
+      "possible_price_limit": 1500,
+      "offers": 2,
+      "time_left": null,
+      "max_days": 10,
+      "views": "38135",
+      "orders": null,
+      "date_create": "2025-11-17 19:35:29",
+      "date_expire": "2026-07-10 12:05:06",
+      "user_hired_percent": 57,
+      "user_id": 16693601,
+      "username": "igores1990",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/igores1990",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 16693601,
+        "username": "igores1990",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 37.0,
+      "score_reasons": [
+        "1-2 offers",
+        "low budget",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "ai_low_offer"
+    },
+    {
+      "id": "3213750",
+      "title": "База инструментов Freedom/KASE + API",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 5,
+      "time_left": null,
+      "max_days": 10,
+      "views": "335",
+      "orders": null,
+      "date_create": "2026-07-09 09:19:58",
+      "date_expire": "2026-07-10 09:27:24",
+      "user_hired_percent": 55,
+      "user_id": 10673588,
+      "username": "Evgeny343",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/Evgeny343",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 10673588,
+        "username": "Evgeny343",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 27.0,
+      "score_reasons": [
+        "<=5 offers",
+        "low budget",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "python_low_offer"
+    },
+    {
+      "id": "3210602",
+      "title": "Создать мессенджер",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 5,
+      "time_left": null,
+      "max_days": 10,
+      "views": "2570",
+      "orders": null,
+      "date_create": "2026-07-04 10:09:55",
+      "date_expire": "2026-07-10 09:10:26",
+      "user_hired_percent": 0,
+      "user_id": 24589192,
+      "username": "melurnik",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/melurnik",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 24589192,
+        "username": "melurnik",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 22.0,
+      "score_reasons": [
+        "<=5 offers",
+        "low budget"
+      ],
+      "matched_probe": "telegram_low_offer"
+    }
+  ],
+  "aggregate": {
+    "probe_count": 5,
+    "unique_projects": 3,
+    "zero_offer_count": 0,
+    "low_offer_count": 3,
+    "top_score": 37.0,
+    "market_signals": [
+      {
+        "kind": "budget_fit_low_offer",
+        "label": "Р РµР°Р»РёСЃС‚РёС‡РЅС‹Р№ Р±СЋРґР¶РµС‚",
+        "value": 3,
+        "detail": "Р›РѕС‚С‹ РІ Р»РёРјРёС‚Рµ РґРѕ 5000 в‚Ѕ Рё СЃ РјР°Р»С‹Рј С‡РёСЃР»РѕРј РѕС‚РєР»РёРєРѕРІ.",
+        "projects": [
+          {
+            "id": "3022438",
+            "title": "Скрипт на n8n, либо любой другой ЯП",
+            "offers": 2,
+            "budget": 500,
+            "username": "igores1990",
+            "score": 37.0
+          },
+          {
+            "id": "3213750",
+            "title": "База инструментов Freedom/KASE + API",
+            "offers": 5,
+            "budget": 1000,
+            "username": "Evgeny343",
+            "score": 27.0
+          },
+          {
+            "id": "3210602",
+            "title": "Создать мессенджер",
+            "offers": 5,
+            "budget": 1000,
+            "username": "melurnik",
+            "score": 22.0
+          }
+        ]
+      },
+      {
+        "kind": "proven_buyers",
+        "label": "РџРѕРєСѓРїР°С‚РµР»Рё РЅР°РЅРёРјР°СЋС‚",
+        "value": 2,
+        "detail": "Р’ РєР°СЂС‚РѕС‡РєРµ РїРѕРєСѓРїР°С‚РµР»СЏ РµСЃС‚СЊ Р·Р°РјРµС‚РЅС‹Р№ РїСЂРѕС†РµРЅС‚ РЅР°Р№РјР°.",
+        "projects": [
+          {
+            "id": "3022438",
+            "title": "Скрипт на n8n, либо любой другой ЯП",
+            "offers": 2,
+            "budget": 500,
+            "username": "igores1990",
+            "score": 37.0
+          },
+          {
+            "id": "3213750",
+            "title": "База инструментов Freedom/KASE + API",
+            "offers": 5,
+            "budget": 1000,
+            "username": "Evgeny343",
+            "score": 27.0
+          }
+        ]
+      },
+      {
+        "kind": "probe_leaders",
+        "label": "Р Р°Р±РѕС‡РёРµ РїРѕРёСЃРєРѕРІС‹Рµ РѕРєРЅР°",
+        "value": 4,
+        "detail": "Р—Р°РїСЂРѕСЃС‹ Рё С„РёР»СЊС‚СЂС‹, РіРґРµ СЃРµР№С‡Р°СЃ РЅР°С…РѕРґРёС‚СЃСЏ Р±РѕР»СЊС€Рµ РІСЃРµРіРѕ Р¶РёРІС‹С… Р»РѕС‚РѕРІ.",
+        "probes": [
+          {
+            "name": "telegram_low_offer",
+            "query": "telegram",
+            "count": 1,
+            "sample_count": 1,
+            "filters": {
+              "kworks_filter_to": 5,
+              "price_to": 5000
+            }
+          },
+          {
+            "name": "telegram_zero_offer",
+            "query": "telegram",
+            "count": 1,
+            "sample_count": 1,
+            "filters": {
+              "kworks_filter_to": 0,
+              "price_to": 5000
+            }
+          },
+          {
+            "name": "python_low_offer",
+            "query": "python",
+            "count": 1,
+            "sample_count": 1,
+            "filters": {
+              "kworks_filter_to": 5,
+              "price_to": 5000
+            }
+          },
+          {
+            "name": "ai_low_offer",
+            "query": "ai",
+            "count": 1,
+            "sample_count": 1,
+            "filters": {
+              "kworks_filter_to": 5,
+              "price_to": 5000
+            }
+          }
+        ]
+      }
+    ],
+    "query_suggestions": [
+      {
+        "status": "ok",
+        "query": "telegram",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "telegram",
+            "excerpt": "telegram"
+          },
+          {
+            "suggestion": "telegram ???",
+            "excerpt": "telegram ???"
+          },
+          {
+            "suggestion": "телеграм бот ии",
+            "excerpt": "телеграм бот ии"
+          },
+          {
+            "suggestion": "Создать телеграм бота",
+            "excerpt": "Создать телеграм бота"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "query": "site",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "site",
+            "excerpt": "site"
+          },
+          {
+            "suggestion": "web site",
+            "excerpt": "web site"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "query": "python",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "python",
+            "excerpt": "python"
+          },
+          {
+            "suggestion": "бот на python",
+            "excerpt": "бот на python"
+          },
+          {
+            "suggestion": "telegram bot python",
+            "excerpt": "telegram bot python"
+          },
+          {
+            "suggestion": "питон python",
+            "excerpt": "питон python"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "query": "ai",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "ai",
+            "excerpt": "ai"
+          },
+          {
+            "suggestion": "ai о",
+            "excerpt": "ai о"
+          },
+          {
+            "suggestion": "AI агент автоматизация",
+            "excerpt": "AI агент автоматизация"
+          },
+          {
+            "suggestion": "AI ИИ",
+            "excerpt": "AI ИИ"
+          }
+        ]
+      }
+    ]
+  },
+  "endpoint_errors": [],
+  "timings_ms": {
+    "total": 7548
+  }
+}

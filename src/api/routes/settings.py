@@ -127,6 +127,16 @@ _ENV_KEYS = [
     "SHODAN_API_KEY",
     # Misc
     "PROXY_URL",
+    "VPNTE_PROXY_ENABLED",
+    "VPNTE_PROXY_ROTATE_ON_NEXT",
+    "VPNTE_PROXY_STRICT",
+    "VPNTE_PROXY_COUNTRY",
+    "VPNTE_PROXY_PROFILE_ID",
+    "VPNTE_PROXY_PORT",
+    "VPNTE_PROXY_TIMEOUT",
+    "VPNTE_PROXY_CACHE_TTL",
+    "VPNTE_CONTROL_URL",
+    "VPNTE_CONTROL_TOKEN",
     "TIMEZONE_REGION",
     # Kwork pacing / TLS
     "KWORK_PACING",
@@ -134,6 +144,7 @@ _ENV_KEYS = [
     "KWORK_PACE_MAX",
     "KWORK_BURST_LIMIT",
     "KWORK_BURST_WINDOW",
+    "KWORK_SESSION_HUB_COOKIE_TTL",
     "KWORK_PROXY_LIST",
     "KWORK_TLS_IMPERSONATE",
     "KWORK_TLS_BROWSER",
@@ -147,6 +158,7 @@ _SECRET_KEYS = {
     "GROQ_API_KEY",
     "TELEGRAM_TOKEN",
     "TELEGRAM_API_HASH",
+    "VPNTE_CONTROL_TOKEN",
     "GITHUB_TOKEN",
     "HIBP_API_KEY",
     "LEAKCHECK_API_KEY",
@@ -220,6 +232,12 @@ class FiltersUpdateRequest(BaseModel):
     data: dict[str, Any]
 
 
+class VpnteActionRequest(BaseModel):
+    country: str | None = None
+    profile_id: str | None = None
+    port: int | None = None
+
+
 @router.get("/env")
 def get_env():
     raw = _read_env_file()
@@ -278,6 +296,142 @@ def _reset_caches() -> None:
         from src.api.state import app_state
 
         app_state.reset_orchestrator()
+    with suppress(Exception):
+        from src.utils.vpnte_proxy import clear_vpnte_proxy_cache
+
+        clear_vpnte_proxy_cache()
+
+
+def _session_hub_health_url() -> str:
+    from urllib.parse import urlsplit, urlunsplit
+
+    hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies").strip()
+    if not hub_url:
+        hub_url = "http://127.0.0.1:8669/cookies"
+    parts = urlsplit(hub_url)
+    base_path = parts.path.rsplit("/", 1)[0] if parts.path else ""
+    health_path = f"{base_path}/health" if base_path else "/health"
+    return urlunsplit((parts.scheme or "http", parts.netloc, health_path, "", ""))
+
+
+def _session_hub_status() -> dict[str, Any]:
+    import httpx
+
+    hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies").strip()
+    health_url = _session_hub_health_url()
+    try:
+        with httpx.Client(timeout=3.0, trust_env=False) as client:
+            response = client.get(health_url)
+        ok = response.status_code == 200
+        payload: dict[str, Any] = {}
+        try:
+            parsed = response.json()
+            payload = parsed if isinstance(parsed, dict) else {"value": parsed}
+        except Exception:
+            payload = {"text": response.text[:200]}
+        return {
+            "ok": ok,
+            "url": hub_url,
+            "health_url": health_url,
+            "status_code": response.status_code,
+            "detail": payload.get("message") or payload.get("status") or "",
+            "cache_entries": payload.get("cache_entries"),
+            "proxy_isolated": True,
+        }
+    except Exception as exc:
+        return {
+            "ok": False,
+            "url": hub_url,
+            "health_url": health_url,
+            "status_code": None,
+            "detail": f"{type(exc).__name__}: {exc}",
+            "cache_entries": None,
+            "proxy_isolated": True,
+        }
+
+
+def _vpnte_status(*, probe: bool = True) -> dict[str, Any]:
+    from src.utils.vpnte_proxy import VpnteProxyClient, vpnte_config_snapshot
+
+    config = vpnte_config_snapshot()
+    result: dict[str, Any] = {"ok": False, "running": False, "proxy_url": "", "detail": "", **config}
+    if not probe:
+        return result
+    try:
+        client = VpnteProxyClient()
+        client.timeout = min(client.timeout, 3.0)
+        status = client.status()
+        result.update(
+            {
+                "ok": True,
+                "running": bool(status.get("running")),
+                "proxy_url": str(status.get("proxyUrl") or status.get("proxy_url") or ""),
+                "raw": status,
+            }
+        )
+        if not result["proxy_url"] and status.get("host") and status.get("port"):
+            result["proxy_url"] = f"http://{status['host']}:{status['port']}"
+    except Exception as exc:
+        result["detail"] = f"{type(exc).__name__}: {exc}"
+    return result
+
+
+@router.get("/network/status")
+def get_network_status(probe: bool = True):
+    return {
+        "vpnte": _vpnte_status(probe=probe),
+        "session_hub": _session_hub_status(),
+    }
+
+
+@router.post("/network/vpnte/start")
+def start_vpnte_proxy(req: VpnteActionRequest | None = None):
+    from src.utils.vpnte_proxy import VpnteProxyClient, clear_vpnte_proxy_cache
+
+    updates: dict[str, str] = {}
+    if req:
+        if req.country is not None:
+            updates["VPNTE_PROXY_COUNTRY"] = req.country
+        if req.profile_id is not None:
+            updates["VPNTE_PROXY_PROFILE_ID"] = req.profile_id
+        if req.port is not None:
+            updates["VPNTE_PROXY_PORT"] = str(req.port)
+    if updates:
+        _write_env_file(updates)
+        for key, value in updates.items():
+            os.environ[key] = value
+    clear_vpnte_proxy_cache()
+    try:
+        payload = VpnteProxyClient().start()
+        clear_vpnte_proxy_cache()
+        return {"ok": True, "status": payload, "network": get_network_status(probe=True)}
+    except Exception as exc:
+        return {"ok": False, "detail": f"{type(exc).__name__}: {exc}", "network": get_network_status(probe=False)}
+
+
+@router.post("/network/vpnte/rotate")
+def rotate_vpnte_proxy(req: VpnteActionRequest | None = None):
+    from src.utils.vpnte_proxy import VpnteProxyClient, clear_vpnte_proxy_cache
+
+    updates: dict[str, str] = {}
+    if req:
+        if req.country is not None:
+            updates["VPNTE_PROXY_COUNTRY"] = req.country
+        if req.profile_id is not None:
+            updates["VPNTE_PROXY_PROFILE_ID"] = req.profile_id
+        if req.port is not None:
+            updates["VPNTE_PROXY_PORT"] = str(req.port)
+    if updates:
+        _write_env_file(updates)
+        for key, value in updates.items():
+            os.environ[key] = value
+    clear_vpnte_proxy_cache()
+    try:
+        payload = VpnteProxyClient().rotate()
+        clear_vpnte_proxy_cache()
+        return {"ok": True, "status": payload, "network": get_network_status(probe=True)}
+    except Exception as exc:
+        return {"ok": False, "detail": f"{type(exc).__name__}: {exc}", "network": get_network_status(probe=False)}
 
 
 @router.get("/filters")

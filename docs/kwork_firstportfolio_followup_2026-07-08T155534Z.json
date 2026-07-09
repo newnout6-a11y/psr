@@ -1,0 +1,166 @@
+{
+  "timestamp_utc": "2026-07-08T15:55:41.492878+00:00",
+  "purpose": "Follow-up for /kwork_first_portfolio with kwork ids known to have getKworkPortfolios results.",
+  "proxy": {
+    "profileName": "germanyvless1",
+    "country": "Germany",
+    "proxyUrl": "http://<redacted_ip>:17990"
+  },
+  "session_hub": {
+    "status_code": 200,
+    "cookie_count": 14,
+    "names": [
+      "RORSSQIHEK",
+      "_kmfvt",
+      "_kmid",
+      "_kmwl",
+      "accept_cookie_device_id",
+      "csrf_user_token",
+      "list_type_sdisplay",
+      "referrer_url",
+      "seo_activation_request_uri",
+      "seo_activation_set_time",
+      "seo_activation_source",
+      "show_mobile_app_banner_date",
+      "slrememberme",
+      "uad"
+    ]
+  },
+  "results": [
+    {
+      "name": "first_portfolio_36214125",
+      "method": "POST",
+      "path": "/kwork_first_portfolio/36214125",
+      "data_keys": [
+        "isWebpAccepted"
+      ],
+      "response": {
+        "status_code": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "body_len": 4981,
+        "location": null,
+        "body_kind": "text",
+        "markers": {
+          "portfolio": true,
+          "kwork": true,
+          "control-overlay": true,
+          "content-item": true,
+          "portfolio-large": true,
+          "qrator": false,
+          "access denied": false,
+          "page not found": false,
+          "???????? ?? ???????": false
+        },
+        "snippet": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.prev();\" class=\"control control-prev control--prev js-portfolio-prev\" style=\"display: none;\"><span class=\"control-content\"><span class"
+      }
+    },
+    {
+      "name": "first_portfolio_42207254",
+      "method": "POST",
+      "path": "/kwork_first_portfolio/42207254",
+      "data_keys": [
+        "isWebpAccepted"
+      ],
+      "response": {
+        "status_code": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "body_len": 4666,
+        "location": null,
+        "body_kind": "text",
+        "markers": {
+          "portfolio": true,
+          "kwork": true,
+          "control-overlay": true,
+          "content-item": true,
+          "portfolio-large": true,
+          "qrator": false,
+          "access denied": false,
+          "page not found": false,
+          "???????? ?? ???????": false
+        },
+        "snippet": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.prev();\" class=\"control control-prev control--prev js-portfolio-prev\" style=\"display: none;\"><span class=\"control-content\"><span class"
+      }
+    },
+    {
+      "name": "first_portfolio_14100522",
+      "method": "POST",
+      "path": "/kwork_first_portfolio/14100522",
+      "data_keys": [
+        "isWebpAccepted"
+      ],
+      "response": {
+        "status_code": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "body_len": 6491,
+        "location": null,
+        "body_kind": "text",
+        "markers": {
+          "portfolio": true,
+          "kwork": true,
+          "control-overlay": true,
+          "content-item": true,
+          "portfolio-large": true,
+          "qrator": false,
+          "access denied": false,
+          "page not found": false,
+          "???????? ?? ???????": false
+        },
+        "snippet": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.prev();\" class=\"control control-prev control--prev js-portfolio-prev\" style=\"display: none;\"><span class=\"control-content\"><span class"
+      }
+    },
+    {
+      "name": "first_portfolio_43576198",
+      "method": "POST",
+      "path": "/kwork_first_portfolio/43576198",
+      "data_keys": [
+        "isWebpAccepted"
+      ],
+      "response": {
+        "status_code": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "body_len": 4091,
+        "location": null,
+        "body_kind": "text",
+        "markers": {
+          "portfolio": true,
+          "kwork": true,
+          "control-overlay": true,
+          "content-item": true,
+          "portfolio-large": true,
+          "qrator": false,
+          "access denied": false,
+          "page not found": false,
+          "???????? ?? ???????": false
+        },
+        "snippet": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.prev();\" class=\"control control-prev control--prev js-portfolio-prev\" style=\"display: none;\"><span class=\"control-content\"><span class"
+      }
+    },
+    {
+      "name": "first_portfolio_21805649",
+      "method": "POST",
+      "path": "/kwork_first_portfolio/21805649",
+      "data_keys": [
+        "isWebpAccepted"
+      ],
+      "response": {
+        "status_code": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "body_len": 4243,
+        "location": null,
+        "body_kind": "text",
+        "markers": {
+          "portfolio": true,
+          "kwork": true,
+          "control-overlay": true,
+          "content-item": true,
+          "portfolio-large": true,
+          "qrator": false,
+          "access denied": false,
+          "page not found": false,
+          "???????? ?? ???????": false
+        },
+        "snippet": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.prev();\" class=\"control control-prev control--prev js-portfolio-prev\" style=\"display: none;\"><span class=\"control-content\"><span class"
+      }
+    }
+  ]
+}

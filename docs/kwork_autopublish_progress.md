@@ -694,3 +694,72 @@ Verification:
 - `python -m pytest tests\unit -q` -> `157 passed`.
 - `cd C:\psr\desktop; npm run build` succeeded.
 - Rebuilt installer: `C:\psr\desktop\dist-electron\PSR Desktop Setup 1.0.0.exe`, timestamp `2026-07-07 18:09:11`, size `82248003`.
+
+## Follow-up implementation 2026-07-08, VPNTE control and Session Hub isolation
+
+Done in this pass:
+
+- Add a first-class VPN Tunnel Enforcer control surface in PSR settings:
+  status, start, rotate, strict/fallback mode, country/profile/port, cache TTL,
+  and current proxy diagnostics.
+- Keep Session Hub as a local cookie source only:
+  PSR calls `SESSION_HUB_URL` with `trust_env=False`, so system proxy/env
+  settings and VPNTE routing do not proxy or rotate the localhost cookie
+  request.
+- Route Kwork-facing web/API clients through the same central proxy helper:
+  when `VPNTE_PROXY_ENABLED=true`, Kwork traffic uses the local VPNTE proxy;
+  Session Hub and local PSR API calls remain direct.
+- Use caching around the VPNTE proxy URL so normal Kwork calls do not hit the
+  VPNTE control endpoint on every request; explicit `Rotate` still clears and
+  refreshes the cache.
+- Add a `Щадящий Kwork` settings preset that enables VPNTE, strict mode,
+  rotate-on-next, Kwork pacing, lower burst, and longer Session Hub cookie TTL.
+- Add backend `/api/settings/network/status`, `/api/settings/network/vpnte/start`,
+  and `/api/settings/network/vpnte/rotate` routes for the desktop UI.
+
+Verification:
+
+- `python -m pytest tests\unit\test_vpnte_proxy.py tests\unit\test_kwork_service.py tests\unit\test_kwork_market.py tests\unit\test_kwork_routes.py -q` -> `42 passed`.
+- `python -m pytest tests\unit -q` -> `161 passed`.
+- `cd C:\psr\desktop; npm run build` succeeded.
+- `GET /api/settings/network/status?probe=false` via FastAPI `TestClient` returned `200` and `session_hub.proxy_isolated=true`.
+- Rebuilt installer: `C:\psr\desktop\dist-electron\PSR Desktop Setup 1.0.0.exe`, timestamp `2026-07-08 12:48:55`, size `82265237`.
+- Python runtime path was refreshed after local verification:
+  `python --version` -> `Python 3.14.3`,
+  `where python` -> `C:\Users\Redmi\AppData\Local\Python\pythoncore-3.14-64\python.exe`.
+
+Constraints:
+
+- This is load management and operator visibility, not CAPTCHA bypass.
+- Do not modify `C:\pechenki\session_hub` behavior unless needed; PSR should
+  avoid conflicts from its side.
+
+## Hotfix 2026-07-08, Kwork Market proxy dependency on Python 3.14
+
+Done in this pass:
+
+- Diagnosed `HTTP 500` on `GET /api/kwork/market/categories`.
+- Root cause: after switching runtime to Python 3.14, the installed environment
+  had `kwork==0.2.0` and `aiohttp`, but missed the optional proxy dependency
+  `aiohttp-socks`. With `VPNTE_PROXY_ENABLED=true`, the Kwork library failed
+  while creating its proxied `aiohttp` session, before any Kwork request or
+  working Session Hub cookie fetch could happen.
+- Added `aiohttp-socks>=0.9.0` to `requirements.txt`.
+- Installed `aiohttp-socks` into the active Python 3.14 runtime:
+  `C:\Users\Redmi\AppData\Local\Python\pythoncore-3.14-64\python.exe`.
+- Wrapped Kwork Market routes with structured HTTP errors so a missing proxy
+  dependency returns a useful `503` detail instead of a plain `HTTP 500`.
+
+Verification:
+
+- `GET /api/kwork/market/categories` through FastAPI `TestClient` returned
+  `200` and category JSON after installing the dependency.
+- `python -m pytest tests\unit\test_kwork_routes.py tests\unit\test_vpnte_proxy.py -q` -> `11 passed`.
+- Started the PSR API backend on port `7788` and verified live routes:
+  `GET /api/kwork/market/categories` -> `200`;
+  `POST /api/kwork/market/metrics` with details/demand disabled -> category
+  metrics JSON.
+- `python -m pytest tests\unit -q` -> `162 passed`.
+- Rebuilt installer after the hotfix:
+  `C:\psr\desktop\dist-electron\PSR Desktop Setup 1.0.0.exe`,
+  timestamp `2026-07-08 14:24:32`, size `82265212`.

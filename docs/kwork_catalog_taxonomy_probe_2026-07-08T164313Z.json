@@ -1,0 +1,2293 @@
+{
+  "timestamp_utc": "2026-07-08T16:43:13.552998+00:00",
+  "purpose": "Validate remaining Kwork catalog taxonomy endpoints catalogMain/catalogRubrics/catalogCategories and parameter sensitivity.",
+  "proxy": {
+    "proxyUrl": "http://<redacted_ip>:17990",
+    "profileName": "russia1",
+    "country": null
+  },
+  "auth": {
+    "mobile_basic_header": true,
+    "user_secrets_stored": false
+  },
+  "results": [
+    {
+      "name": "catalogMain",
+      "path": "/catalogMain",
+      "params": {},
+      "status": "error",
+      "elapsed_ms": 273,
+      "error": "ConnectionError: ('Connection aborted.', ConnectionResetError(10054, 'Удаленный хост принудительно разорвал существующее подключение', None, 10054, None))"
+    },
+    {
+      "name": "catalogMainv2_compare",
+      "path": "/catalogMainv2",
+      "params": {},
+      "status": "error",
+      "elapsed_ms": 276,
+      "error": "ConnectionError: ('Connection aborted.', ConnectionResetError(10054, 'Удаленный хост принудительно разорвал существующее подключение', None, 10054, None))"
+    },
+    {
+      "name": "catalogRubrics_empty",
+      "path": "/catalogRubrics",
+      "params": {},
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 644,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogCategories_empty",
+      "path": "/catalogCategories",
+      "params": {},
+      "status": "error",
+      "elapsed_ms": 270,
+      "error": "ConnectionError: ('Connection aborted.', ConnectionResetError(10054, 'Удаленный хост принудительно разорвал существующее подключение', None, 10054, None))"
+    },
+    {
+      "name": "catalogCategories_rubricId_11",
+      "path": "/catalogCategories",
+      "params": {
+        "rubricId": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 1000,
+      "elapsed_ms": 659,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 9,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "kworks_count"
+        ],
+        "sample": [
+          {
+            "id": 38,
+            "name": "Доработка и настройка сайта",
+            "rubric_description": "",
+            "order": 1,
+            "kworks_count": 13664
+          },
+          {
+            "id": 37,
+            "name": "Создание сайта",
+            "rubric_description": "",
+            "order": 2,
+            "kworks_count": 24193
+          },
+          {
+            "id": 41,
+            "name": "Скрипты, боты и mini apps",
+            "rubric_description": "",
+            "order": 3,
+            "kworks_count": 37914
+          },
+          {
+            "id": 79,
+            "name": "Верстка",
+            "rubric_description": "",
+            "order": 4,
+            "kworks_count": 6509
+          },
+          {
+            "id": 80,
+            "name": "Десктоп программирование",
+            "rubric_description": "",
+            "order": 5,
+            "kworks_count": 5201
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogCategories_rubric_id_11",
+      "path": "/catalogCategories",
+      "params": {
+        "rubric_id": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 694,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_categoryId_11",
+      "path": "/catalogCategories",
+      "params": {
+        "categoryId": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 735,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_category_id_11",
+      "path": "/catalogCategories",
+      "params": {
+        "category_id": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 729,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_parentId_11",
+      "path": "/catalogCategories",
+      "params": {
+        "parentId": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 690,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_id_11",
+      "path": "/catalogCategories",
+      "params": {
+        "id": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 706,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_rubricId_15",
+      "path": "/catalogCategories",
+      "params": {
+        "rubricId": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 1276,
+      "elapsed_ms": 748,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 11,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "kworks_count"
+        ],
+        "sample": [
+          {
+            "id": 25,
+            "name": "Логотип и брендинг",
+            "rubric_description": "",
+            "order": 1,
+            "kworks_count": 46246
+          },
+          {
+            "id": 24,
+            "name": "Веб и мобильный дизайн",
+            "rubric_description": "",
+            "order": 2,
+            "kworks_count": 17610
+          },
+          {
+            "id": 28,
+            "name": "Арт и иллюстрации",
+            "rubric_description": "",
+            "order": 3,
+            "kworks_count": 28103
+          },
+          {
+            "id": 27,
+            "name": "Полиграфия",
+            "rubric_description": "",
+            "order": 4,
+            "kworks_count": 9794
+          },
+          {
+            "id": 90,
+            "name": "Интерьер и экстерьер",
+            "rubric_description": "",
+            "order": 5,
+            "kworks_count": 8534
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogCategories_rubric_id_15",
+      "path": "/catalogCategories",
+      "params": {
+        "rubric_id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 696,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_categoryId_15",
+      "path": "/catalogCategories",
+      "params": {
+        "categoryId": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 736,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_category_id_15",
+      "path": "/catalogCategories",
+      "params": {
+        "category_id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 746,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_parentId_15",
+      "path": "/catalogCategories",
+      "params": {
+        "parentId": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 739,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_id_15",
+      "path": "/catalogCategories",
+      "params": {
+        "id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 788,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_rubricId_5",
+      "path": "/catalogCategories",
+      "params": {
+        "rubricId": "5"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 661,
+      "elapsed_ms": 702,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 6,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "kworks_count"
+        ],
+        "sample": [
+          {
+            "id": 235,
+            "name": "Резюме и вакансии",
+            "rubric_description": "",
+            "order": 1,
+            "kworks_count": 2124
+          },
+          {
+            "id": 75,
+            "name": "Набор текста",
+            "rubric_description": "",
+            "order": 2,
+            "kworks_count": 64277
+          },
+          {
+            "id": 74,
+            "name": "Продающие и бизнес-тексты",
+            "rubric_description": "",
+            "order": 3,
+            "kworks_count": 13032
+          },
+          {
+            "id": 73,
+            "name": "Тексты и наполнение сайта",
+            "rubric_description": "",
+            "order": 4,
+            "kworks_count": 46311
+          },
+          {
+            "id": 35,
+            "name": "Переводы",
+            "rubric_description": "",
+            "order": 5,
+            "kworks_count": 59864
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogCategories_rubric_id_5",
+      "path": "/catalogCategories",
+      "params": {
+        "rubric_id": "5"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 666,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_categoryId_5",
+      "path": "/catalogCategories",
+      "params": {
+        "categoryId": "5"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 724,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_category_id_5",
+      "path": "/catalogCategories",
+      "params": {
+        "category_id": "5"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 752,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_parentId_5",
+      "path": "/catalogCategories",
+      "params": {
+        "parentId": "5"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 695,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_id_5",
+      "path": "/catalogCategories",
+      "params": {
+        "id": "5"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 694,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_rubricId_7",
+      "path": "/catalogCategories",
+      "params": {
+        "rubricId": "7"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 796,
+      "elapsed_ms": 708,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "kworks_count"
+        ],
+        "sample": [
+          {
+            "id": 106,
+            "name": "Редактирование аудио",
+            "rubric_description": "",
+            "order": 1,
+            "kworks_count": 1776
+          },
+          {
+            "id": 78,
+            "name": "Видеосъемка и монтаж",
+            "rubric_description": "",
+            "order": 2,
+            "kworks_count": 14096
+          },
+          {
+            "id": 77,
+            "name": "Интро и анимация логотипа",
+            "rubric_description": "",
+            "order": 3,
+            "kworks_count": 2004
+          },
+          {
+            "id": 76,
+            "name": "Видеоролики",
+            "rubric_description": "",
+            "order": 4,
+            "kworks_count": 3862
+          },
+          {
+            "id": 23,
+            "name": "Музыка и песни",
+            "rubric_description": "",
+            "order": 5,
+            "kworks_count": 6388
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogCategories_rubric_id_7",
+      "path": "/catalogCategories",
+      "params": {
+        "rubric_id": "7"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 728,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_categoryId_7",
+      "path": "/catalogCategories",
+      "params": {
+        "categoryId": "7"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 689,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_category_id_7",
+      "path": "/catalogCategories",
+      "params": {
+        "category_id": "7"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 1042,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_parentId_7",
+      "path": "/catalogCategories",
+      "params": {
+        "parentId": "7"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 734,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_id_7",
+      "path": "/catalogCategories",
+      "params": {
+        "id": "7"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 692,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_rubricId_83",
+      "path": "/catalogCategories",
+      "params": {
+        "rubricId": "83"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 911,
+      "elapsed_ms": 1043,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 8,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "kworks_count"
+        ],
+        "sample": [
+          {
+            "id": 114,
+            "name": "Продажа сайтов и групп",
+            "rubric_description": "",
+            "order": 1,
+            "kworks_count": 4211
+          },
+          {
+            "id": 84,
+            "name": "Персональный помощник",
+            "rubric_description": "",
+            "order": 2,
+            "kworks_count": 13777
+          },
+          {
+            "id": 64,
+            "name": "Бухгалтерия и налоги",
+            "rubric_description": "",
+            "order": 3,
+            "kworks_count": 3361
+          },
+          {
+            "id": 63,
+            "name": "Юридическая помощь",
+            "rubric_description": "",
+            "order": 4,
+            "kworks_count": 8192
+          },
+          {
+            "id": 55,
+            "name": "Обучение и консалтинг",
+            "rubric_description": "",
+            "order": 5,
+            "kworks_count": 7584
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogCategories_rubric_id_83",
+      "path": "/catalogCategories",
+      "params": {
+        "rubric_id": "83"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 694,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_categoryId_83",
+      "path": "/catalogCategories",
+      "params": {
+        "categoryId": "83"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 676,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_category_id_83",
+      "path": "/catalogCategories",
+      "params": {
+        "category_id": "83"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 676,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_parentId_83",
+      "path": "/catalogCategories",
+      "params": {
+        "parentId": "83"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 730,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogCategories_id_83",
+      "path": "/catalogCategories",
+      "params": {
+        "id": "83"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 114,
+      "elapsed_ms": 702,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "error",
+          "error_code"
+        ],
+        "success": false,
+        "error": "Недостаточно параметров для метода API",
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "catalogRubrics_categoryId_11",
+      "path": "/catalogRubrics",
+      "params": {
+        "categoryId": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 698,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_category_id_11",
+      "path": "/catalogRubrics",
+      "params": {
+        "category_id": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 685,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_rubricId_11",
+      "path": "/catalogRubrics",
+      "params": {
+        "rubricId": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 654,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_id_11",
+      "path": "/catalogRubrics",
+      "params": {
+        "id": "11"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 677,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_categoryId_15",
+      "path": "/catalogRubrics",
+      "params": {
+        "categoryId": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 682,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_category_id_15",
+      "path": "/catalogRubrics",
+      "params": {
+        "category_id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 681,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_rubricId_15",
+      "path": "/catalogRubrics",
+      "params": {
+        "rubricId": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 659,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_id_15",
+      "path": "/catalogRubrics",
+      "params": {
+        "id": "15"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 725,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_categoryId_25",
+      "path": "/catalogRubrics",
+      "params": {
+        "categoryId": "25"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 710,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_category_id_25",
+      "path": "/catalogRubrics",
+      "params": {
+        "category_id": "25"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 741,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_rubricId_25",
+      "path": "/catalogRubrics",
+      "params": {
+        "rubricId": "25"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 718,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_id_25",
+      "path": "/catalogRubrics",
+      "params": {
+        "id": "25"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 704,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_categoryId_41",
+      "path": "/catalogRubrics",
+      "params": {
+        "categoryId": "41"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 751,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_category_id_41",
+      "path": "/catalogRubrics",
+      "params": {
+        "category_id": "41"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 749,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_rubricId_41",
+      "path": "/catalogRubrics",
+      "params": {
+        "rubricId": "41"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 838,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "catalogRubrics_id_41",
+      "path": "/catalogRubrics",
+      "params": {
+        "id": "41"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3195,
+      "elapsed_ms": 681,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 7,
+        "response_item_keys": [
+          "id",
+          "name",
+          "rubric_description",
+          "order",
+          "category_image",
+          "ico",
+          "ico_extra"
+        ],
+        "sample": [
+          {
+            "id": 15,
+            "name": "Дизайн",
+            "rubric_description": "Логотипы, веб-дизайн, визитки",
+            "order": 1,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/design_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/design.png"
+          },
+          {
+            "id": 11,
+            "name": "Разработка и IT",
+            "rubric_description": "Доработка, сайт под ключ",
+            "order": 2,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/programming_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/programming.png"
+          },
+          {
+            "id": 5,
+            "name": "Тексты и переводы",
+            "rubric_description": "Статьи, корректура, переводы",
+            "order": 3,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/writing-translations_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/writing-translations.png"
+          },
+          {
+            "id": 17,
+            "name": "SEO и трафик",
+            "rubric_description": "Аудиты, ссылки, трафик",
+            "order": 4,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/seo_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/seo.png"
+          },
+          {
+            "id": 45,
+            "name": "Соцсети и маркетинг",
+            "rubric_description": "Маркетинг, продвижение, PR",
+            "order": 5,
+            "category_image": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/t1_r/promotion_mobile.jpg",
+            "ico": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.svg",
+            "ico_extra": "https://cdn-edge.kwork.ru/files/category/collage/categories_first_level/ru/promotion.png"
+          }
+        ]
+      }
+    }
+  ]
+}

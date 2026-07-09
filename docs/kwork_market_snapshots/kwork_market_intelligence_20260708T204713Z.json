@@ -1,0 +1,4200 @@
+{
+  "generated_at": "2026-07-08T20:47:13Z",
+  "source": "psr.kwork_market_intelligence_snapshot",
+  "config": {
+    "max_seeds": 5,
+    "pages": 1,
+    "include_demand": false,
+    "include_competitor_details": false,
+    "competitor_detail_limit": 0,
+    "include_seller_details": false,
+    "seller_detail_limit": 0,
+    "include_want_details": false,
+    "want_detail_limit": 0,
+    "include_price_rules": false,
+    "include_account_context": true
+  },
+  "seeds": [
+    {
+      "name": "Доработка и настройка сайта",
+      "category_id": 38
+    },
+    {
+      "name": "Программирование широко",
+      "category_id": 41
+    },
+    {
+      "name": "Telegram",
+      "category_id": 46,
+      "classifier_id": 281
+    },
+    {
+      "name": "Ссылки",
+      "category_id": 59
+    },
+    {
+      "name": "Логотипы",
+      "category_id": 25,
+      "classifier_id": 401928
+    }
+  ],
+  "supply": [
+    {
+      "seed": {
+        "name": "Доработка и настройка сайта",
+        "category_id": 38
+      },
+      "kworks_count": 13662,
+      "classifiers": [
+        {
+          "id": 1271,
+          "name": "Доработка сайта",
+          "kworks_count": 6905,
+          "raw": {
+            "id": 1271,
+            "name": "Доработка сайта",
+            "kworks_count": 6905,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1275,
+          "name": "Настройка сайта",
+          "kworks_count": 1559,
+          "raw": {
+            "id": 1275,
+            "name": "Настройка сайта",
+            "kworks_count": 1559,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1273,
+          "name": "Защита и лечение сайта",
+          "kworks_count": 930,
+          "raw": {
+            "id": 1273,
+            "name": "Защита и лечение сайта",
+            "kworks_count": 930,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1587,
+          "name": "Ускорение сайта",
+          "kworks_count": 790,
+          "raw": {
+            "id": 1587,
+            "name": "Ускорение сайта",
+            "kworks_count": 790,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1276,
+          "name": "Плагины и темы",
+          "kworks_count": 1197,
+          "raw": {
+            "id": 1276,
+            "name": "Плагины и темы",
+            "kworks_count": 1197,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1272,
+          "name": "Исправление ошибок",
+          "kworks_count": 1237,
+          "raw": {
+            "id": 1272,
+            "name": "Исправление ошибок",
+            "kworks_count": 1237,
+            "visibility": 1
+          }
+        }
+      ],
+      "cards": [
+        {
+          "id": 18028913,
+          "title": "Доработка сайта на 1С Битрикс",
+          "price": 1000,
+          "classifier_id": 1281,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/15/18028913-1639235613.jpg",
+          "share_url": "https://kwork.ru/website-repair/18028913/dorabotka-sayta-na-1s-bitriks",
+          "worker": "ilkarkarakurt",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/12/10196022-5.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1064,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 18028913,
+            "category_id": 38,
+            "title": "Доработка сайта на 1С Битрикс",
+            "url": "/website-repair/18028913/dorabotka-sayta-na-1s-bitriks",
+            "share_url": "https://kwork.ru/website-repair/18028913/dorabotka-sayta-na-1s-bitriks",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/15/18028913-1639235613.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/15/18028913-1639235613.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/15/18028913-1639235613.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 10196022,
+              "username": "ilkarkarakurt",
+              "fullname": "Илкэр",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/12/10196022-5.jpg",
+              "rating": 5,
+              "reviews_count": 1064,
+              "rating_count": 1063,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1281,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 35126208,
+          "title": "Настройка и доработка сайта на Wordpress",
+          "price": 1500,
+          "classifier_id": 8976,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/61/35126208-66bd7ac1d564a.jpg",
+          "share_url": "https://kwork.ru/website-repair/35126208/nastroyka-i-dorabotka-sayta-na-wordpress",
+          "worker": "OlegTixomirov",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/57/8426320-6.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 584,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 35126208,
+            "category_id": 38,
+            "title": "Настройка и доработка сайта на Wordpress",
+            "url": "/website-repair/35126208/nastroyka-i-dorabotka-sayta-na-wordpress",
+            "share_url": "https://kwork.ru/website-repair/35126208/nastroyka-i-dorabotka-sayta-na-wordpress",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/61/35126208-66bd7ac1d564a.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/61/35126208-66bd7ac1d564a.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/61/35126208-66bd7ac1d564a.jpg"
+            },
+            "price": 1500,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 8426320,
+              "username": "OlegTixomirov",
+              "fullname": "Олег",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/57/8426320-6.jpg",
+              "rating": 5,
+              "reviews_count": 584,
+              "rating_count": 582,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 8976,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 5137308,
+          "title": "Доработка сайта на 1С Битрикс",
+          "price": 1000,
+          "classifier_id": 8955,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/09/5137308-1583654752.jpg",
+          "share_url": "https://kwork.ru/website-repair/5137308/dorabotka-sayta-na-1s-bitriks",
+          "worker": "molodsom",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/22/1704856-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 791,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 5137308,
+            "category_id": 38,
+            "title": "Доработка сайта на 1С Битрикс",
+            "url": "/website-repair/5137308/dorabotka-sayta-na-1s-bitriks",
+            "share_url": "https://kwork.ru/website-repair/5137308/dorabotka-sayta-na-1s-bitriks",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/09/5137308-1583654752.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/09/5137308-1583654752.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/09/5137308-1583654752.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1704856,
+              "username": "molodsom",
+              "fullname": "Булат",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/22/1704856-1.jpg",
+              "rating": 5,
+              "reviews_count": 791,
+              "rating_count": 790,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 8955,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 17114329,
+          "title": "Лечение сайта на 1С Битрикс, удаление вирусов, устранение уязвимостей",
+          "price": 7000,
+          "classifier_id": 35610,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/81/17114329-1634278781.jpg",
+          "share_url": "https://kwork.ru/website-repair/17114329/lechenie-sayta-na-1s-bitriks-udalenie-virusov-ustranenie-uyazvimostey",
+          "worker": "quattrovod",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/39/3020165-3.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 2511,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 17114329,
+            "category_id": 38,
+            "title": "Лечение сайта на 1С Битрикс, удаление вирусов, устранение уязвимостей",
+            "url": "/website-repair/17114329/lechenie-sayta-na-1s-bitriks-udalenie-virusov-ustranenie-uyazvimostey",
+            "share_url": "https://kwork.ru/website-repair/17114329/lechenie-sayta-na-1s-bitriks-udalenie-virusov-ustranenie-uyazvimostey",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/81/17114329-1634278781.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/81/17114329-1634278781.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/81/17114329-1634278781.jpg"
+            },
+            "price": 7000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 3020165,
+              "username": "quattrovod",
+              "fullname": "Евгений",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/39/3020165-3.jpg",
+              "rating": 5,
+              "reviews_count": 2511,
+              "rating_count": 2504,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 35610,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 282792,
+          "title": "Доработка и настройка сайта на Drupal 7",
+          "price": 1000,
+          "classifier_id": 8955,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/56/282792-1561618123.jpg",
+          "share_url": "https://kwork.ru/website-repair/282792/dorabotka-i-nastroyka-sayta-na-drupal-7",
+          "worker": "do_kova",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/38/35234-20.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 430,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 282792,
+            "category_id": 38,
+            "title": "Доработка и настройка сайта на Drupal 7",
+            "url": "/website-repair/282792/dorabotka-i-nastroyka-sayta-na-drupal-7",
+            "share_url": "https://kwork.ru/website-repair/282792/dorabotka-i-nastroyka-sayta-na-drupal-7",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/56/282792-1561618123.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/56/282792-1561618123.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/56/282792-1561618123.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 35234,
+              "username": "do_kova",
+              "fullname": "Александр",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/38/35234-20.jpg",
+              "rating": 5,
+              "reviews_count": 430,
+              "rating_count": 430,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 8955,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 45587756,
+          "title": "Помогу настроить веб-сайт на WordPress",
+          "price": 2000,
+          "classifier_id": 8976,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/64/45587756-68e660f4b7a4b.jpg",
+          "share_url": "https://kwork.ru/website-repair/45587756/pomogu-nastroit-veb-sayt-na-wordpress",
+          "worker": "webbypro",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/27/14849700-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 366,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 45587756,
+            "category_id": 38,
+            "title": "Помогу настроить веб-сайт на WordPress",
+            "url": "/website-repair/45587756/pomogu-nastroit-veb-sayt-na-wordpress",
+            "share_url": "https://kwork.ru/website-repair/45587756/pomogu-nastroit-veb-sayt-na-wordpress",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/64/45587756-68e660f4b7a4b.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/64/45587756-68e660f4b7a4b.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/64/45587756-68e660f4b7a4b.jpg"
+            },
+            "price": 2000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 14849700,
+              "username": "webbypro",
+              "fullname": "Тим",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/27/14849700-1.jpg",
+              "rating": 5,
+              "reviews_count": 366,
+              "rating_count": 362,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 8976,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 12870511,
+          "title": "Доработка сайта на WordPress",
+          "price": 2000,
+          "classifier_id": 8955,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/76/12870511-1664783942.jpg",
+          "share_url": "https://kwork.ru/website-repair/12870511/dorabotka-sayta-na-wordpress",
+          "worker": "OlegTixomirov",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/57/8426320-6.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 584,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 12870511,
+            "category_id": 38,
+            "title": "Доработка сайта на WordPress",
+            "url": "/website-repair/12870511/dorabotka-sayta-na-wordpress",
+            "share_url": "https://kwork.ru/website-repair/12870511/dorabotka-sayta-na-wordpress",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/76/12870511-1664783942.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/76/12870511-1664783942.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/76/12870511-1664783942.jpg"
+            },
+            "price": 2000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 8426320,
+              "username": "OlegTixomirov",
+              "fullname": "Олег",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/57/8426320-6.jpg",
+              "rating": 5,
+              "reviews_count": 584,
+              "rating_count": 582,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 8955,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 9491608,
+          "title": "Профессиональные доработки и исправление ошибок на CMS 1С-Битрикс",
+          "price": 2000,
+          "classifier_id": 9387,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/48/9491608-1670961138.jpg",
+          "share_url": "https://kwork.ru/website-repair/9491608/professionalnie-dorabotki-i-ispravlenie-oshibok-na-cms-1s-bitriks",
+          "worker": "Vaskevich_Dev",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/02/1371112-10.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 892,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 9491608,
+            "category_id": 38,
+            "title": "Профессиональные доработки и исправление ошибок на CMS 1С-Битрикс",
+            "url": "/website-repair/9491608/professionalnie-dorabotki-i-ispravlenie-oshibok-na-cms-1s-bitriks",
+            "share_url": "https://kwork.ru/website-repair/9491608/professionalnie-dorabotki-i-ispravlenie-oshibok-na-cms-1s-bitriks",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/48/9491608-1670961138.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/48/9491608-1670961138.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/48/9491608-1670961138.jpg"
+            },
+            "price": 2000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1371112,
+              "username": "Vaskevich_Dev",
+              "fullname": "Роман Васькевич",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/02/1371112-10.jpg",
+              "rating": 5,
+              "reviews_count": 892,
+              "rating_count": 881,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 9387,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 40898,
+          "title": "WordPress, Битрикс, MODX, OpenCart: скорая помощь для ваших сайтов",
+          "price": 1500,
+          "classifier_id": 35558,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/70/40898-698accad19d84.jpg",
+          "share_url": "https://kwork.ru/website-repair/40898/wordpress-bitriks-modx-opencart-skoraya-pomoshch-dlya-vashikh-saytov",
+          "worker": "wturm",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/38/6517-10.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 7381,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 40898,
+            "category_id": 38,
+            "title": "WordPress, Битрикс, MODX, OpenCart: скорая помощь для ваших сайтов",
+            "url": "/website-repair/40898/wordpress-bitriks-modx-opencart-skoraya-pomoshch-dlya-vashikh-saytov",
+            "share_url": "https://kwork.ru/website-repair/40898/wordpress-bitriks-modx-opencart-skoraya-pomoshch-dlya-vashikh-saytov",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/70/40898-698accad19d84.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/70/40898-698accad19d84.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/70/40898-698accad19d84.jpg"
+            },
+            "price": 1500,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 6517,
+              "username": "wturm",
+              "fullname": "Артем",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/38/6517-10.jpg",
+              "rating": 5,
+              "reviews_count": 7381,
+              "rating_count": 7381,
+              "is_online": true,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 35558,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 28305642,
+          "title": "Защита сайта от ботов и накрутки ПФ через WAF. Поведенческие боты",
+          "price": 6000,
+          "classifier_id": 35610,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/54/28305642-69b4fae210e59.jpg",
+          "share_url": "https://kwork.ru/website-repair/28305642/zashchita-sayta-ot-botov-i-nakrutki-pf-cherez-waf-povedencheskie-boty",
+          "worker": "Vyacheslav_X",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/49/178868-30.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 521,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 28305642,
+            "category_id": 38,
+            "title": "Защита сайта от ботов и накрутки ПФ через WAF. Поведенческие боты",
+            "url": "/website-repair/28305642/zashchita-sayta-ot-botov-i-nakrutki-pf-cherez-waf-povedencheskie-boty",
+            "share_url": "https://kwork.ru/website-repair/28305642/zashchita-sayta-ot-botov-i-nakrutki-pf-cherez-waf-povedencheskie-boty",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/54/28305642-69b4fae210e59.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/54/28305642-69b4fae210e59.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/54/28305642-69b4fae210e59.jpg"
+            },
+            "price": 6000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 178868,
+              "username": "Vyacheslav_X",
+              "fullname": "Вячеслав",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/49/178868-30.jpg",
+              "rating": 5,
+              "reviews_count": 521,
+              "rating_count": 521,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 35610,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "demand": {
+        "status": "skipped"
+      },
+      "price_rules": {
+        "status": "skipped"
+      },
+      "timings_ms": {
+        "total": 557
+      }
+    },
+    {
+      "seed": {
+        "name": "Программирование широко",
+        "category_id": 41
+      },
+      "kworks_count": 38124,
+      "classifiers": [
+        {
+          "id": 211,
+          "name": "Парсеры",
+          "kworks_count": 2900,
+          "raw": {
+            "id": 211,
+            "name": "Парсеры",
+            "kworks_count": 2900,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3587,
+          "name": "Чат-боты",
+          "kworks_count": 16769,
+          "raw": {
+            "id": 3587,
+            "name": "Чат-боты",
+            "kworks_count": 16769,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 7352,
+          "name": "Скрипты",
+          "kworks_count": 7555,
+          "raw": {
+            "id": 7352,
+            "name": "Скрипты",
+            "kworks_count": 7555,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3934090,
+          "name": "Telegram Mini Apps",
+          "kworks_count": 1838,
+          "raw": {
+            "id": 3934090,
+            "name": "Telegram Mini Apps",
+            "kworks_count": 1838,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5548694,
+          "name": "ИИ-агенты",
+          "kworks_count": 991,
+          "raw": {
+            "id": 5548694,
+            "name": "ИИ-агенты",
+            "kworks_count": 991,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 4158112,
+          "name": "ИИ-боты",
+          "kworks_count": 2921,
+          "raw": {
+            "id": 4158112,
+            "name": "ИИ-боты",
+            "kworks_count": 2921,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 4158119,
+          "name": "Машинное обучение",
+          "kworks_count": 358,
+          "raw": {
+            "id": 4158119,
+            "name": "Машинное обучение",
+            "kworks_count": 358,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5503256,
+          "name": "Интернет вещей (IoT)",
+          "kworks_count": 190,
+          "raw": {
+            "id": 5503256,
+            "name": "Интернет вещей (IoT)",
+            "kworks_count": 190,
+            "visibility": 1
+          }
+        }
+      ],
+      "cards": [
+        {
+          "id": 298844,
+          "title": "Калькулятор для сайта",
+          "price": 1000,
+          "classifier_id": 34522,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/03/298844-6860fb0a4982f.jpg",
+          "share_url": "https://kwork.ru/script-programming/298844/kalkulyator-dlya-sayta",
+          "worker": "ameganix",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/55/59851-2.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 2004,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 298844,
+            "category_id": 41,
+            "title": "Калькулятор для сайта",
+            "url": "/script-programming/298844/kalkulyator-dlya-sayta",
+            "share_url": "https://kwork.ru/script-programming/298844/kalkulyator-dlya-sayta",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/03/298844-6860fb0a4982f.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/03/298844-6860fb0a4982f.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/03/298844-6860fb0a4982f.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 59851,
+              "username": "ameganix",
+              "fullname": "Алексей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/55/59851-2.jpg",
+              "rating": 5,
+              "reviews_count": 2004,
+              "rating_count": 1992,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 34522,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 5617675,
+          "title": "Скрипт по работе в Рутуб",
+          "price": 50000,
+          "classifier_id": 210,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/98/5617675-6881c9e621518.jpg",
+          "share_url": "https://kwork.ru/script-programming/5617675/skript-po-rabote-v-rutub",
+          "worker": "like-clik",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/09/1437224-3.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 4.9,
+          "reviews": 1226,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 5617675,
+            "category_id": 41,
+            "title": "Скрипт по работе в Рутуб",
+            "url": "/script-programming/5617675/skript-po-rabote-v-rutub",
+            "share_url": "https://kwork.ru/script-programming/5617675/skript-po-rabote-v-rutub",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/98/5617675-6881c9e621518.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/98/5617675-6881c9e621518.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/98/5617675-6881c9e621518.jpg"
+            },
+            "price": 50000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1437224,
+              "username": "like-clik",
+              "fullname": "Сергей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/09/1437224-3.jpg",
+              "rating": 4.9,
+              "reviews_count": 1226,
+              "rating_count": 1226,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 210,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 48839569,
+          "title": "Напишу Телеграм и MAX Бота с Mini app",
+          "price": 10000,
+          "classifier_id": 3934094,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/00/48839569-6a1ca3035ca82.jpg",
+          "share_url": "https://kwork.ru/script-programming/48839569/napishu-telegram-i-max-bota-s-mini-app",
+          "worker": "Egor_procod",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/06/23138695-3.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 4.9,
+          "reviews": 59,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 48839569,
+            "category_id": 41,
+            "title": "Напишу Телеграм и MAX Бота с Mini app",
+            "url": "/script-programming/48839569/napishu-telegram-i-max-bota-s-mini-app",
+            "share_url": "https://kwork.ru/script-programming/48839569/napishu-telegram-i-max-bota-s-mini-app",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/00/48839569-6a1ca3035ca82.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/00/48839569-6a1ca3035ca82.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/00/48839569-6a1ca3035ca82.jpg"
+            },
+            "price": 10000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 23138695,
+              "username": "Egor_procod",
+              "fullname": "Егор Александрович",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/06/23138695-3.jpg",
+              "rating": 4.9,
+              "reviews_count": 59,
+              "rating_count": 58,
+              "is_online": true,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 3934094,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 9665780,
+          "title": "Разработка Telegram БОТА + исходники и поддержка",
+          "price": 7000,
+          "classifier_id": 12430,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/36/9665780-69849867d614d.jpg",
+          "share_url": "https://kwork.ru/script-programming/9665780/razrabotka-telegram-bota-iskhodniki-i-podderzhka",
+          "worker": "degen_digital",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/35/1853417-20.jpg",
+          "seller_level": "",
+          "rating": 4.8,
+          "reviews": 107,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 9665780,
+            "category_id": 41,
+            "title": "Разработка Telegram БОТА + исходники и поддержка",
+            "url": "/script-programming/9665780/razrabotka-telegram-bota-iskhodniki-i-podderzhka",
+            "share_url": "https://kwork.ru/script-programming/9665780/razrabotka-telegram-bota-iskhodniki-i-podderzhka",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/36/9665780-69849867d614d.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/36/9665780-69849867d614d.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/36/9665780-69849867d614d.jpg"
+            },
+            "price": 7000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1853417,
+              "username": "degen_digital",
+              "fullname": "Деген диджитал",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/35/1853417-20.jpg",
+              "rating": 4.8,
+              "reviews_count": 107,
+              "rating_count": 107,
+              "is_online": false,
+              "level_description": ""
+            },
+            "not_available_for_company": false,
+            "classifier_id": 12430,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 255535,
+          "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+          "price": 1000,
+          "classifier_id": 5503261,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/06/255535-2.jpg",
+          "share_url": "https://kwork.ru/script-programming/255535/napishu-i-protestiruyu-sketch-dlya-arduino-esp32-esp8266",
+          "worker": "teleprog",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/04/198065-2.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 378,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 255535,
+            "category_id": 41,
+            "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+            "url": "/script-programming/255535/napishu-i-protestiruyu-sketch-dlya-arduino-esp32-esp8266",
+            "share_url": "https://kwork.ru/script-programming/255535/napishu-i-protestiruyu-sketch-dlya-arduino-esp32-esp8266",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/06/255535-2.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/06/255535-2.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/06/255535-2.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 198065,
+              "username": "teleprog",
+              "fullname": "Дмитрий",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/04/198065-2.jpg",
+              "rating": 5,
+              "reviews_count": 378,
+              "rating_count": 374,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 5503261,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 31175295,
+          "title": "Разработка Telegram-бота на Python",
+          "price": 2500,
+          "classifier_id": 12430,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/61/31175295-65be66c134444.jpg",
+          "share_url": "https://kwork.ru/script-programming/31175295/razrabotka-telegram-bota-na-python",
+          "worker": "PavloSG",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/41/342417-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 124,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 31175295,
+            "category_id": 41,
+            "title": "Разработка Telegram-бота на Python",
+            "url": "/script-programming/31175295/razrabotka-telegram-bota-na-python",
+            "share_url": "https://kwork.ru/script-programming/31175295/razrabotka-telegram-bota-na-python",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/61/31175295-65be66c134444.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/61/31175295-65be66c134444.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/61/31175295-65be66c134444.jpg"
+            },
+            "price": 2500,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 342417,
+              "username": "PavloSG",
+              "fullname": "Павел",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/41/342417-1.jpg",
+              "rating": 5,
+              "reviews_count": 124,
+              "rating_count": 124,
+              "is_online": true,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 12430,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 20622865,
+          "title": "Создание чат-бота для Telegram",
+          "price": 2000,
+          "classifier_id": 12430,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/51/20622865-68b9dab85ef96.jpg",
+          "share_url": "https://kwork.ru/script-programming/20622865/sozdanie-chat-bota-dlya-telegram",
+          "worker": "sh3vajkeee",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/18/12697780-2.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 164,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 20622865,
+            "category_id": 41,
+            "title": "Создание чат-бота для Telegram",
+            "url": "/script-programming/20622865/sozdanie-chat-bota-dlya-telegram",
+            "share_url": "https://kwork.ru/script-programming/20622865/sozdanie-chat-bota-dlya-telegram",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/51/20622865-68b9dab85ef96.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/51/20622865-68b9dab85ef96.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/51/20622865-68b9dab85ef96.jpg"
+            },
+            "price": 2000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 12697780,
+              "username": "sh3vajkeee",
+              "fullname": "Антон Иванов",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/18/12697780-2.jpg",
+              "rating": 5,
+              "reviews_count": 164,
+              "rating_count": 164,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 12430,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 19580665,
+          "title": "Напишу для вас скрипт, регистратор и другую автоматизацию",
+          "price": 1000,
+          "classifier_id": 213,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/34/19580665-1646140334.jpg",
+          "share_url": "https://kwork.ru/script-programming/19580665/napishu-dlya-vas-skript-registrator-i-druguyu-avtomatizatsiyu",
+          "worker": "PerfectCode",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/35/12370982-1.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 278,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 19580665,
+            "category_id": 41,
+            "title": "Напишу для вас скрипт, регистратор и другую автоматизацию",
+            "url": "/script-programming/19580665/napishu-dlya-vas-skript-registrator-i-druguyu-avtomatizatsiyu",
+            "share_url": "https://kwork.ru/script-programming/19580665/napishu-dlya-vas-skript-registrator-i-druguyu-avtomatizatsiyu",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/34/19580665-1646140334.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/34/19580665-1646140334.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/34/19580665-1646140334.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 12370982,
+              "username": "PerfectCode",
+              "fullname": "Идеальный код",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/35/12370982-1.jpg",
+              "rating": 5,
+              "reviews_count": 278,
+              "rating_count": 278,
+              "is_online": true,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 213,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 765930,
+          "title": "Разработка расширения для Chrome, Firefox, Яндекс. Браузер",
+          "price": 2500,
+          "classifier_id": 213,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/58/765930-69f9f577ac2fc.jpg",
+          "share_url": "https://kwork.ru/script-programming/765930/razrabotka-rasshireniya-dlya-chrome-firefox-yandeks-brauzer",
+          "worker": "blackdev",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/50/725394-2.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 169,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 765930,
+            "category_id": 41,
+            "title": "Разработка расширения для Chrome, Firefox, Яндекс. Браузер",
+            "url": "/script-programming/765930/razrabotka-rasshireniya-dlya-chrome-firefox-yandeks-brauzer",
+            "share_url": "https://kwork.ru/script-programming/765930/razrabotka-rasshireniya-dlya-chrome-firefox-yandeks-brauzer",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/58/765930-69f9f577ac2fc.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/58/765930-69f9f577ac2fc.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/58/765930-69f9f577ac2fc.jpg"
+            },
+            "price": 2500,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 725394,
+              "username": "blackdev",
+              "fullname": "Денис",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/50/725394-2.jpg",
+              "rating": 5,
+              "reviews_count": 169,
+              "rating_count": 169,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 213,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 181761,
+          "title": "PHP, JS, JQuery скрипт",
+          "price": 1000,
+          "classifier_id": 34522,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/50/181761-6860ec27a0b79.jpg",
+          "share_url": "https://kwork.ru/script-programming/181761/php-js-jquery-skript",
+          "worker": "ameganix",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/55/59851-2.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 2004,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 181761,
+            "category_id": 41,
+            "title": "PHP, JS, JQuery скрипт",
+            "url": "/script-programming/181761/php-js-jquery-skript",
+            "share_url": "https://kwork.ru/script-programming/181761/php-js-jquery-skript",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/50/181761-6860ec27a0b79.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/50/181761-6860ec27a0b79.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/50/181761-6860ec27a0b79.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 59851,
+              "username": "ameganix",
+              "fullname": "Алексей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/55/59851-2.jpg",
+              "rating": 5,
+              "reviews_count": 2004,
+              "rating_count": 1992,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 34522,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "demand": {
+        "status": "skipped"
+      },
+      "price_rules": {
+        "status": "skipped"
+      },
+      "timings_ms": {
+        "total": 327
+      }
+    },
+    {
+      "seed": {
+        "name": "Telegram",
+        "category_id": 46,
+        "classifier_id": 281
+      },
+      "kworks_count": 8777,
+      "classifiers": [
+        {
+          "id": 622,
+          "name": "Создание и настройка",
+          "kworks_count": 847,
+          "raw": {
+            "id": 622,
+            "name": "Создание и настройка",
+            "kworks_count": 847,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 285,
+          "name": "Ведение и администрирование",
+          "kworks_count": 1529,
+          "raw": {
+            "id": 285,
+            "name": "Ведение и администрирование",
+            "kworks_count": 1529,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5944,
+          "name": "Аудит и оптимизация",
+          "kworks_count": 311,
+          "raw": {
+            "id": 5944,
+            "name": "Аудит и оптимизация",
+            "kworks_count": 311,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 286,
+          "name": "Таргетинг и работа с ЦА",
+          "kworks_count": 556,
+          "raw": {
+            "id": 286,
+            "name": "Таргетинг и работа с ЦА",
+            "kworks_count": 556,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3882026,
+          "name": "Интеграция в блогах",
+          "kworks_count": 160,
+          "raw": {
+            "id": 3882026,
+            "name": "Интеграция в блогах",
+            "kworks_count": 160,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 770252,
+          "name": "Репосты и комментарии",
+          "kworks_count": 535,
+          "raw": {
+            "id": 770252,
+            "name": "Репосты и комментарии",
+            "kworks_count": 535,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 513107,
+          "name": "Оформление",
+          "kworks_count": 1056,
+          "raw": {
+            "id": 513107,
+            "name": "Оформление",
+            "kworks_count": 1056,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 513374,
+          "name": "Создание видео",
+          "kworks_count": 401,
+          "raw": {
+            "id": 513374,
+            "name": "Создание видео",
+            "kworks_count": 401,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 513585,
+          "name": "Написание постов",
+          "kworks_count": 2497,
+          "raw": {
+            "id": 513585,
+            "name": "Написание постов",
+            "kworks_count": 2497,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1167995,
+          "name": "Сбор баз данных",
+          "kworks_count": 190,
+          "raw": {
+            "id": 1167995,
+            "name": "Сбор баз данных",
+            "kworks_count": 190,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1167998,
+          "name": "Готовые базы данных",
+          "kworks_count": 672,
+          "raw": {
+            "id": 1167998,
+            "name": "Готовые базы данных",
+            "kworks_count": 672,
+            "visibility": 1
+          }
+        }
+      ],
+      "cards": [
+        {
+          "id": 41974015,
+          "title": "Парсинг Телеграм. Подбор чатов и каналов по вашим запросам - 50 шт",
+          "price": 500,
+          "classifier_id": 1137550,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/77/41974015-68429e5989a6f.jpg",
+          "share_url": "https://kwork.ru/information-bases/41974015/parsing-telegram-podbor-chatov-i-kanalov-po-vashim-zaprosam-50-sht",
+          "worker": "Crazy-man",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/19/78724-3.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 7540,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 41974015,
+            "category_id": 113,
+            "title": "Парсинг Телеграм. Подбор чатов и каналов по вашим запросам - 50 шт",
+            "url": "/information-bases/41974015/parsing-telegram-podbor-chatov-i-kanalov-po-vashim-zaprosam-50-sht",
+            "share_url": "https://kwork.ru/information-bases/41974015/parsing-telegram-podbor-chatov-i-kanalov-po-vashim-zaprosam-50-sht",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/77/41974015-68429e5989a6f.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/77/41974015-68429e5989a6f.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/77/41974015-68429e5989a6f.jpg"
+            },
+            "price": 500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 78724,
+              "username": "Crazy-man",
+              "fullname": "Дима",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/19/78724-3.jpg",
+              "rating": 5,
+              "reviews_count": 7540,
+              "rating_count": 7540,
+              "is_online": true,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1137550,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 17568043,
+          "title": "Дизайн для соцсетей. Баннер, Креатив",
+          "price": 1500,
+          "classifier_id": 1433392,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/22/17568043-6983a7f8911a5.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/17568043/dizayn-dlya-sotssetey-banner-kreativ",
+          "worker": "ElenaTuz",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/14/11212658-27.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 268,
+          "is_best": false,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 17568043,
+            "category_id": 286,
+            "title": "Дизайн для соцсетей. Баннер, Креатив",
+            "url": "/e-commerce-social-network/17568043/dizayn-dlya-sotssetey-banner-kreativ",
+            "share_url": "https://kwork.ru/e-commerce-social-network/17568043/dizayn-dlya-sotssetey-banner-kreativ",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/22/17568043-6983a7f8911a5.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/22/17568043-6983a7f8911a5.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/22/17568043-6983a7f8911a5.jpg"
+            },
+            "price": 1500,
+            "is_price_from": false,
+            "is_best": false,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 11212658,
+              "username": "ElenaTuz",
+              "fullname": "Елена",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/14/11212658-27.jpg",
+              "rating": 5,
+              "reviews_count": 268,
+              "rating_count": 241,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1433392,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 39628,
+          "title": "Создам иллюстрацию или пост в Telegram или другую соц сеть",
+          "price": 1000,
+          "classifier_id": 1433392,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/39628-68b69c9d2a504.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/39628/sozdam-illyustratsiyu-ili-post-v-telegram-ili-druguyu-sots-set",
+          "worker": "bioatwork",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/15/57538-8.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1008,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 39628,
+            "category_id": 286,
+            "title": "Создам иллюстрацию или пост в Telegram или другую соц сеть",
+            "url": "/e-commerce-social-network/39628/sozdam-illyustratsiyu-ili-post-v-telegram-ili-druguyu-sots-set",
+            "share_url": "https://kwork.ru/e-commerce-social-network/39628/sozdam-illyustratsiyu-ili-post-v-telegram-ili-druguyu-sots-set",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/39628-68b69c9d2a504.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/41/39628-68b69c9d2a504.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/41/39628-68b69c9d2a504.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 57538,
+              "username": "bioatwork",
+              "fullname": "Сергей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/15/57538-8.jpg",
+              "rating": 5,
+              "reviews_count": 1008,
+              "rating_count": 867,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433392,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 20502357,
+          "title": "Каталог чатов Telegram под любую тематику",
+          "price": 1000,
+          "classifier_id": 1137577,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/12/20502357-1651145012.jpg",
+          "share_url": "https://kwork.ru/information-bases/20502357/katalog-chatov-telegram-pod-lyubuyu-tematiku",
+          "worker": "imnotes",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/35/597223-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 3092,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 20502357,
+            "category_id": 113,
+            "title": "Каталог чатов Telegram под любую тематику",
+            "url": "/information-bases/20502357/katalog-chatov-telegram-pod-lyubuyu-tematiku",
+            "share_url": "https://kwork.ru/information-bases/20502357/katalog-chatov-telegram-pod-lyubuyu-tematiku",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/12/20502357-1651145012.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/12/20502357-1651145012.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/12/20502357-1651145012.jpg"
+            },
+            "price": 1000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 597223,
+              "username": "imnotes",
+              "fullname": "Артём",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/35/597223-1.jpg",
+              "rating": 5,
+              "reviews_count": 3092,
+              "rating_count": 3092,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1137577,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 20859803,
+          "title": "Креатив для рекламы в Telegram + бонус",
+          "price": 2000,
+          "classifier_id": 730506,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/20859803-69b83cbcd1aac.jpg",
+          "share_url": "https://kwork.ru/business-copywriting/20859803/kreativ-dlya-reklamy-v-telegram-bonus",
+          "worker": "Nikita__Pavlov",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/37/5832844-6.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 4.9,
+          "reviews": 254,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 20859803,
+            "category_id": 74,
+            "title": "Креатив для рекламы в Telegram + бонус",
+            "url": "/business-copywriting/20859803/kreativ-dlya-reklamy-v-telegram-bonus",
+            "share_url": "https://kwork.ru/business-copywriting/20859803/kreativ-dlya-reklamy-v-telegram-bonus",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/20859803-69b83cbcd1aac.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/41/20859803-69b83cbcd1aac.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/41/20859803-69b83cbcd1aac.jpg"
+            },
+            "price": 2000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 5832844,
+              "username": "Nikita__Pavlov",
+              "fullname": "Никита Павлов",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/37/5832844-6.jpg",
+              "rating": 4.9,
+              "reviews_count": 254,
+              "rating_count": 227,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 730506,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 820663,
+          "title": "Рассылка ТГ 100 сообщений в Телеграм",
+          "price": 500,
+          "classifier_id": 40140,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/95/820663-68bae75b4748c.jpg",
+          "share_url": "https://kwork.ru/smm/820663/rassylka-tg-100-soobshcheniy-v-telegram",
+          "worker": "Leoneedmore",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/31/20323-3.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 3926,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 820663,
+            "category_id": 46,
+            "title": "Рассылка ТГ 100 сообщений в Телеграм",
+            "url": "/smm/820663/rassylka-tg-100-soobshcheniy-v-telegram",
+            "share_url": "https://kwork.ru/smm/820663/rassylka-tg-100-soobshcheniy-v-telegram",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/95/820663-68bae75b4748c.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/95/820663-68bae75b4748c.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/95/820663-68bae75b4748c.jpg"
+            },
+            "price": 500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 20323,
+              "username": "Leoneedmore",
+              "fullname": "Леонид",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/31/20323-3.jpg",
+              "rating": 5,
+              "reviews_count": 3926,
+              "rating_count": 3926,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 40140,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 5290159,
+          "title": "Грамотный баннер Telegram, реклама для соцсети, дизайн поста",
+          "price": 2000,
+          "classifier_id": 1433392,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/82/5290159-6995d9e830848.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/5290159/gramotniy-banner-telegram-reklama-dlya-sotsseti-dizayn-posta",
+          "worker": "egorkorablev",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/49/215711-4.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1213,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 5290159,
+            "category_id": 286,
+            "title": "Грамотный баннер Telegram, реклама для соцсети, дизайн поста",
+            "url": "/e-commerce-social-network/5290159/gramotniy-banner-telegram-reklama-dlya-sotsseti-dizayn-posta",
+            "share_url": "https://kwork.ru/e-commerce-social-network/5290159/gramotniy-banner-telegram-reklama-dlya-sotsseti-dizayn-posta",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/82/5290159-6995d9e830848.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/82/5290159-6995d9e830848.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/82/5290159-6995d9e830848.jpg"
+            },
+            "price": 2000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 215711,
+              "username": "egorkorablev",
+              "fullname": "Егор Кораблев",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/49/215711-4.jpg",
+              "rating": 5,
+              "reviews_count": 1213,
+              "rating_count": 1152,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433392,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 27895321,
+          "title": "Продающий Оффер для Телеграм под ключ: Рекламный Пост, Продающий Текст",
+          "price": 3000,
+          "classifier_id": 730506,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/67/27895321-64c50e2063fb0.jpg",
+          "share_url": "https://kwork.ru/business-copywriting/27895321/prodayushchiy-offer-dlya-telegram-pod-klyuch-reklamniy-post-prodayushchiy-tekst",
+          "worker": "Kaizen",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/44/5099-21.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1948,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 27895321,
+            "category_id": 74,
+            "title": "Продающий Оффер для Телеграм под ключ: Рекламный Пост, Продающий Текст",
+            "url": "/business-copywriting/27895321/prodayushchiy-offer-dlya-telegram-pod-klyuch-reklamniy-post-prodayushchiy-tekst",
+            "share_url": "https://kwork.ru/business-copywriting/27895321/prodayushchiy-offer-dlya-telegram-pod-klyuch-reklamniy-post-prodayushchiy-tekst",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/67/27895321-64c50e2063fb0.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/67/27895321-64c50e2063fb0.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/67/27895321-64c50e2063fb0.jpg"
+            },
+            "price": 3000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 5099,
+              "username": "Kaizen",
+              "fullname": "Кай",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/44/5099-21.jpg",
+              "rating": 5,
+              "reviews_count": 1948,
+              "rating_count": 1904,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 730506,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 26741882,
+          "title": "Парсинг Телеграм. Сбор-чатов и групп Telegram по запросам и ключевикам",
+          "price": 1000,
+          "classifier_id": 1137550,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/99/26741882-685e8adc355bf.jpg",
+          "share_url": "https://kwork.ru/information-bases/26741882/parsing-telegram-sbor-chatov-i-grupp-telegram-po-zaprosam-i-klyuchevikam",
+          "worker": "RuPartner",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/43/116662-12.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 367,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 26741882,
+            "category_id": 113,
+            "title": "Парсинг Телеграм. Сбор-чатов и групп Telegram по запросам и ключевикам",
+            "url": "/information-bases/26741882/parsing-telegram-sbor-chatov-i-grupp-telegram-po-zaprosam-i-klyuchevikam",
+            "share_url": "https://kwork.ru/information-bases/26741882/parsing-telegram-sbor-chatov-i-grupp-telegram-po-zaprosam-i-klyuchevikam",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/99/26741882-685e8adc355bf.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/99/26741882-685e8adc355bf.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/99/26741882-685e8adc355bf.jpg"
+            },
+            "price": 1000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 116662,
+              "username": "RuPartner",
+              "fullname": "Веб студия",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/43/116662-12.jpg",
+              "rating": 5,
+              "reviews_count": 367,
+              "rating_count": 366,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1137550,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 22418731,
+          "title": "Настройка таргетинга в Телеграм. Консультация по рекламе",
+          "price": 25000,
+          "classifier_id": 40136,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/89/22418731-68d4ea1c445db.jpg",
+          "share_url": "https://kwork.ru/smm/22418731/nastroyka-targetinga-v-telegram-konsultatsiya-po-reklame",
+          "worker": "ads_maker",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/48/903782-10.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 35,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 22418731,
+            "category_id": 46,
+            "title": "Настройка таргетинга в Телеграм. Консультация по рекламе",
+            "url": "/smm/22418731/nastroyka-targetinga-v-telegram-konsultatsiya-po-reklame",
+            "share_url": "https://kwork.ru/smm/22418731/nastroyka-targetinga-v-telegram-konsultatsiya-po-reklame",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/89/22418731-68d4ea1c445db.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/89/22418731-68d4ea1c445db.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/89/22418731-68d4ea1c445db.jpg"
+            },
+            "price": 25000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 903782,
+              "username": "ads_maker",
+              "fullname": "Алексей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/48/903782-10.jpg",
+              "rating": 5,
+              "reviews_count": 35,
+              "rating_count": 35,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 40136,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "demand": {
+        "status": "skipped"
+      },
+      "price_rules": {
+        "status": "skipped"
+      },
+      "timings_ms": {
+        "total": 272
+      }
+    },
+    {
+      "seed": {
+        "name": "Ссылки",
+        "category_id": 59
+      },
+      "kworks_count": 45466,
+      "classifiers": [
+        {
+          "id": 1379472,
+          "name": "Статейные и крауд",
+          "kworks_count": 19115,
+          "raw": {
+            "id": 1379472,
+            "name": "Статейные и крауд",
+            "kworks_count": 19115,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1379027,
+          "name": "Форумные",
+          "kworks_count": 6854,
+          "raw": {
+            "id": 1379027,
+            "name": "Форумные",
+            "kworks_count": 6854,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1379024,
+          "name": "Каталоги сайтов",
+          "kworks_count": 2219,
+          "raw": {
+            "id": 1379024,
+            "name": "Каталоги сайтов",
+            "kworks_count": 2219,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1379022,
+          "name": "В комментариях",
+          "kworks_count": 2189,
+          "raw": {
+            "id": 1379022,
+            "name": "В комментариях",
+            "kworks_count": 2189,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1378934,
+          "name": "В соцсетях",
+          "kworks_count": 2806,
+          "raw": {
+            "id": 1378934,
+            "name": "В соцсетях",
+            "kworks_count": 2806,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1378848,
+          "name": "В профилях",
+          "kworks_count": 10212,
+          "raw": {
+            "id": 1378848,
+            "name": "В профилях",
+            "kworks_count": 10212,
+            "visibility": 1
+          }
+        }
+      ],
+      "cards": [
+        {
+          "id": 11754545,
+          "title": "Прогон GSA Search Engine Ranker Ру+Бурж. 5-10-20к обратных ссылок",
+          "price": 750,
+          "classifier_id": 1378881,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/53/11754545-1608653964.jpg",
+          "share_url": "https://kwork.ru/links/11754545/progon-gsa-search-engine-ranker-ru-burzh-5-10-20k-obratnykh-ssylok",
+          "worker": "effovenon",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/06/245646-3.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 4.9,
+          "reviews": 1129,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 11754545,
+            "category_id": 59,
+            "title": "Прогон GSA Search Engine Ranker Ру+Бурж. 5-10-20к обратных ссылок",
+            "url": "/links/11754545/progon-gsa-search-engine-ranker-ru-burzh-5-10-20k-obratnykh-ssylok",
+            "share_url": "https://kwork.ru/links/11754545/progon-gsa-search-engine-ranker-ru-burzh-5-10-20k-obratnykh-ssylok",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/53/11754545-1608653964.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/53/11754545-1608653964.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/53/11754545-1608653964.jpg"
+            },
+            "price": 750,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 245646,
+              "username": "effovenon",
+              "fullname": "Алена",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/06/245646-3.jpg",
+              "rating": 4.9,
+              "reviews_count": 1129,
+              "rating_count": 1129,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1378881,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 37836615,
+          "title": "Размещу 10 крауд-ссылок на зарубежных форумах",
+          "price": 7000,
+          "classifier_id": 1379370,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/21/37836615-676ea8cd97f26.jpg",
+          "share_url": "https://kwork.ru/links/37836615/razmeshchu-10-kraud-ssylok-na-zarubezhnykh-forumakh",
+          "worker": "SEO_KRAUD_PROF",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/32/581974-2.jpg",
+          "seller_level": "",
+          "rating": 5,
+          "reviews": 3,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 37836615,
+            "category_id": 59,
+            "title": "Размещу 10 крауд-ссылок на зарубежных форумах",
+            "url": "/links/37836615/razmeshchu-10-kraud-ssylok-na-zarubezhnykh-forumakh",
+            "share_url": "https://kwork.ru/links/37836615/razmeshchu-10-kraud-ssylok-na-zarubezhnykh-forumakh",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/21/37836615-676ea8cd97f26.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/21/37836615-676ea8cd97f26.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/21/37836615-676ea8cd97f26.jpg"
+            },
+            "price": 7000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 581974,
+              "username": "SEO_KRAUD_PROF",
+              "fullname": "МАКС",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/32/581974-2.jpg",
+              "rating": 5,
+              "reviews_count": 3,
+              "rating_count": 3,
+              "is_online": false,
+              "level_description": ""
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379370,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 36462076,
+          "title": "Внешняя ссылка с главной страницы PBN на 1 год - Игры",
+          "price": 3000,
+          "classifier_id": 1379567,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/13/36462076-6a3fa84e79b25.jpg",
+          "share_url": "https://kwork.ru/links/36462076/vneshnyaya-ssylka-s-glavnoy-stranitsy-pbn-na-1-god-igry",
+          "worker": "MDevostator",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/14/1354-4.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1086,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 36462076,
+            "category_id": 59,
+            "title": "Внешняя ссылка с главной страницы PBN на 1 год - Игры",
+            "url": "/links/36462076/vneshnyaya-ssylka-s-glavnoy-stranitsy-pbn-na-1-god-igry",
+            "share_url": "https://kwork.ru/links/36462076/vneshnyaya-ssylka-s-glavnoy-stranitsy-pbn-na-1-god-igry",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/13/36462076-6a3fa84e79b25.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/13/36462076-6a3fa84e79b25.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/13/36462076-6a3fa84e79b25.jpg"
+            },
+            "price": 3000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1354,
+              "username": "MDevostator",
+              "fullname": "Владислав Бобров",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/14/1354-4.jpg",
+              "rating": 5,
+              "reviews_count": 1086,
+              "rating_count": 1086,
+              "is_online": true,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379567,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 13993338,
+          "title": "Реализую ссылочную стратегию сроком на 1 месяц",
+          "price": 10000,
+          "classifier_id": 1379700,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/27/13993338-6a1c1256d7a0c.jpg",
+          "share_url": "https://kwork.ru/links/13993338/realizuyu-ssylochnuyu-strategiyu-srokom-na-1-mesyats",
+          "worker": "Alexey_Zaitsev",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/01/839780-10.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 4.9,
+          "reviews": 3204,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 13993338,
+            "category_id": 59,
+            "title": "Реализую ссылочную стратегию сроком на 1 месяц",
+            "url": "/links/13993338/realizuyu-ssylochnuyu-strategiyu-srokom-na-1-mesyats",
+            "share_url": "https://kwork.ru/links/13993338/realizuyu-ssylochnuyu-strategiyu-srokom-na-1-mesyats",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/27/13993338-6a1c1256d7a0c.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/27/13993338-6a1c1256d7a0c.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/27/13993338-6a1c1256d7a0c.jpg"
+            },
+            "price": 10000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 839780,
+              "username": "Alexey_Zaitsev",
+              "fullname": "Алексей Зайцев",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/01/839780-10.jpg",
+              "rating": 4.9,
+              "reviews_count": 3204,
+              "rating_count": 3204,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379700,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 29858122,
+          "title": "50 шт открытых dofollow ссылок на форумах в новых темах",
+          "price": 2500,
+          "classifier_id": 1379078,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/36/29858122-653e425c17d8d.jpg",
+          "share_url": "https://kwork.ru/links/29858122/50-sht-otkrytykh-dofollow-ssylok-na-forumakh-v-novykh-temakh",
+          "worker": "alexkoles",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/57/594880-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 6000,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 29858122,
+            "category_id": 59,
+            "title": "50 шт открытых dofollow ссылок на форумах в новых темах",
+            "url": "/links/29858122/50-sht-otkrytykh-dofollow-ssylok-na-forumakh-v-novykh-temakh",
+            "share_url": "https://kwork.ru/links/29858122/50-sht-otkrytykh-dofollow-ssylok-na-forumakh-v-novykh-temakh",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/36/29858122-653e425c17d8d.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/36/29858122-653e425c17d8d.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/36/29858122-653e425c17d8d.jpg"
+            },
+            "price": 2500,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 594880,
+              "username": "alexkoles",
+              "fullname": "Александр",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/57/594880-1.jpg",
+              "rating": 5,
+              "reviews_count": 6000,
+              "rating_count": 5999,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1379078,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 28094880,
+          "title": "Внешняя ссылка для сайта с главной страницы PBN на 1 год",
+          "price": 2000,
+          "classifier_id": 1379567,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/56/28094880-64b54a469a361.jpg",
+          "share_url": "https://kwork.ru/links/28094880/vneshnyaya-ssylka-dlya-sayta-s-glavnoy-stranitsy-pbn-na-1-god",
+          "worker": "MDevostator",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/14/1354-4.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1086,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 28094880,
+            "category_id": 59,
+            "title": "Внешняя ссылка для сайта с главной страницы PBN на 1 год",
+            "url": "/links/28094880/vneshnyaya-ssylka-dlya-sayta-s-glavnoy-stranitsy-pbn-na-1-god",
+            "share_url": "https://kwork.ru/links/28094880/vneshnyaya-ssylka-dlya-sayta-s-glavnoy-stranitsy-pbn-na-1-god",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/56/28094880-64b54a469a361.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/56/28094880-64b54a469a361.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/56/28094880-64b54a469a361.jpg"
+            },
+            "price": 2000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1354,
+              "username": "MDevostator",
+              "fullname": "Владислав Бобров",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/14/1354-4.jpg",
+              "rating": 5,
+              "reviews_count": 1086,
+              "rating_count": 1086,
+              "is_online": true,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379567,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 34751020,
+          "title": "Продвину ваш Телеграмма канала чата в выдаче Яндекс и Гугл по запросам",
+          "price": 1000,
+          "classifier_id": 1379061,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/01/34751020-66a6200153662.jpg",
+          "share_url": "https://kwork.ru/links/34751020/prodvinu-vash-telegramma-kanala-chata-v-vydache-yandeks-i-gugl-po-zaprosam",
+          "worker": "ArtemSeoMaster",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/08/23419-10.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 947,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 34751020,
+            "category_id": 59,
+            "title": "Продвину ваш Телеграмма канала чата в выдаче Яндекс и Гугл по запросам",
+            "url": "/links/34751020/prodvinu-vash-telegramma-kanala-chata-v-vydache-yandeks-i-gugl-po-zaprosam",
+            "share_url": "https://kwork.ru/links/34751020/prodvinu-vash-telegramma-kanala-chata-v-vydache-yandeks-i-gugl-po-zaprosam",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/01/34751020-66a6200153662.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/01/34751020-66a6200153662.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/01/34751020-66a6200153662.jpg"
+            },
+            "price": 1000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 23419,
+              "username": "ArtemSeoMaster",
+              "fullname": "Артём продвижение сайтов в ТОП",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/08/23419-10.jpg",
+              "rating": 5,
+              "reviews_count": 947,
+              "rating_count": 947,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379061,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 44720,
+          "title": "Ссылки для продвижения сайта . 250 ссылок для Яндекс и Google",
+          "price": 4500,
+          "classifier_id": 1379078,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/44720-69f5b55020960.jpg",
+          "share_url": "https://kwork.ru/links/44720/ssylki-dlya-prodvizheniya-sayta-250-ssylok-dlya-yandeks-i-google",
+          "worker": "alex80",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/12/14898-18.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 20788,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 44720,
+            "category_id": 59,
+            "title": "Ссылки для продвижения сайта . 250 ссылок для Яндекс и Google",
+            "url": "/links/44720/ssylki-dlya-prodvizheniya-sayta-250-ssylok-dlya-yandeks-i-google",
+            "share_url": "https://kwork.ru/links/44720/ssylki-dlya-prodvizheniya-sayta-250-ssylok-dlya-yandeks-i-google",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/44720-69f5b55020960.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/41/44720-69f5b55020960.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/41/44720-69f5b55020960.jpg"
+            },
+            "price": 4500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 14898,
+              "username": "alex80",
+              "fullname": "Алексей Александрович",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/12/14898-18.jpg",
+              "rating": 5,
+              "reviews_count": 20788,
+              "rating_count": 20788,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379078,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 5730766,
+          "title": "Вывод в ТОП через ссылочную пирамиду GOV, EDU, WIKI: 9000+ ссылок",
+          "price": 5000,
+          "classifier_id": 1379700,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/54/5730766-6426f05abcf6f.jpg",
+          "share_url": "https://kwork.ru/links/5730766/vyvod-v-top-cherez-ssylochnuyu-piramidu-gov-edu-wiki-9000-ssylok",
+          "worker": "ARK1",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/59/227345-2.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 4.8,
+          "reviews": 1792,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 5730766,
+            "category_id": 59,
+            "title": "Вывод в ТОП через ссылочную пирамиду GOV, EDU, WIKI: 9000+ ссылок",
+            "url": "/links/5730766/vyvod-v-top-cherez-ssylochnuyu-piramidu-gov-edu-wiki-9000-ssylok",
+            "share_url": "https://kwork.ru/links/5730766/vyvod-v-top-cherez-ssylochnuyu-piramidu-gov-edu-wiki-9000-ssylok",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/54/5730766-6426f05abcf6f.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/54/5730766-6426f05abcf6f.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/54/5730766-6426f05abcf6f.jpg"
+            },
+            "price": 5000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 227345,
+              "username": "ARK1",
+              "fullname": "Валентиныч",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/59/227345-2.jpg",
+              "rating": 4.8,
+              "reviews_count": 1792,
+              "rating_count": 1792,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1379700,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 25752339,
+          "title": "Размещение ссылок GSA для продвижения в Google",
+          "price": 750,
+          "classifier_id": 1379061,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/98/25752339-640af63eef8a9.jpg",
+          "share_url": "https://kwork.ru/links/25752339/razmeshchenie-ssylok-gsa-dlya-prodvizheniya-v-google",
+          "worker": "seovk",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/00/529773-2.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1767,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 25752339,
+            "category_id": 59,
+            "title": "Размещение ссылок GSA для продвижения в Google",
+            "url": "/links/25752339/razmeshchenie-ssylok-gsa-dlya-prodvizheniya-v-google",
+            "share_url": "https://kwork.ru/links/25752339/razmeshchenie-ssylok-gsa-dlya-prodvizheniya-v-google",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/98/25752339-640af63eef8a9.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/98/25752339-640af63eef8a9.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/98/25752339-640af63eef8a9.jpg"
+            },
+            "price": 750,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 529773,
+              "username": "seovk",
+              "fullname": "Максим",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/00/529773-2.jpg",
+              "rating": 5,
+              "reviews_count": 1767,
+              "rating_count": 1767,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1379061,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "demand": {
+        "status": "skipped"
+      },
+      "price_rules": {
+        "status": "skipped"
+      },
+      "timings_ms": {
+        "total": 319
+      }
+    },
+    {
+      "seed": {
+        "name": "Логотипы",
+        "category_id": 25,
+        "classifier_id": 401928
+      },
+      "kworks_count": 33598,
+      "classifiers": [
+        {
+          "id": 401933,
+          "name": "Новый логотип",
+          "kworks_count": 32037,
+          "raw": {
+            "id": 401933,
+            "name": "Новый логотип",
+            "kworks_count": 32037,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 401969,
+          "name": "Доработка лого",
+          "kworks_count": 2747,
+          "raw": {
+            "id": 401969,
+            "name": "Доработка лого",
+            "kworks_count": 2747,
+            "visibility": 1
+          }
+        }
+      ],
+      "cards": [
+        {
+          "id": 20869474,
+          "title": "Изменю или русифицирую любой шрифт, вставлю логотип в качестве буквы",
+          "price": 3000,
+          "classifier_id": 401948,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/17/20869474-1653327317.jpg",
+          "share_url": "https://kwork.ru/logo/20869474/izmenyu-ili-rusifitsiruyu-lyuboy-shrift-vstavlyu-logotip-v-kachestve-bukvy",
+          "worker": "VidJet",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/01/12658602-3.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 148,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 20869474,
+            "category_id": 25,
+            "title": "Изменю или русифицирую любой шрифт, вставлю логотип в качестве буквы",
+            "url": "/logo/20869474/izmenyu-ili-rusifitsiruyu-lyuboy-shrift-vstavlyu-logotip-v-kachestve-bukvy",
+            "share_url": "https://kwork.ru/logo/20869474/izmenyu-ili-rusifitsiruyu-lyuboy-shrift-vstavlyu-logotip-v-kachestve-bukvy",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/17/20869474-1653327317.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/17/20869474-1653327317.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/17/20869474-1653327317.jpg"
+            },
+            "price": 3000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 12658602,
+              "username": "VidJet",
+              "fullname": "Олег",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/01/12658602-3.jpg",
+              "rating": 5,
+              "reviews_count": 148,
+              "rating_count": 104,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 401948,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 8138,
+          "title": "Сделаю дизайн логотипа",
+          "price": 2500,
+          "classifier_id": 401945,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/17/8138-7.jpg",
+          "share_url": "https://kwork.ru/logo/8138/sdelayu-dizayn-logotipa",
+          "worker": "alevtina12",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/35/15103-10.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 2147,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 8138,
+            "category_id": 25,
+            "title": "Сделаю дизайн логотипа",
+            "url": "/logo/8138/sdelayu-dizayn-logotipa",
+            "share_url": "https://kwork.ru/logo/8138/sdelayu-dizayn-logotipa",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/17/8138-7.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/17/8138-7.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/17/8138-7.jpg"
+            },
+            "price": 2500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 15103,
+              "username": "alevtina12",
+              "fullname": "Наталья",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/35/15103-10.jpg",
+              "rating": 5,
+              "reviews_count": 2147,
+              "rating_count": 1804,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 401945,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 32539303,
+          "title": "Современный логотип. Бесплатные правки. Исходники в подарок",
+          "price": 2500,
+          "classifier_id": 401945,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/40/32539303-6a1f61bc2904b.jpg",
+          "share_url": "https://kwork.ru/logo/32539303/sovremenniy-logotip-besplatnie-pravki-iskhodniki-v-podarok",
+          "worker": "DESIGN_LOGOTYPE",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/45/5703734-10.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1148,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 32539303,
+            "category_id": 25,
+            "title": "Современный логотип. Бесплатные правки. Исходники в подарок",
+            "url": "/logo/32539303/sovremenniy-logotip-besplatnie-pravki-iskhodniki-v-podarok",
+            "share_url": "https://kwork.ru/logo/32539303/sovremenniy-logotip-besplatnie-pravki-iskhodniki-v-podarok",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/40/32539303-6a1f61bc2904b.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/40/32539303-6a1f61bc2904b.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/40/32539303-6a1f61bc2904b.jpg"
+            },
+            "price": 2500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 5703734,
+              "username": "DESIGN_LOGOTYPE",
+              "fullname": "Алексей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/45/5703734-10.jpg",
+              "rating": 5,
+              "reviews_count": 1148,
+              "rating_count": 1080,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 401945,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 34822518,
+          "title": "Дизайн логотипа. Логотип для бизнеса под ключ. Уникальный логотип",
+          "price": 4000,
+          "classifier_id": 401945,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/87/34822518-69dbcb31154bb.jpg",
+          "share_url": "https://kwork.ru/logo/34822518/dizayn-logotipa-logotip-dlya-biznesa-pod-klyuch-unikalniy-logotip",
+          "worker": "DESIGN-LOGO",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/09/9832208-19.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 6704,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 34822518,
+            "category_id": 25,
+            "title": "Дизайн логотипа. Логотип для бизнеса под ключ. Уникальный логотип",
+            "url": "/logo/34822518/dizayn-logotipa-logotip-dlya-biznesa-pod-klyuch-unikalniy-logotip",
+            "share_url": "https://kwork.ru/logo/34822518/dizayn-logotipa-logotip-dlya-biznesa-pod-klyuch-unikalniy-logotip",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/87/34822518-69dbcb31154bb.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/87/34822518-69dbcb31154bb.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/87/34822518-69dbcb31154bb.jpg"
+            },
+            "price": 4000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 9832208,
+              "username": "DESIGN-LOGO",
+              "fullname": "Николь",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/09/9832208-19.jpg",
+              "rating": 5,
+              "reviews_count": 6704,
+              "rating_count": 6658,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 401945,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 18037720,
+          "title": "Новый логотип. Уникальный логотип. Разработка логотипа. Дизайн logo",
+          "price": 4000,
+          "classifier_id": 401948,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/02/18037720-69da6355e49bb.jpg",
+          "share_url": "https://kwork.ru/logo/18037720/noviy-logotip-unikalniy-logotip-razrabotka-logotipa-dizayn-logo",
+          "worker": "DESIGN-LOGO",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/09/9832208-19.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 6704,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 18037720,
+            "category_id": 25,
+            "title": "Новый логотип. Уникальный логотип. Разработка логотипа. Дизайн logo",
+            "url": "/logo/18037720/noviy-logotip-unikalniy-logotip-razrabotka-logotipa-dizayn-logo",
+            "share_url": "https://kwork.ru/logo/18037720/noviy-logotip-unikalniy-logotip-razrabotka-logotipa-dizayn-logo",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/02/18037720-69da6355e49bb.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/02/18037720-69da6355e49bb.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/02/18037720-69da6355e49bb.jpg"
+            },
+            "price": 4000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 9832208,
+              "username": "DESIGN-LOGO",
+              "fullname": "Николь",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/09/9832208-19.jpg",
+              "rating": 5,
+              "reviews_count": 6704,
+              "rating_count": 6658,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 401948,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 67108,
+          "title": "Создам современный качественный логотип",
+          "price": 15000,
+          "classifier_id": 401945,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/77/67108-6a3bec3f43767.jpg",
+          "share_url": "https://kwork.ru/logo/67108/sozdam-sovremenniy-kachestvenniy-logotip",
+          "worker": "DmitrijStankevich",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/21/86800-6.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 1587,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 67108,
+            "category_id": 25,
+            "title": "Создам современный качественный логотип",
+            "url": "/logo/67108/sozdam-sovremenniy-kachestvenniy-logotip",
+            "share_url": "https://kwork.ru/logo/67108/sozdam-sovremenniy-kachestvenniy-logotip",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/77/67108-6a3bec3f43767.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/77/67108-6a3bec3f43767.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/77/67108-6a3bec3f43767.jpg"
+            },
+            "price": 15000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 86800,
+              "username": "DmitrijStankevich",
+              "fullname": "Дмитрий",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/21/86800-6.jpg",
+              "rating": 5,
+              "reviews_count": 1587,
+              "rating_count": 1249,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 401945,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 18658149,
+          "title": "Уникальная разработка логотипа",
+          "price": 30000,
+          "classifier_id": 401945,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/50/18658149-664dde40b253f.jpg",
+          "share_url": "https://kwork.ru/logo/18658149/unikalnaya-razrabotka-logotipa",
+          "worker": "Palagon",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/42/1967947-10.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 171,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 18658149,
+            "category_id": 25,
+            "title": "Уникальная разработка логотипа",
+            "url": "/logo/18658149/unikalnaya-razrabotka-logotipa",
+            "share_url": "https://kwork.ru/logo/18658149/unikalnaya-razrabotka-logotipa",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/50/18658149-664dde40b253f.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/50/18658149-664dde40b253f.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/50/18658149-664dde40b253f.jpg"
+            },
+            "price": 30000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1967947,
+              "username": "Palagon",
+              "fullname": "Андрей Палагон",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/42/1967947-10.jpg",
+              "rating": 5,
+              "reviews_count": 171,
+              "rating_count": 141,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 401945,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 24171134,
+          "title": "Создам минималистичный логотип",
+          "price": 1500,
+          "classifier_id": 401945,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/38/24171134-676c7c375ae03.jpg",
+          "share_url": "https://kwork.ru/logo/24171134/sozdam-minimalistichniy-logotip",
+          "worker": "ArtemHarbLogo",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/34/13706067-9.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 4.9,
+          "reviews": 121,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 24171134,
+            "category_id": 25,
+            "title": "Создам минималистичный логотип",
+            "url": "/logo/24171134/sozdam-minimalistichniy-logotip",
+            "share_url": "https://kwork.ru/logo/24171134/sozdam-minimalistichniy-logotip",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/38/24171134-676c7c375ae03.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/38/24171134-676c7c375ae03.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/38/24171134-676c7c375ae03.jpg"
+            },
+            "price": 1500,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 13706067,
+              "username": "ArtemHarbLogo",
+              "fullname": "Артем",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/34/13706067-9.jpg",
+              "rating": 4.9,
+              "reviews_count": 121,
+              "rating_count": 118,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 401945,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 9332464,
+          "title": "Качество и быстрота. Разработаю уникальный логотип",
+          "price": 2500,
+          "classifier_id": 401945,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/65/9332464-6a2048de6610c.jpg",
+          "share_url": "https://kwork.ru/logo/9332464/kachestvo-i-bystrota-razrabotayu-unikalniy-logotip",
+          "worker": "DESIGN_LOGOTYPE",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/45/5703734-10.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1148,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 9332464,
+            "category_id": 25,
+            "title": "Качество и быстрота. Разработаю уникальный логотип",
+            "url": "/logo/9332464/kachestvo-i-bystrota-razrabotayu-unikalniy-logotip",
+            "share_url": "https://kwork.ru/logo/9332464/kachestvo-i-bystrota-razrabotayu-unikalniy-logotip",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/65/9332464-6a2048de6610c.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/65/9332464-6a2048de6610c.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/65/9332464-6a2048de6610c.jpg"
+            },
+            "price": 2500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 5703734,
+              "username": "DESIGN_LOGOTYPE",
+              "fullname": "Алексей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/45/5703734-10.jpg",
+              "rating": 5,
+              "reviews_count": 1148,
+              "rating_count": 1080,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 401945,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 2287251,
+          "title": "Создам строгий логотип в трех вариантах",
+          "price": 2000,
+          "classifier_id": 401945,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/94/2287251-1595358133.jpg",
+          "share_url": "https://kwork.ru/logo/2287251/sozdam-strogiy-logotip-v-trekh-variantakh",
+          "worker": "Colonna",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/01/1552087-1.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 817,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 2287251,
+            "category_id": 25,
+            "title": "Создам строгий логотип в трех вариантах",
+            "url": "/logo/2287251/sozdam-strogiy-logotip-v-trekh-variantakh",
+            "share_url": "https://kwork.ru/logo/2287251/sozdam-strogiy-logotip-v-trekh-variantakh",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/94/2287251-1595358133.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/94/2287251-1595358133.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/94/2287251-1595358133.jpg"
+            },
+            "price": 2000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 1552087,
+              "username": "Colonna",
+              "fullname": "Анастасия Ситникова",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/01/1552087-1.jpg",
+              "rating": 5,
+              "reviews_count": 817,
+              "rating_count": 532,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 401945,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        }
+      ],
+      "demand": {
+        "status": "skipped"
+      },
+      "price_rules": {
+        "status": "skipped"
+      },
+      "timings_ms": {
+        "total": 327
+      }
+    }
+  ],
+  "query_demand": {},
+  "seller_intelligence": [],
+  "account_context": {
+    "status": "ok",
+    "username": "Vladimir1474661",
+    "worker_id": 20354236,
+    "level": null,
+    "rating": "0.0",
+    "reviews_count": null,
+    "active_kworks_count": 0,
+    "statuses": {
+      "Активные": 1,
+      "На модерации": 0,
+      "Требуют исправления": 0,
+      "Остановленные": 0,
+      "На паузе": 0,
+      "Скрытые": 0,
+      "Черновики": 0,
+      "Все": 1
+    },
+    "offers_count": 0,
+    "connects": {
+      "all_connects": 30,
+      "active_connects": 30,
+      "update_time": 1783544400
+    },
+    "raw_sections": [
+      "actor",
+      "getActorInfo",
+      "kworksStatusList",
+      "offers"
+    ]
+  },
+  "market_rankings": [
+    {
+      "seed_name": "Доработка и настройка сайта",
+      "category_id": 38,
+      "classifier_id": null,
+      "supply_kworks_count": 13662,
+      "demand_wants_count": null,
+      "demand_status": "skipped",
+      "demand_per_1000_kworks": null,
+      "opportunity_score": null,
+      "sample_cards": 10,
+      "sample_unique_sellers": 9,
+      "seller_concentration": 0.2,
+      "sample_price_min": 1000,
+      "sample_price_max": 7000,
+      "sample_price_avg": 2500.0,
+      "price_rule_min": null,
+      "price_rule_max": null,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": null,
+      "demand_sample_low_offer_count": 0,
+      "demand_sample_budget_avg": null,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 0,
+      "top_sellers": [
+        [
+          "OlegTixomirov",
+          2
+        ],
+        [
+          "ilkarkarakurt",
+          1
+        ],
+        [
+          "molodsom",
+          1
+        ],
+        [
+          "quattrovod",
+          1
+        ],
+        [
+          "do_kova",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "skipped",
+        "supply_level": "competitive",
+        "low_offer_demand": false,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": false
+      }
+    },
+    {
+      "seed_name": "Программирование широко",
+      "category_id": 41,
+      "classifier_id": null,
+      "supply_kworks_count": 38124,
+      "demand_wants_count": null,
+      "demand_status": "skipped",
+      "demand_per_1000_kworks": null,
+      "opportunity_score": null,
+      "sample_cards": 10,
+      "sample_unique_sellers": 9,
+      "seller_concentration": 0.2,
+      "sample_price_min": 1000,
+      "sample_price_max": 50000,
+      "sample_price_avg": 7800.0,
+      "price_rule_min": null,
+      "price_rule_max": null,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": null,
+      "demand_sample_low_offer_count": 0,
+      "demand_sample_budget_avg": null,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 0,
+      "top_sellers": [
+        [
+          "ameganix",
+          2
+        ],
+        [
+          "like-clik",
+          1
+        ],
+        [
+          "Egor_procod",
+          1
+        ],
+        [
+          "degen_digital",
+          1
+        ],
+        [
+          "teleprog",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "skipped",
+        "supply_level": "competitive",
+        "low_offer_demand": false,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": false
+      }
+    },
+    {
+      "seed_name": "Telegram",
+      "category_id": 46,
+      "classifier_id": 281,
+      "supply_kworks_count": 8777,
+      "demand_wants_count": null,
+      "demand_status": "skipped",
+      "demand_per_1000_kworks": null,
+      "opportunity_score": null,
+      "sample_cards": 10,
+      "sample_unique_sellers": 10,
+      "seller_concentration": 0.1,
+      "sample_price_min": 500,
+      "sample_price_max": 25000,
+      "sample_price_avg": 3750.0,
+      "price_rule_min": null,
+      "price_rule_max": null,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": null,
+      "demand_sample_low_offer_count": 0,
+      "demand_sample_budget_avg": null,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 0,
+      "top_sellers": [
+        [
+          "Crazy-man",
+          1
+        ],
+        [
+          "ElenaTuz",
+          1
+        ],
+        [
+          "bioatwork",
+          1
+        ],
+        [
+          "imnotes",
+          1
+        ],
+        [
+          "Nikita__Pavlov",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "skipped",
+        "supply_level": "moderate",
+        "low_offer_demand": false,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": false
+      }
+    },
+    {
+      "seed_name": "Ссылки",
+      "category_id": 59,
+      "classifier_id": null,
+      "supply_kworks_count": 45466,
+      "demand_wants_count": null,
+      "demand_status": "skipped",
+      "demand_per_1000_kworks": null,
+      "opportunity_score": null,
+      "sample_cards": 10,
+      "sample_unique_sellers": 9,
+      "seller_concentration": 0.2,
+      "sample_price_min": 750,
+      "sample_price_max": 10000,
+      "sample_price_avg": 3650.0,
+      "price_rule_min": null,
+      "price_rule_max": null,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": null,
+      "demand_sample_low_offer_count": 0,
+      "demand_sample_budget_avg": null,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 0,
+      "top_sellers": [
+        [
+          "MDevostator",
+          2
+        ],
+        [
+          "effovenon",
+          1
+        ],
+        [
+          "SEO_KRAUD_PROF",
+          1
+        ],
+        [
+          "Alexey_Zaitsev",
+          1
+        ],
+        [
+          "alexkoles",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "skipped",
+        "supply_level": "competitive",
+        "low_offer_demand": false,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": false
+      }
+    },
+    {
+      "seed_name": "Логотипы",
+      "category_id": 25,
+      "classifier_id": 401928,
+      "supply_kworks_count": 33598,
+      "demand_wants_count": null,
+      "demand_status": "skipped",
+      "demand_per_1000_kworks": null,
+      "opportunity_score": null,
+      "sample_cards": 10,
+      "sample_unique_sellers": 8,
+      "seller_concentration": 0.2,
+      "sample_price_min": 1500,
+      "sample_price_max": 30000,
+      "sample_price_avg": 6700.0,
+      "price_rule_min": null,
+      "price_rule_max": null,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": null,
+      "demand_sample_low_offer_count": 0,
+      "demand_sample_budget_avg": null,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 0,
+      "top_sellers": [
+        [
+          "DESIGN_LOGOTYPE",
+          2
+        ],
+        [
+          "DESIGN-LOGO",
+          2
+        ],
+        [
+          "VidJet",
+          1
+        ],
+        [
+          "alevtina12",
+          1
+        ],
+        [
+          "DmitrijStankevich",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "skipped",
+        "supply_level": "competitive",
+        "low_offer_demand": false,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": false
+      }
+    }
+  ],
+  "aggregate": {
+    "seed_count": 5,
+    "cards_seen": 50,
+    "unique_sellers_seen": 45,
+    "seller_profiles_collected": 0,
+    "top_opportunities": [
+      {
+        "seed_name": "Доработка и настройка сайта",
+        "category_id": 38,
+        "classifier_id": null,
+        "supply_kworks_count": 13662,
+        "demand_wants_count": null,
+        "demand_status": "skipped",
+        "demand_per_1000_kworks": null,
+        "opportunity_score": null,
+        "sample_cards": 10,
+        "sample_unique_sellers": 9,
+        "seller_concentration": 0.2,
+        "sample_price_min": 1000,
+        "sample_price_max": 7000,
+        "sample_price_avg": 2500.0,
+        "price_rule_min": null,
+        "price_rule_max": null,
+        "price_rule_typical": null,
+        "demand_sample_offers_min": null,
+        "demand_sample_low_offer_count": 0,
+        "demand_sample_budget_avg": null,
+        "demand_sample_portfolio_required_count": 0,
+        "demand_sample_kwork_required_count": 0,
+        "demand_sample_higher_price_allowed_count": 0,
+        "top_sellers": [
+          [
+            "OlegTixomirov",
+            2
+          ],
+          [
+            "ilkarkarakurt",
+            1
+          ],
+          [
+            "molodsom",
+            1
+          ],
+          [
+            "quattrovod",
+            1
+          ],
+          [
+            "do_kova",
+            1
+          ]
+        ],
+        "signals": {
+          "demand_level": "skipped",
+          "supply_level": "competitive",
+          "low_offer_demand": false,
+          "portfolio_heavy_demand": false,
+          "higher_price_allowed": false
+        }
+      },
+      {
+        "seed_name": "Программирование широко",
+        "category_id": 41,
+        "classifier_id": null,
+        "supply_kworks_count": 38124,
+        "demand_wants_count": null,
+        "demand_status": "skipped",
+        "demand_per_1000_kworks": null,
+        "opportunity_score": null,
+        "sample_cards": 10,
+        "sample_unique_sellers": 9,
+        "seller_concentration": 0.2,
+        "sample_price_min": 1000,
+        "sample_price_max": 50000,
+        "sample_price_avg": 7800.0,
+        "price_rule_min": null,
+        "price_rule_max": null,
+        "price_rule_typical": null,
+        "demand_sample_offers_min": null,
+        "demand_sample_low_offer_count": 0,
+        "demand_sample_budget_avg": null,
+        "demand_sample_portfolio_required_count": 0,
+        "demand_sample_kwork_required_count": 0,
+        "demand_sample_higher_price_allowed_count": 0,
+        "top_sellers": [
+          [
+            "ameganix",
+            2
+          ],
+          [
+            "like-clik",
+            1
+          ],
+          [
+            "Egor_procod",
+            1
+          ],
+          [
+            "degen_digital",
+            1
+          ],
+          [
+            "teleprog",
+            1
+          ]
+        ],
+        "signals": {
+          "demand_level": "skipped",
+          "supply_level": "competitive",
+          "low_offer_demand": false,
+          "portfolio_heavy_demand": false,
+          "higher_price_allowed": false
+        }
+      },
+      {
+        "seed_name": "Telegram",
+        "category_id": 46,
+        "classifier_id": 281,
+        "supply_kworks_count": 8777,
+        "demand_wants_count": null,
+        "demand_status": "skipped",
+        "demand_per_1000_kworks": null,
+        "opportunity_score": null,
+        "sample_cards": 10,
+        "sample_unique_sellers": 10,
+        "seller_concentration": 0.1,
+        "sample_price_min": 500,
+        "sample_price_max": 25000,
+        "sample_price_avg": 3750.0,
+        "price_rule_min": null,
+        "price_rule_max": null,
+        "price_rule_typical": null,
+        "demand_sample_offers_min": null,
+        "demand_sample_low_offer_count": 0,
+        "demand_sample_budget_avg": null,
+        "demand_sample_portfolio_required_count": 0,
+        "demand_sample_kwork_required_count": 0,
+        "demand_sample_higher_price_allowed_count": 0,
+        "top_sellers": [
+          [
+            "Crazy-man",
+            1
+          ],
+          [
+            "ElenaTuz",
+            1
+          ],
+          [
+            "bioatwork",
+            1
+          ],
+          [
+            "imnotes",
+            1
+          ],
+          [
+            "Nikita__Pavlov",
+            1
+          ]
+        ],
+        "signals": {
+          "demand_level": "skipped",
+          "supply_level": "moderate",
+          "low_offer_demand": false,
+          "portfolio_heavy_demand": false,
+          "higher_price_allowed": false
+        }
+      },
+      {
+        "seed_name": "Ссылки",
+        "category_id": 59,
+        "classifier_id": null,
+        "supply_kworks_count": 45466,
+        "demand_wants_count": null,
+        "demand_status": "skipped",
+        "demand_per_1000_kworks": null,
+        "opportunity_score": null,
+        "sample_cards": 10,
+        "sample_unique_sellers": 9,
+        "seller_concentration": 0.2,
+        "sample_price_min": 750,
+        "sample_price_max": 10000,
+        "sample_price_avg": 3650.0,
+        "price_rule_min": null,
+        "price_rule_max": null,
+        "price_rule_typical": null,
+        "demand_sample_offers_min": null,
+        "demand_sample_low_offer_count": 0,
+        "demand_sample_budget_avg": null,
+        "demand_sample_portfolio_required_count": 0,
+        "demand_sample_kwork_required_count": 0,
+        "demand_sample_higher_price_allowed_count": 0,
+        "top_sellers": [
+          [
+            "MDevostator",
+            2
+          ],
+          [
+            "effovenon",
+            1
+          ],
+          [
+            "SEO_KRAUD_PROF",
+            1
+          ],
+          [
+            "Alexey_Zaitsev",
+            1
+          ],
+          [
+            "alexkoles",
+            1
+          ]
+        ],
+        "signals": {
+          "demand_level": "skipped",
+          "supply_level": "competitive",
+          "low_offer_demand": false,
+          "portfolio_heavy_demand": false,
+          "higher_price_allowed": false
+        }
+      },
+      {
+        "seed_name": "Логотипы",
+        "category_id": 25,
+        "classifier_id": 401928,
+        "supply_kworks_count": 33598,
+        "demand_wants_count": null,
+        "demand_status": "skipped",
+        "demand_per_1000_kworks": null,
+        "opportunity_score": null,
+        "sample_cards": 10,
+        "sample_unique_sellers": 8,
+        "seller_concentration": 0.2,
+        "sample_price_min": 1500,
+        "sample_price_max": 30000,
+        "sample_price_avg": 6700.0,
+        "price_rule_min": null,
+        "price_rule_max": null,
+        "price_rule_typical": null,
+        "demand_sample_offers_min": null,
+        "demand_sample_low_offer_count": 0,
+        "demand_sample_budget_avg": null,
+        "demand_sample_portfolio_required_count": 0,
+        "demand_sample_kwork_required_count": 0,
+        "demand_sample_higher_price_allowed_count": 0,
+        "top_sellers": [
+          [
+            "DESIGN_LOGOTYPE",
+            2
+          ],
+          [
+            "DESIGN-LOGO",
+            2
+          ],
+          [
+            "VidJet",
+            1
+          ],
+          [
+            "alevtina12",
+            1
+          ],
+          [
+            "DmitrijStankevich",
+            1
+          ]
+        ],
+        "signals": {
+          "demand_level": "skipped",
+          "supply_level": "competitive",
+          "low_offer_demand": false,
+          "portfolio_heavy_demand": false,
+          "higher_price_allowed": false
+        }
+      }
+    ],
+    "top_sellers": [
+      [
+        "OlegTixomirov",
+        2
+      ],
+      [
+        "ameganix",
+        2
+      ],
+      [
+        "MDevostator",
+        2
+      ],
+      [
+        "DESIGN_LOGOTYPE",
+        2
+      ],
+      [
+        "DESIGN-LOGO",
+        2
+      ],
+      [
+        "ilkarkarakurt",
+        1
+      ],
+      [
+        "molodsom",
+        1
+      ],
+      [
+        "quattrovod",
+        1
+      ],
+      [
+        "do_kova",
+        1
+      ],
+      [
+        "webbypro",
+        1
+      ],
+      [
+        "Vaskevich_Dev",
+        1
+      ],
+      [
+        "wturm",
+        1
+      ],
+      [
+        "Vyacheslav_X",
+        1
+      ],
+      [
+        "like-clik",
+        1
+      ],
+      [
+        "Egor_procod",
+        1
+      ],
+      [
+        "degen_digital",
+        1
+      ],
+      [
+        "teleprog",
+        1
+      ],
+      [
+        "PavloSG",
+        1
+      ],
+      [
+        "sh3vajkeee",
+        1
+      ],
+      [
+        "PerfectCode",
+        1
+      ]
+    ],
+    "category_counts": [
+      [
+        "38",
+        10
+      ],
+      [
+        "41",
+        10
+      ],
+      [
+        "59",
+        10
+      ],
+      [
+        "25",
+        10
+      ],
+      [
+        "113",
+        3
+      ],
+      [
+        "286",
+        3
+      ],
+      [
+        "74",
+        2
+      ],
+      [
+        "46",
+        2
+      ]
+    ]
+  },
+  "timings_ms": {
+    "total": 34363
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "generated_at": "2026-07-09T10:22:41.043888+00:00",
+  "endpoint": "https://kwork.ru/want-search/suggest",
+  "source": "projects JS custom-search suggestions-endpoint",
+  "session_hub_cookie_count": 15,
+  "cases": [
+    {
+      "label": "q",
+      "method": "GET",
+      "params": {
+        "q": "telegram"
+      },
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest?q=telegram",
+      "content_type": "text/html",
+      "text_len": 11092,
+      "looks_json": false,
+      "text_sample": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script>window.unreadNotifyCount=null;window.unreadDialogCount=null;</script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><li"
+    },
+    {
+      "label": "query",
+      "method": "GET",
+      "params": {
+        "query": "telegram"
+      },
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest?query=telegram",
+      "content_type": "text/html",
+      "text_len": 11092,
+      "looks_json": false,
+      "text_sample": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script>window.unreadNotifyCount=null;window.unreadDialogCount=null;</script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><li"
+    },
+    {
+      "label": "keyword",
+      "method": "GET",
+      "params": {
+        "keyword": "telegram"
+      },
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest?keyword=telegram",
+      "content_type": "text/html",
+      "text_len": 11092,
+      "looks_json": false,
+      "text_sample": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script>window.unreadNotifyCount=null;window.unreadDialogCount=null;</script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><li"
+    },
+    {
+      "label": "term",
+      "method": "GET",
+      "params": {
+        "term": "telegram"
+      },
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest?term=telegram",
+      "content_type": "text/html",
+      "text_len": 11092,
+      "looks_json": false,
+      "text_sample": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script>window.unreadNotifyCount=null;window.unreadDialogCount=null;</script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><li"
+    },
+    {
+      "label": "search",
+      "method": "GET",
+      "params": {
+        "search": "telegram"
+      },
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest?search=telegram",
+      "content_type": "text/html",
+      "text_len": 11092,
+      "looks_json": false,
+      "text_sample": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script>window.unreadNotifyCount=null;window.unreadDialogCount=null;</script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><li"
+    },
+    {
+      "label": "value",
+      "method": "GET",
+      "params": {
+        "value": "telegram"
+      },
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest?value=telegram",
+      "content_type": "text/html",
+      "text_len": 11092,
+      "looks_json": false,
+      "text_sample": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script>window.unreadNotifyCount=null;window.unreadDialogCount=null;</script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><li"
+    },
+    {
+      "label": "input",
+      "method": "GET",
+      "params": {
+        "input": "telegram"
+      },
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest?input=telegram",
+      "content_type": "text/html",
+      "text_len": 11092,
+      "looks_json": false,
+      "text_sample": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script>window.unreadNotifyCount=null;window.unreadDialogCount=null;</script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><li"
+    },
+    {
+      "label": "text",
+      "method": "GET",
+      "params": {
+        "text": "telegram"
+      },
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest?text=telegram",
+      "content_type": "text/html",
+      "text_len": 11092,
+      "looks_json": false,
+      "text_sample": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script>window.unreadNotifyCount=null;window.unreadDialogCount=null;</script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><li"
+    },
+    {
+      "label": "empty",
+      "method": "GET",
+      "params": {},
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "content_type": "text/html",
+      "text_len": 11092,
+      "looks_json": false,
+      "text_sample": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script>window.unreadNotifyCount=null;window.unreadDialogCount=null;</script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/favicon-32x32.png\"><li"
+    },
+    {
+      "label": "post_keyword",
+      "method": "POST",
+      "params": {
+        "keyword": "telegram"
+      },
+      "status_code": 200,
+      "final_url": "https://kwork.ru/want-search/suggest",
+      "content_type": "application/json",
+      "text_len": 296,
+      "json_type": "dict",
+      "json_keys": [
+        "data",
+        "success"
+      ],
+      "sample": null
+    }
+  ]
+}

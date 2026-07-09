@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-07-08T15:23:39Z",
+  "probes": [
+    {
+      "endpoint": "exchangeInfo",
+      "params": {},
+      "ok": false,
+      "error_type": "KworkHTTPException",
+      "error": "HTTP 403 for POST /signIn: {\"ipAdress\":\"<redacted_ip>\"}"
+    },
+    {
+      "endpoint": "getCurrentVersions",
+      "params": {},
+      "ok": false,
+      "error_type": "KworkHTTPException",
+      "error": "HTTP 403 for POST /getCurrentVersions: {\"ipAdress\":\"<redacted_ip>\"}"
+    },
+    {
+      "endpoint": "getCaptchaStatus",
+      "params": {},
+      "ok": false,
+      "error_type": "KworkHTTPException",
+      "error": "HTTP 403 for POST /signIn: {\"ipAdress\":\"<redacted_ip>\"}"
+    },
+    {
+      "endpoint": "getBadgesInfo",
+      "params": {},
+      "ok": false,
+      "error_type": "KworkHTTPException",
+      "error": "HTTP 403 for POST /signIn: {\"ipAdress\":\"<redacted_ip>\"}"
+    },
+    {
+      "endpoint": "kworksStatusList",
+      "params": {},
+      "ok": false,
+      "error_type": "KworkException",
+      "error": "Некорректные значения параметров"
+    },
+    {
+      "endpoint": "getUserInfo",
+      "params": {
+        "id": 3280
+      },
+      "ok": false,
+      "error_type": "KworkException",
+      "error": "Unknown API error"
+    },
+    {
+      "endpoint": "ordersBetween",
+      "params": {
+        "user_id": 3280
+      },
+      "ok": false,
+      "error_type": "KworkException",
+      "error": "Некорректные значения параметров"
+    }
+  ]
+}

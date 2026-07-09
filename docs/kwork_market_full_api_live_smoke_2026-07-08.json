@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "supply_cards": 10,
+  "first_card_detail_status": "ok",
+  "first_card_has_extra": true,
+  "demand_status": "ok",
+  "demand_wants_count": 46,
+  "demand_sample_count": 12,
+  "first_sample_has_want_detail": true,
+  "price_rules_status": "ok",
+  "seller_profiles_collected": 2,
+  "seller_statuses": [
+    "ok",
+    "ok"
+  ],
+  "seller_has_portfolio": [
+    true,
+    true
+  ],
+  "seller_has_reviews": [
+    true,
+    true
+  ],
+  "account_status": "ok",
+  "account_has_username": true,
+  "ranking": {
+    "seed_name": "Programming broad",
+    "category_id": 41,
+    "classifier_id": null,
+    "supply_kworks_count": 38187,
+    "demand_wants_count": 46,
+    "demand_status": "ok",
+    "demand_per_1000_kworks": 1.205,
+    "opportunity_score": 333.34,
+    "sample_cards": 10,
+    "sample_unique_sellers": 9,
+    "seller_concentration": 0.2,
+    "sample_price_min": 500,
+    "sample_price_max": 50000,
+    "sample_price_avg": 7650.0,
+    "price_rule_min": 500,
+    "price_rule_max": 71183,
+    "price_rule_typical": null,
+    "demand_sample_offers_min": 3,
+    "demand_sample_low_offer_count": 0,
+    "demand_sample_budget_avg": 3700.0,
+    "demand_sample_portfolio_required_count": 0,
+    "demand_sample_kwork_required_count": 0,
+    "demand_sample_higher_price_allowed_count": 5,
+    "top_sellers": [
+      [
+        "ameganix",
+        2
+      ],
+      [
+        "PavloSG",
+        1
+      ],
+      [
+        "PerfectCode",
+        1
+      ],
+      [
+        "blackdev",
+        1
+      ],
+      [
+        "like-clik",
+        1
+      ]
+    ],
+    "signals": {
+      "demand_level": "medium",
+      "supply_level": "competitive",
+      "low_offer_demand": false,
+      "portfolio_heavy_demand": false,
+      "higher_price_allowed": true
+    }
+  }
+}

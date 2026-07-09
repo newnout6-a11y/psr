@@ -129,7 +129,6 @@ async def test_build_cover_prompt_uses_competitor_images_and_recent_history(monk
     monkeypatch.setattr(service, "analyze_competitor_covers", fake_analyze)
     monkeypatch.setattr("src.brain.llm_router.get_llm_router", lambda: FakeRouter())
 
-    request = {"cover_text": "РЎРѕР·РґР°Рј С„РѕСЂСѓРј", "market_context": {"competitors": []}}
     prompt, source = await service.build_cover_prompt(
         {"title": "Forum setup", "description": "Forum service"},
         {"cover_text": "Создам форум", "market_context": {"competitors": []}},

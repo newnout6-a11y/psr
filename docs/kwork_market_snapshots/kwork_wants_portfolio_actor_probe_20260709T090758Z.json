@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-07-09T09:07:58.566828+00:00",
+  "account": {
+    "status": "ok",
+    "username": "Vladimir1474661",
+    "worker_id": 20354236,
+    "level": null,
+    "rating": "0.0",
+    "reviews_count": null,
+    "active_kworks_count": 0,
+    "statuses": {
+      "Активные": 1,
+      "На модерации": 0,
+      "Требуют исправления": 0,
+      "Остановленные": 0,
+      "На паузе": 0,
+      "Скрытые": 0,
+      "Черновики": 0,
+      "Все": 1
+    },
+    "offers_count": 0,
+    "connects": {
+      "all_connects": 30,
+      "active_connects": 30,
+      "update_time": 1786222800
+    },
+    "raw_sections": [
+      "actor",
+      "getActorInfo",
+      "kworksStatusList",
+      "offers"
+    ]
+  },
+  "endpoint": "POST https://kwork.ru/wants/portfolio",
+  "results": [
+    {
+      "name": "no_user_category_46",
+      "request_json": {
+        "category": 46,
+        "page": 1,
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "success": true,
+      "data_keys": [
+        "allPortfolioIds",
+        "curCount",
+        "haveNext",
+        "offset",
+        "portfolioJson",
+        "totalCount"
+      ],
+      "totalCount": 0,
+      "curCount": 0,
+      "haveNext": 0,
+      "portfolio_count": 0,
+      "ids_count": 0,
+      "body_prefix": "{\"success\":true,\"data\":{\"totalCount\":0,\"offset\":0,\"curCount\":0,\"haveNext\":0,\"portfolioJson\":[],\"allPortfolioIds\":[]}}"
+    }
+  ],
+  "assessment": {
+    "primary_buyer_discovery": false,
+    "read_like": true,
+    "note": "returns current/specified user portfolio items for offer form by category; empty on this account/categories"
+  }
+}

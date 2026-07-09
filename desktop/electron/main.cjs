@@ -5,6 +5,12 @@ const http = require('http')
 const fs = require('fs')
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
+const BACKEND_HOST = '127.0.0.1'
+const BACKEND_PORT = 7788
+const REQUIRED_BACKEND_ROUTES = [
+  '/api/kwork/market/categories',
+  '/api/kwork/market/intelligence-snapshot',
+]
 
 function hasBackendRoot(root) {
   if (!root) return false
@@ -45,7 +51,7 @@ function isSessionHubRunning() {
     http.get(`http://127.0.0.1:${SESSION_HUB_PORT}/cookies?domain=kwork.ru`, (res) => {
       resolve(res.statusCode === 200)
     }).on('error', () => resolve(false))
-      .setTimeout(1500, function() { this.destroy(); resolve(false) })
+      .setTimeout(1500, function () { this.destroy(); resolve(false) })
   })
 }
 
@@ -71,7 +77,7 @@ function launchSessionHubAsAdmin(exePath) {
 function findPython() {
   const candidates = [
     process.env.PSR_PYTHON,
-    'C:\\Users\\Redmi\\AppData\\Local\\Programs\\Python\\Python312\\python.exe',
+    'C:\\Users\\Redmi\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe',
     'python3',
     'python',
   ]
@@ -80,7 +86,7 @@ function findPython() {
     try {
       execSync(`"${p}" --version`, { timeout: 3000, stdio: 'ignore' })
       return p
-    } catch (_) {}
+    } catch (_) { }
   }
   return 'python'
 }
@@ -118,6 +124,95 @@ function getJson(url, timeoutMs = 3500) {
       req.destroy(new Error('timeout'))
     })
   })
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function backendUrl(pathname) {
+  return `http://${BACKEND_HOST}:${BACKEND_PORT}${pathname}`
+}
+
+async function hasRequiredBackendRoutes() {
+  const openapi = await getJson(backendUrl('/openapi.json'), 2500)
+  const paths = openapi && typeof openapi === 'object' ? openapi.paths || {} : {}
+  return REQUIRED_BACKEND_ROUTES.every((route) => !!paths[route])
+}
+
+function backendPidsOnPort() {
+  if (process.platform !== 'win32') return []
+  try {
+    const output = execSync(`netstat -ano -p tcp`, { encoding: 'utf8', timeout: 3000 })
+    const pids = new Set()
+    for (const line of output.split(/\r?\n/)) {
+      const normalized = line.trim().replace(/\s+/g, ' ')
+      if (!normalized.includes(`:${BACKEND_PORT} `) || !/\bLISTENING\b/i.test(normalized)) continue
+      const parts = normalized.split(' ')
+      const pid = Number(parts[parts.length - 1])
+      if (Number.isInteger(pid) && pid > 0) pids.add(pid)
+    }
+    return [...pids]
+  } catch (error) {
+    console.warn('[Electron] Failed to inspect backend port:', error.message)
+    return []
+  }
+}
+
+function processCommandLine(pid) {
+  if (process.platform !== 'win32') return ''
+  try {
+    const ps = `$p=Get-CimInstance Win32_Process -Filter "ProcessId=${pid}"; if ($p) { $p.CommandLine }`
+    return execSync(`powershell.exe -NoProfile -Command "${ps}"`, {
+      encoding: 'utf8',
+      timeout: 3000,
+      windowsHide: true,
+    }).trim()
+  } catch (_) {
+    return ''
+  }
+}
+
+function isPsrBackendProcess(pid) {
+  const cmd = processCommandLine(pid).toLowerCase()
+  return cmd.includes('uvicorn') && cmd.includes('src.api.server:app')
+}
+
+function killBackendProcess(pid, reason) {
+  if (process.platform !== 'win32') return false
+  if (!isPsrBackendProcess(pid)) {
+    console.warn(`[Electron] Backend port ${BACKEND_PORT} is held by non-PSR process ${pid}; leaving it alone`)
+    return false
+  }
+  try {
+    console.warn(`[Electron] Killing stale PSR backend pid=${pid}: ${reason}`)
+    execSync(`taskkill /pid ${pid} /f /t`, { stdio: 'ignore', timeout: 5000, windowsHide: true })
+    return true
+  } catch (error) {
+    console.warn(`[Electron] Failed to kill stale backend pid=${pid}:`, error.message)
+    return false
+  }
+}
+
+async function ensureBackendPortFresh() {
+  let hasRoutes = false
+  try {
+    hasRoutes = await hasRequiredBackendRoutes()
+  } catch (_) {
+    return
+  }
+  if (hasRoutes) {
+    console.log('[Electron] Existing backend has required routes')
+    return
+  }
+
+  const pids = backendPidsOnPort()
+  if (!pids.length) return
+  let killed = false
+  for (const pid of pids) {
+    killed = killBackendProcess(pid, `missing routes: ${REQUIRED_BACKEND_ROUTES.join(', ')}`) || killed
+  }
+  if (killed) await sleep(1200)
 }
 
 function normalizeKworkUrl(rawUrl) {
@@ -219,7 +314,7 @@ async function openKworkVerificationWindow(targetUrl = 'https://kwork.ru/') {
   })
   kworkVerifyWindow.setMenuBarVisibility(false)
   kworkVerifySaveTimer = setInterval(() => {
-    saveKworkVerificationCookies(verifySession).catch(() => {})
+    saveKworkVerificationCookies(verifySession).catch(() => { })
   }, 5000)
   kworkVerifyWindow.on('closed', async () => {
     if (kworkVerifySaveTimer) {
@@ -323,6 +418,26 @@ function waitForBackend(url, retries, interval, callback) {
   }
 }
 
+function waitForBackendRoutes(retries, interval, callback) {
+  hasRequiredBackendRoutes()
+    .then((ready) => {
+      if (ready) {
+        callback(null)
+      } else {
+        retry()
+      }
+    })
+    .catch(() => retry())
+
+  function retry() {
+    if (retries <= 0) {
+      callback(new Error('Backend did not expose required routes in time'))
+    } else {
+      setTimeout(() => waitForBackendRoutes(retries - 1, interval, callback), interval)
+    }
+  }
+}
+
 function createWindow() {
   const windowIcon = isDev
     ? path.join(__dirname, '..', 'public', 'icon.png')
@@ -404,6 +519,7 @@ app.whenReady().then(async () => {
     }
   }
 
+  await ensureBackendPortFresh()
   startPythonServer()
 
   const healthUrl = 'http://127.0.0.1:7788/api/health'
@@ -412,10 +528,17 @@ app.whenReady().then(async () => {
   waitForBackend(healthUrl, maxWait * 2, 500, (err) => {
     if (err) {
       console.error('[Electron] Warning: backend may not be ready:', err.message)
-    } else {
-      console.log('[Electron] Backend is ready')
+      createWindow()
+      return
     }
-    createWindow()
+    waitForBackendRoutes(maxWait * 2, 500, (routeErr) => {
+      if (routeErr) {
+        console.error('[Electron] Warning: backend routes may be stale:', routeErr.message)
+      } else {
+        console.log('[Electron] Backend is ready')
+      }
+      createWindow()
+    })
   })
 })
 
@@ -432,7 +555,7 @@ app.on('before-quit', () => {
       process.platform === 'win32'
         ? spawn('taskkill', ['/pid', pythonProcess.pid.toString(), '/f', '/t'])
         : pythonProcess.kill('SIGTERM')
-    } catch (_) {}
+    } catch (_) { }
   }
 })
 

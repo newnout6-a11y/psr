@@ -1,0 +1,93 @@
+{
+  "status": "ok",
+  "token_api_available": true,
+  "token_auth_mode": "email+password",
+  "wants_count_direct": 46,
+  "projects_count_direct": 12,
+  "projects_meta_keys": [
+    "connects",
+    "paging"
+  ],
+  "first_project_summary": {
+    "id": 3213504,
+    "title": "Разработка скрипта эксель",
+    "category_id": 41,
+    "parent_category_id": 11,
+    "price": 1000,
+    "possible_price_limit": 3000,
+    "offers": 33,
+    "time_left": 77052,
+    "max_days": 0,
+    "views": null,
+    "orders": null,
+    "date_create": null,
+    "date_expire": null,
+    "user_hired_percent": 0,
+    "user_need_kwork": false,
+    "user_need_portfolio": false,
+    "allow_higher_price": true,
+    "is_higher_price": false,
+    "user": {}
+  },
+  "direct_want_detail_status": "ok",
+  "direct_want_detail_views": 417,
+  "snapshot_demand_status": "ok",
+  "snapshot_demand_wants_count": 46,
+  "snapshot_demand_sample_count": 12,
+  "snapshot_first_sample_has_want_detail": true,
+  "price_rules_status": "ok",
+  "ranking": {
+    "seed_name": "Programming broad",
+    "category_id": 41,
+    "classifier_id": null,
+    "supply_kworks_count": 38190,
+    "demand_wants_count": 46,
+    "demand_status": "ok",
+    "demand_per_1000_kworks": 1.205,
+    "opportunity_score": 333.34,
+    "sample_cards": 10,
+    "sample_unique_sellers": 9,
+    "seller_concentration": 0.2,
+    "sample_price_min": 500,
+    "sample_price_max": 50000,
+    "sample_price_avg": 7650.0,
+    "price_rule_min": 500,
+    "price_rule_max": 71183,
+    "price_rule_typical": null,
+    "demand_sample_offers_min": 3,
+    "demand_sample_low_offer_count": 0,
+    "demand_sample_budget_avg": 3700.0,
+    "demand_sample_portfolio_required_count": 0,
+    "demand_sample_kwork_required_count": 0,
+    "demand_sample_higher_price_allowed_count": 5,
+    "top_sellers": [
+      [
+        "ameganix",
+        2
+      ],
+      [
+        "asyncioso",
+        1
+      ],
+      [
+        "PerfectCode",
+        1
+      ],
+      [
+        "degen_digital",
+        1
+      ],
+      [
+        "blackdev",
+        1
+      ]
+    ],
+    "signals": {
+      "demand_level": "medium",
+      "supply_level": "competitive",
+      "low_offer_demand": false,
+      "portfolio_heavy_demand": false,
+      "higher_price_allowed": true
+    }
+  }
+}

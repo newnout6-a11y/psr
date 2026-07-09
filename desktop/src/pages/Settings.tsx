@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Save, RefreshCw, Eye, EyeOff, Plus, Trash2, Send, Search, ExternalLink } from 'lucide-react'
+import { Save, RefreshCw, Eye, EyeOff, Plus, Trash2, Send, Search, ExternalLink, Power, RotateCcw, ShieldCheck, Wifi } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
-import { api, FiltersData, KworkInspectProject } from '../lib/api'
+import { api, FiltersData, KworkInspectProject, NetworkStatus } from '../lib/api'
 import { cn } from '../lib/utils'
 
-type Tab = 'general' | 'platforms' | 'execution' | 'filters' | 'telegram' | 'kwork' | 'osint_keys'
+type Tab = 'general' | 'platforms' | 'execution' | 'network' | 'filters' | 'telegram' | 'kwork' | 'osint_keys'
 
 const BOOL_KEYS = new Set([
   'OSINT_ENABLED', 'BROWSER_HEADLESS', 'CONTINUOUS_MODE',
@@ -14,6 +14,8 @@ const BOOL_KEYS = new Set([
   'KWORK_AUTO_APPROVE_ORDERS', 'KWORK_FAST_INBOX_POLLING',
   'KWORK_AUTO_REVIEW', 'KWORK_AUTO_PAUSE_KWORKS',
   'KWORK_PACING', 'KWORK_TLS_IMPERSONATE',
+  'KWORK_MARKET_USE_PROXY', 'KWORK_MARKET_PROXY_STRICT',
+  'VPNTE_PROXY_ENABLED', 'VPNTE_PROXY_ROTATE_ON_NEXT', 'VPNTE_PROXY_STRICT',
 ])
 
 const PROVIDER_OPTIONS = ['auto', 'deepseek', 'openai', 'groq']
@@ -64,7 +66,7 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
            'PROPOSAL_IMAGE_MIN_AI_SCORE', 'PROPOSAL_IMAGE_MIN_VET_SCORE', 'KWORK_IMAGE_ATTACH_CONFIRMED',
            'QUERY_COUNT', 'PAGES_TO_PARSE', 'MAX_PAGES_PER_QUERY',
            'MAX_PROJECTS_PER_CYCLE', 'MAX_PARSE_SECONDS', 'TOP_PROJECTS',
-           'PROXY_URL', 'BROWSER_HEADLESS', 'TIMEZONE_REGION'],
+           'BROWSER_HEADLESS', 'TIMEZONE_REGION'],
   },
   platforms: {
     label: 'Платформы / auth',
@@ -82,6 +84,20 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
            'AUTO_SEND_SCORE_MIN', 'AUTO_SEND_VET_MIN',
            'AUTO_SEND_MAX_OFFERS', 'AUTO_SEND_MAX_BUDGET',
            'SESSION_HUB_URL', 'SESSION_HUB_REQUIRED'],
+  },
+  network: {
+    label: 'Сеть / VPNTE',
+    keys: ['PROXY_URL',
+           'VPNTE_PROXY_ENABLED', 'VPNTE_PROXY_ROTATE_ON_NEXT', 'VPNTE_PROXY_STRICT',
+           'VPNTE_PROXY_COUNTRY', 'VPNTE_PROXY_PROFILE_ID', 'VPNTE_PROXY_PORT',
+           'VPNTE_PROXY_TIMEOUT', 'VPNTE_PROXY_CACHE_TTL',
+           'VPNTE_CONTROL_URL', 'VPNTE_CONTROL_TOKEN',
+           'SESSION_HUB_URL', 'SESSION_HUB_REQUIRED', 'KWORK_SESSION_HUB_COOKIE_TTL',
+            'KWORK_PACING', 'KWORK_PACE_MIN', 'KWORK_PACE_MAX',
+            'KWORK_BURST_LIMIT', 'KWORK_BURST_WINDOW',
+            'KWORK_MARKET_USE_PROXY', 'KWORK_MARKET_PROXY_STRICT',
+            'KWORK_MARKET_API_TIMEOUT', 'KWORK_MARKET_SEED_DISCOVERY_TIMEOUT',
+            'KWORK_PROXY_LIST'],
   },
   filters: {
     label: 'Фильтры',
@@ -102,10 +118,12 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
            'KWORK_SUCCESS_RATE_WARN', 'KWORK_SUCCESS_RATE_BLOCK',
            'KWORK_BUSY_THRESHOLD', 'KWORK_AUTO_PAUSE_KWORKS',
            'KWORK_AUTO_REVIEW', 'KWORK_AUTO_REVIEW_RATING', 'KWORK_AUTO_REVIEW_TEXT',
-           'KWORK_CONNECTS_WARN', 'KWORK_CONNECTS_BLOCK',
-           'KWORK_PACING', 'KWORK_PACE_MIN', 'KWORK_PACE_MAX',
-           'KWORK_BURST_LIMIT', 'KWORK_BURST_WINDOW',
-           'KWORK_PROXY_LIST', 'KWORK_TLS_IMPERSONATE', 'KWORK_TLS_BROWSER',
+            'KWORK_CONNECTS_WARN', 'KWORK_CONNECTS_BLOCK',
+            'KWORK_PACING', 'KWORK_PACE_MIN', 'KWORK_PACE_MAX',
+            'KWORK_BURST_LIMIT', 'KWORK_BURST_WINDOW',
+            'KWORK_MARKET_USE_PROXY', 'KWORK_MARKET_PROXY_STRICT',
+            'KWORK_MARKET_API_TIMEOUT', 'KWORK_MARKET_SEED_DISCOVERY_TIMEOUT',
+            'KWORK_PROXY_LIST', 'KWORK_TLS_IMPERSONATE', 'KWORK_TLS_BROWSER',
            'SCRAPE_COMPETITOR_PRICES'],
   },
   osint_keys: {
@@ -586,6 +604,228 @@ function TagEditor({
   )
 }
 
+function NetworkStatusCard({
+  title,
+  ok,
+  detail,
+  meta,
+}: {
+  title: string
+  ok: boolean
+  detail: string
+  meta?: string
+}) {
+  return (
+    <div className="rounded-md border border-white/10 bg-black/20 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="mono-label">{title}</div>
+        <span className={cn(
+          'rounded-md border px-2 py-0.5 text-xs',
+          ok ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300' : 'border-red-500/30 bg-red-500/15 text-red-300'
+        )}>
+          {ok ? 'ok' : 'error'}
+        </span>
+      </div>
+      <div className="mt-2 break-all text-sm text-stone-200">{detail || '—'}</div>
+      {meta && <div className="mt-1 break-all text-xs text-zinc-500">{meta}</div>}
+    </div>
+  )
+}
+
+function NetworkTab({
+  values,
+  secretKeys,
+  onChange,
+  onReveal,
+  onSave,
+  saving,
+  dirty,
+}: {
+  values: Record<string, string>
+  secretKeys: Set<string>
+  onChange: (key: string, val: string) => void
+  onReveal: (key: string) => Promise<void>
+  onSave: () => Promise<void>
+  saving: boolean
+  dirty: boolean
+}) {
+  const [status, setStatus] = useState<NetworkStatus | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [action, setAction] = useState('')
+  const [msg, setMsg] = useState('')
+
+  async function refreshStatus(probe = true) {
+    setLoading(true)
+    try {
+      setStatus(await api.getNetworkStatus(probe))
+      setMsg('')
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : 'Network status error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    refreshStatus(true)
+  }, [])
+
+  function applyKworkSafeMode() {
+    const updates: Record<string, string> = {
+      VPNTE_PROXY_ENABLED: 'true',
+      VPNTE_PROXY_ROTATE_ON_NEXT: 'true',
+      VPNTE_PROXY_STRICT: 'true',
+      VPNTE_PROXY_PORT: values.VPNTE_PROXY_PORT || '17990',
+      VPNTE_PROXY_CACHE_TTL: values.VPNTE_PROXY_CACHE_TTL || '60',
+      VPNTE_PROXY_TIMEOUT: values.VPNTE_PROXY_TIMEOUT || '10',
+      KWORK_PACING: 'true',
+      KWORK_PACE_MIN: '4',
+      KWORK_PACE_MAX: '9',
+      KWORK_BURST_LIMIT: '4',
+      KWORK_BURST_WINDOW: '90',
+      KWORK_SESSION_HUB_COOKIE_TTL: '180',
+    }
+    Object.entries(updates).forEach(([key, value]) => onChange(key, value))
+    setMsg('Щадящий режим подготовлен. Сохрани настройки или нажми старт/ротацию.')
+  }
+
+  function actionPayload() {
+    const rawPort = Number(values.VPNTE_PROXY_PORT || 0)
+    return {
+      country: values.VPNTE_PROXY_COUNTRY || undefined,
+      profile_id: values.VPNTE_PROXY_PROFILE_ID || undefined,
+      port: rawPort > 0 ? rawPort : undefined,
+    }
+  }
+
+  async function runVpnteAction(kind: 'start' | 'rotate') {
+    setAction(kind)
+    try {
+      if (dirty) {
+        await onSave()
+      }
+      const result = kind === 'start'
+        ? await api.startVpnteProxy(actionPayload())
+        : await api.rotateVpnteProxy(actionPayload())
+      setStatus(result.network)
+      setMsg(result.ok ? (kind === 'start' ? 'VPNTE запущен' : 'VPNTE профиль обновлён') : result.detail || 'VPNTE action failed')
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : 'VPNTE action error')
+    } finally {
+      setAction('')
+    }
+  }
+
+  const vpnte = status?.vpnte
+  const hub = status?.session_hub
+  const currentProxy = vpnte?.proxy_url || vpnte?.cached_proxy || vpnte?.fallback_proxy || ''
+
+  const networkKeys = [
+    'VPNTE_PROXY_ENABLED', 'VPNTE_PROXY_ROTATE_ON_NEXT', 'VPNTE_PROXY_STRICT',
+    'VPNTE_PROXY_COUNTRY', 'VPNTE_PROXY_PROFILE_ID', 'VPNTE_PROXY_PORT',
+    'VPNTE_PROXY_TIMEOUT', 'VPNTE_PROXY_CACHE_TTL',
+    'VPNTE_CONTROL_URL', 'VPNTE_CONTROL_TOKEN', 'PROXY_URL',
+  ]
+  const sessionKeys = ['SESSION_HUB_URL', 'SESSION_HUB_REQUIRED', 'KWORK_SESSION_HUB_COOKIE_TTL']
+  const pacingKeys = ['KWORK_PACING', 'KWORK_PACE_MIN', 'KWORK_PACE_MAX', 'KWORK_BURST_LIMIT', 'KWORK_BURST_WINDOW', 'KWORK_PROXY_LIST']
+  const marketKeys = ['KWORK_MARKET_USE_PROXY', 'KWORK_MARKET_PROXY_STRICT', 'KWORK_MARKET_API_TIMEOUT', 'KWORK_MARKET_SEED_DISCOVERY_TIMEOUT']
+
+  const renderEnv = (key: string) => BOOL_KEYS.has(key) ? (
+    <BoolField key={key} envKey={key} value={values[key] ?? 'false'} onChange={onChange} />
+  ) : (
+    <EnvField
+      key={key}
+      envKey={key}
+      value={values[key] ?? ''}
+      isSecret={secretKeys.has(key)}
+      onChange={onChange}
+      onReveal={onReveal}
+    />
+  )
+
+  return (
+    <div className="space-y-5">
+      <section className="factory-panel p-4">
+        <div className="mb-4 flex items-start justify-between gap-3 max-lg:flex-col">
+          <div>
+            <div className="page-kicker">network control</div>
+            <h3 className="text-sm font-semibold text-white">Сеть, VPNTE и Session Hub</h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => refreshStatus(true)} disabled={loading} className="btn btn-ghost">
+              <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+              Обновить
+            </button>
+            <button onClick={onSave} disabled={saving || !dirty} className="btn btn-primary">
+              {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Сохранить
+            </button>
+            <button onClick={() => runVpnteAction('start')} disabled={!!action} className="btn btn-ghost">
+              {action === 'start' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
+              Старт
+            </button>
+            <button onClick={() => runVpnteAction('rotate')} disabled={!!action} className="btn btn-ghost">
+              {action === 'rotate' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+              Ротация
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 text-sm max-xl:grid-cols-1">
+          <NetworkStatusCard
+            title="VPNTE"
+            ok={!vpnte?.enabled || Boolean(vpnte?.ok && vpnte.running)}
+            detail={vpnte?.enabled ? (vpnte.running ? 'работает' : 'включён, но не запущен') : 'выключен'}
+            meta={currentProxy || vpnte?.detail || vpnte?.control_url}
+          />
+          <NetworkStatusCard
+            title="Session Hub"
+            ok={Boolean(hub?.ok)}
+            detail={hub?.ok ? 'локальный источник кук доступен' : hub?.detail || 'нет ответа'}
+            meta={hub ? `${hub.health_url} · proxy isolated: ${hub.proxy_isolated ? 'yes' : 'no'}` : ''}
+          />
+          <NetworkStatusCard
+            title="Kwork traffic"
+            ok={Boolean(values.KWORK_PACING === 'true' || values.KWORK_PACING === '1')}
+            detail={values.VPNTE_PROXY_ENABLED === 'true' || values.VPNTE_PROXY_ENABLED === '1' ? 'через VPNTE proxy' : 'без VPNTE'}
+            meta={`pace ${values.KWORK_PACE_MIN || '—'}-${values.KWORK_PACE_MAX || '—'}s · burst ${values.KWORK_BURST_LIMIT || '—'}/${values.KWORK_BURST_WINDOW || '—'}s`}
+          />
+        </div>
+
+        {msg && <div className="mt-3 text-sm text-zinc-300">{msg}</div>}
+
+        <button onClick={applyKworkSafeMode} className="btn btn-ghost mt-4">
+          <ShieldCheck className="h-4 w-4" />
+          Щадящий Kwork
+        </button>
+      </section>
+
+      <section className="factory-panel p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <Wifi className="h-4 w-4 text-brand-300" />
+          <h3 className="text-sm font-semibold text-white">VPNTE proxy</h3>
+        </div>
+        <div className="space-y-3">{networkKeys.map(renderEnv)}</div>
+      </section>
+
+      <section className="factory-panel p-4">
+        <h3 className="mb-3 text-sm font-semibold text-white">Session Hub</h3>
+        <div className="space-y-3">{sessionKeys.map(renderEnv)}</div>
+      </section>
+
+      <section className="factory-panel p-4">
+        <h3 className="mb-3 text-sm font-semibold text-white">Kwork pacing</h3>
+        <div className="space-y-3">{pacingKeys.map(renderEnv)}</div>
+      </section>
+
+      <section className="factory-panel p-4">
+        <h3 className="mb-3 text-sm font-semibold text-white">Kwork Market</h3>
+        <div className="space-y-3">{marketKeys.map(renderEnv)}</div>
+      </section>
+    </div>
+  )
+}
+
 function KworkTab() {
   const [projectId, setProjectId] = useState('')
   const [status, setStatus] = useState<{
@@ -811,6 +1051,16 @@ export default function Settings() {
         <div className="max-w-2xl space-y-4">
           {activeTab === 'kwork' ? (
             <KworkTab />
+          ) : activeTab === 'network' ? (
+            <NetworkTab
+              values={envValues}
+              secretKeys={secretKeys}
+              onChange={(k, v) => setEnvDraft((prev) => ({ ...prev, [k]: v }))}
+              onReveal={revealSecret}
+              onSave={handleSaveEnv}
+              saving={saving}
+              dirty={Object.keys(envDraft).length > 0}
+            />
           ) : activeTab === 'filters' ? (
             filtersData?.data ? (
               <FiltersTab data={filtersData.data} onSave={handleSaveFilters} />

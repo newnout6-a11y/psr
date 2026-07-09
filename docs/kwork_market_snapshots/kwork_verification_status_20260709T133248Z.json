@@ -1,0 +1,107 @@
+{
+  "generated_at": "2026-07-09T13:32:48Z",
+  "source": "psr.kwork_verification_status",
+  "status": "ok",
+  "detail": "Kwork web session opens normally; no manual captcha challenge was detected on checked pages. SmartCaptcha scripts are present globally, which is not itself a captcha challenge. getCaptchaStatus was not usable: KworkException: Некорректные значения параметров",
+  "captcha_required": false,
+  "manual_verification_required": false,
+  "web_session_ok": true,
+  "smartcaptcha_scripts_seen": true,
+  "cookie_count": 15,
+  "captcha_status": {
+    "ok": false,
+    "required": false,
+    "source": "getCaptchaStatus",
+    "error": "KworkException: Некорректные значения параметров"
+  },
+  "pages": [
+    {
+      "path": "/",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/",
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [
+          "SmartCaptcha",
+          "smart-token",
+          "smartcaptcha"
+        ],
+        "weak_matches": [],
+        "challenge_url": false,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "timings_ms": {
+        "total": 570
+      }
+    },
+    {
+      "path": "/new",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/new",
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [
+          "SmartCaptcha",
+          "smart-token",
+          "smartcaptcha"
+        ],
+        "weak_matches": [],
+        "challenge_url": false,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "timings_ms": {
+        "total": 462
+      }
+    },
+    {
+      "path": "/manage_kworks",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/manage_kworks",
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [
+          "SmartCaptcha",
+          "smart-token",
+          "smartcaptcha"
+        ],
+        "weak_matches": [],
+        "challenge_url": false,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "timings_ms": {
+        "total": 313
+      }
+    },
+    {
+      "path": "/projects",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/projects",
+      "evidence": {
+        "manual_required": false,
+        "strong_matches": [],
+        "script_matches": [
+          "SmartCaptcha",
+          "smart-token",
+          "smartcaptcha"
+        ],
+        "weak_matches": [],
+        "challenge_url": false,
+        "challenge_status": false,
+        "has_new_form": true
+      },
+      "timings_ms": {
+        "total": 455
+      }
+    }
+  ],
+  "errors": [],
+  "timings_ms": {
+    "total": 7659
+  }
+}

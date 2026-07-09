@@ -1,0 +1,1321 @@
+{
+  "generated_at": "2026-07-09T07:39:17.343818+00:00",
+  "source": "psr.backend_only_market_analysis_live_run",
+  "inputs": {
+    "seeds": [
+      {
+        "name": "Telegram classifier",
+        "category_id": 46,
+        "classifier_id": 281
+      },
+      {
+        "name": "Programming broad",
+        "category_id": 41
+      },
+      {
+        "name": "Site support",
+        "category_id": 41,
+        "classifier_id": 3587
+      },
+      {
+        "name": "Ready databases",
+        "category_id": 113,
+        "classifier_id": 1117
+      },
+      {
+        "name": "Marketplaces",
+        "category_id": 112,
+        "classifier_id": 1357
+      }
+    ],
+    "queries": [
+      "telegram",
+      "???????? ???",
+      "python ???",
+      "???",
+      "automation",
+      "????????? ?????",
+      "wordpress",
+      "bitrix"
+    ]
+  },
+  "files": {
+    "buyer_scout": "C:\\psr\\docs\\kwork_market_snapshots\\kwork_buyer_scout_20260709T073853Z.json",
+    "market_snapshot": "C:\\psr\\docs\\kwork_market_snapshots\\kwork_market_intelligence_20260709T073917Z.json"
+  },
+  "buyer_aggregate": {
+    "probe_count": 9,
+    "unique_projects": 46,
+    "zero_offer_count": 7,
+    "low_offer_count": 36,
+    "top_score": 88.0
+  },
+  "buyer_status": "ok",
+  "buyer_endpoint_errors": [],
+  "budget_top_max": 200000,
+  "budget_top_median": 25500,
+  "best_buyer_lots": [
+    {
+      "id": 3202311,
+      "title": "Нужно создать 5–6 Telegram Stories с упоминанием",
+      "offers": 0,
+      "price": 30000,
+      "possible_price_limit": 90000,
+      "score": 88.0,
+      "score_reasons": [
+        "0 offers",
+        "high budget",
+        "higher price allowed",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "telegram_bot_low_offer",
+      "username": "Salvador1w1332",
+      "user_id": 13492958,
+      "user_projects_count": 139,
+      "user_active_projects_count": 4,
+      "user_hired_percent": 37,
+      "buyer_projects_url": "https://kwork.ru/projects/list/Salvador1w1332"
+    },
+    {
+      "id": 3211575,
+      "title": "Поиск клиентов постоянно",
+      "offers": 0,
+      "price": 40000,
+      "possible_price_limit": 120000,
+      "score": 88.0,
+      "score_reasons": [
+        "0 offers",
+        "high budget",
+        "higher price allowed",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "telegram_bot_low_offer",
+      "username": "romaignatenko",
+      "user_id": 14944674,
+      "user_projects_count": 24,
+      "user_active_projects_count": 1,
+      "user_hired_percent": 44,
+      "buyer_projects_url": "https://kwork.ru/projects/list/romaignatenko"
+    },
+    {
+      "id": 3192226,
+      "title": "Поиск заказов",
+      "offers": 0,
+      "price": 30000,
+      "possible_price_limit": 90000,
+      "score": 88.0,
+      "score_reasons": [
+        "0 offers",
+        "high budget",
+        "higher price allowed",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "telegram_bot_low_offer",
+      "username": "Geo_Sokol",
+      "user_id": 3196254,
+      "user_projects_count": 152,
+      "user_active_projects_count": 1,
+      "user_hired_percent": 37,
+      "buyer_projects_url": "https://kwork.ru/projects/list/Geo_Sokol"
+    },
+    {
+      "id": 2966080,
+      "title": "Нужны квал лиды",
+      "offers": 0,
+      "price": 200000,
+      "possible_price_limit": 200000,
+      "score": 88.0,
+      "score_reasons": [
+        "0 offers",
+        "high budget",
+        "higher price allowed",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "site_zero_offer",
+      "username": "DXB-1",
+      "user_id": 21608644,
+      "user_projects_count": 20,
+      "user_active_projects_count": 6,
+      "user_hired_percent": 56,
+      "buyer_projects_url": "https://kwork.ru/projects/list/DXB-1"
+    },
+    {
+      "id": 3212022,
+      "title": "Массовый инвайтинг +рассылка с отчетом",
+      "offers": 1,
+      "price": 10000,
+      "possible_price_limit": 30000,
+      "score": 81.0,
+      "score_reasons": [
+        "1-2 offers",
+        "high budget",
+        "higher price allowed",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "telegram_low_offer",
+      "username": "Salvador1w1332",
+      "user_id": 13492958,
+      "user_projects_count": 139,
+      "user_active_projects_count": 4,
+      "user_hired_percent": 37,
+      "buyer_projects_url": "https://kwork.ru/projects/list/Salvador1w1332"
+    },
+    {
+      "id": 3204499,
+      "title": "10000 упоминаний в telegram",
+      "offers": 1,
+      "price": 30000,
+      "possible_price_limit": 90000,
+      "score": 81.0,
+      "score_reasons": [
+        "1-2 offers",
+        "high budget",
+        "higher price allowed",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "telegram_low_offer",
+      "username": "Salvador1w1332",
+      "user_id": 13492958,
+      "user_projects_count": 139,
+      "user_active_projects_count": 4,
+      "user_hired_percent": 37,
+      "buyer_projects_url": "https://kwork.ru/projects/list/Salvador1w1332"
+    },
+    {
+      "id": 3191485,
+      "title": "ТГ упоминания в сторис",
+      "offers": 1,
+      "price": 30000,
+      "possible_price_limit": 90000,
+      "score": 81.0,
+      "score_reasons": [
+        "1-2 offers",
+        "high budget",
+        "higher price allowed",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "telegram_budget30_low_offer",
+      "username": "Salvador1w1332",
+      "user_id": 13492958,
+      "user_projects_count": 139,
+      "user_active_projects_count": 4,
+      "user_hired_percent": 37,
+      "buyer_projects_url": "https://kwork.ru/projects/list/Salvador1w1332"
+    },
+    {
+      "id": 3203050,
+      "title": "Массовые отметки пользователей в Telegram Stories",
+      "offers": 2,
+      "price": 30000,
+      "possible_price_limit": 90000,
+      "score": 76.0,
+      "score_reasons": [
+        "1-2 offers",
+        "high budget",
+        "higher price allowed"
+      ],
+      "matched_probe": "telegram_bot_low_offer",
+      "username": "kolek0969",
+      "user_id": 22848546,
+      "user_projects_count": 16,
+      "user_active_projects_count": 4,
+      "user_hired_percent": 23,
+      "buyer_projects_url": "https://kwork.ru/projects/list/kolek0969"
+    },
+    {
+      "id": 3203045,
+      "title": "Отметки пользователей в Telegram Stories",
+      "offers": 1,
+      "price": 33000,
+      "possible_price_limit": 99000,
+      "score": 76.0,
+      "score_reasons": [
+        "1-2 offers",
+        "high budget",
+        "higher price allowed"
+      ],
+      "matched_probe": "telegram_bot_low_offer",
+      "username": "kolek0969",
+      "user_id": 22848546,
+      "user_projects_count": 16,
+      "user_active_projects_count": 4,
+      "user_hired_percent": 23,
+      "buyer_projects_url": "https://kwork.ru/projects/list/kolek0969"
+    },
+    {
+      "id": 3204600,
+      "title": "Вывести канал в ТОП поиска малоизвестной тематике",
+      "offers": 2,
+      "price": 30000,
+      "possible_price_limit": 90000,
+      "score": 76.0,
+      "score_reasons": [
+        "1-2 offers",
+        "high budget",
+        "higher price allowed"
+      ],
+      "matched_probe": "telegram_bot_low_offer",
+      "username": "kolek0969",
+      "user_id": 22848546,
+      "user_projects_count": 16,
+      "user_active_projects_count": 4,
+      "user_hired_percent": 23,
+      "buyer_projects_url": "https://kwork.ru/projects/list/kolek0969"
+    },
+    {
+      "id": 3211916,
+      "title": "Поиск заказчиков на услуги маркетинга",
+      "offers": 1,
+      "price": 25000,
+      "possible_price_limit": 75000,
+      "score": 76.0,
+      "score_reasons": [
+        "1-2 offers",
+        "high budget",
+        "higher price allowed"
+      ],
+      "matched_probe": "telegram_bot_low_offer",
+      "username": "mediahelp247",
+      "user_id": 16495022,
+      "user_projects_count": 1,
+      "user_active_projects_count": 1,
+      "user_hired_percent": null,
+      "buyer_projects_url": "https://kwork.ru/projects/list/mediahelp247"
+    },
+    {
+      "id": 3210268,
+      "title": "Необходимо найти клиентов на разработку сайтов",
+      "offers": 1,
+      "price": 30000,
+      "possible_price_limit": 90000,
+      "score": 76.0,
+      "score_reasons": [
+        "1-2 offers",
+        "high budget",
+        "higher price allowed"
+      ],
+      "matched_probe": "website_maintenance_low_offer",
+      "username": "xena_lav",
+      "user_id": 24572670,
+      "user_projects_count": 1,
+      "user_active_projects_count": 1,
+      "user_hired_percent": null,
+      "buyer_projects_url": "https://kwork.ru/projects/list/xena_lav"
+    },
+    {
+      "id": 3189457,
+      "title": "ИИ контент завод",
+      "offers": 5,
+      "price": 190000,
+      "possible_price_limit": 200000,
+      "score": 71.0,
+      "score_reasons": [
+        "<=5 offers",
+        "high budget",
+        "higher price allowed",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "programming_low_offer",
+      "username": "igores1990",
+      "user_id": 16693601,
+      "user_projects_count": 93,
+      "user_active_projects_count": 5,
+      "user_hired_percent": 57,
+      "buyer_projects_url": "https://kwork.ru/projects/list/igores1990"
+    },
+    {
+      "id": 3212981,
+      "title": "Вывод бота в топ телег",
+      "offers": 2,
+      "price": 5000,
+      "possible_price_limit": 15000,
+      "score": 66.0,
+      "score_reasons": [
+        "1-2 offers",
+        "good budget",
+        "higher price allowed"
+      ],
+      "matched_probe": "telegram_bot_low_offer",
+      "username": "aspitsin138",
+      "user_id": 554348,
+      "user_projects_count": 15,
+      "user_active_projects_count": 1,
+      "user_hired_percent": null,
+      "buyer_projects_url": "https://kwork.ru/projects/list/aspitsin138"
+    },
+    {
+      "id": 3190904,
+      "title": "Нужно создать 5-6 Telegram Stories с упоминанием",
+      "offers": 4,
+      "price": 23000,
+      "possible_price_limit": 69000,
+      "score": 66.0,
+      "score_reasons": [
+        "<=5 offers",
+        "high budget",
+        "higher price allowed"
+      ],
+      "matched_probe": "telegram_bot_low_offer",
+      "username": "kolek0969",
+      "user_id": 22848546,
+      "user_projects_count": 16,
+      "user_active_projects_count": 4,
+      "user_hired_percent": 23,
+      "buyer_projects_url": "https://kwork.ru/projects/list/kolek0969"
+    }
+  ],
+  "probe_rows": [
+    {
+      "name": "telegram_bot_low_offer",
+      "query": "телеграм бот",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 22,
+      "sample_count": 12,
+      "timings_ms": {
+        "total": 3952
+      }
+    },
+    {
+      "name": "telegram_low_offer",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 15,
+      "sample_count": 12,
+      "timings_ms": {
+        "total": 895
+      }
+    },
+    {
+      "name": "telegram_budget30_low_offer",
+      "query": "telegram",
+      "filters": {
+        "price_from": 30000,
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 10,
+      "sample_count": 10,
+      "timings_ms": {
+        "total": 831
+      }
+    },
+    {
+      "name": "automation_low_offer",
+      "query": "автоматизация",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 4,
+      "sample_count": 4,
+      "timings_ms": {
+        "total": 808
+      }
+    },
+    {
+      "name": "wordpress_low_offer",
+      "query": "wordpress",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 3,
+      "sample_count": 3,
+      "timings_ms": {
+        "total": 1196
+      }
+    },
+    {
+      "name": "programming_low_offer",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 14,
+      "sample_count": 12,
+      "timings_ms": {
+        "total": 1072
+      }
+    },
+    {
+      "name": "website_maintenance_low_offer",
+      "query": "доработка сайта",
+      "filters": {
+        "kworks_filter_to": 10
+      },
+      "status": "ok",
+      "count": 35,
+      "sample_count": 12,
+      "timings_ms": {
+        "total": 863
+      }
+    },
+    {
+      "name": "telegram_bot_zero_offer",
+      "query": "телеграм бот",
+      "filters": {
+        "kworks_filter_to": 0
+      },
+      "status": "ok",
+      "count": 3,
+      "sample_count": 3,
+      "timings_ms": {
+        "total": 1065
+      }
+    },
+    {
+      "name": "site_zero_offer",
+      "query": "сайт",
+      "filters": {
+        "kworks_filter_to": 0
+      },
+      "status": "ok",
+      "count": 5,
+      "sample_count": 5,
+      "timings_ms": {
+        "total": 1132
+      }
+    }
+  ],
+  "supply_rows": [
+    {
+      "seed": {
+        "name": "Telegram classifier",
+        "category_id": 46,
+        "classifier_id": 281
+      },
+      "kworks_count": 8772,
+      "sample_cards": 10,
+      "sample_median_price": 1500,
+      "demand_status": "ok",
+      "demand_count": 41,
+      "price_rules": {
+        "status": "ok",
+        "min_price": 500,
+        "max_price": 20616,
+        "typical_price": 0,
+        "typical_price_gradation": [
+          500,
+          1000,
+          1500,
+          2000,
+          2500,
+          3000,
+          3500,
+          4000,
+          4500,
+          5000,
+          6000,
+          7000,
+          8000,
+          9000,
+          10000,
+          11000,
+          12000,
+          13000,
+          14000,
+          15000,
+          16000,
+          17000,
+          18000,
+          19000,
+          20000
+        ],
+        "raw_keys": [
+          "prices",
+          "success"
+        ]
+      }
+    },
+    {
+      "seed": {
+        "name": "Programming broad",
+        "category_id": 41
+      },
+      "kworks_count": 38163,
+      "sample_cards": 10,
+      "sample_median_price": 1750,
+      "demand_status": "ok",
+      "demand_count": 49,
+      "price_rules": {
+        "status": "ok",
+        "min_price": 500,
+        "max_price": 71649,
+        "typical_price": 0,
+        "typical_price_gradation": [
+          500,
+          1000,
+          1500,
+          2000,
+          2500,
+          3000,
+          3500,
+          4000,
+          4500,
+          5000,
+          6000,
+          7000,
+          8000,
+          9000,
+          10000,
+          11000,
+          12000,
+          13000,
+          14000,
+          15000,
+          16000,
+          17000,
+          18000,
+          19000,
+          20000,
+          21000,
+          22000,
+          23000,
+          24000,
+          25000,
+          27000,
+          30000,
+          33000,
+          35000,
+          37000,
+          40000,
+          43000,
+          45000,
+          47000,
+          50000,
+          55000,
+          60000,
+          65000,
+          70000
+        ],
+        "raw_keys": [
+          "prices",
+          "success"
+        ]
+      }
+    },
+    {
+      "seed": {
+        "name": "Site support",
+        "category_id": 41,
+        "classifier_id": 3587
+      },
+      "kworks_count": 18261,
+      "sample_cards": 10,
+      "sample_median_price": 2250,
+      "demand_status": "ok",
+      "demand_count": 49,
+      "price_rules": {
+        "status": "ok",
+        "min_price": 500,
+        "max_price": 71649,
+        "typical_price": 0,
+        "typical_price_gradation": [
+          500,
+          1000,
+          1500,
+          2000,
+          2500,
+          3000,
+          3500,
+          4000,
+          4500,
+          5000,
+          6000,
+          7000,
+          8000,
+          9000,
+          10000,
+          11000,
+          12000,
+          13000,
+          14000,
+          15000,
+          16000,
+          17000,
+          18000,
+          19000,
+          20000,
+          21000,
+          22000,
+          23000,
+          24000,
+          25000,
+          27000,
+          30000,
+          33000,
+          35000,
+          37000,
+          40000,
+          43000,
+          45000,
+          47000,
+          50000,
+          55000,
+          60000,
+          65000,
+          70000
+        ],
+        "raw_keys": [
+          "prices",
+          "success"
+        ]
+      }
+    },
+    {
+      "seed": {
+        "name": "Ready databases",
+        "category_id": 113,
+        "classifier_id": 1117
+      },
+      "kworks_count": 34244,
+      "sample_cards": 10,
+      "sample_median_price": 2250,
+      "demand_status": "ok",
+      "demand_count": 3,
+      "price_rules": {
+        "status": "ok",
+        "min_price": 500,
+        "max_price": 19995,
+        "typical_price": 0,
+        "typical_price_gradation": [
+          500,
+          1000,
+          1500,
+          2000,
+          2500,
+          3000,
+          3500,
+          4000,
+          4500,
+          5000,
+          6000,
+          7000,
+          8000,
+          9000,
+          10000,
+          11000,
+          12000,
+          13000,
+          14000,
+          15000,
+          16000,
+          17000,
+          18000,
+          19000
+        ],
+        "raw_keys": [
+          "prices",
+          "success"
+        ]
+      }
+    },
+    {
+      "seed": {
+        "name": "Marketplaces",
+        "category_id": 112,
+        "classifier_id": 1357
+      },
+      "kworks_count": 109387,
+      "sample_cards": 10,
+      "sample_median_price": 750,
+      "demand_status": "ok",
+      "demand_count": 22,
+      "price_rules": {
+        "status": "ok",
+        "min_price": 500,
+        "max_price": 25349,
+        "typical_price": 0,
+        "typical_price_gradation": [
+          500,
+          1000,
+          1500,
+          2000,
+          2500,
+          3000,
+          3500,
+          4000,
+          4500,
+          5000,
+          6000,
+          7000,
+          8000,
+          9000,
+          10000,
+          11000,
+          12000,
+          13000,
+          14000,
+          15000,
+          16000,
+          17000,
+          18000,
+          19000,
+          20000,
+          21000,
+          22000,
+          23000,
+          24000,
+          25000
+        ],
+        "raw_keys": [
+          "prices",
+          "success"
+        ]
+      }
+    }
+  ],
+  "query_demand_rows": [
+    {
+      "query": "telegram",
+      "status": "ok",
+      "wants_count": 34,
+      "sample_count": 12,
+      "low_offer_sample": 3,
+      "zero_offer_sample": 0,
+      "top_sample": [
+        {
+          "id": 3211971,
+          "title": "Создание Телеграмм бота",
+          "offers": 141,
+          "price": 40000,
+          "possible_price_limit": 120000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "accaunt1b",
+          "user_id": 9333620,
+          "user_projects_count": 3,
+          "user_active_projects_count": 1,
+          "user_hired_percent": null,
+          "buyer_projects_url": "https://kwork.ru/projects/list/accaunt1b"
+        },
+        {
+          "id": 3203050,
+          "title": "Массовые отметки пользователей в Telegram Stories",
+          "offers": 2,
+          "price": 30000,
+          "possible_price_limit": 90000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "kolek0969",
+          "user_id": 22848546,
+          "user_projects_count": 16,
+          "user_active_projects_count": 4,
+          "user_hired_percent": 23,
+          "buyer_projects_url": "https://kwork.ru/projects/list/kolek0969"
+        },
+        {
+          "id": 3203045,
+          "title": "Отметки пользователей в Telegram Stories",
+          "offers": 1,
+          "price": 33000,
+          "possible_price_limit": 99000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "kolek0969",
+          "user_id": 22848546,
+          "user_projects_count": 16,
+          "user_active_projects_count": 4,
+          "user_hired_percent": 23,
+          "buyer_projects_url": "https://kwork.ru/projects/list/kolek0969"
+        }
+      ]
+    },
+    {
+      "query": "???????? ???",
+      "status": "empty",
+      "wants_count": 0,
+      "sample_count": 0,
+      "low_offer_sample": 0,
+      "zero_offer_sample": 0,
+      "top_sample": []
+    },
+    {
+      "query": "python ???",
+      "status": "ok",
+      "wants_count": 6,
+      "sample_count": 6,
+      "low_offer_sample": 1,
+      "zero_offer_sample": 0,
+      "top_sample": [
+        {
+          "id": 3213259,
+          "title": "Автообработка аудио продаж: Whisper + Claude в дашборд",
+          "offers": 27,
+          "price": 4000,
+          "possible_price_limit": 4000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "Evdohaanna2403",
+          "user_id": 24564409,
+          "user_projects_count": 2,
+          "user_active_projects_count": 1,
+          "user_hired_percent": null,
+          "buyer_projects_url": "https://kwork.ru/projects/list/Evdohaanna2403"
+        },
+        {
+          "id": 3212321,
+          "title": "Разработка скрипта для анализа футбольного матча",
+          "offers": 28,
+          "price": 10000,
+          "possible_price_limit": 10000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "mildim91",
+          "user_id": 24694481,
+          "user_projects_count": 1,
+          "user_active_projects_count": 1,
+          "user_hired_percent": null,
+          "buyer_projects_url": "https://kwork.ru/projects/list/mildim91"
+        },
+        {
+          "id": 3213750,
+          "title": "База инструментов Freedom/KASE + API",
+          "offers": 1,
+          "price": 1000,
+          "possible_price_limit": 3000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "Evgeny343",
+          "user_id": 10673588,
+          "user_projects_count": 60,
+          "user_active_projects_count": 1,
+          "user_hired_percent": 55,
+          "buyer_projects_url": "https://kwork.ru/projects/list/Evgeny343"
+        }
+      ]
+    },
+    {
+      "query": "???",
+      "status": "empty",
+      "wants_count": 0,
+      "sample_count": 0,
+      "low_offer_sample": 0,
+      "zero_offer_sample": 0,
+      "top_sample": []
+    },
+    {
+      "query": "automation",
+      "status": "empty",
+      "wants_count": 0,
+      "sample_count": 0,
+      "low_offer_sample": 0,
+      "zero_offer_sample": 0,
+      "top_sample": []
+    },
+    {
+      "query": "????????? ?????",
+      "status": "empty",
+      "wants_count": 0,
+      "sample_count": 0,
+      "low_offer_sample": 0,
+      "zero_offer_sample": 0,
+      "top_sample": []
+    },
+    {
+      "query": "wordpress",
+      "status": "ok",
+      "wants_count": 21,
+      "sample_count": 12,
+      "low_offer_sample": 2,
+      "zero_offer_sample": 0,
+      "top_sample": [
+        {
+          "id": 3212747,
+          "title": "Настроить reverse proxy для WordPress и Tilda",
+          "offers": 20,
+          "price": 10000,
+          "possible_price_limit": 30000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "alexeevn",
+          "user_id": 12449755,
+          "user_projects_count": 29,
+          "user_active_projects_count": 1,
+          "user_hired_percent": 56,
+          "buyer_projects_url": "https://kwork.ru/projects/list/alexeevn"
+        },
+        {
+          "id": 3213440,
+          "title": "Разработка сайта на WordPress",
+          "offers": 60,
+          "price": 60000,
+          "possible_price_limit": 180000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "mariabalenko",
+          "user_id": 24706552,
+          "user_projects_count": 1,
+          "user_active_projects_count": 1,
+          "user_hired_percent": null,
+          "buyer_projects_url": "https://kwork.ru/projects/list/mariabalenko"
+        },
+        {
+          "id": 2798882,
+          "title": "Оформление разделов на сайте wordpress",
+          "offers": 5,
+          "price": 500,
+          "possible_price_limit": 500,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "GTS2kk",
+          "user_id": 2100,
+          "user_projects_count": 140,
+          "user_active_projects_count": 17,
+          "user_hired_percent": 47,
+          "buyer_projects_url": "https://kwork.ru/projects/list/GTS2kk"
+        }
+      ]
+    },
+    {
+      "query": "bitrix",
+      "status": "ok",
+      "wants_count": 3,
+      "sample_count": 3,
+      "low_offer_sample": 1,
+      "zero_offer_sample": 0,
+      "top_sample": [
+        {
+          "id": 3213438,
+          "title": "Битрикс 24 BI конструктор помощь с созданием отчётов",
+          "offers": 7,
+          "price": 2000,
+          "possible_price_limit": 6000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "pasekkote",
+          "user_id": 3761042,
+          "user_projects_count": 10,
+          "user_active_projects_count": 1,
+          "user_hired_percent": null,
+          "buyer_projects_url": "https://kwork.ru/projects/list/pasekkote"
+        },
+        {
+          "id": 3117473,
+          "title": "Bitrix24 тех поддержка портала на 1 месяц",
+          "offers": 1,
+          "price": 15000,
+          "possible_price_limit": 45000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "arktika17",
+          "user_id": 845090,
+          "user_projects_count": 102,
+          "user_active_projects_count": 2,
+          "user_hired_percent": 37,
+          "buyer_projects_url": "https://kwork.ru/projects/list/arktika17"
+        },
+        {
+          "id": 3212350,
+          "title": "Техническое сопровождение Bitrix и телефонии",
+          "offers": 23,
+          "price": 30000,
+          "possible_price_limit": 90000,
+          "score": null,
+          "score_reasons": null,
+          "matched_probe": null,
+          "username": "lopulja10",
+          "user_id": 15394670,
+          "user_projects_count": 4,
+          "user_active_projects_count": 1,
+          "user_hired_percent": null,
+          "buyer_projects_url": "https://kwork.ru/projects/list/lopulja10"
+        }
+      ]
+    }
+  ],
+  "market_rankings": [
+    {
+      "seed_name": "Telegram classifier",
+      "category_id": 46,
+      "classifier_id": 281,
+      "supply_kworks_count": 8772,
+      "demand_wants_count": 41,
+      "demand_status": "ok",
+      "demand_per_1000_kworks": 4.674,
+      "opportunity_score": 370.82,
+      "sample_cards": 10,
+      "sample_unique_sellers": 10,
+      "seller_concentration": 0.1,
+      "sample_price_min": 500,
+      "sample_price_max": 25000,
+      "sample_price_avg": 4150.0,
+      "price_rule_min": 500,
+      "price_rule_max": 20616,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": 2,
+      "demand_sample_low_offer_count": 1,
+      "demand_sample_budget_avg": 6500.0,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 2,
+      "top_sellers": [
+        [
+          "gkrvSA",
+          1
+        ],
+        [
+          "Nikita__Pavlov",
+          1
+        ],
+        [
+          "prizpak",
+          1
+        ],
+        [
+          "Kaizen",
+          1
+        ],
+        [
+          "Crazy-man",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "medium",
+        "supply_level": "moderate",
+        "low_offer_demand": false,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": true
+      }
+    },
+    {
+      "seed_name": "Site support",
+      "category_id": 41,
+      "classifier_id": 3587,
+      "supply_kworks_count": 18261,
+      "demand_wants_count": 49,
+      "demand_status": "ok",
+      "demand_per_1000_kworks": 2.683,
+      "opportunity_score": 361.8,
+      "sample_cards": 10,
+      "sample_unique_sellers": 10,
+      "seller_concentration": 0.1,
+      "sample_price_min": 500,
+      "sample_price_max": 12000,
+      "sample_price_avg": 3150.0,
+      "price_rule_min": 500,
+      "price_rule_max": 71649,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": 2,
+      "demand_sample_low_offer_count": 1,
+      "demand_sample_budget_avg": 5100.0,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 5,
+      "top_sellers": [
+        [
+          "Ru_Developer",
+          1
+        ],
+        [
+          "PavloSG",
+          1
+        ],
+        [
+          "degen_digital",
+          1
+        ],
+        [
+          "asyncioso",
+          1
+        ],
+        [
+          "yaroslavkulikov",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "medium",
+        "supply_level": "competitive",
+        "low_offer_demand": false,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": true
+      }
+    },
+    {
+      "seed_name": "Programming broad",
+      "category_id": 41,
+      "classifier_id": null,
+      "supply_kworks_count": 38163,
+      "demand_wants_count": 49,
+      "demand_status": "ok",
+      "demand_per_1000_kworks": 1.284,
+      "opportunity_score": 338.71,
+      "sample_cards": 10,
+      "sample_unique_sellers": 8,
+      "seller_concentration": 0.2,
+      "sample_price_min": 1000,
+      "sample_price_max": 50000,
+      "sample_price_avg": 8650.0,
+      "price_rule_min": 500,
+      "price_rule_max": 71649,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": 2,
+      "demand_sample_low_offer_count": 1,
+      "demand_sample_budget_avg": 5100.0,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 5,
+      "top_sellers": [
+        [
+          "PerfectCode",
+          2
+        ],
+        [
+          "ameganix",
+          2
+        ],
+        [
+          "yaroslavkulikov",
+          1
+        ],
+        [
+          "degen_digital",
+          1
+        ],
+        [
+          "like-clik",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "medium",
+        "supply_level": "competitive",
+        "low_offer_demand": false,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": true
+      }
+    },
+    {
+      "seed_name": "Marketplaces",
+      "category_id": 112,
+      "classifier_id": 1357,
+      "supply_kworks_count": 109387,
+      "demand_wants_count": 22,
+      "demand_status": "ok",
+      "demand_per_1000_kworks": 0.201,
+      "opportunity_score": 248.8,
+      "sample_cards": 10,
+      "sample_unique_sellers": 9,
+      "seller_concentration": 0.2,
+      "sample_price_min": 500,
+      "sample_price_max": 4500,
+      "sample_price_avg": 1300.0,
+      "price_rule_min": 500,
+      "price_rule_max": 25349,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": 0,
+      "demand_sample_low_offer_count": 3,
+      "demand_sample_budget_avg": 1200.0,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 5,
+      "top_sellers": [
+        [
+          "TopClick",
+          2
+        ],
+        [
+          "seo-master-pro",
+          1
+        ],
+        [
+          "ale_mal88",
+          1
+        ],
+        [
+          "IrinaDana",
+          1
+        ],
+        [
+          "Sergey_SocialClub",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "medium",
+        "supply_level": "saturated",
+        "low_offer_demand": true,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": true
+      }
+    },
+    {
+      "seed_name": "Ready databases",
+      "category_id": 113,
+      "classifier_id": 1117,
+      "supply_kworks_count": 34244,
+      "demand_wants_count": 3,
+      "demand_status": "ok",
+      "demand_per_1000_kworks": 0.088,
+      "opportunity_score": 121.17,
+      "sample_cards": 10,
+      "sample_unique_sellers": 7,
+      "seller_concentration": 0.2,
+      "sample_price_min": 500,
+      "sample_price_max": 18000,
+      "sample_price_avg": 3750.0,
+      "price_rule_min": 500,
+      "price_rule_max": 19995,
+      "price_rule_typical": null,
+      "demand_sample_offers_min": 2,
+      "demand_sample_low_offer_count": 1,
+      "demand_sample_budget_avg": 2166.67,
+      "demand_sample_portfolio_required_count": 0,
+      "demand_sample_kwork_required_count": 0,
+      "demand_sample_higher_price_allowed_count": 3,
+      "top_sellers": [
+        [
+          "sbor_kontaktov",
+          2
+        ],
+        [
+          "Kristi86",
+          2
+        ],
+        [
+          "LittleSani",
+          2
+        ],
+        [
+          "imnotes",
+          1
+        ],
+        [
+          "Maxximus",
+          1
+        ]
+      ],
+      "signals": {
+        "demand_level": "low",
+        "supply_level": "competitive",
+        "low_offer_demand": true,
+        "portfolio_heavy_demand": false,
+        "higher_price_allowed": true
+      }
+    }
+  ],
+  "timings_ms": {
+    "buyer": 18603,
+    "market": 24187
+  }
+}

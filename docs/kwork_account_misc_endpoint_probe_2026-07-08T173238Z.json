@@ -1,0 +1,740 @@
+{
+  "timestamp_utc": "2026-07-08T17:32:38.096215+00:00",
+  "purpose": "Validate remaining account/misc isolated Kwork endpoints for market intelligence and PSR integration",
+  "proxy": {
+    "before": {
+      "running": true,
+      "profileId": "77261ba3-cc95-4ed6-bff4-c8b4b61f2b26",
+      "profileName": "russia4",
+      "country": null,
+      "proxyUrl": "http://127.0.0.1:17990",
+      "host": "127.0.0.1",
+      "port": 17990
+    },
+    "rotate": {
+      "running": true,
+      "profileId": "2b2125f2-7dc3-4ea1-b1ff-565b51aca2fd",
+      "profileName": "russia5",
+      "country": "Russia",
+      "proxyUrl": "http://127.0.0.1:17990",
+      "host": "127.0.0.1",
+      "port": 17990
+    },
+    "after": {
+      "running": true,
+      "profileId": "2b2125f2-7dc3-4ea1-b1ff-565b51aca2fd",
+      "profileName": "russia5",
+      "country": "Russia",
+      "proxyUrl": "http://127.0.0.1:17990",
+      "host": "127.0.0.1",
+      "port": 17990
+    },
+    "effective_proxy_url": "http://127.0.0.1:17990"
+  },
+  "auth": {
+    "mobile_basic": true,
+    "token_in_memory": true,
+    "token_error": null,
+    "session_hub_cookie_count": 14
+  },
+  "seeds": {
+    "kwork_id": 255535,
+    "category_id": 41,
+    "user_id": 198065,
+    "project_id": 3213556
+  },
+  "results": [
+    {
+      "name": "projects_seed_for_web_helpers",
+      "method": "POST",
+      "url_label": "api:/projects",
+      "params": {
+        "page": 1,
+        "token": "<redacted>"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 23311,
+      "elapsed_ms": 779,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response",
+          "connects",
+          "paging",
+          "fcmTokenLost"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 12,
+        "response_item_keys": [
+          "id",
+          "status",
+          "user_id",
+          "username",
+          "profile_picture",
+          "price",
+          "title",
+          "description",
+          "offers",
+          "time_left",
+          "parent_category_id",
+          "category_id",
+          "date_confirm",
+          "category_base_price",
+          "user_projects_count",
+          "user_hired_percent",
+          "user_active_projects_count",
+          "achievements_list",
+          "is_viewed",
+          "already_work",
+          "allow_higher_price",
+          "possible_price_limit",
+          "has_offer",
+          "user_need_kwork",
+          "user_need_portfolio",
+          "user_need_portfolio_rubric_name"
+        ],
+        "sample": [
+          {
+            "id": 3213556,
+            "user_id": 18318648,
+            "username": "anyamalec",
+            "title": "Обзвон лидов с целью приглашения на беспл.пробное в сен",
+            "category_id": 262,
+            "price": 2500,
+            "status": "active",
+            "offers": 0
+          },
+          {
+            "id": 3212199,
+            "user_id": 21442761,
+            "username": "21442761",
+            "title": "Создание сайта по благоустройству",
+            "category_id": 37,
+            "price": 30000,
+            "status": "active",
+            "offers": 53
+          },
+          {
+            "id": 3213212,
+            "user_id": 23738310,
+            "username": "gru81",
+            "title": "Аудит доверия к онлайн-сервису",
+            "category_id": 47,
+            "price": 3000,
+            "status": "active",
+            "offers": 2
+          }
+        ]
+      },
+      "use_token": true
+    },
+    {
+      "name": "getKworkDetails_public",
+      "method": "POST",
+      "url_label": "api:/getKworkDetails",
+      "params": {
+        "id": 255535
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 6632,
+      "elapsed_ms": 261,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "id",
+          "kwork_link",
+          "image_url",
+          "cover",
+          "default_kwork_price",
+          "is_subscription",
+          "short_user_info",
+          "term",
+          "orders_in_queue_count",
+          "kwork_in_favorites_count",
+          "kwork_title",
+          "kwork_description",
+          "category",
+          "badges",
+          "packages",
+          "unit_and_quantity",
+          "additional_options",
+          "portfolio_items",
+          "portfolio_items_count",
+          "files",
+          "is_hidden",
+          "is_favorite",
+          "feat",
+          "active",
+          "lang",
+          "kwork_instructions",
+          "classifications",
+          "channel_link",
+          "channel_stat",
+          "channel_prices",
+          "show_subscribers_statistics",
+          "catalog_category",
+          "not_available_for_company",
+          "isSubscription"
+        ]
+      },
+      "use_token": false
+    },
+    {
+      "name": "category_41_public",
+      "method": "POST",
+      "url_label": "api:/category",
+      "params": {
+        "category_id": 41
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 164274,
+      "elapsed_ms": 226,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "id",
+          "name",
+          "mobile_description",
+          "base_volume",
+          "volume_type",
+          "attributes",
+          "positive_reviews_count"
+        ]
+      },
+      "use_token": false
+    },
+    {
+      "name": "getKworkPortfolios_public",
+      "method": "POST",
+      "url_label": "api:/getKworkPortfolios",
+      "params": {
+        "id": 255535,
+        "page": 1
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 81,
+      "elapsed_ms": 128,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 0
+      },
+      "use_token": false
+    },
+    {
+      "name": "actor_token",
+      "method": "POST",
+      "url_label": "api:/actor",
+      "params": {
+        "token": "<redacted>"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 3412,
+      "elapsed_ms": 220,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "id",
+          "username",
+          "status",
+          "email",
+          "type",
+          "verified",
+          "profilepicture",
+          "description",
+          "slogan",
+          "fullname",
+          "level_description",
+          "cover",
+          "good_reviews",
+          "bad_reviews",
+          "location",
+          "rating",
+          "rating_count",
+          "hold_amount",
+          "free_amount",
+          "currency",
+          "inbox_archive_count",
+          "unread_dialog_count",
+          "notify_unread_count",
+          "red_notify",
+          "warning_inbox_count",
+          "app_notify_count",
+          "unread_messages_count",
+          "country_id",
+          "city_id",
+          "timezone_id",
+          "addtime",
+          "allow_mobile_push",
+          "is_more_payer",
+          "kworks_count",
+          "favourite_kworks_count",
+          "hidden_kworks_count",
+          "specialization",
+          "profession",
+          "kworks_available_at_weekends",
+          "achievments_list",
+          "completed_orders_count",
+          "kworks",
+          "portfolio_list",
+          "reviews",
+          "worker_status",
+          "has_offers",
+          "wants_count",
+          "offers_count",
+          "archived_wants_count",
+          "pushNotificationsSoundAllowed",
+          "black_friday_for_sellers",
+          "total_amount",
+          "yescrow_payer",
+          "is_profile_consent_required",
+          "show_self_employed_option",
+          "self_employed_option_link",
+          "is_stop_work",
+          "yescrow_applicants"
+        ],
+        "kworks_count": 1,
+        "kworks_sample": [
+          {
+            "id": 51594444,
+            "worker": {
+              "id": 20354236,
+              "username": "Vladimir1474661",
+              "fullname": "Владимир",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/38/20354236-2.jpg",
+              "rating": 0,
+              "reviews_count": 0,
+              "rating_count": 0,
+              "is_online": true
+            },
+            "title": "Создам телеграмм бота или любую автоматизацию телеграмм",
+            "category_id": 41,
+            "category_name": "Скрипты, боты и mini apps",
+            "price": 400
+          }
+        ]
+      },
+      "use_token": true
+    },
+    {
+      "name": "getActorInfo_token",
+      "method": "POST",
+      "url_label": "api:/getActorInfo",
+      "params": {
+        "token": "<redacted>"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 1377,
+      "elapsed_ms": 163,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "id",
+          "username",
+          "avatar_path",
+          "about_me_text",
+          "fullname",
+          "cover_path",
+          "profession",
+          "type",
+          "total_amount",
+          "currency",
+          "country_id",
+          "city_id",
+          "timezone_id",
+          "kworks_count",
+          "favourite_kworks_count",
+          "hidden_kworks_count",
+          "worker_status",
+          "offers_count",
+          "archived_wants_count",
+          "allow_mobile_push",
+          "push_notifications_sound_allowed",
+          "verified",
+          "black_friday_for_sellers",
+          "yescrow_payer"
+        ],
+        "kworks_count": 1
+      },
+      "use_token": true
+    },
+    {
+      "name": "offers_token",
+      "method": "POST",
+      "url_label": "api:/offers",
+      "params": {
+        "page": 1,
+        "token": "<redacted>"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 158,
+      "elapsed_ms": 212,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response",
+          "connects",
+          "paging"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 0
+      },
+      "use_token": true
+    },
+    {
+      "name": "kworksStatusList_token",
+      "method": "POST",
+      "url_label": "api:/kworksStatusList",
+      "params": {
+        "token": "<redacted>"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 2960,
+      "elapsed_ms": 168,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 8,
+        "response_item_keys": [
+          "id",
+          "name",
+          "kworks_count",
+          "kworks"
+        ],
+        "sample": [
+          {
+            "id": 7,
+            "name": "Активные",
+            "kworks_count": 1
+          },
+          {
+            "id": 1,
+            "name": "На модерации",
+            "kworks_count": 0
+          },
+          {
+            "id": 2,
+            "name": "Требуют исправления",
+            "kworks_count": 0
+          }
+        ]
+      },
+      "use_token": true
+    },
+    {
+      "name": "viewedCatalogKworks_token",
+      "method": "POST",
+      "url_label": "api:/viewedCatalogKworks",
+      "params": {
+        "page": 1,
+        "token": "<redacted>"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 13332,
+      "elapsed_ms": 285,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 10,
+        "response_item_keys": [
+          "id",
+          "category_id",
+          "category_name",
+          "status_id",
+          "status_name",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "activity",
+          "edits_list",
+          "not_available_for_company",
+          "isSubscription",
+          "badges",
+          "order",
+          "is_viewed",
+          "classification_id"
+        ],
+        "sample": [
+          {
+            "id": 21805649,
+            "worker": {
+              "id": 9628615,
+              "username": "Vitaliy_DSGN",
+              "fullname": "Виталий Царук",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/27/9628615-75.jpg",
+              "rating": 5,
+              "reviews_count": 575,
+              "rating_count": 493,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "title": "Дизайн инфографики, карточка товара для маркетплейса Wildberries",
+            "category_id": 286,
+            "category_name": "Маркетплейсы и соцсети",
+            "price": 2000,
+            "order": 0
+          },
+          {
+            "id": 43576198,
+            "worker": {
+              "id": 638735,
+              "username": "hudozhnik_portrait",
+              "fullname": "Елена",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/21/638735-31.jpg",
+              "rating": 5,
+              "reviews_count": 407,
+              "rating_count": 354,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "title": "Инфографика. Карточка товара для маркетплейса",
+            "category_id": 286,
+            "category_name": "Маркетплейсы и соцсети",
+            "price": 1000,
+            "order": 1
+          },
+          {
+            "id": 14100522,
+            "worker": {
+              "id": 6809248,
+              "username": "IrinaDana",
+              "fullname": "Дана",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/36/6809248-7.jpg",
+              "rating": 5,
+              "reviews_count": 553,
+              "rating_count": 431,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "title": "Инфографика для Ozon: дизайн с продуманной логикой подачи",
+            "category_id": 286,
+            "category_name": "Маркетплейсы и соцсети",
+            "price": 2000,
+            "order": 2
+          }
+        ]
+      },
+      "use_token": true
+    },
+    {
+      "name": "web_checknotify",
+      "method": "GET",
+      "url_label": "web:/api/user/checknotify",
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 432,
+      "elapsed_ms": 712,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "data"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "success",
+          "data"
+        ]
+      }
+    },
+    {
+      "name": "web_checkworkeroffers",
+      "method": "POST",
+      "url_label": "web:/api/user/checkworkeroffers",
+      "params": {},
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 44,
+      "elapsed_ms": 157,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "data"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "success",
+          "data"
+        ]
+      }
+    },
+    {
+      "name": "web_getkworksites_kworkId",
+      "method": "GET",
+      "url_label": "web:/api/kwork/getkworksites?kworkId=255535",
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 65,
+      "elapsed_ms": 278,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "linksSites",
+          "orderedLinksSites",
+          "html"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "success",
+          "linksSites",
+          "orderedLinksSites",
+          "html"
+        ]
+      }
+    },
+    {
+      "name": "web_check_is_template",
+      "method": "POST",
+      "url_label": "web:/projects/check_is_template",
+      "json_keys": [
+        "description",
+        "wantid"
+      ],
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 26,
+      "elapsed_ms": 198,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "data"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "success",
+          "data"
+        ]
+      }
+    },
+    {
+      "name": "web_want_check_offer_notify",
+      "method": "GET",
+      "url_label": "web:/wants/3213556/check_offer_notify",
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 336,
+      "elapsed_ms": 130,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "data"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "success",
+          "data"
+        ]
+      }
+    },
+    {
+      "name": "web_offer_addview_projectid",
+      "method": "POST",
+      "url_label": "web:/api/offer/addview",
+      "params": {
+        "project_id": 3213556
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 16,
+      "elapsed_ms": 136,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "result"
+        ],
+        "response_type": "dict",
+        "response_keys": [
+          "result"
+        ]
+      }
+    }
+  ]
+}

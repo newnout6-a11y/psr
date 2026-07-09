@@ -1,0 +1,909 @@
+{
+  "generated_at": "2026-07-08T14:52:18Z",
+  "targets": [
+    {
+      "path": "/api/order/getorderscount",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/header_7948f7fc0baebf0e.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 1344694,
+              "methods_hint": [
+                "GET",
+                "POST"
+              ],
+              "params_hint": [
+                "updateDataTabOnFocus",
+                "mixins",
+                "data",
+                "isWaitingForResponse",
+                "ajaxRequestNameOrdersCount",
+                "localStorageOrdersCount",
+                "methods",
+                "getActiveOrdersCount",
+                "ajaxGetActiveOrdersCount",
+                "updateOrdersCount",
+                "https",
+                "Symbol",
+                "value"
+              ],
+              "context": "on(n){for(;;)switch(n.prev=n.next){case 0:return n.next=2,window.defferScripts.wait(\"generalJs\");case 2:window.GeneralFunctions.removeTmpLocalStorageVars(),setTimeout((function(){var n=null;try{n=window.localStorage.getItem(e)}catch(e){}null===n&&(Utils.setStorageData(e,1),t(e))}),Math.floor(500*Math.random()));case 4:case\"end\":return n.stop()}}),n)})),function(){var e=this,t=arguments;return new Promise((function(r,i){var o=n.apply(e,t);function a(e){Pg(o,r,i,a,s,\"next\",e)}function s(e){Pg(o,r,i,a,s,\"throw\",e)}a(void 0)}))})()},updateDataTabOnFocus:function(){this.tmpRequestsName&&_.forOwn(this.tmpRequestsName,(function(e,t){var n=null;try{n=window.localStorage.getItem(t)}catch(e){}null===n?(Utils.setStorageData(t,1),e.ajaxData(t)):e.staticData()}))}}},jg={mixins:[Mg],data:function(){return{isWaitingForResponse:!1,ajaxRequestNameOrdersCount:\"tmp-is-ajax-get-active-orders-count\",localStorageOrdersCount:\"tmp-orders-count\"}},methods:{getActiveOrdersCount:function(){this.updateTabAjax(this.ajaxRequestNameOrdersCount,this.ajaxGetActiveOrdersCount,this.updateOrdersCount)},ajaxGetActiveOrdersCount:function(){var e=this;this.isWaitingForResponse||(this.isWaitingForResponse=!0,axios.post(\"/api/order/getorderscount\").then((function(t){e.updateOrdersCount(t.data),Utils.setStorageData(e.localStorageOrdersCount,JSON.stringify(t.data)),Utils.setStorageData(e.ajaxRequestNameOrdersCount,0)})).catch((function(){})).finally((function(){e.isWaitingForResponse=!1})))},updateOrdersCount:function(e){var t=e;if(!t)try{t=JSON.parse(window.localStorage.getItem(this.localStorageOrdersCount))}catch(e){}t&&(this.$set(window.stateData,\"payerActiveOrdersCount\",t.asPayer),this.$set(window.stateData,\"isPayerActiveOrdersImportant\",t.hasPayerImportant),this.$set(window.stateData,\"workerActiveOrdersCoun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/api/user/getworkbaysellers",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/header_7948f7fc0baebf0e.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 1284791,
+              "methods_hint": [
+                "GET",
+                "POST"
+              ],
+              "params_hint": [
+                "modalCloseHandler",
+                "onCloseModal",
+                "showBalancePopup",
+                "refillType",
+                "isAfterCompanyAdded",
+                "onClick",
+                "paymentUrl",
+                "openModalYescrowAddCompany",
+                "getWorkbaySellers",
+                "sellers",
+                "button",
+                "staticClass",
+                "attrs",
+                "title",
+                "on",
+                "close",
+                "scopedSlots",
+                "key",
+                "fn",
+                "directives",
+                "name",
+                "rawName",
+                "value",
+                "expression",
+                "class",
+                "click",
+                "proxy",
+                "model",
+                "callback"
+              ],
+              "context": "portSendmessage.name),\"_blank\")})).catch((function(){})).finally((function(){e.isWaitingForResponse=!1}))}},modalCloseHandler:function(){1===this.externalData.actionType&&this.openModalYescrowAddCompany()},onCloseModal:function(){1!==this.externalData.actionType?this.showBalancePopup():this.openModalYescrowAddCompany()},showBalancePopup:function(){this.isCheckboxShow&&window.bus.$emit(\"show-balance-popup\",{refillType:\"bank\",isAfterCompanyAdded:!0})},onClick:function(){var e=this;this.isCheckboxChecked&&!this.isWaitingForResponseAcknowledged&&(this.isWaitingForResponseAcknowledged=!0,this.$set(window.bus.state,\"isCloseWorkbayRefillPopupShow\",!1),axios.post(\"/yescrow/set_acknowledged\").then((function(){if(!e.payerHasCompany)return e.openModalYescrowAddCompany(),void e.closeModal();e.paymentUrl?window.location.href=e.paymentUrl:(e.fields.sum=e.externalData.sumAmount,e.showBillFormPopup())})).catch((function(){})).finally((function(){e.isWaitingForResponseAcknowledged=!1})))},openModalYescrowAddCompany:function(){window.bus.$emit(\"open-modal-yescrow-add-company\")},getWorkbaySellers:function(e){var t=this;this.isWaitingForResponseSellers||(this.isWaitingForResponseSellers=!0,axios.get(\"/api/user/getworkbaysellers\").then((function(t){var n=t.data;null!=n&&n.success&&window.bus.$emit(\"open-modal-workbay-sellers\",{data:{sellers:n.data,button:e.target}})})).catch((function(){})).finally((function(){t.isWaitingForResponseSellers=!1})))}}},sg=(0,Dt.Z)(ag,(function(){var e=this,t=e._self._c;return t(\"k-modal\",{staticClass:\"workbay-views-modal\",attrs:{title:\"Важные изменения в безналичной оплате сделок\",\"no-close-on-backdrop\":\"\",\"has-close-button\":!e.isMobileApp},on:{close:e.onCloseModal},scopedSlots:e._u([{key:\"footer\",fn:function(){return[e.isCheckboxShow?t(\"button\",{directives:[{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/api/bill/address_suggestions",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/header_7948f7fc0baebf0e.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 1298912,
+              "methods_hint": [
+                "DELETE"
+              ],
+              "params_hint": [
+                "on",
+                "enter",
+                "directives",
+                "name",
+                "rawName",
+                "value",
+                "expression",
+                "staticClass",
+                "mixins",
+                "props",
+                "companyData",
+                "type",
+                "default",
+                "isBeneficiaryValidationFailed",
+                "data",
+                "fields",
+                "ogrnip",
+                "lastName",
+                "firstName",
+                "surname",
+                "birthPlace",
+                "birthDate",
+                "passportNumber",
+                "passportSeries",
+                "passportCountry",
+                "passportIssueDate",
+                "passportDivisionCode",
+                "registrationAddress",
+                "fieldPost",
+                "errors",
+                "maxLength",
+                "passportCountrySelected",
+                "passportCountryList",
+                "id",
+                "title",
+                "daDataConfig",
+                "apiEndpoint",
+                "queryParam",
+                "responseParam",
+                "computed"
+              ],
+              "context": "_content\"},on:{enter:function(t){return e.setHeight(t,!1)},\"after-enter\":function(t){return e.removeHeight(t,!0)},\"before-leave\":function(t){return e.setHeight(t,!0)},\"after-leave\":function(t){return e.removeHeight(t,!1)}}},[t(\"div\",{directives:[{name:\"show\",rawName:\"v-show\",value:e.isShow,expression:\"isShow\"}],staticClass:\"v-collapse__content\"},[e._t(\"default\")],2)])],1)}),[],!1,null,null,null).exports},mixins:[Mt.Z,St],props:{companyData:{type:Object,default:function(){return{}}},isBeneficiaryValidationFailed:{type:Boolean,default:!1}},data:function(){return{fields:{ogrnip:\"\",lastName:\"\",firstName:\"\",surname:\"\",birthPlace:\"\",birthDate:\"\",passportNumber:\"\",passportSeries:\"\",passportCountry:\"ru\",passportIssueDate:\"\",passportDivisionCode:\"\",registrationAddress:\"\"},fieldPost:[\"birthPlace\",\"birthDate\",\"passportNumber\",\"passportSeries\",\"passportCountry\",\"passportIssueDate\",\"passportDivisionCode\",\"registrationAddress\"],errors:{},maxLength:500,passportCountrySelected:null,passportCountryList:[{id:\"ru\",title:l(\"passportCountryListRu\",\"components/yescrow-add-company-modal\")},{id:\"other\",title:l(\"passportCountryListOther\",\"components/yescrow-add-company-modal\")}],daDataConfig:{apiEndpoint:\"/api/bill/address_suggestions\",queryParam:\"query\",responseParam:\"suggestions\"}}},computed:{tooltipValidationFailed:function(){return this.isBeneficiaryValidationFailed?this.touchConfig(l(\"tooltipValidationFailed\",\"components/yescrow-add-company-modal\")):null}},created:function(){this.setDataInput()},methods:{setDataInput:function(){var e=this;_.forEach(this.companyData,(function(t,n){e.fields[_.camelCase(n)]=t})),this.setPassportCountrySelected()},onInput:function(e){this.$delete(this.errors,e),this.setIsFieldsFilled()},dateValidation:function(e,t){if(/^\\d{2}\\.\\d{2}\\.\\d{4}$/.test(e)){var n=hg("
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/api/offer/addview",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-fcp_be30532256de5229.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 402559,
+              "methods_hint": [
+                "POST"
+              ],
+              "params_hint": [
+                "id",
+                "top",
+                "right",
+                "innerHeight",
+                "left",
+                "sides",
+                "wantAddViews",
+                "wantIds",
+                "key",
+                "ref",
+                "refInFor",
+                "attrs",
+                "staticClass",
+                "domProps",
+                "textContent",
+                "on",
+                "click"
+              ],
+              "context": "ActiveWindow()&&!window.isActorVirtual){var t=_.filter(this.wantsList,(function(t){return!t.dateView})),e=[];_.forEach(this.$refs[\"want-info\"],(function(i){_.find(t,{id:i.wantId})&&function(t,e){let i,n=0,r=0;const s=[0,0],o=Ar(\"sync\",t,e),a=o.container===window,u=t.getBoundingClientRect();o.container===window?(i=document.documentElement.getBoundingClientRect(),n=document.body.scrollTop,r=window.scrollX||document.body.scrollLeft):o.container&&o.container!==window&&(i=o.container.getBoundingClientRect(),n=o.container.scrollTop,r=o.container.scrollLeft),r&&(s[0]=18),n&&(s[1]=16);const c={top(){return\"ignore\"===o.top||(a?u.top>=o.top:u.top>=n-(n-i.top)+o.top)},right(){return\"ignore\"===o.right||(a?u.right<=i.right+r-o.right:u.right<=i.right-s[0]-o.right)},bottom(){if(\"ignore\"===o.bottom)return!0;let t=0;return t=o.container===window?o.container.innerHeight:i.bottom,u.bottom<=t-s[1]-o.bottom},left(){return\"ignore\"===o.left||(a?u.left>=o.left:u.left>=r-(r-i.left)+o.left)},all(){return c.top()&&c.bottom()&&c.left()&&c.right()}};return Pr.every((t=>c[t]()))}(i.$el,{sides:\"top bottom\"})&&e.push(i.wantId)})),this.wantAddViews(e)}},wantAddViews:function(t){var e=this;t.length<=0||axios.post(\"/api/offer/addview\",{wantIds:t}).then((function(){e.$emit(\"update-data-view\",t)})).catch((function(){}))}}},Nr=(0,m.Z)(Mr,(function(){var t=this,e=t._self._c;return t.wantsList.length>0?e(\"div\",t._l(t.wantsList,(function(i){return e(\"want-card\",{key:i.id,ref:\"want-info\",refInFor:!0,attrs:{\"want-data\":i,\"header-tooltip-data\":t.wants20891Data,\"is-page-want-list\":\"\"}})})),1):t.isFavoriteCategories&&!t.isWantsOnly?e(\"div\",[e(\"div\",{staticClass:\"wants-content__not-found\"},[e(\"div\",{staticClass:\"wants-content__title\"},[t._v(t._s(t.l(\"favRubricsResult\",\"pages/projects/want-list\")))]),t._v(\" \"),e(\"div"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/api/file/upload",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 72365,
+              "methods_hint": [
+                "POST"
+              ],
+              "params_hint": [
+                "setMessageFieldFocus",
+                "uploadFile",
+                "updateFileIndex",
+                "cancelToken",
+                "onUploadProgress"
+              ],
+              "context": "euploadFiles[r].file=e.file,this.reuploadFiles[r].fileDesc=e.fileDesc,this.reuploadFiles[r].fileDesc.result=\"reloading\",clearTimeout(e.timeout),this.uploadFile(e.file,e.fileDesc),_.filter(this.files,(function(t){return\"error\"===t.result&&\"file_size_exceed\"!==t.typeError})).length<1)this.isStartOptimistic=!1,clearTimeout(this.repeatTimeout),null===(i=this.fileUploaderOptimistic)||void 0===i||i.setProgressStatus(\"hide\")}},setMessageFieldFocus:function(){var t;if(!this.mobileVersion&&!this.isTouchDevice&&this.inputFocus){var e=document.querySelector(\".js-message-field-wrapper\");if(e&&!e.classList.contains(\"focused\")){var i=e.querySelector(\"textarea\".concat(this.inputFocus));i&&(null===(t=window.trumbowygCaret)||void 0===t||t.focusCaret(i))}}},uploadFile:function(t,e){var i=this,r=new FormData;r.append(\"upload_files\",t),this.isNeedHash&&r.append(\"need_hash\",1),this.makethumbs||this.withMiniature?r.append(\"second_user_id\",this.secondUserIdLocal):r.append(\"without_miniature\",1),this.additionalSendData&&_.forOwn(this.additionalSendData,(function(t,e){r.append(e,t)}));var o=this.isUpdateFile?this.updateFileIndex:this.files.indexOf(e),n=this.isChat&&!this.isFilesStatusLoading();axios.post(\"/api/file/upload\",r,{cancelToken:new axios.CancelToken((function(t){i.cancelTokens.push(t),i.files.length&&i.files[o]&&Vue.set(i.files[o],\"cancelToken\",t)})),onUploadProgress:function(t){if(!((o=i.isUpdateFile?i.updateFileIndex:i.files.indexOf(e))<0)){i.files[o].error=\"\",i.files[o].typeError=\"\",i.files[o].isPreloader=!1;var r=Math.floor(100*t.loaded/t.total);Vue.set(i.files[o],\"progress\",r)}}}).then((function(r){if(!((o=i.isUpdateFile?i.updateFileIndex:i.files.indexOf(e))<0)){var s=r.data;if(Vue.set(i.files[o],\"progress\",100),Vue.set(i.files[o],\"error\",void 0),\"success\"===s.result)_.assignIn(i"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/api/cart/add",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/header_7948f7fc0baebf0e.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 922710,
+              "methods_hint": [
+                "DELETE",
+                "POST"
+              ],
+              "params_hint": [
+                "needLowerCommissionHint",
+                "paymentDetails",
+                "paymentUrl",
+                "updateLazyLoadImages",
+                "cartMakeOrder",
+                "addItemCart",
+                "checkKworkFormData",
+                "requestToCartAdd",
+                "switchSending",
+                "getKworkCountInCart",
+                "cartLetterEvent",
+                "updateCartList",
+                "successUpdateCartList"
+              ],
+              "context": "Data)||void 0===o?void 0:o.isTochkaMirrorAcquiring,needLowerCommissionHint:null==n||null===(a=n.paymentData)||void 0===a?void 0:a.needLowerCommissionHint,paymentDetails:null==n||null===(s=n.paymentData)||void 0===s?void 0:s.paymentDetails,paymentUrl:null==n||null===(l=n.paymentData)||void 0===l?void 0:l.paymentUrl});e.isWaitingForResponse=!1}else e.isWaitingForResponse=!1;else window.location.reload()})).catch((function(){e.isWaitingForResponse=!1}))}},updateLazyLoadImages:function(){this.isPageBasket&&setTimeout((function(){window.LazyLoad.loadImages()}))},cartMakeOrder:function(){this.isPageBasket||this.makeOrder()},addItemCart:function(){if(!this.isPageBasket){var e=this.checkKworkFormData();this.requestToCartAdd(e)}},checkKworkFormData:function(){var e=document.querySelector(\".js-create-order-form\"),t=document.querySelector(\".js-volume-order\"),n=new FormData(e);return this.isVueKworkSelect&&this.extras.length>0&&_.forEach(this.extras,(function(e){e.isChecked&&(n.append(\"gextras[]\",e.id),n.append(\"extra_count\".concat(e.id),e.count))})),t?(n.delete(\"kworkcnt\"),n):n},requestToCartAdd:function(e){var t=this;window.isMakeOrder||this.isCartAdding||(this.switchSending(!0),axios.post(\"/api/cart/add\",e).then((function(e){var n=e.data;if(!1!==n.success||\"virtual_auth_denied\"!==n.error)if(checkResidentAccess(n)){if(t.switchSending(!1),t.cartUpdate(n),t.mobileVersion){var r=t.getKworkCountInCart(n.kwork_id);t.$emit(\"show-success-block\",r)}t.changeKworkInCart(n.kwork_id,!0)}else t.switchSending(!1);else window.location.reload()})).catch((function(){t.switchSending(!1)})))},switchSending:function(e){this.isCartAdding=e;var t=document.querySelectorAll(\".js-add-order-to-cart\");t&&_.forOwn(t,(function(t){t.classList.toggle(\"kw-button--inactive\",e)}))},getKworkCountInCart:function(e)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/api/cart/delete",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/header_7948f7fc0baebf0e.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 907718,
+              "methods_hint": [
+                "DELETE",
+                "POST"
+              ],
+              "params_hint": [
+                "ticClass",
+                "staticClass",
+                "class",
+                "attrs",
+                "href",
+                "components",
+                "PriceWithCurrency",
+                "mixins",
+                "props",
+                "kwork",
+                "type",
+                "default",
+                "isHasExtras",
+                "data",
+                "isWaitingForResponse",
+                "computed",
+                "hasExtrasKwork",
+                "extrasCount",
+                "removeClass",
+                "methods",
+                "removeKwork",
+                "orderHash",
+                "https",
+                "Symbol",
+                "value",
+                "enumerable",
+                "configurable",
+                "writable",
+                "arg"
+              ],
+              "context": "ticClass:\"login-js\"},[e._v(\"\\n\\t\\t\\t\\t\"+e._s(e.l(\"menuItemSignIn\",\"pages/header/general\"))+\"\\n\\t\\t\\t\")])]),e._v(\" \"),t(\"li\",[t(\"a\",{staticClass:\"signup-js kw-button kw-button--green kw-button--size-40\",class:{\"kw-button--green-border\":e.isCategoryLandingPage},attrs:{href:\"/signup\"}},[e._v(\"\\n\\t\\t\\t\\t\"+e._s(e.l(\"registerPopupTitle\",\"components/signup/signup\"))+\"\\n\\t\\t\\t\")])]),e._v(\" \"),e.isSupportPhonesAndSelectedCountry?e._e():t(\"li\",[t(\"a\",{staticClass:\"pr0\",attrs:{href:\"/for-sellers\"}},[e._v(\"\\n\\t\\t\\t\\t\"+e._s(e.l(\"forFreelancers\",\"pages/header/general\"))+\"\\n\\t\\t\\t\")])])])])}),[],!1,null,null,null).exports,iu={components:{PriceWithCurrency:Cc},mixins:[Pt,Tt.Z,Mt.Z,u],props:{kwork:{type:Object,default:function(){return{}}},isHasExtras:{type:Boolean,default:!1}},data:function(){return{isWaitingForResponse:!1}},computed:{hasExtrasKwork:function(){var e;return(null===(e=this.kwork)||void 0===e?void 0:e.extras)||null},extrasCount:function(){return this.hasExtrasKwork?_.size(this.kwork.extras):0},removeClass:function(){return{\"kw-button--inactive\":this.isWaitingForResponse}}},methods:{removeKwork:function(){var e=this;this.isWaitingForResponse||(this.isWaitingForResponse=!0,axios.post(\"/api/cart/delete\",{orderHash:this.kwork.hash}).then((function(t){var n=t.data;n.success&&e.emitGlobalEvent(\"delete-cart-item\",e.kwork.hash,n)})).catch((function(){})).then((function(){e.isWaitingForResponse=!1})))}}};function ou(e){return ou=\"function\"==typeof Symbol&&\"symbol\"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&\"function\"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?\"symbol\":typeof e},ou(e)}function au(){/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/mai"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/api/cart/order",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/header_7948f7fc0baebf0e.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 920349,
+              "methods_hint": [
+                "POST"
+              ],
+              "params_hint": [
+                "updateCartItems",
+                "changeKworkInCart",
+                "cartUpdate",
+                "makeOrder",
+                "csrftoken",
+                "amount",
+                "from",
+                "paymentIdProp",
+                "refillType",
+                "lockedRefillTypes",
+                "orderRefillTypes",
+                "isBalanceCancelRefillRestricted",
+                "isTochka302Acquiring",
+                "isTochkaMirrorAcquiring",
+                "needLowerCommissionHint",
+                "paymentDetails"
+              ],
+              "context": "s.state.cartItems,n),this.$emit(\"update\",t.action),this.changeKworkInCart(t.kwork_id)},updateCartItems:function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:[];this.$set(window.bus.state,\"cartItems\",e)},changeKworkInCart:function(){var e,t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:0,n=arguments.length>1&&void 0!==arguments[1]&&arguments[1];if(!this.isPageBasket){var r=t||this.postId,i=n;if(!i)i=-1!==_.findIndex(this.cartItems,[\"PID\",r]);window.stateData.isKworkInCart=i&&(null===(e=window.stateData)||void 0===e||null===(e=e.kwork)||void 0===e?void 0:e.id)===r,this.emitGlobalEvent(\"change-is-kwork-in-cart\",r,i)}},cartUpdate:function(e){if(e.success&&!(this.cartUpdateTimeLast&&e.cart_upd_time&&this.cartUpdateTimeLast>=e.cart_upd_time)){e.cart_upd_time&&(this.cartUpdateTimeLast=e.cart_upd_time);var t=\"item_add\"===e.action,n=e.cartItems||[],r=_.isEqual(this.cartItems,n);this.isPageBasket&&Utils.isActiveWindow()&&!t||this.updateCartItems(n),r||this.$emit(\"update\",e.action),t&&this.updateLazyLoadImages()}},makeOrder:function(){var e=this;if(!this.isWaitingForResponse&&!this.isBlocked){var t={csrftoken:this.csrftoken};this.isWaitingForResponse=!0,axios.post(\"/api/cart/order\",t).then((function(t){var n=t.data;if(!1!==n.success||\"virtual_auth_denied\"!==n.error)if(checkResidentAccess(n)&&isShowBalancePopup(n))if(n.autoRedirectUrl)n.dataLayer?setTimeout((function(){window.location=n.autoRedirectUrl}),1e3):window.location=n.autoRedirectUrl;else{if(MessageState.checkCashlessPaymentError(n.error_code))return MessageState.showCashlessPaymentError(n.error),e.$emit(\"hide-cart\"),e.isWaitingForResponse=!1,e.$set(window.stateData,\"isKworkInCart\",!1),e.emitGlobalEvent(\"change-is-kwork-in-cart\",e.postId,!1),e.$emit(\"update\"),void e.updateCartItems();var r,i,o,a,"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/api/portfolio/hidelimitnotice",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/general_53afb6994141bf87.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 40531,
+              "methods_hint": [
+                "GET",
+                "POST"
+              ],
+              "params_hint": [
+                "String",
+                "eventMessage",
+                "key",
+                "value",
+                "os"
+              ],
+              "context": "(e){var o=function(e,o){if(\"object\"!=t(e)||!e)return e;var n=e[Symbol.toPrimitive];if(void 0!==n){var r=n.call(e,o||\"default\");if(\"object\"!=t(r))return r;throw new TypeError(\"@@toPrimitive must return a primitive value.\")}return(\"string\"===o?String:Number)(e)}(e,\"string\");return\"symbol\"==t(o)?o:String(o)}var r,i=function(){function t(){!function(t,e){if(!(t instanceof e))throw new TypeError(\"Cannot call a class as a function\")}(this,t),this.classes={eventMessage:\".js-event-message\"},this.notificationSound=new Audio(Utils.cdnBaseUrl(\"/js/libs/sounds/new_message.mp3\")),this.notificationSound.volume=.2}var o,n,r;return o=t,n=[{key:\"oldOs\",value:function(){var t=window.navigator.userAgent,e=[{os:/(Windows 8|Windows NT 6.2)/},{os:/(Windows XP|Windows NT 5.2)/},{os:/(Windows XP|Windows NT 5.1)/}];for(var o in e)e[o].os.test(t)&&document.body.classList.add(\"os-old\")}},{key:\"removeTmpLocalStorageVars\",value:function(){try{for(var t=0;t<window.localStorage.length;t+=1){var e=window.localStorage.key(t);e&&e.indexOf&&-1!==e.indexOf(\"tmp-\")&&window.localStorage.removeItem(e)}}catch(t){}}},{key:\"hidePortfolioLimitedNotice\",value:function(t){$(t).closest(this.classes.eventMessage).hide(),$.get(\"/api/portfolio/hidelimitnotice\")}},{key:\"hideTechnicalWorksNotification\",value:function(t){this.apiPostRequest(\"user/hidetechnicalworksnotification\"),$(t).closest(this.classes.eventMessage).hide()}},{key:\"clearPriceStr\",value:function(t){var e=t;return\"string\"==typeof e&&(e=e.replace(/\\s/g,\"\").replace(\",\",\".\")),e}},{key:\"checkDownloadFile\",value:function(){void 0!==window.downloadFile&&window.downloadFile&&window.signinSignup.showLogin(!0,(function(){window.location.href=window.downloadFile,setTimeout((function(){window.location.reload()}),5e3)}))}},{key:\"getGetParams\",value:function(){var t=w"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/api/portfolio/youtubelinkvalidate?url=",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 287433,
+              "methods_hint": [
+                "POST"
+              ],
+              "params_hint": [
+                "key",
+                "value",
+                "type",
+                "url",
+                "kwork_id",
+                "portfolio_id",
+                "success",
+                "error",
+                "complete",
+                "input"
+              ],
+              "context": "\"\")).length>0&&this.showBlockImages(),this.showError(this.block.find(\".\"+this.classes.imagesError),o),this.portfolioItem.backendErrors.images=[],this.portfolioItem.backendErrors.image=[],this.portfolioItem.backendErrors.videos=[],this.portfolioItem.backendErrors.video=[],this.portfolioItem.backendErrors.audios=[],this.portfolioItem.backendErrors.audio=[]}},{key:\"validateImagesFormat\",value:function(){var t=this,e=this.portfolio.images,i=this.sortableContainer.items;this.portfolioType===this.PORTFOLIO_TYPE_PHOTO&&_.forEach(e,(function(e){e.type===t.PORTFOLIO_TYPE_PDF&&e.id&&_.forEach(i,(function(t){var i;e.id===(null===(i=t.data)||void 0===i?void 0:i.id)&&t.onDelete()}))}))}},{key:\"getVideoErrors\",value:function(){if(this.portfolioType==this.PORTFOLIO_TYPE_VIDEO){var t=this.block.find(\".\"+this.classes.videos).find(\".\"+this.classes.fieldYoutube).find(\"input.input-error-portfolio\");t.length?this.errorFields.push(t):this.frontendErrors.videos=[]}}},{key:\"backendValidateVideos\",value:function(t){var e=this;this.markYoutubeFieldAsNeedValidation(t);var i=$(t),r=i.closest(\".\".concat(this.classes.fieldYoutube)),o=i.val().trim(),n=i.parent().find(\".portfolio-error\");$.ajax({type:\"POST\",url:\"/api/portfolio/youtubelinkvalidate?url=\"+o,data:{kwork_id:this.portfolio.kwork_id||null,portfolio_id:this.portfolio.id||null},success:function(t){t.success?(i.removeClass(e.classes.inputClassError),n.text(\"\"),r.removeClass(e.classes.fieldYoutubeErrorClass)):(i.addClass(e.classes.inputClassError),n.html(t.data),e.frontendErrors.videos.push(\"\"),r.addClass(e.classes.fieldYoutubeErrorClass))},error:function(t){},complete:function(){e.markYoutubeFieldAsNeedValidation(t,!1),e.getVideoErrors(),e.updateVideos(),e.updateYoutubeCover(!0)}})}},{key:\"setVideoError\",value:function(t){this.youtubeAddButtonI"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio_large/",
+      "hit_count": 2,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/portfolio-view-popup_328d46f11c4c806b.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 18562,
+              "methods_hint": [
+                "GET",
+                "POST"
+              ],
+              "params_hint": [
+                "type",
+                "url",
+                "dataType",
+                "isWebpAccepted",
+                "success",
+                "top",
+                "behavior",
+                "error",
+                "complete",
+                "display",
+                "javascript",
+                "right"
+              ],
+              "context": "se(),void ae()}W=$.ajax({type:\"POST\",url:e+t,dataType:\"html\",data:{isWebpAccepted:window.isWebpAccepted?1:0},success:function(e){var r,i,o;if(t,X&&(F=!0,nt(t,e,!0)),he(e,Boolean(n)),it(),rt(),ye(),null===(r=window.LazyLoad)||void 0===r||r.forceLoadImages($(\".\"+a).get(0)),Ve(),X&&(de(),Ie()),null===(i=(o=window).pauseMediaPlayers)||void 0===i||i.call(o),se(),n){var s=document.getElementById(\"portfolio-content-item-\".concat(n)),u=X?document.querySelector(\".portfolio-large\"):document.querySelector(\".popup-portfolio\");u&&s&&u.querySelector(\".content-item\")!==s&&setTimeout((function(){var e=s.getBoundingClientRect(),t=0;e.height>window.innerHeight&&(t=e.height-window.innerHeight+100),u.scrollTo({top:e.top+t,behavior:\"smooth\"})}),100);var l,c=null==s?void 0:s.querySelector(\"video\");if(c&&c.play(),s)_.forOwn(document.querySelectorAll(j),(function(e){var t;null===(t=e.querySelector(M))||void 0===t||t.removeAttribute(x)})),null===(l=s.querySelector(M))||void 0===l||l.setAttribute(x,\"true\")}ae()},error:function(){me()},complete:function(){W=null}})},le=function(e,t){if(null==e||null==e||\"\"==e)return!1;X&&$(\"body\").css(\"touch-action\",\"none\"),window.loadMoreXhr&&window.loadMoreXhr.abort(),ue(\"/portfolio_large/\",e,t)},ce=function(e,t){var n=$(e).find(\".js-content-item-pdf\").length>0,r=n?pe():\"\";if(X||$(\".\"+a).find(\".bg-overlay\").remove(),$(\".\"+a).length){$(\".\"+a).find(\".wrapper-content\").html(e);var i=$(\".\".concat(a)).find(\".\".concat(f));i.length>0&&(i.toggleClass(T,n),i.append(r)),Ve()}else{$(\"body\").append('\\n\\t\\t\\t\\t<div class=\"popup-portfolio portfolio_large\" style=\"display: none;\">\\n\\t\\t\\t\\t\\t<div class=\"popup-portfolio-content\">\\n\\t\\t\\t\\t\\t\\t<a href=\"javascript: window.portfolioCard.close();\" class=\"js-popup-close popup-portfolio__close\">\\n\\t\\t\\t\\t\\t\\t\\t<span class=\"popup-port"
+            },
+            {
+              "offset": 32328,
+              "methods_hint": [
+                "POST"
+              ],
+              "params_hint": [
+                "id",
+                "html",
+                "el",
+                "getPortfolio",
+                "getFirstPortfolio",
+                "close",
+                "next",
+                "prev",
+                "setAllIds",
+                "standAlone",
+                "isShowPortfolioEditField",
+                "setApiReady"
+              ],
+              "context": "f(ie>-1){var f=N.$content.data(\"left\"),d=(ie-ee[0].clientX)/t;if(d<0){var h=Math.max(f,d);Qe(N.$content,0,0,h)}else if(d>0){var p=N.$content.width(),m=(p*t-p)/t+f,v=Math.min(m,d);Qe(N.$content,0,0,v)}}re=ee[0].clientY,ie=ee[0].clientX}}),10),Qe=function(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:0,n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:0,r=arguments.length>3&&void 0!==arguments[3]?arguments[3]:0,i=e.data(\"scale\")-t,o=e.data(\"top\")-n,a=e.data(\"left\")-r;Xe(e,\"scale3d(\".concat(i,\", \").concat(i,\", \").concat(i,\") translate3d(\").concat(a,\"px, \").concat(o,\"px, 0)\")),e.data(\"scale\",i),e.data(\"top\",o),e.data(\"left\",a)},Xe=function(e,t){e.css(\"-webkit-transform\",t).css(\"transform\",t)},Ke=function(){var e=$(\".\"+h);e.data(\"scale\")<1&&(e.addClass(p),et(0,0,1),setTimeout((function(){e.removeClass(p)}),200))},et=function(e,t,n){N.$content.data(\"scale\",n),N.$content.data(\"left\",e),N.$content.data(\"top\",t),Xe(N.$content,\"scale3d(\".concat(n,\", \").concat(n,\", \").concat(n,\") translate3d(\").concat(e,\"px, \").concat(t,\"px, 0)\"))},tt=function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:0;!X||e<=0||(_.find(Z,(function(t){return t.id===e}))||$.post(\"/portfolio_large/\".concat(e)).success((function(t){nt(e,t)})))},nt=function(e,t){var n=arguments.length>2&&void 0!==arguments[2]&&arguments[2];Z.push({id:e,html:t}),n||setTimeout((function(){var e=$('<div class=\"hidden js-portfolio-card-preloaded\">'.concat(t,\"</div>\"));$(\"body\").append(e),setTimeout((function(){e.remove()}),100)}),0),Z.length>12&&Z.splice(0,1)},rt=function(){X&&K&&$(V).each((function(){var e=$(this);e.attr(\"src\",\"\".concat(e.attr(\"src\"),\"#t=0.001\")),e.attr(\"preload\",\"metadata\")}))},it=function(){var e=$(\".\".concat(a,\" .\").concat(f));if($(\".js-content-item-pdf\").length){e.addCla"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/log_portfolio_view",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/common-top_d0b9fc050a36cddd.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 15644,
+              "methods_hint": [
+                "POST"
+              ],
+              "params_hint": [
+                "paymentDetails",
+                "paymentUrl",
+                "isWorkerSelfEmployed",
+                "isYoomoneyLocked",
+                "isBalanceCancelRefillRestricted",
+                "portfolio_video_id",
+                "view_type",
+                "nl2p",
+                "stripslashes",
+                "default",
+                "shortDigit",
+                "getServerTime",
+                "declOfNum",
+                "numberFormat"
+              ],
+              "context": "nt,paymentDetails:null==t||null===(o=t.paymentData)||void 0===o?void 0:o.paymentDetails,paymentUrl:null==t||null===(i=t.paymentData)||void 0===i?void 0:i.paymentUrl,isWorkerSelfEmployed:t.isWorkerSelfEmployed,isYoomoneyLocked:t.isYoomoneyLocked,isBalanceCancelRefillRestricted:t.isBalanceCancelRefillRestricted||!1}),!1)},window.removeSpaces=function(t){return t.replace(/&[a-z]+;/gi,\" \").replace(/\\s+/gi,\" \").trim()},window.checkRuLangString=function(t,e){var r,n=0,o=0;return(r=t.replace(/[\\d.,;:\\/'\"<>\\?\\!@#\\$\\%\\^\\&\\*\\(\\)\\[\\]\\{\\}\\|\\_\\+\\=\\-\\s]/gi,\"\"))&&(n=r.length),(r=t.match(/[а-яё]/gi))&&(o=r.length),(o=o/n*100)>=e},window.checkEnglishLang=function(t){var e=t;if(t.length>0){var r=(e=e.replace(\"&nbsp;\",\"\").replace(/\\s/g,\"\")).match(/[a-zA-Z0-9.,“_№|+=$!?@#:;%^&*()\\-[\\]{}<>~`'\"\\\\/]/g);if(null===r&&e||r&&100*r.length/e.length<85)return!0}return!1},window.pauseMediaPlayers=function(){var t,e,r=arguments.length>0&&void 0!==arguments[0]?arguments[0]:\"\";arguments.length>1&&void 0!==arguments[1]&&!arguments[1]||(null===(t=(e=window).pauseKworkCardMedia)||void 0===t||t.call(e));window.lastMediaPlayerKey=r,window.bus.$emit(\"pause-media-player\")},window.logVideoViewing=function(t,e){axios.post(\"/portfolio/log_portfolio_view\",{portfolio_video_id:t,view_type:e}).catch((function(){}))}},65963:function(){var t,e,r,n,o;window.Utils=(t=!1,e=Math.floor(Date.now()/1e3)-window.serverTime,r=null,n=null,o=null,{nl2p:function(t){return\"<p>\"+t.replace(/\\r?\\n/g,\"</p><p>\",t)+\"</p>\"},stripslashes:function(t){return(t+\"\").replace(/\\\\(.?)/g,(function(t,e){switch(e){case\"\\\\\":return\"\\\\\";case\"0\":return\"\\0\";case\"\":return\"\";default:return e}}))},shortDigit:function(t){var e=arguments.length>1&&void 0!==arguments[1]&&arguments[1],r=parseInt(t),n=e?\"+\":\"\";return r>=1e6?\"\".concat(Math.floor(r/1e6),\"M\").concat"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/add",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 292989,
+              "methods_hint": [
+                "DELETE",
+                "POST"
+              ],
+              "params_hint": [
+                "key",
+                "value",
+                "portfolio"
+              ],
+              "context": "200)}}},{key:\"save\",value:function(){var t=this,e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];this.errorFields=[],this.updateAll();var i=!1;if(!1===e){this.validateAll(!0);var r=!this.isResolutionValid||!1;if($.each(this.errorFields,(function(e,o){o.length>0&&(!!o.selector.includes(t.classes.fieldYoutube)||(i=!0),r=!0)})),r)return this.portfolioType==this.PORTFOLIO_TYPE_PHOTO?i?this.showBlockImages():this.showBlockVideos():this.portfolioType==this.PORTFOLIO_TYPE_VIDEO&&this.showBlockVideos(),void this.moveToError()}this.errorFields.length||(this.portfolioItem.html.removeClass(\"error\"),this.portfolioItem.html.removeClass(\"rejected-error\"),this.portfolioItem.html.find(\".draggable-block_error\").text(\"\"));var o=this.getImgCropper();if(o&&(this.portfolio.cover.url=o),this.portfolio.cover.type!=this.COVER_IMAGE_TYPE_VIDEO&&delete this.portfolio.cover.urlFromVideo,this.page===this.PAGE_KWORK)this.saveSucess(e);else{this.setDefaultTitle(),this._lockSaveBtn(),this.coverUrlBig=this.portfolio.cover.urlBig;var n=this.portfolioItem.getData(this.portfolio);if(this.orderId&&(n.order_id=this.orderId),this.lastPortfolioData=n,delete n.coverUrlBig,this.xhr)return;this.xhr=!0,axios.post(\"/portfolio/add\",{portfolio:n}).then((function(e){var i=e.data;if(i.success){if(1==t.reloadAfterSave)return void(window.location=window.location.href);t.page!=t.PAGE_ORDER||t.portfolio.id?t.page==t.PAGE_MY_PORTFOLIO?window.bus.$emit(\"update-portfolio-card\",i.data.id,!t.portfolio.id):t.saveSucess():window.location=window.location.href,t.xhr=!1}else i.data.forEach((function(e){e.target===t.PORTFOLIO_TYPE_VIDEO&&t.portfolio.images.forEach((function(t,i){t.id===e.id&&(e.position=i)}))})),t.portfolioItem.applyErrors(i.data),t.validateAll(),t.moveToError(),t._unlockSaveBtn()})).catch((function(){}))."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/upload_image",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 168781,
+              "methods_hint": [],
+              "params_hint": [
+                "portfolioModalEdit",
+                "image",
+                "type",
+                "mimeTypes",
+                "maxFileSize",
+                "uploadEndpoint",
+                "uploadEntityType",
+                "isCheckType",
+                "checkThumbnailReady",
+                "video",
+                "maxDuration",
+                "pdf",
+                "audio",
+                "minDuration",
+                "head",
+                "tail",
+                "bigFileSizeVideo",
+                "size"
+              ],
+              "context": "le=null,this.postData={},this.aborted=!1,this.maxFileSize=null,this.minFileSize=30720,this.minImageWidth=660,this.minImageHeight=440,this.maxImageWidth=6e3,this.maxImageHeight=1e4,this.mimeTypes=null,this.isVueModalsPortfolioModal=window.stateData.isVueModalsFocusGroup&&(null===(e=window.appPortfolioModalEdit)||void 0===e||null===(e=e.$refs)||void 0===e?void 0:e.portfolioModalEdit)||!1,this.portfolioListModal=this.isVueModalsPortfolioModal?window.appPortfolioModalEdit.$refs.portfolioModalEdit:null===(i=window.portfolioList)||void 0===i?void 0:i.modal,this.isAlternateUploadMethodEnabled=(null===(o=window.stateData)||void 0===o?void 0:o.isAlternateUploadMethodEnabled)||!1,this.uploadEntityType=null,this.minVideoResolution=null,this.onError=function(){},r?this.input=r:((r=$('<input type=\"file\" class=\"d-none\" />')).prependTo(\"body\"),this.input=r,this.input.on(\"change\",(function(t){$(t.target).data(\"loadHandler\").fileUpload(t)}))),this.fileTypes={image:{type:\"image\",mimeTypes:{\"image/jpeg\":[\"jpg\",\"jpeg\"],\"image/gif\":[\"gif\"],\"image/png\":[\"png\"],\"image/webp\":[\"webp\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_image\":\"/portfolio/upload_image\",uploadEntityType:4,isCheckType:!1,checkThumbnailReady:\"/portfolio/check_gif_thumbnail_ready\"},video:{type:\"video\",mimeTypes:{\"video/mp4\":[\"mp4\"],\"video/avi\":[\"avi\"],\"video/x-msvideo\":[\"avi\"],\"video/quicktime\":[\"mov\"],\"video/mov\":[\"mov\"]},maxFileSize:t.convertFileSize(50),maxDuration:75,uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_video\":\"/portfolio/upload_video\",uploadEntityType:10,checkThumbnailReady:\"/portfolio/check_video_thumbnail_ready\"},pdf:{type:\"pdf\",mimeTypes:{\"application/pdf\":[\"pdf\"]},maxFileSize:t.convertFileSize(10),uploa"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/upload_video",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 169181,
+              "methods_hint": [],
+              "params_hint": [
+                "portfolioModalEdit",
+                "image",
+                "type",
+                "mimeTypes",
+                "maxFileSize",
+                "uploadEndpoint",
+                "uploadEntityType",
+                "isCheckType",
+                "checkThumbnailReady",
+                "video",
+                "maxDuration",
+                "pdf",
+                "audio",
+                "minDuration",
+                "head",
+                "tail",
+                "bigFileSizeVideo",
+                "size",
+                "bigFileSize",
+                "smallFilesize",
+                "incorrectType",
+                "incorrectTypePdf"
+              ],
+              "context": "lioListModal=this.isVueModalsPortfolioModal?window.appPortfolioModalEdit.$refs.portfolioModalEdit:null===(i=window.portfolioList)||void 0===i?void 0:i.modal,this.isAlternateUploadMethodEnabled=(null===(o=window.stateData)||void 0===o?void 0:o.isAlternateUploadMethodEnabled)||!1,this.uploadEntityType=null,this.minVideoResolution=null,this.onError=function(){},r?this.input=r:((r=$('<input type=\"file\" class=\"d-none\" />')).prependTo(\"body\"),this.input=r,this.input.on(\"change\",(function(t){$(t.target).data(\"loadHandler\").fileUpload(t)}))),this.fileTypes={image:{type:\"image\",mimeTypes:{\"image/jpeg\":[\"jpg\",\"jpeg\"],\"image/gif\":[\"gif\"],\"image/png\":[\"png\"],\"image/webp\":[\"webp\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_image\":\"/portfolio/upload_image\",uploadEntityType:4,isCheckType:!1,checkThumbnailReady:\"/portfolio/check_gif_thumbnail_ready\"},video:{type:\"video\",mimeTypes:{\"video/mp4\":[\"mp4\"],\"video/avi\":[\"avi\"],\"video/x-msvideo\":[\"avi\"],\"video/quicktime\":[\"mov\"],\"video/mov\":[\"mov\"]},maxFileSize:t.convertFileSize(50),maxDuration:75,uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_video\":\"/portfolio/upload_video\",uploadEntityType:10,checkThumbnailReady:\"/portfolio/check_video_thumbnail_ready\"},pdf:{type:\"pdf\",mimeTypes:{\"application/pdf\":[\"pdf\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:\"/portfolio/upload_pdf\"},audio:{type:\"audio\",mimeTypes:{\"audio/mpeg\":[\"mp3\"]},maxFileSize:t.convertFileSize(10),minDuration:3,maxDuration:210,uploadEndpoint:\"/portfolio/upload_audio\",checkThumbnailReady:\"/portfolio/check_audio_ready\"}},this.fileHeaders={\"application/pdf\":[\"25504446\"],\"audio/mpeg\":[\"49443304\",\"49443303\"],\"image/gif\":[\"47494638\"],\"image/jpeg\":[\"ffd8ffe0\",\"ffd8ffe1\",\"ffd8ff"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/upload_audio",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 169549,
+              "methods_hint": [],
+              "params_hint": [
+                "image",
+                "type",
+                "mimeTypes",
+                "maxFileSize",
+                "uploadEndpoint",
+                "uploadEntityType",
+                "isCheckType",
+                "checkThumbnailReady",
+                "video",
+                "maxDuration",
+                "pdf",
+                "audio",
+                "minDuration",
+                "head",
+                "tail",
+                "bigFileSizeVideo",
+                "size",
+                "bigFileSize",
+                "smallFilesize",
+                "incorrectType",
+                "incorrectTypePdf",
+                "incorrectTypeCover",
+                "mediaBroken",
+                "bigFileSizeAudio",
+                "incorrectTypeAudio"
+              ],
+              "context": "input=r:((r=$('<input type=\"file\" class=\"d-none\" />')).prependTo(\"body\"),this.input=r,this.input.on(\"change\",(function(t){$(t.target).data(\"loadHandler\").fileUpload(t)}))),this.fileTypes={image:{type:\"image\",mimeTypes:{\"image/jpeg\":[\"jpg\",\"jpeg\"],\"image/gif\":[\"gif\"],\"image/png\":[\"png\"],\"image/webp\":[\"webp\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_image\":\"/portfolio/upload_image\",uploadEntityType:4,isCheckType:!1,checkThumbnailReady:\"/portfolio/check_gif_thumbnail_ready\"},video:{type:\"video\",mimeTypes:{\"video/mp4\":[\"mp4\"],\"video/avi\":[\"avi\"],\"video/x-msvideo\":[\"avi\"],\"video/quicktime\":[\"mov\"],\"video/mov\":[\"mov\"]},maxFileSize:t.convertFileSize(50),maxDuration:75,uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_video\":\"/portfolio/upload_video\",uploadEntityType:10,checkThumbnailReady:\"/portfolio/check_video_thumbnail_ready\"},pdf:{type:\"pdf\",mimeTypes:{\"application/pdf\":[\"pdf\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:\"/portfolio/upload_pdf\"},audio:{type:\"audio\",mimeTypes:{\"audio/mpeg\":[\"mp3\"]},maxFileSize:t.convertFileSize(10),minDuration:3,maxDuration:210,uploadEndpoint:\"/portfolio/upload_audio\",checkThumbnailReady:\"/portfolio/check_audio_ready\"}},this.fileHeaders={\"application/pdf\":[\"25504446\"],\"audio/mpeg\":[\"49443304\",\"49443303\"],\"image/gif\":[\"47494638\"],\"image/jpeg\":[\"ffd8ffe0\",\"ffd8ffe1\",\"ffd8ffe2\",\"ffd8ffe3\",\"ffd8ffe8\",\"ffd8ffdb\"],\"image/png\":[\"89504e47\"],\"image/webp\":{head:\"52494646\",tail:\"57454250\"},\"video/avi\":[\"41564920\",\"52494646\"],\"video/mov\":[\"6D6F6F76\",\"00000014\"],\"video/mp4\":[\"00000018\",\"00000020\",\"0000001c\"]},this.currentFileHeader=\"\",this.errors={bigFileSizeVideo:l(\"maxSizeExceeded\",\"components/file-uploader/file-uploader\",{size:t.convertFileSi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/upload_pdf",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 169392,
+              "methods_hint": [],
+              "params_hint": [
+                "image",
+                "type",
+                "mimeTypes",
+                "maxFileSize",
+                "uploadEndpoint",
+                "uploadEntityType",
+                "isCheckType",
+                "checkThumbnailReady",
+                "video",
+                "maxDuration",
+                "pdf",
+                "audio",
+                "minDuration",
+                "head",
+                "tail",
+                "bigFileSizeVideo",
+                "size",
+                "bigFileSize",
+                "smallFilesize",
+                "incorrectType",
+                "incorrectTypePdf",
+                "incorrectTypeCover",
+                "mediaBroken",
+                "bigFileSizeAudio"
+              ],
+              "context": "stateData)||void 0===o?void 0:o.isAlternateUploadMethodEnabled)||!1,this.uploadEntityType=null,this.minVideoResolution=null,this.onError=function(){},r?this.input=r:((r=$('<input type=\"file\" class=\"d-none\" />')).prependTo(\"body\"),this.input=r,this.input.on(\"change\",(function(t){$(t.target).data(\"loadHandler\").fileUpload(t)}))),this.fileTypes={image:{type:\"image\",mimeTypes:{\"image/jpeg\":[\"jpg\",\"jpeg\"],\"image/gif\":[\"gif\"],\"image/png\":[\"png\"],\"image/webp\":[\"webp\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_image\":\"/portfolio/upload_image\",uploadEntityType:4,isCheckType:!1,checkThumbnailReady:\"/portfolio/check_gif_thumbnail_ready\"},video:{type:\"video\",mimeTypes:{\"video/mp4\":[\"mp4\"],\"video/avi\":[\"avi\"],\"video/x-msvideo\":[\"avi\"],\"video/quicktime\":[\"mov\"],\"video/mov\":[\"mov\"]},maxFileSize:t.convertFileSize(50),maxDuration:75,uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_video\":\"/portfolio/upload_video\",uploadEntityType:10,checkThumbnailReady:\"/portfolio/check_video_thumbnail_ready\"},pdf:{type:\"pdf\",mimeTypes:{\"application/pdf\":[\"pdf\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:\"/portfolio/upload_pdf\"},audio:{type:\"audio\",mimeTypes:{\"audio/mpeg\":[\"mp3\"]},maxFileSize:t.convertFileSize(10),minDuration:3,maxDuration:210,uploadEndpoint:\"/portfolio/upload_audio\",checkThumbnailReady:\"/portfolio/check_audio_ready\"}},this.fileHeaders={\"application/pdf\":[\"25504446\"],\"audio/mpeg\":[\"49443304\",\"49443303\"],\"image/gif\":[\"47494638\"],\"image/jpeg\":[\"ffd8ffe0\",\"ffd8ffe1\",\"ffd8ffe2\",\"ffd8ffe3\",\"ffd8ffe8\",\"ffd8ffdb\"],\"image/png\":[\"89504e47\"],\"image/webp\":{head:\"52494646\",tail:\"57454250\"},\"video/avi\":[\"41564920\",\"52494646\"],\"video/mov\":[\"6D6F6F76\",\"00000014\"],\"video/mp4\":[\"00000018\",\"0000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/alternate_upload_cover",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 248307,
+              "methods_hint": [],
+              "params_hint": [
+                "urlBig",
+                "key",
+                "value",
+                "COVER_IMAGE_TYPE_DEFAULT_AUDIO",
+                "isMiniature",
+                "validator"
+              ],
+              "context": "eo-converting\"))&&(r=!0)}t.updateCoverMini(),t.portfolioItem.backendErrors.cover=[],t.validateCountVideos(),(i&&r||(!t.portfolio.cover.urlBig||t.portfolio.cover.urlDefault!==t.portfolio.cover.urlBig&&1===t.portfolio.images.length||!_.find(t.portfolio.images,{urlBig:t.portfolio.cover.urlBig}))&&e.data.type!==t.COVER_IMAGE_TYPE_VIDEO&&(e.data.type!==t.videoCoverType||!t.portfolio.cover.urlBig))&&(t.updateCoverUrl(e.data.urlBig),t.updateCoverIdPortfolioImage(e.data.id),t.updateCoverBlock(),t.portfolio.cover.type=t.COVER_IMAGE_TYPE_IMAGE),t.setCoverMiniSelected(t.portfolio.cover.url)}},this.sortableContainer.onDelete=function(e){t.setIgnoredHashes(e.data||{}),t.updateMedia(),t.setActiveSaveButton(),t.validateCountVideos(),t.selectRandomCover(e.data.urlBig)}}},{key:\"getDefaultCoverType\",value:function(t){return t===this.COVER_IMAGE_TYPE_DEFAULT_AUDIO?this.COVER_IMAGE_TYPE_DEFAULT_AUDIO:this.COVER_IMAGE_TYPE_UPLOAD}},{key:\"initCover\",value:function(){var t,e=this;this.coverUploader=new p.Z({isMiniature:!0}),this.coverUploader.postData={validator:\"KworkCover\"},this.coverUploader.type=\"cover\",this.coverUploader.url=null!==(t=window.stateData)&&void 0!==t&&t.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_cover\":\"/temp-image-upload\",this.coverUploader.fileName=\"file\",this.coverUploader.maxSize=10485760,this.coverUploader.minImageWidth=this.defaultImageUploadResolution.width,this.coverUploader.minImageHeight=this.defaultImageUploadResolution.height,this.coverUploader.maxImageWidth=6e3,this.coverUploader.maxImageHeight=1e4,this.coverUploader.mimeTypes=[\"image/jpeg\",\"image/png\",\"image/gif\",\"image/webp\"],this.coverUploader.errors.unknown=l(\"errorTryAgain\",\"components/portfolio/portfolio-modal-edit\"),this.coverUploader.onError=function(t){e.hideCoverProgress(),e._unlockSa"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/alternate_upload_image",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 168745,
+              "methods_hint": [],
+              "params_hint": [
+                "portfolioModalEdit",
+                "image",
+                "type",
+                "mimeTypes",
+                "maxFileSize",
+                "uploadEndpoint",
+                "uploadEntityType",
+                "isCheckType",
+                "checkThumbnailReady",
+                "video",
+                "maxDuration",
+                "pdf",
+                "audio",
+                "minDuration",
+                "head",
+                "tail",
+                "bigFileSizeVideo",
+                "size"
+              ],
+              "context": "url=\"/\",this.fileName=\"file\",this.file=null,this.postData={},this.aborted=!1,this.maxFileSize=null,this.minFileSize=30720,this.minImageWidth=660,this.minImageHeight=440,this.maxImageWidth=6e3,this.maxImageHeight=1e4,this.mimeTypes=null,this.isVueModalsPortfolioModal=window.stateData.isVueModalsFocusGroup&&(null===(e=window.appPortfolioModalEdit)||void 0===e||null===(e=e.$refs)||void 0===e?void 0:e.portfolioModalEdit)||!1,this.portfolioListModal=this.isVueModalsPortfolioModal?window.appPortfolioModalEdit.$refs.portfolioModalEdit:null===(i=window.portfolioList)||void 0===i?void 0:i.modal,this.isAlternateUploadMethodEnabled=(null===(o=window.stateData)||void 0===o?void 0:o.isAlternateUploadMethodEnabled)||!1,this.uploadEntityType=null,this.minVideoResolution=null,this.onError=function(){},r?this.input=r:((r=$('<input type=\"file\" class=\"d-none\" />')).prependTo(\"body\"),this.input=r,this.input.on(\"change\",(function(t){$(t.target).data(\"loadHandler\").fileUpload(t)}))),this.fileTypes={image:{type:\"image\",mimeTypes:{\"image/jpeg\":[\"jpg\",\"jpeg\"],\"image/gif\":[\"gif\"],\"image/png\":[\"png\"],\"image/webp\":[\"webp\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_image\":\"/portfolio/upload_image\",uploadEntityType:4,isCheckType:!1,checkThumbnailReady:\"/portfolio/check_gif_thumbnail_ready\"},video:{type:\"video\",mimeTypes:{\"video/mp4\":[\"mp4\"],\"video/avi\":[\"avi\"],\"video/x-msvideo\":[\"avi\"],\"video/quicktime\":[\"mov\"],\"video/mov\":[\"mov\"]},maxFileSize:t.convertFileSize(50),maxDuration:75,uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_video\":\"/portfolio/upload_video\",uploadEntityType:10,checkThumbnailReady:\"/portfolio/check_video_thumbnail_ready\"},pdf:{type:\"pdf\",mimeTypes:{\"application/pdf\":[\"pdf\"]},max"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/alternate_upload_video",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 169145,
+              "methods_hint": [],
+              "params_hint": [
+                "portfolioModalEdit",
+                "image",
+                "type",
+                "mimeTypes",
+                "maxFileSize",
+                "uploadEndpoint",
+                "uploadEntityType",
+                "isCheckType",
+                "checkThumbnailReady",
+                "video",
+                "maxDuration",
+                "pdf",
+                "audio",
+                "minDuration",
+                "head",
+                "tail",
+                "bigFileSizeVideo",
+                "size",
+                "bigFileSize",
+                "smallFilesize",
+                "incorrectType",
+                "incorrectTypePdf"
+              ],
+              "context": ".portfolioModalEdit)||!1,this.portfolioListModal=this.isVueModalsPortfolioModal?window.appPortfolioModalEdit.$refs.portfolioModalEdit:null===(i=window.portfolioList)||void 0===i?void 0:i.modal,this.isAlternateUploadMethodEnabled=(null===(o=window.stateData)||void 0===o?void 0:o.isAlternateUploadMethodEnabled)||!1,this.uploadEntityType=null,this.minVideoResolution=null,this.onError=function(){},r?this.input=r:((r=$('<input type=\"file\" class=\"d-none\" />')).prependTo(\"body\"),this.input=r,this.input.on(\"change\",(function(t){$(t.target).data(\"loadHandler\").fileUpload(t)}))),this.fileTypes={image:{type:\"image\",mimeTypes:{\"image/jpeg\":[\"jpg\",\"jpeg\"],\"image/gif\":[\"gif\"],\"image/png\":[\"png\"],\"image/webp\":[\"webp\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_image\":\"/portfolio/upload_image\",uploadEntityType:4,isCheckType:!1,checkThumbnailReady:\"/portfolio/check_gif_thumbnail_ready\"},video:{type:\"video\",mimeTypes:{\"video/mp4\":[\"mp4\"],\"video/avi\":[\"avi\"],\"video/x-msvideo\":[\"avi\"],\"video/quicktime\":[\"mov\"],\"video/mov\":[\"mov\"]},maxFileSize:t.convertFileSize(50),maxDuration:75,uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_video\":\"/portfolio/upload_video\",uploadEntityType:10,checkThumbnailReady:\"/portfolio/check_video_thumbnail_ready\"},pdf:{type:\"pdf\",mimeTypes:{\"application/pdf\":[\"pdf\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:\"/portfolio/upload_pdf\"},audio:{type:\"audio\",mimeTypes:{\"audio/mpeg\":[\"mp3\"]},maxFileSize:t.convertFileSize(10),minDuration:3,maxDuration:210,uploadEndpoint:\"/portfolio/upload_audio\",checkThumbnailReady:\"/portfolio/check_audio_ready\"}},this.fileHeaders={\"application/pdf\":[\"25504446\"],\"audio/mpeg\":[\"49443304\",\"49443303\"],\"image/gif\":[\"47494638\"],\"image/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/check_audio_ready",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 169595,
+              "methods_hint": [],
+              "params_hint": [
+                "image",
+                "type",
+                "mimeTypes",
+                "maxFileSize",
+                "uploadEndpoint",
+                "uploadEntityType",
+                "isCheckType",
+                "checkThumbnailReady",
+                "video",
+                "maxDuration",
+                "pdf",
+                "audio",
+                "minDuration",
+                "head",
+                "tail",
+                "bigFileSizeVideo",
+                "size",
+                "bigFileSize",
+                "smallFilesize",
+                "incorrectType",
+                "incorrectTypePdf",
+                "incorrectTypeCover",
+                "mediaBroken",
+                "bigFileSizeAudio",
+                "incorrectTypeAudio"
+              ],
+              "context": "e\" />')).prependTo(\"body\"),this.input=r,this.input.on(\"change\",(function(t){$(t.target).data(\"loadHandler\").fileUpload(t)}))),this.fileTypes={image:{type:\"image\",mimeTypes:{\"image/jpeg\":[\"jpg\",\"jpeg\"],\"image/gif\":[\"gif\"],\"image/png\":[\"png\"],\"image/webp\":[\"webp\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_image\":\"/portfolio/upload_image\",uploadEntityType:4,isCheckType:!1,checkThumbnailReady:\"/portfolio/check_gif_thumbnail_ready\"},video:{type:\"video\",mimeTypes:{\"video/mp4\":[\"mp4\"],\"video/avi\":[\"avi\"],\"video/x-msvideo\":[\"avi\"],\"video/quicktime\":[\"mov\"],\"video/mov\":[\"mov\"]},maxFileSize:t.convertFileSize(50),maxDuration:75,uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_video\":\"/portfolio/upload_video\",uploadEntityType:10,checkThumbnailReady:\"/portfolio/check_video_thumbnail_ready\"},pdf:{type:\"pdf\",mimeTypes:{\"application/pdf\":[\"pdf\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:\"/portfolio/upload_pdf\"},audio:{type:\"audio\",mimeTypes:{\"audio/mpeg\":[\"mp3\"]},maxFileSize:t.convertFileSize(10),minDuration:3,maxDuration:210,uploadEndpoint:\"/portfolio/upload_audio\",checkThumbnailReady:\"/portfolio/check_audio_ready\"}},this.fileHeaders={\"application/pdf\":[\"25504446\"],\"audio/mpeg\":[\"49443304\",\"49443303\"],\"image/gif\":[\"47494638\"],\"image/jpeg\":[\"ffd8ffe0\",\"ffd8ffe1\",\"ffd8ffe2\",\"ffd8ffe3\",\"ffd8ffe8\",\"ffd8ffdb\"],\"image/png\":[\"89504e47\"],\"image/webp\":{head:\"52494646\",tail:\"57454250\"},\"video/avi\":[\"41564920\",\"52494646\"],\"video/mov\":[\"6D6F6F76\",\"00000014\"],\"video/mp4\":[\"00000018\",\"00000020\",\"0000001c\"]},this.currentFileHeader=\"\",this.errors={bigFileSizeVideo:l(\"maxSizeExceeded\",\"components/file-uploader/file-uploader\",{size:t.convertFileSize(this.fileTypes.video.maxFileSize,!1)}),bigF"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/check_video_thumbnail_ready",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 169247,
+              "methods_hint": [],
+              "params_hint": [
+                "portfolioModalEdit",
+                "image",
+                "type",
+                "mimeTypes",
+                "maxFileSize",
+                "uploadEndpoint",
+                "uploadEntityType",
+                "isCheckType",
+                "checkThumbnailReady",
+                "video",
+                "maxDuration",
+                "pdf",
+                "audio",
+                "minDuration",
+                "head",
+                "tail",
+                "bigFileSizeVideo",
+                "size",
+                "bigFileSize",
+                "smallFilesize",
+                "incorrectType",
+                "incorrectTypePdf",
+                "incorrectTypeCover"
+              ],
+              "context": "alEdit.$refs.portfolioModalEdit:null===(i=window.portfolioList)||void 0===i?void 0:i.modal,this.isAlternateUploadMethodEnabled=(null===(o=window.stateData)||void 0===o?void 0:o.isAlternateUploadMethodEnabled)||!1,this.uploadEntityType=null,this.minVideoResolution=null,this.onError=function(){},r?this.input=r:((r=$('<input type=\"file\" class=\"d-none\" />')).prependTo(\"body\"),this.input=r,this.input.on(\"change\",(function(t){$(t.target).data(\"loadHandler\").fileUpload(t)}))),this.fileTypes={image:{type:\"image\",mimeTypes:{\"image/jpeg\":[\"jpg\",\"jpeg\"],\"image/gif\":[\"gif\"],\"image/png\":[\"png\"],\"image/webp\":[\"webp\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_image\":\"/portfolio/upload_image\",uploadEntityType:4,isCheckType:!1,checkThumbnailReady:\"/portfolio/check_gif_thumbnail_ready\"},video:{type:\"video\",mimeTypes:{\"video/mp4\":[\"mp4\"],\"video/avi\":[\"avi\"],\"video/x-msvideo\":[\"avi\"],\"video/quicktime\":[\"mov\"],\"video/mov\":[\"mov\"]},maxFileSize:t.convertFileSize(50),maxDuration:75,uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_video\":\"/portfolio/upload_video\",uploadEntityType:10,checkThumbnailReady:\"/portfolio/check_video_thumbnail_ready\"},pdf:{type:\"pdf\",mimeTypes:{\"application/pdf\":[\"pdf\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:\"/portfolio/upload_pdf\"},audio:{type:\"audio\",mimeTypes:{\"audio/mpeg\":[\"mp3\"]},maxFileSize:t.convertFileSize(10),minDuration:3,maxDuration:210,uploadEndpoint:\"/portfolio/upload_audio\",checkThumbnailReady:\"/portfolio/check_audio_ready\"}},this.fileHeaders={\"application/pdf\":[\"25504446\"],\"audio/mpeg\":[\"49443304\",\"49443303\"],\"image/gif\":[\"47494638\"],\"image/jpeg\":[\"ffd8ffe0\",\"ffd8ffe1\",\"ffd8ffe2\",\"ffd8ffe3\",\"ffd8ffe8\",\"ffd8ffdb\"],\"image/png\":[\"89504e47\"],\"im"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portfolio/check_gif_thumbnail_ready",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/projects-list-dcl_da5019ded2a9f9c2.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 168861,
+              "methods_hint": [],
+              "params_hint": [
+                "portfolioModalEdit",
+                "image",
+                "type",
+                "mimeTypes",
+                "maxFileSize",
+                "uploadEndpoint",
+                "uploadEntityType",
+                "isCheckType",
+                "checkThumbnailReady",
+                "video",
+                "maxDuration",
+                "pdf",
+                "audio",
+                "minDuration",
+                "head",
+                "tail",
+                "bigFileSizeVideo",
+                "size",
+                "bigFileSize"
+              ],
+              "context": "30720,this.minImageWidth=660,this.minImageHeight=440,this.maxImageWidth=6e3,this.maxImageHeight=1e4,this.mimeTypes=null,this.isVueModalsPortfolioModal=window.stateData.isVueModalsFocusGroup&&(null===(e=window.appPortfolioModalEdit)||void 0===e||null===(e=e.$refs)||void 0===e?void 0:e.portfolioModalEdit)||!1,this.portfolioListModal=this.isVueModalsPortfolioModal?window.appPortfolioModalEdit.$refs.portfolioModalEdit:null===(i=window.portfolioList)||void 0===i?void 0:i.modal,this.isAlternateUploadMethodEnabled=(null===(o=window.stateData)||void 0===o?void 0:o.isAlternateUploadMethodEnabled)||!1,this.uploadEntityType=null,this.minVideoResolution=null,this.onError=function(){},r?this.input=r:((r=$('<input type=\"file\" class=\"d-none\" />')).prependTo(\"body\"),this.input=r,this.input.on(\"change\",(function(t){$(t.target).data(\"loadHandler\").fileUpload(t)}))),this.fileTypes={image:{type:\"image\",mimeTypes:{\"image/jpeg\":[\"jpg\",\"jpeg\"],\"image/gif\":[\"gif\"],\"image/png\":[\"png\"],\"image/webp\":[\"webp\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_image\":\"/portfolio/upload_image\",uploadEntityType:4,isCheckType:!1,checkThumbnailReady:\"/portfolio/check_gif_thumbnail_ready\"},video:{type:\"video\",mimeTypes:{\"video/mp4\":[\"mp4\"],\"video/avi\":[\"avi\"],\"video/x-msvideo\":[\"avi\"],\"video/quicktime\":[\"mov\"],\"video/mov\":[\"mov\"]},maxFileSize:t.convertFileSize(50),maxDuration:75,uploadEndpoint:this.isAlternateUploadMethodEnabled?\"/portfolio/alternate_upload_video\":\"/portfolio/upload_video\",uploadEntityType:10,checkThumbnailReady:\"/portfolio/check_video_thumbnail_ready\"},pdf:{type:\"pdf\",mimeTypes:{\"application/pdf\":[\"pdf\"]},maxFileSize:t.convertFileSize(10),uploadEndpoint:\"/portfolio/upload_pdf\"},audio:{type:\"audio\",mimeTypes:{\"audio/mpeg\":["
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/catalog_kworks_filters/",
+      "hit_count": 1,
+      "sources": [
+        {
+          "source": "https://cdn-edge.kwork.ru/js/dist/categories_1ec4faddf72458ff.js?ver=33_cors",
+          "occurrences": [
+            {
+              "offset": 638470,
+              "methods_hint": [
+                "DELETE"
+              ],
+              "params_hint": [
+                "updateCatalogParams",
+                "kworksAll",
+                "aliasWithFilterPostParams",
+                "excludeIds",
+                "onePage",
+                "isHidden",
+                "showMoreCount",
+                "getAliasWithFilterParamsPostFormData"
+              ],
+              "context": "tion(){var t;null===(t=window.LazyLoad)||void 0===t||t.loadCards(),this.updateClassCard()},updateCatalogParams:function(){this.$set(window.bus.state,\"catalogFilterParams\",{}),_.merge(this.catalogFilterParams,this.catalogParams,this.filterResponseData,{kworksAll:this.kworks}),this.$set(window.bus.state,\"catalogFilterParams\",this.catalogFilterParams)},aliasWithFilterPostParams:function(t){var e,i=this,r=this.loadingReplaceHiddenKwork,n=this.catalogAlias,s=this.implodeCatalogUrl(this.extParams,!1),o={},a={excludeIds:this.getExcludedKworks(),onePage:1};if(t||this.isSearchPage?e=en({},this.extParams):this.commonRenderParams.requestParamsString&&(e=_.fromPairs(this.commonRenderParams.requestParamsString.split(\"&\").map((function(t){return t.split(\"=\")})))),r&&(o=en(en({},a),{},{isHidden:1})),this.isSearchPage&&!this.isLandingPage)return this.aliasWithFilterParamsPost=en({},e),r&&(this.aliasWithFilterParamsPost=en(en({},this.aliasWithFilterParamsPost),o)),this.loadMoreInProgress&&(this.aliasWithFilterParamsPost=en(en({},this.aliasWithFilterParamsPost),a)),void(this.aliasWithFilterParamsPostUrl=\"/search\");if(\"/\"==n.slice(-1)&&(n=n.substring(0,n.length-1)),this.aliasWithFilterParamsPostUrl=\"/catalog_kworks_filters/\".concat(n),this.aliasWithFilterParamsPost=en({},e),delete this.aliasWithFilterParamsPost.attribute_alias,this.loadMoreInProgress&&(this.aliasWithFilterParamsPost=en(en({},this.aliasWithFilterParamsPost),a)),this.isLandingPage&&(this.aliasWithFilterParamsPost.pageSize=this.loadMoreInProgress?this.landingPagingParams.showMoreCount:this.landingPageKworksCount),this.isSearchPage&&this.isLandingPage){var l=this.loadMoreInProgress?this.landingPagingParams.showMoreCount:this.landingPageKworksCount;if(!s){var u=0;return _.forEach(window.categoriesWithAttributes,(function(t,e){"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

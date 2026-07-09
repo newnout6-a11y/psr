@@ -1,0 +1,86 @@
+{
+  "timestamp_utc": "2026-07-08T16:13:07.791627+00:00",
+  "purpose": "Validate Russian search and search suggestion market-signal behavior.",
+  "proxy": {
+    "proxyUrl": "http://<redacted_ip>:17990",
+    "profileName": "kazakhstan1"
+  },
+  "auth": {
+    "mobile_basic_header": true,
+    "user_secrets_stored": false
+  },
+  "results": [
+    {
+      "name": "searchKworksCatalogQuery_ru_telegram",
+      "endpoint": "searchKworksCatalogQuery",
+      "params": {
+        "query": "????????"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 30,
+      "success": true,
+      "response_count": 0,
+      "first_items": []
+    },
+    {
+      "name": "search_ru_telegram",
+      "endpoint": "search",
+      "params": {
+        "query": "????????",
+        "limit": "5",
+        "page": "1"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 147,
+      "success": true,
+      "response_keys": [
+        "kworks_count",
+        "kworks",
+        "classifiers",
+        "searchCategories",
+        "paging"
+      ],
+      "kworks_count": 0,
+      "paging": {
+        "pages": 0,
+        "page": 1,
+        "total": 0,
+        "limit": 5
+      },
+      "classifiers": [],
+      "first_kworks": []
+    },
+    {
+      "name": "search_cat15_ru_logo",
+      "endpoint": "search",
+      "params": {
+        "query": "???????",
+        "categoryId": "15",
+        "limit": "5",
+        "page": "1"
+      },
+      "status_code": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body_len": 147,
+      "success": true,
+      "response_keys": [
+        "kworks_count",
+        "kworks",
+        "classifiers",
+        "searchCategories",
+        "paging"
+      ],
+      "kworks_count": 0,
+      "paging": {
+        "pages": 0,
+        "page": 1,
+        "total": 0,
+        "limit": 5
+      },
+      "classifiers": [],
+      "first_kworks": []
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-07-08T14:48:16Z",
+  "results": [
+    {
+      "path": "/api/order/getorderscount",
+      "method": "GET",
+      "status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "location": null,
+      "body_prefix": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script></script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/fa"
+    },
+    {
+      "path": "/api/user/getworkbaysellers",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "location": null,
+      "body_prefix": "{\"success\":false,\"data\":\"\\u041d\\u0435\\u043e\\u0431\\u0445\\u043e\\u0434\\u0438\\u043c\\u043e \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u043e\\u0432\\u0430\\u0442\\u044c\\u0441\\u044f\"}"
+    },
+    {
+      "path": "/api/portfolio/youtubelinkvalidate?url=https%3A%2F%2Fyoutu.be%2FdQw4w9WgXcQ",
+      "method": "GET",
+      "status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "location": null,
+      "body_prefix": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script></script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/fa"
+    },
+    {
+      "path": "/api/bill/address_suggestions",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "location": null,
+      "body_prefix": "{\"success\":false,\"data\":{\"error\":\"\\u041e\\u0448\\u0438\\u0431\\u043a\\u0430 \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u0430\\u0446\\u0438\\u0438\"}}"
+    },
+    {
+      "path": "/portfolio_large/",
+      "method": "GET",
+      "status": 302,
+      "content_type": "text/html",
+      "location": "http://kwork.ru/portfolio_large",
+      "body_prefix": "<html>\r <head><title>302 Found</title></head>\r <body>\r <center><h1>302 Found</h1></center>\r <hr><center>nginx</center>\r </body>\r </html>\r "
+    },
+    {
+      "path": "/api/user/checklogin",
+      "method": "GET",
+      "status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "location": null,
+      "body_prefix": "<!DOCTYPE html><html ><head><title>Kwork.ru | Технические работы</title><meta charset=\"UTF-8\"><script></script><link class=\"js-theme-favicon\" rel=\"icon\" type=\"image/png\" href=\"https://cdn-edge.kwork.ru/images/favicons/fa"
+    },
+    {
+      "path": "/catalog_kworks_filters/",
+      "method": "GET",
+      "status": 302,
+      "content_type": "text/html",
+      "location": "http://kwork.ru/catalog_kworks_filters",
+      "body_prefix": "<html>\r <head><title>302 Found</title></head>\r <body>\r <center><h1>302 Found</h1></center>\r <hr><center>nginx</center>\r </body>\r </html>\r "
+    }
+  ]
+}

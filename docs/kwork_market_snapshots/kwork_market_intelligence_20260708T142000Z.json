@@ -1,0 +1,1029 @@
+{
+  "generated_at": "2026-07-08T14:20:00Z",
+  "source": "psr.kwork_market_intelligence_snapshot",
+  "config": {
+    "max_seeds": 1,
+    "pages": 1,
+    "include_demand": false,
+    "include_competitor_details": false,
+    "competitor_detail_limit": 0,
+    "include_seller_details": true,
+    "seller_detail_limit": 2
+  },
+  "seeds": [
+    {
+      "name": "Telegram",
+      "category_id": 46,
+      "classifier_id": 281
+    }
+  ],
+  "supply": [
+    {
+      "seed": {
+        "name": "Telegram",
+        "category_id": 46,
+        "classifier_id": 281
+      },
+      "kworks_count": 8780,
+      "classifiers": [
+        {
+          "id": 622,
+          "name": "Создание и настройка",
+          "kworks_count": 847,
+          "raw": {
+            "id": 622,
+            "name": "Создание и настройка",
+            "kworks_count": 847,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 285,
+          "name": "Ведение и администрирование",
+          "kworks_count": 1529,
+          "raw": {
+            "id": 285,
+            "name": "Ведение и администрирование",
+            "kworks_count": 1529,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 5944,
+          "name": "Аудит и оптимизация",
+          "kworks_count": 311,
+          "raw": {
+            "id": 5944,
+            "name": "Аудит и оптимизация",
+            "kworks_count": 311,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 286,
+          "name": "Таргетинг и работа с ЦА",
+          "kworks_count": 556,
+          "raw": {
+            "id": 286,
+            "name": "Таргетинг и работа с ЦА",
+            "kworks_count": 556,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 3882026,
+          "name": "Интеграция в блогах",
+          "kworks_count": 160,
+          "raw": {
+            "id": 3882026,
+            "name": "Интеграция в блогах",
+            "kworks_count": 160,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 770252,
+          "name": "Репосты и комментарии",
+          "kworks_count": 535,
+          "raw": {
+            "id": 770252,
+            "name": "Репосты и комментарии",
+            "kworks_count": 535,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 513107,
+          "name": "Оформление",
+          "kworks_count": 1056,
+          "raw": {
+            "id": 513107,
+            "name": "Оформление",
+            "kworks_count": 1056,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 513374,
+          "name": "Создание видео",
+          "kworks_count": 401,
+          "raw": {
+            "id": 513374,
+            "name": "Создание видео",
+            "kworks_count": 401,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 513585,
+          "name": "Написание постов",
+          "kworks_count": 2497,
+          "raw": {
+            "id": 513585,
+            "name": "Написание постов",
+            "kworks_count": 2497,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1167995,
+          "name": "Сбор баз данных",
+          "kworks_count": 190,
+          "raw": {
+            "id": 1167995,
+            "name": "Сбор баз данных",
+            "kworks_count": 190,
+            "visibility": 1
+          }
+        },
+        {
+          "id": 1167998,
+          "name": "Готовые базы данных",
+          "kworks_count": 672,
+          "raw": {
+            "id": 1167998,
+            "name": "Готовые базы данных",
+            "kworks_count": 672,
+            "visibility": 1
+          }
+        }
+      ],
+      "cards": [
+        {
+          "id": 41974015,
+          "title": "Парсинг Телеграм. Подбор чатов и каналов по вашим запросам - 50 шт",
+          "price": 500,
+          "classifier_id": 1137550,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/77/41974015-68429e5989a6f.jpg",
+          "share_url": "https://kwork.ru/information-bases/41974015/parsing-telegram-podbor-chatov-i-kanalov-po-vashim-zaprosam-50-sht",
+          "worker": "Crazy-man",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/19/78724-3.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 7540,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 41974015,
+            "category_id": 113,
+            "title": "Парсинг Телеграм. Подбор чатов и каналов по вашим запросам - 50 шт",
+            "url": "/information-bases/41974015/parsing-telegram-podbor-chatov-i-kanalov-po-vashim-zaprosam-50-sht",
+            "share_url": "https://kwork.ru/information-bases/41974015/parsing-telegram-podbor-chatov-i-kanalov-po-vashim-zaprosam-50-sht",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/77/41974015-68429e5989a6f.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/77/41974015-68429e5989a6f.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/77/41974015-68429e5989a6f.jpg"
+            },
+            "price": 500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 78724,
+              "username": "Crazy-man",
+              "fullname": "Дима",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/19/78724-3.jpg",
+              "rating": 5,
+              "reviews_count": 7540,
+              "rating_count": 7540,
+              "is_online": true,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1137550,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 22418731,
+          "title": "Настройка таргетинга в Телеграм. Консультация по рекламе",
+          "price": 25000,
+          "classifier_id": 40136,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/89/22418731-68d4ea1c445db.jpg",
+          "share_url": "https://kwork.ru/smm/22418731/nastroyka-targetinga-v-telegram-konsultatsiya-po-reklame",
+          "worker": "ads_maker",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/48/903782-10.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 35,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 22418731,
+            "category_id": 46,
+            "title": "Настройка таргетинга в Телеграм. Консультация по рекламе",
+            "url": "/smm/22418731/nastroyka-targetinga-v-telegram-konsultatsiya-po-reklame",
+            "share_url": "https://kwork.ru/smm/22418731/nastroyka-targetinga-v-telegram-konsultatsiya-po-reklame",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/89/22418731-68d4ea1c445db.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/89/22418731-68d4ea1c445db.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/89/22418731-68d4ea1c445db.jpg"
+            },
+            "price": 25000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 903782,
+              "username": "ads_maker",
+              "fullname": "Алексей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/48/903782-10.jpg",
+              "rating": 5,
+              "reviews_count": 35,
+              "rating_count": 35,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 40136,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 20859803,
+          "title": "Креатив для рекламы в Telegram + бонус",
+          "price": 2000,
+          "classifier_id": 730506,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/20859803-69b83cbcd1aac.jpg",
+          "share_url": "https://kwork.ru/business-copywriting/20859803/kreativ-dlya-reklamy-v-telegram-bonus",
+          "worker": "Nikita__Pavlov",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/37/5832844-6.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 4.9,
+          "reviews": 254,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 20859803,
+            "category_id": 74,
+            "title": "Креатив для рекламы в Telegram + бонус",
+            "url": "/business-copywriting/20859803/kreativ-dlya-reklamy-v-telegram-bonus",
+            "share_url": "https://kwork.ru/business-copywriting/20859803/kreativ-dlya-reklamy-v-telegram-bonus",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/20859803-69b83cbcd1aac.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/41/20859803-69b83cbcd1aac.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/41/20859803-69b83cbcd1aac.jpg"
+            },
+            "price": 2000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 5832844,
+              "username": "Nikita__Pavlov",
+              "fullname": "Никита Павлов",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/37/5832844-6.jpg",
+              "rating": 4.9,
+              "reviews_count": 254,
+              "rating_count": 227,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 730506,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 17232430,
+          "title": "Парсинг телеграм групп и каналов по вашим запросам - 1500 шт",
+          "price": 1000,
+          "classifier_id": 1137550,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/07/17232430-698b9d837599a.jpg",
+          "share_url": "https://kwork.ru/information-bases/17232430/parsing-telegram-grupp-i-kanalov-po-vashim-zaprosam-1500-sht",
+          "worker": "imnotes",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/35/597223-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 3092,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 17232430,
+            "category_id": 113,
+            "title": "Парсинг телеграм групп и каналов по вашим запросам - 1500 шт",
+            "url": "/information-bases/17232430/parsing-telegram-grupp-i-kanalov-po-vashim-zaprosam-1500-sht",
+            "share_url": "https://kwork.ru/information-bases/17232430/parsing-telegram-grupp-i-kanalov-po-vashim-zaprosam-1500-sht",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/07/17232430-698b9d837599a.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/07/17232430-698b9d837599a.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/07/17232430-698b9d837599a.jpg"
+            },
+            "price": 1000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 597223,
+              "username": "imnotes",
+              "fullname": "Артём",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/35/597223-1.jpg",
+              "rating": 5,
+              "reviews_count": 3092,
+              "rating_count": 3092,
+              "is_online": true,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1137550,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 39628,
+          "title": "Создам иллюстрацию или пост в Telegram или другую соц сеть",
+          "price": 1000,
+          "classifier_id": 1433392,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/39628-68b69c9d2a504.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/39628/sozdam-illyustratsiyu-ili-post-v-telegram-ili-druguyu-sots-set",
+          "worker": "bioatwork",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/15/57538-8.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1008,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 39628,
+            "category_id": 286,
+            "title": "Создам иллюстрацию или пост в Telegram или другую соц сеть",
+            "url": "/e-commerce-social-network/39628/sozdam-illyustratsiyu-ili-post-v-telegram-ili-druguyu-sots-set",
+            "share_url": "https://kwork.ru/e-commerce-social-network/39628/sozdam-illyustratsiyu-ili-post-v-telegram-ili-druguyu-sots-set",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/39628-68b69c9d2a504.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/41/39628-68b69c9d2a504.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/41/39628-68b69c9d2a504.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 57538,
+              "username": "bioatwork",
+              "fullname": "Сергей",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/15/57538-8.jpg",
+              "rating": 5,
+              "reviews_count": 1008,
+              "rating_count": 867,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433392,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 26741882,
+          "title": "Парсинг Телеграм. Сбор-чатов и групп Telegram по запросам и ключевикам",
+          "price": 1000,
+          "classifier_id": 1137550,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/99/26741882-685e8adc355bf.jpg",
+          "share_url": "https://kwork.ru/information-bases/26741882/parsing-telegram-sbor-chatov-i-grupp-telegram-po-zaprosam-i-klyuchevikam",
+          "worker": "RuPartner",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/43/116662-12.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 367,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 26741882,
+            "category_id": 113,
+            "title": "Парсинг Телеграм. Сбор-чатов и групп Telegram по запросам и ключевикам",
+            "url": "/information-bases/26741882/parsing-telegram-sbor-chatov-i-grupp-telegram-po-zaprosam-i-klyuchevikam",
+            "share_url": "https://kwork.ru/information-bases/26741882/parsing-telegram-sbor-chatov-i-grupp-telegram-po-zaprosam-i-klyuchevikam",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/99/26741882-685e8adc355bf.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/99/26741882-685e8adc355bf.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/99/26741882-685e8adc355bf.jpg"
+            },
+            "price": 1000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 116662,
+              "username": "RuPartner",
+              "fullname": "Веб студия",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/43/116662-12.jpg",
+              "rating": 5,
+              "reviews_count": 367,
+              "rating_count": 366,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1137550,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 20502357,
+          "title": "Каталог чатов Telegram под любую тематику",
+          "price": 1000,
+          "classifier_id": 1137577,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/12/20502357-1651145012.jpg",
+          "share_url": "https://kwork.ru/information-bases/20502357/katalog-chatov-telegram-pod-lyubuyu-tematiku",
+          "worker": "imnotes",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/35/597223-1.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 3092,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 20502357,
+            "category_id": 113,
+            "title": "Каталог чатов Telegram под любую тематику",
+            "url": "/information-bases/20502357/katalog-chatov-telegram-pod-lyubuyu-tematiku",
+            "share_url": "https://kwork.ru/information-bases/20502357/katalog-chatov-telegram-pod-lyubuyu-tematiku",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/12/20502357-1651145012.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/12/20502357-1651145012.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/12/20502357-1651145012.jpg"
+            },
+            "price": 1000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 597223,
+              "username": "imnotes",
+              "fullname": "Артём",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/35/597223-1.jpg",
+              "rating": 5,
+              "reviews_count": 3092,
+              "rating_count": 3092,
+              "is_online": true,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1137577,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 5290159,
+          "title": "Грамотный баннер Telegram, реклама для соцсети, дизайн поста",
+          "price": 2000,
+          "classifier_id": 1433392,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/82/5290159-6995d9e830848.jpg",
+          "share_url": "https://kwork.ru/e-commerce-social-network/5290159/gramotniy-banner-telegram-reklama-dlya-sotsseti-dizayn-posta",
+          "worker": "egorkorablev",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/49/215711-4.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1213,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 5290159,
+            "category_id": 286,
+            "title": "Грамотный баннер Telegram, реклама для соцсети, дизайн поста",
+            "url": "/e-commerce-social-network/5290159/gramotniy-banner-telegram-reklama-dlya-sotsseti-dizayn-posta",
+            "share_url": "https://kwork.ru/e-commerce-social-network/5290159/gramotniy-banner-telegram-reklama-dlya-sotsseti-dizayn-posta",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/82/5290159-6995d9e830848.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/82/5290159-6995d9e830848.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/82/5290159-6995d9e830848.jpg"
+            },
+            "price": 2000,
+            "is_price_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 215711,
+              "username": "egorkorablev",
+              "fullname": "Егор Кораблев",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/49/215711-4.jpg",
+              "rating": 5,
+              "reviews_count": 1213,
+              "rating_count": 1152,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": false,
+            "classifier_id": 1433392,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 27895321,
+          "title": "Продающий Оффер для Телеграм под ключ: Рекламный Пост, Продающий Текст",
+          "price": 3000,
+          "classifier_id": 730506,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/67/27895321-64c50e2063fb0.jpg",
+          "share_url": "https://kwork.ru/business-copywriting/27895321/prodayushchiy-offer-dlya-telegram-pod-klyuch-reklamniy-post-prodayushchiy-tekst",
+          "worker": "Kaizen",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/44/5099-21.jpg",
+          "seller_level": "Высший рейтинг плюс",
+          "rating": 5,
+          "reviews": 1948,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 27895321,
+            "category_id": 74,
+            "title": "Продающий Оффер для Телеграм под ключ: Рекламный Пост, Продающий Текст",
+            "url": "/business-copywriting/27895321/prodayushchiy-offer-dlya-telegram-pod-klyuch-reklamniy-post-prodayushchiy-tekst",
+            "share_url": "https://kwork.ru/business-copywriting/27895321/prodayushchiy-offer-dlya-telegram-pod-klyuch-reklamniy-post-prodayushchiy-tekst",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/67/27895321-64c50e2063fb0.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/67/27895321-64c50e2063fb0.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/67/27895321-64c50e2063fb0.jpg"
+            },
+            "price": 3000,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 5099,
+              "username": "Kaizen",
+              "fullname": "Кай",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/44/5099-21.jpg",
+              "rating": 5,
+              "reviews_count": 1948,
+              "rating_count": 1904,
+              "is_online": false,
+              "level_description": "Высший рейтинг плюс"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 730506,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": []
+          }
+        },
+        {
+          "id": 31436115,
+          "title": "Сбор каналов Телеграм для нейрокомментинга. По вашим ключевикам",
+          "price": 500,
+          "classifier_id": 1137550,
+          "image_url": "https://cdn-edge.kwork.ru/pics/t3/27/31436115-68bb034a835b2.jpg",
+          "share_url": "https://kwork.ru/information-bases/31436115/sbor-kanalov-telegram-dlya-neyrokommentinga-po-vashim-klyuchevikam",
+          "worker": "Maxximus",
+          "worker_avatar": "https://cdn-edge.kwork.ru/files/avatar/small/44/2174434-1.jpg",
+          "seller_level": "Высший рейтинг",
+          "rating": 5,
+          "reviews": 1406,
+          "is_best": true,
+          "description": "",
+          "instruction": "",
+          "service_size": "",
+          "practice_context": "",
+          "detail_status": "pending",
+          "raw": {
+            "id": 31436115,
+            "category_id": 113,
+            "title": "Сбор каналов Телеграм для нейрокомментинга. По вашим ключевикам",
+            "url": "/information-bases/31436115/sbor-kanalov-telegram-dlya-neyrokommentinga-po-vashim-klyuchevikam",
+            "share_url": "https://kwork.ru/information-bases/31436115/sbor-kanalov-telegram-dlya-neyrokommentinga-po-vashim-klyuchevikam",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/27/31436115-68bb034a835b2.jpg",
+            "cover": {
+              "phone": "https://cdn-edge.kwork.ru/pics/t1/27/31436115-68bb034a835b2.jpg",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/27/31436115-68bb034a835b2.jpg"
+            },
+            "price": 500,
+            "is_price_from": true,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 2174434,
+              "username": "Maxximus",
+              "fullname": "Максим",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/44/2174434-1.jpg",
+              "rating": 5,
+              "reviews_count": 1406,
+              "rating_count": 1406,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "not_available_for_company": true,
+            "classifier_id": 1137550,
+            "is_viewed": false,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "demand": {
+        "status": "skipped"
+      },
+      "timings_ms": {
+        "total": 751
+      }
+    }
+  ],
+  "query_demand": {},
+  "seller_intelligence": [
+    {
+      "id": 597223,
+      "username": "imnotes",
+      "display_name": "Артём",
+      "level": "Высший рейтинг плюс",
+      "rating": "5.0",
+      "reviews_count": 3092,
+      "completed_orders": null,
+      "active_kworks_count": null,
+      "portfolio_count": 0,
+      "skills": [
+        "Парсинг Telegram",
+        "Парсинг сайтов",
+        "Парсинг пользователей",
+        "Сбор данных",
+        "Data Scraping",
+        "Каналы и чаты Telegram",
+        "PHP скрипт",
+        "Рутиные задачи",
+        "Программист",
+        "Каталог чатов",
+        "Автоматизация",
+        "база данных"
+      ],
+      "raw_keys": [
+        "achievments_list",
+        "addtime",
+        "allowedDialog",
+        "bad_reviews",
+        "blocked_by_user",
+        "completed_orders_count",
+        "cover",
+        "custom_request_min_budget",
+        "description",
+        "fullname",
+        "good_reviews",
+        "id",
+        "is_allow_custom_request",
+        "is_cashless_payment_available",
+        "is_stop_work",
+        "is_verified_worker",
+        "kworks",
+        "kworks_count",
+        "level_description",
+        "live_date",
+        "location",
+        "note",
+        "online",
+        "order_done_intime_persent",
+        "order_done_persent",
+        "order_done_repeat_persent",
+        "portfolio_list",
+        "profession",
+        "profilepicture",
+        "rating",
+        "rating_count",
+        "reviews",
+        "reviews_count",
+        "skills",
+        "slogan",
+        "specialization",
+        "status",
+        "timezoneId",
+        "username"
+      ],
+      "categories": [
+        {
+          "id": 113,
+          "name": "Базы данных и клиентов",
+          "kworks_count": 111,
+          "raw": {
+            "kworks_count": 111,
+            "id": 113,
+            "name": "Базы данных и клиентов",
+            "kworks": []
+          }
+        },
+        {
+          "id": 84,
+          "name": "Персональный помощник",
+          "kworks_count": 2,
+          "raw": {
+            "kworks_count": 2,
+            "id": 84,
+            "name": "Персональный помощник",
+            "kworks": []
+          }
+        },
+        {
+          "id": 43,
+          "name": "Внутренняя оптимизация",
+          "kworks_count": 1,
+          "raw": {
+            "kworks_count": 1,
+            "id": 43,
+            "name": "Внутренняя оптимизация",
+            "kworks": []
+          }
+        },
+        {
+          "id": 59,
+          "name": "Ссылки",
+          "kworks_count": 1,
+          "raw": {
+            "kworks_count": 1,
+            "id": 59,
+            "name": "Ссылки",
+            "kworks": []
+          }
+        },
+        {
+          "id": 41,
+          "name": "Скрипты, боты и mini apps",
+          "kworks_count": 1,
+          "raw": {
+            "kworks_count": 1,
+            "id": 41,
+            "name": "Скрипты, боты и mini apps",
+            "kworks": []
+          }
+        }
+      ],
+      "sample_kworks": [],
+      "sample_kworks_count": 0,
+      "status": "ok",
+      "errors": [],
+      "seen_cards": 2
+    },
+    {
+      "id": 78724,
+      "username": "Crazy-man",
+      "display_name": "Дима",
+      "level": "Высший рейтинг",
+      "rating": "5.0",
+      "reviews_count": 7540,
+      "completed_orders": null,
+      "active_kworks_count": null,
+      "portfolio_count": 0,
+      "skills": [],
+      "raw_keys": [
+        "achievments_list",
+        "addtime",
+        "allowedDialog",
+        "bad_reviews",
+        "blocked_by_user",
+        "completed_orders_count",
+        "cover",
+        "custom_request_min_budget",
+        "description",
+        "fullname",
+        "good_reviews",
+        "id",
+        "is_allow_custom_request",
+        "is_cashless_payment_available",
+        "is_stop_work",
+        "is_verified_worker",
+        "kworks",
+        "kworks_count",
+        "level_description",
+        "live_date",
+        "location",
+        "note",
+        "online",
+        "order_done_intime_persent",
+        "order_done_persent",
+        "order_done_repeat_persent",
+        "portfolio_list",
+        "profession",
+        "profilepicture",
+        "rating",
+        "rating_count",
+        "reviews",
+        "reviews_count",
+        "skills",
+        "slogan",
+        "specialization",
+        "status",
+        "timezoneId",
+        "username"
+      ],
+      "categories": [
+        {
+          "id": 46,
+          "name": "Соцсети и SMM",
+          "kworks_count": 2,
+          "raw": {
+            "kworks_count": 2,
+            "id": 46,
+            "name": "Соцсети и SMM",
+            "kworks": []
+          }
+        },
+        {
+          "id": 113,
+          "name": "Базы данных и клиентов",
+          "kworks_count": 2,
+          "raw": {
+            "kworks_count": 2,
+            "id": 113,
+            "name": "Базы данных и клиентов",
+            "kworks": []
+          }
+        }
+      ],
+      "sample_kworks": [],
+      "sample_kworks_count": 0,
+      "status": "ok",
+      "errors": [],
+      "seen_cards": 1
+    }
+  ],
+  "aggregate": {
+    "seed_count": 1,
+    "cards_seen": 10,
+    "unique_sellers_seen": 9,
+    "seller_profiles_collected": 2,
+    "top_sellers": [
+      [
+        "imnotes",
+        2
+      ],
+      [
+        "Crazy-man",
+        1
+      ],
+      [
+        "ads_maker",
+        1
+      ],
+      [
+        "Nikita__Pavlov",
+        1
+      ],
+      [
+        "bioatwork",
+        1
+      ],
+      [
+        "RuPartner",
+        1
+      ],
+      [
+        "egorkorablev",
+        1
+      ],
+      [
+        "Kaizen",
+        1
+      ],
+      [
+        "Maxximus",
+        1
+      ]
+    ],
+    "category_counts": [
+      [
+        "113",
+        5
+      ],
+      [
+        "74",
+        2
+      ],
+      [
+        "286",
+        2
+      ],
+      [
+        "46",
+        1
+      ]
+    ]
+  },
+  "timings_ms": {
+    "total": 2382
+  }
+}

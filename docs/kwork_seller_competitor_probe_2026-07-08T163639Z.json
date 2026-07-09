@@ -1,0 +1,2004 @@
+{
+  "timestamp_utc": "2026-07-08T16:36:39.428749+00:00",
+  "purpose": "Validate seller/profile and competitor detail endpoints around real kwork search result.",
+  "proxy": {
+    "running": true,
+    "profileName": "turkeyvless1",
+    "country": "Germany",
+    "proxyUrl": "http://<redacted_ip>:17990"
+  },
+  "auth": {
+    "login_present": true,
+    "password_present": true,
+    "token_attempted": true,
+    "token_acquired": true,
+    "error": null
+  },
+  "selected": {
+    "kwork_id": 255535,
+    "worker": "teleprog",
+    "user_id_from_kworks": 198065,
+    "user_id_from_profile": 198065
+  },
+  "results": [
+    {
+      "name": "kworks_cat41",
+      "endpoint": "kworks",
+      "params": {
+        "categoryId": 41,
+        "page": 1,
+        "limit": 10
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 1210,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response",
+          "fcmTokenLost"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "kworks_count",
+          "kworks",
+          "classifiers",
+          "paging"
+        ],
+        "kworks_count": 10,
+        "kworks_item_keys": [
+          "id",
+          "category_id",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "not_available_for_company",
+          "classifier_id",
+          "is_viewed",
+          "isSubscription",
+          "badges"
+        ],
+        "classifiers_count": 8,
+        "classifiers_item_keys": [
+          "id",
+          "name",
+          "kworks_count",
+          "visibility"
+        ],
+        "paging_keys": [
+          "pages",
+          "page",
+          "total",
+          "limit"
+        ],
+        "sample": {
+          "kworks_count": 38135,
+          "kworks": [
+            {
+              "id": 255535,
+              "category_id": 41,
+              "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+              "url": "/script-programming/255535/napishu-i-protestiruyu-sketch-dlya-arduino-esp32-esp8266",
+              "share_url": "https://kwork.ru/script-programming/255535/napishu-i-protestiruyu-sketch-dlya-arduino-esp32-esp8266",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/06/255535-2.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/06/255535-2.jpg"
+              },
+              "price": 1000,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 198065,
+                "username": "teleprog",
+                "fullname": "Дмитрий",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/04/198065-2.jpg",
+                "rating": 5,
+                "reviews_count": 378,
+                "rating_count": 374,
+                "is_online": false,
+                "level_description": "Высший рейтинг"
+              },
+              "not_available_for_company": true,
+              "classifier_id": 5503261,
+              "is_viewed": false,
+              "isSubscription": false,
+              "badges": []
+            },
+            {
+              "id": 5617675,
+              "category_id": 41,
+              "title": "Скрипт по работе в Рутуб",
+              "url": "/script-programming/5617675/skript-po-rabote-v-rutub",
+              "share_url": "https://kwork.ru/script-programming/5617675/skript-po-rabote-v-rutub",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/98/5617675-6881c9e621518.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/98/5617675-6881c9e621518.jpg"
+              },
+              "price": 50000,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 1437224,
+                "username": "like-clik",
+                "fullname": "Сергей",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/09/1437224-3.jpg",
+                "rating": 4.9,
+                "reviews_count": 1226,
+                "rating_count": 1226,
+                "is_online": false,
+                "level_description": "Высший рейтинг плюс"
+              },
+              "not_available_for_company": true,
+              "classifier_id": 210,
+              "is_viewed": false,
+              "isSubscription": false,
+              "badges": []
+            },
+            {
+              "id": 765930,
+              "category_id": 41,
+              "title": "Разработка расширения для Chrome, Firefox, Яндекс. Браузер",
+              "url": "/script-programming/765930/razrabotka-rasshireniya-dlya-chrome-firefox-yandeks-brauzer",
+              "share_url": "https://kwork.ru/script-programming/765930/razrabotka-rasshireniya-dlya-chrome-firefox-yandeks-brauzer",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/58/765930-69f9f577ac2fc.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/58/765930-69f9f577ac2fc.jpg"
+              },
+              "price": 2500,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 725394,
+                "username": "blackdev",
+                "fullname": "Денис",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/50/725394-2.jpg",
+                "rating": 5,
+                "reviews_count": 169,
+                "rating_count": 169,
+                "is_online": false,
+                "level_description": "Высший рейтинг"
+              },
+              "not_available_for_company": false,
+              "classifier_id": 213,
+              "is_viewed": false,
+              "isSubscription": false,
+              "badges": [
+                {
+                  "name": "ВЫБОР KWORK",
+                  "backgroundColor": "#13244b",
+                  "textColor": "#ffffff",
+                  "composite_text_colors": {
+                    "ВЫБОР ": "#ffffff",
+                    "KWORK": "#f1a004"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 181761,
+              "category_id": 41,
+              "title": "PHP, JS, JQuery скрипт",
+              "url": "/script-programming/181761/php-js-jquery-skript",
+              "share_url": "https://kwork.ru/script-programming/181761/php-js-jquery-skript",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/50/181761-6860ec27a0b79.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/50/181761-6860ec27a0b79.jpg"
+              },
+              "price": 1000,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 59851,
+                "username": "ameganix",
+                "fullname": "Алексей",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/55/59851-2.jpg",
+                "rating": 5,
+                "reviews_count": 2004,
+                "rating_count": 1992,
+                "is_online": false,
+                "level_description": "Высший рейтинг"
+              },
+              "not_available_for_company": false,
+              "classifier_id": 34522,
+              "is_viewed": false,
+              "isSubscription": false,
+              "badges": [
+                {
+                  "name": "ВЫБОР KWORK",
+                  "backgroundColor": "#13244b",
+                  "textColor": "#ffffff",
+                  "composite_text_colors": {
+                    "ВЫБОР ": "#ffffff",
+                    "KWORK": "#f1a004"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 29072946,
+              "category_id": 41,
+              "title": "Напишу Telegram бота",
+              "url": "/script-programming/29072946/napishu-telegram-bota",
+              "share_url": "https://kwork.ru/script-programming/29072946/napishu-telegram-bota",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/32/29072946-6909e56b103a7.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/32/29072946-6909e56b103a7.jpg"
+              },
+              "price": 500,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 15792531,
+                "username": "asyncioso",
+                "fullname": "Андрей",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/09/15792531-3.jpg",
+                "rating": 5,
+                "reviews_count": 81,
+                "rating_count": 81,
+                "is_online": false,
+                "level_description": ""
+              },
+              "not_available_for_company": false,
+              "classifier_id": 12430,
+              "is_viewed": true,
+              "isSubscription": false,
+              "badges": []
+            }
+          ],
+          "classifiers": [
+            {
+              "id": 211,
+              "name": "Парсеры",
+              "kworks_count": 3502,
+              "visibility": 1
+            },
+            {
+              "id": 3587,
+              "name": "Чат-боты",
+              "kworks_count": 18248,
+              "visibility": 1
+            },
+            {
+              "id": 7352,
+              "name": "Скрипты",
+              "kworks_count": 8590,
+              "visibility": 1
+            },
+            {
+              "id": 3934090,
+              "name": "Telegram Mini Apps",
+              "kworks_count": 2151,
+              "visibility": 1
+            },
+            {
+              "id": 5548694,
+              "name": "ИИ-агенты",
+              "kworks_count": 1650,
+              "visibility": 1
+            }
+          ],
+          "paging": {
+            "pages": 3814,
+            "page": 1,
+            "total": 38135,
+            "limit": 10
+          }
+        }
+      }
+    },
+    {
+      "name": "userByUsername_worker",
+      "endpoint": "userByUsername",
+      "params": {
+        "username": "teleprog"
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 1073,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "id",
+          "username",
+          "status",
+          "fullname",
+          "profilepicture",
+          "description",
+          "slogan",
+          "location",
+          "rating",
+          "rating_count",
+          "level_description",
+          "good_reviews",
+          "bad_reviews",
+          "reviews_count",
+          "online",
+          "live_date",
+          "cover",
+          "custom_request_min_budget",
+          "is_allow_custom_request",
+          "order_done_persent",
+          "order_done_intime_persent",
+          "order_done_repeat_persent",
+          "timezoneId",
+          "blocked_by_user",
+          "allowedDialog",
+          "addtime",
+          "achievments_list",
+          "completed_orders_count",
+          "specialization",
+          "profession",
+          "kworks_count",
+          "kworks",
+          "portfolio_list",
+          "reviews",
+          "skills",
+          "is_verified_worker",
+          "note",
+          "is_cashless_payment_available",
+          "is_stop_work"
+        ],
+        "id": 198065,
+        "username": "teleprog",
+        "rating": "5.0",
+        "reviews_count": 30,
+        "achievments_list_count": 3,
+        "achievments_list_item_keys": [
+          "id",
+          "name",
+          "description",
+          "image_url"
+        ],
+        "kworks_count": 2,
+        "kworks_item_keys": [
+          "id",
+          "category_id",
+          "category_name",
+          "status_id",
+          "status_name",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "activity",
+          "edits_list",
+          "not_available_for_company",
+          "profile_sort",
+          "isSubscription",
+          "badges"
+        ],
+        "portfolio_list_count": 12,
+        "portfolio_list_item_keys": [
+          "id",
+          "title",
+          "order_id",
+          "category_id",
+          "category_name",
+          "type",
+          "photo",
+          "video",
+          "views",
+          "views_dirty",
+          "comments_count",
+          "images",
+          "videos",
+          "audios",
+          "pdf",
+          "duplicate_from",
+          "pined_at_timestamp"
+        ],
+        "reviews_item_keys": [
+          "id",
+          "review_display_id",
+          "time_added",
+          "text",
+          "auto_mode",
+          "good",
+          "bad",
+          "kwork",
+          "writer"
+        ],
+        "skills_count": 10,
+        "skills_item_keys": [
+          "id",
+          "name"
+        ],
+        "note_count": 0,
+        "sample": {
+          "id": 198065,
+          "username": "teleprog",
+          "status": "active",
+          "fullname": "Дмитрий",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/04/198065-2.jpg",
+          "description": "Вы можете заказать у меня:\n✅ Базы данных(учет клиентов, заказов, товаров, продаж, сотрудников, отчетность)\n✅ Прикладные программы(расчеты, редакторы, обработка данных, заполнение и печать шаблонов)\n✅ Автоматизация MS Office(заполнение документов Word, обработк?",
+          "slogan": "",
+          "location": "",
+          "rating": "5.0",
+          "rating_count": 374,
+          "level_description": "Высший рейтинг",
+          "good_reviews": 376,
+          "bad_reviews": 2,
+          "reviews_count": 378,
+          "online": false,
+          "live_date": 1783470735,
+          "cover": "https://cdn-edge.kwork.ru/files/cover/default.jpg",
+          "custom_request_min_budget": 500,
+          "is_allow_custom_request": true,
+          "order_done_persent": 100,
+          "order_done_intime_persent": 100,
+          "order_done_repeat_persent": 49,
+          "timezoneId": 1,
+          "blocked_by_user": false,
+          "allowedDialog": true,
+          "addtime": 1489582024,
+          "achievments_list": [
+            {
+              "id": 1,
+              "name": "За помощь в улучшении сервиса",
+              "description": "Начисляется после успешного прохождения опроса",
+              "image_url": "https://cdn-edge.kwork.ru/images/badge/1s.png"
+            },
+            {
+              "id": 6,
+              "name": "Мега Продавец",
+              "description": "",
+              "image_url": "https://cdn-edge.kwork.ru/images/badge/6s.png"
+            },
+            {
+              "id": 42,
+              "name": "Более 5 лет с Kwork",
+              "description": "",
+              "image_url": "https://cdn-edge.kwork.ru/images/badge/42s.png"
+            }
+          ],
+          "completed_orders_count": 449,
+          "specialization": "Программист",
+          "profession": "Программист"
+        }
+      }
+    },
+    {
+      "name": "user_by_id",
+      "endpoint": "user",
+      "params": {
+        "id": 198065
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 1095,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "id",
+          "username",
+          "status",
+          "fullname",
+          "profilepicture",
+          "description",
+          "slogan",
+          "location",
+          "rating",
+          "rating_count",
+          "level_description",
+          "good_reviews",
+          "bad_reviews",
+          "reviews_count",
+          "online",
+          "live_date",
+          "cover",
+          "custom_request_min_budget",
+          "is_allow_custom_request",
+          "order_done_persent",
+          "order_done_intime_persent",
+          "order_done_repeat_persent",
+          "timezoneId",
+          "blocked_by_user",
+          "allowedDialog",
+          "addtime",
+          "achievments_list",
+          "completed_orders_count",
+          "specialization",
+          "profession",
+          "kworks_count",
+          "kworks",
+          "portfolio_list",
+          "reviews",
+          "skills",
+          "is_verified_worker",
+          "note",
+          "is_cashless_payment_available",
+          "is_stop_work"
+        ],
+        "id": 198065,
+        "username": "teleprog",
+        "rating": "5.0",
+        "reviews_count": 30,
+        "achievments_list_count": 3,
+        "achievments_list_item_keys": [
+          "id",
+          "name",
+          "description",
+          "image_url"
+        ],
+        "kworks_count": 2,
+        "kworks_item_keys": [
+          "id",
+          "category_id",
+          "category_name",
+          "status_id",
+          "status_name",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "activity",
+          "edits_list",
+          "not_available_for_company",
+          "profile_sort",
+          "isSubscription",
+          "badges"
+        ],
+        "portfolio_list_count": 12,
+        "portfolio_list_item_keys": [
+          "id",
+          "title",
+          "order_id",
+          "category_id",
+          "category_name",
+          "type",
+          "photo",
+          "video",
+          "views",
+          "views_dirty",
+          "comments_count",
+          "images",
+          "videos",
+          "audios",
+          "pdf",
+          "duplicate_from",
+          "pined_at_timestamp"
+        ],
+        "reviews_item_keys": [
+          "id",
+          "review_display_id",
+          "time_added",
+          "text",
+          "auto_mode",
+          "good",
+          "bad",
+          "kwork",
+          "writer"
+        ],
+        "skills_count": 10,
+        "skills_item_keys": [
+          "id",
+          "name"
+        ],
+        "note_count": 0,
+        "sample": {
+          "id": 198065,
+          "username": "teleprog",
+          "status": "active",
+          "fullname": "Дмитрий",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/04/198065-2.jpg",
+          "description": "Вы можете заказать у меня:\n✅ Базы данных(учет клиентов, заказов, товаров, продаж, сотрудников, отчетность)\n✅ Прикладные программы(расчеты, редакторы, обработка данных, заполнение и печать шаблонов)\n✅ Автоматизация MS Office(заполнение документов Word, обработк?",
+          "slogan": "",
+          "location": "",
+          "rating": "5.0",
+          "rating_count": 374,
+          "level_description": "Высший рейтинг",
+          "good_reviews": 376,
+          "bad_reviews": 2,
+          "reviews_count": 378,
+          "online": false,
+          "live_date": 1783470735,
+          "cover": "https://cdn-edge.kwork.ru/files/cover/default.jpg",
+          "custom_request_min_budget": 500,
+          "is_allow_custom_request": true,
+          "order_done_persent": 100,
+          "order_done_intime_persent": 100,
+          "order_done_repeat_persent": 49,
+          "timezoneId": 1,
+          "blocked_by_user": false,
+          "allowedDialog": true,
+          "addtime": 1489582024,
+          "achievments_list": [
+            {
+              "id": 1,
+              "name": "За помощь в улучшении сервиса",
+              "description": "Начисляется после успешного прохождения опроса",
+              "image_url": "https://cdn-edge.kwork.ru/images/badge/1s.png"
+            },
+            {
+              "id": 6,
+              "name": "Мега Продавец",
+              "description": "",
+              "image_url": "https://cdn-edge.kwork.ru/images/badge/6s.png"
+            },
+            {
+              "id": 42,
+              "name": "Более 5 лет с Kwork",
+              "description": "",
+              "image_url": "https://cdn-edge.kwork.ru/images/badge/42s.png"
+            }
+          ],
+          "completed_orders_count": 449,
+          "specialization": "Программист",
+          "profession": "Программист"
+        }
+      }
+    },
+    {
+      "name": "kworksCategoriesList_user",
+      "endpoint": "kworksCategoriesList",
+      "params": {
+        "user_id": 198065
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 751,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "list",
+        "response_count": 2,
+        "response_item_keys": [
+          "kworks_count",
+          "id",
+          "name",
+          "kworks"
+        ],
+        "sample_items": [
+          {
+            "kworks_count": 1,
+            "id": 80,
+            "name": "Десктоп программирование",
+            "kworks": []
+          },
+          {
+            "kworks_count": 1,
+            "id": 41,
+            "name": "Скрипты, боты и mini apps",
+            "kworks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "userKworks_user_p1",
+      "endpoint": "userKworks",
+      "params": {
+        "user_id": 198065,
+        "page": 1
+      },
+      "use_token": true,
+      "status": "ok",
+      "elapsed_ms": 170,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "paging": {
+          "page": 1,
+          "total": 2,
+          "limit": 10,
+          "pages": 1
+        },
+        "response_type": "list",
+        "response_count": 2,
+        "response_item_keys": [
+          "id",
+          "category_id",
+          "category_name",
+          "status_id",
+          "status_name",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "activity",
+          "edits_list",
+          "not_available_for_company",
+          "isSubscription",
+          "badges"
+        ],
+        "sample_items": [
+          {
+            "id": 243669,
+            "category_id": 80,
+            "category_name": "Десктоп программирование",
+            "status_id": 7,
+            "status_name": "Активные",
+            "title": "Напишу программу под Windows",
+            "url": "/software/243669/napishu-programmu-pod-windows",
+            "share_url": "https://kwork.ru/software/243669/napishu-programmu-pod-windows",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/74/243669-1.jpg",
+            "cover": {
+              "phone": "<redacted>",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/74/243669-1.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 198065,
+              "username": "teleprog",
+              "fullname": "Дмитрий",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/04/198065-2.jpg",
+              "rating": 5,
+              "reviews_count": 378,
+              "rating_count": 374,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "activity": null,
+            "edits_list": null,
+            "not_available_for_company": true,
+            "isSubscription": false,
+            "badges": [
+              {
+                "name": "ВЫБОР KWORK",
+                "backgroundColor": "#13244b",
+                "textColor": "#ffffff",
+                "composite_text_colors": {
+                  "ВЫБОР ": "#ffffff",
+                  "KWORK": "#f1a004"
+                }
+              }
+            ]
+          },
+          {
+            "id": 255535,
+            "category_id": 41,
+            "category_name": "Скрипты, боты и mini apps",
+            "status_id": 7,
+            "status_name": "Активные",
+            "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+            "url": "/script-programming/255535/napishu-i-protestiruyu-sketch-dlya-arduino-esp32-esp8266",
+            "share_url": "https://kwork.ru/script-programming/255535/napishu-i-protestiruyu-sketch-dlya-arduino-esp32-esp8266",
+            "image_url": "https://cdn-edge.kwork.ru/pics/t3/06/255535-2.jpg",
+            "cover": {
+              "phone": "<redacted>",
+              "tablet": "https://cdn-edge.kwork.ru/pics/t3/06/255535-2.jpg"
+            },
+            "price": 1000,
+            "is_price_from": false,
+            "is_from": false,
+            "is_best": true,
+            "is_hidden": false,
+            "is_favorite": false,
+            "lang": "ru",
+            "worker": {
+              "id": 198065,
+              "username": "teleprog",
+              "fullname": "Дмитрий",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/04/198065-2.jpg",
+              "rating": 5,
+              "reviews_count": 378,
+              "rating_count": 374,
+              "is_online": false,
+              "level_description": "Высший рейтинг"
+            },
+            "activity": null,
+            "edits_list": null,
+            "not_available_for_company": true,
+            "isSubscription": false,
+            "badges": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "portfolioList_user_all",
+      "endpoint": "portfolioList",
+      "params": {
+        "user_id": 198065,
+        "category_id": "all",
+        "page": 1
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 1061,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "portfolio",
+          "paging"
+        ],
+        "portfolio_count": 12,
+        "portfolio_item_keys": [
+          "id",
+          "title",
+          "order_id",
+          "category_id",
+          "category_name",
+          "type",
+          "photo",
+          "video",
+          "views",
+          "views_dirty",
+          "comments_count",
+          "images",
+          "videos",
+          "audios",
+          "pdf",
+          "duplicate_from",
+          "pined_at_timestamp"
+        ],
+        "paging_keys": [
+          "page",
+          "total",
+          "limit",
+          "pages"
+        ],
+        "sample": {
+          "portfolio": [
+            {
+              "id": 14362450,
+              "title": "Сайт с примерами работ",
+              "order_id": null,
+              "category_id": 37,
+              "category_name": "Создание сайта",
+              "type": "photo",
+              "photo": "https://cdn-edge.kwork.ru/files/portfolio/t3/60/fcb9edf232925f1cac6ed50ae53f972bcdfc498a-1728318260.jpg?ver=1728320096",
+              "video": null,
+              "views": 14,
+              "views_dirty": 59,
+              "comments_count": 0,
+              "images": [
+                {
+                  "original": "https://cdn-edge.kwork.ru/files/portfolio/t0/60/fcb9edf232925f1cac6ed50ae53f972bcdfc498a-1728318260.jpg?ver=1728320096",
+                  "link": "https://cdn-edge.kwork.ru/files/portfolio/t3/60/fcb9edf232925f1cac6ed50ae53f972bcdfc498a-1728318260.jpg?ver=1728320096",
+                  "thumbnail": "https://cdn-edge.kwork.ru/files/portfolio/t4/60/fcb9edf232925f1cac6ed50ae53f972bcdfc498a-1728318260.jpg?ver=1728320096",
+                  "position": 0
+                }
+              ],
+              "videos": [],
+              "audios": [],
+              "pdf": [],
+              "duplicate_from": null,
+              "pined_at_timestamp": 0
+            },
+            {
+              "id": 2702884,
+              "title": "План производства работ",
+              "order_id": null,
+              "category_id": 39,
+              "category_name": "Мобильные приложения",
+              "type": "photo",
+              "photo": "https://cdn-edge.kwork.ru/files/portfolio/t3/71/cover-2702884-1594882471.jpg?ver=1594882501",
+              "video": null,
+              "views": 78,
+              "views_dirty": 302,
+              "comments_count": 0,
+              "images": [
+                {
+                  "original": "https://cdn-edge.kwork.ru/files/portfolio/t0/32/ccd4b51ed3e7a52168c2309e44d24f323bbd4f5d-1594882432.jpg?ver=1594882501",
+                  "link": "https://cdn-edge.kwork.ru/files/portfolio/t3/32/ccd4b51ed3e7a52168c2309e44d24f323bbd4f5d-1594882432.jpg?ver=1594882501",
+                  "thumbnail": "https://cdn-edge.kwork.ru/files/portfolio/t4/32/ccd4b51ed3e7a52168c2309e44d24f323bbd4f5d-1594882432.jpg?ver=1594882501",
+                  "position": 0
+                },
+                {
+                  "original": "https://cdn-edge.kwork.ru/files/portfolio/t0/30/856ec52c2a9399633564bd4ac6c286847dc6d671-1594882430.jpg?ver=1594882515",
+                  "link": "https://cdn-edge.kwork.ru/files/portfolio/t3/30/856ec52c2a9399633564bd4ac6c286847dc6d671-1594882430.jpg?ver=1594882515",
+                  "thumbnail": "https://cdn-edge.kwork.ru/files/portfolio/t4/30/856ec52c2a9399633564bd4ac6c286847dc6d671-1594882430.jpg?ver=1594882515",
+                  "position": 1
+                }
+              ],
+              "videos": [],
+              "audios": [],
+              "pdf": [],
+              "duplicate_from": null,
+              "pined_at_timestamp": 0
+            },
+            {
+              "id": 2702869,
+              "title": "Программа для коммерческих предложений",
+              "order_id": null,
+              "category_id": 39,
+              "category_name": "Мобильные приложения",
+              "type": "photo",
+              "photo": "https://cdn-edge.kwork.ru/files/portfolio/t3/19/cover-2702869-1594882319.jpg?ver=1594882357",
+              "video": null,
+              "views": 78,
+              "views_dirty": 331,
+              "comments_count": 0,
+              "images": [
+                {
+                  "original": "https://cdn-edge.kwork.ru/files/portfolio/t0/89/447e4b074fb47b7e75899a3c0ea70a0bfe682c40-1594882289.jpg?ver=1594882357",
+                  "link": "https://cdn-edge.kwork.ru/files/portfolio/t3/89/447e4b074fb47b7e75899a3c0ea70a0bfe682c40-1594882289.jpg?ver=1594882357",
+                  "thumbnail": "https://cdn-edge.kwork.ru/files/portfolio/t4/89/447e4b074fb47b7e75899a3c0ea70a0bfe682c40-1594882289.jpg?ver=1594882357",
+                  "position": 0
+                }
+              ],
+              "videos": [],
+              "audios": [],
+              "pdf": [],
+              "duplicate_from": null,
+              "pined_at_timestamp": 0
+            },
+            {
+              "id": 2702863,
+              "title": "Система учета материалов",
+              "order_id": null,
+              "category_id": 39,
+              "category_name": "Мобильные приложения",
+              "type": "photo",
+              "photo": "https://cdn-edge.kwork.ru/files/portfolio/t3/67/cover-2702863-1594882167.jpg?ver=1594882185",
+              "video": null,
+              "views": 211,
+              "views_dirty": 1172,
+              "comments_count": 0,
+              "images": [
+                {
+                  "original": "https://cdn-edge.kwork.ru/files/portfolio/t0/23/9651807fe917bb4e45186e6a2c2d82be66646edd-1594882123.jpg?ver=1594882185",
+                  "link": "https://cdn-edge.kwork.ru/files/portfolio/t3/23/9651807fe917bb4e45186e6a2c2d82be66646edd-1594882123.jpg?ver=1594882185",
+                  "thumbnail": "https://cdn-edge.kwork.ru/files/portfolio/t4/23/9651807fe917bb4e45186e6a2c2d82be66646edd-1594882123.jpg?ver=1594882185",
+                  "position": 0
+                },
+                {
+                  "original": "https://cdn-edge.kwork.ru/files/portfolio/t0/27/5464ebfd2a7546ced8dfc182fa566c2651069e9b-1594882127.jpg?ver=1594882194",
+                  "link": "https://cdn-edge.kwork.ru/files/portfolio/t3/27/5464ebfd2a7546ced8dfc182fa566c2651069e9b-1594882127.jpg?ver=1594882194",
+                  "thumbnail": "https://cdn-edge.kwork.ru/files/portfolio/t4/27/5464ebfd2a7546ced8dfc182fa566c2651069e9b-1594882127.jpg?ver=1594882194",
+                  "position": 1
+                },
+                {
+                  "original": "https://cdn-edge.kwork.ru/files/portfolio/t0/32/b174d0e71636701ea3481762392b26c7a772b9da-1594882132.jpg?ver=1594882209",
+                  "link": "https://cdn-edge.kwork.ru/files/portfolio/t3/32/b174d0e71636701ea3481762392b26c7a772b9da-1594882132.jpg?ver=1594882209",
+                  "thumbnail": "https://cdn-edge.kwork.ru/files/portfolio/t4/32/b174d0e71636701ea3481762392b26c7a772b9da-1594882132.jpg?ver=1594882209",
+                  "position": 2
+                }
+              ],
+              "videos": [],
+              "audios": [],
+              "pdf": [],
+              "duplicate_from": null,
+              "pined_at_timestamp": 0
+            },
+            {
+              "id": 2702858,
+              "title": "Система учета продукции",
+              "order_id": null,
+              "category_id": 39,
+              "category_name": "Мобильные приложения",
+              "type": "photo",
+              "photo": "https://cdn-edge.kwork.ru/files/portfolio/t3/17/cover-2702858-1594882217.jpg?ver=1594882063",
+              "video": null,
+              "views": 162,
+              "views_dirty": 1013,
+              "comments_count": 0,
+              "images": [
+                {
+                  "original": "https://cdn-edge.kwork.ru/files/portfolio/t0/90/6a39a9fe3fd589b8fc8ee6080c5f2398d846cc1d-1594881990.jpg?ver=1594882063",
+                  "link": "https://cdn-edge.kwork.ru/files/portfolio/t3/90/6a39a9fe3fd589b8fc8ee6080c5f2398d846cc1d-1594881990.jpg?ver=1594882063",
+                  "thumbnail": "https://cdn-edge.kwork.ru/files/portfolio/t4/90/6a39a9fe3fd589b8fc8ee6080c5f2398d846cc1d-1594881990.jpg?ver=1594882063",
+                  "position": 0
+                }
+              ],
+              "videos": [],
+              "audios": [],
+              "pdf": [],
+              "duplicate_from": null,
+              "pined_at_timestamp": 0
+            }
+          ],
+          "paging": {
+            "page": 1,
+            "total": 27,
+            "limit": 12,
+            "pages": 3
+          }
+        }
+      }
+    },
+    {
+      "name": "userReviews_user_all",
+      "endpoint": "userReviews",
+      "params": {
+        "user_id": 198065,
+        "type": "all",
+        "page": 1
+      },
+      "use_token": true,
+      "status": "ok",
+      "elapsed_ms": 285,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "paging": {
+          "page": 1,
+          "total": 378,
+          "limit": 30,
+          "pages": 13
+        },
+        "response_type": "list",
+        "response_count": 30,
+        "response_item_keys": [
+          "id",
+          "review_display_id",
+          "time_added",
+          "text",
+          "auto_mode",
+          "good",
+          "bad",
+          "kwork",
+          "writer"
+        ],
+        "sample_items": [
+          {
+            "id": 5694678,
+            "review_display_id": 7382139,
+            "time_added": 1782726846,
+            "text": "Все отлично!",
+            "auto_mode": null,
+            "good": true,
+            "bad": false,
+            "kwork": {
+              "id": 255535,
+              "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+              "active": 1,
+              "feat": true
+            },
+            "writer": {
+              "id": 2096014,
+              "username": "DmitryRekhmunov",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/28/2096014-1.jpg"
+            }
+          },
+          {
+            "id": 5631170,
+            "review_display_id": 7314128,
+            "time_added": 1778145112,
+            "text": "В целом все хорошо, все выполнено в соответствии с заданием, но за несколько более длительное время. Исполнительно однозначно рекомендую.",
+            "auto_mode": null,
+            "good": true,
+            "bad": false,
+            "kwork": {
+              "id": 255535,
+              "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+              "active": 1,
+              "feat": true
+            },
+            "writer": {
+              "id": 23611498,
+              "username": "771377",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/noprofilepicture.gif"
+            }
+          },
+          {
+            "id": 5605094,
+            "review_display_id": 7286135,
+            "time_added": 1776520976,
+            "text": "Все отлично",
+            "auto_mode": null,
+            "good": true,
+            "bad": false,
+            "kwork": {
+              "id": 243669,
+              "title": "Напишу программу под Windows",
+              "active": 1,
+              "feat": true
+            },
+            "writer": {
+              "id": 2096014,
+              "username": "DmitryRekhmunov",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/28/2096014-1.jpg"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "userReviews_user_negative",
+      "endpoint": "userReviews",
+      "params": {
+        "user_id": 198065,
+        "type": "negative",
+        "page": 1
+      },
+      "use_token": true,
+      "status": "ok",
+      "elapsed_ms": 157,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "paging": {
+          "page": 1,
+          "total": 2,
+          "limit": 30,
+          "pages": 1
+        },
+        "response_type": "list",
+        "response_count": 2,
+        "response_item_keys": [
+          "id",
+          "review_display_id",
+          "time_added",
+          "text",
+          "auto_mode",
+          "good",
+          "bad",
+          "kwork",
+          "writer",
+          "answer"
+        ],
+        "sample_items": [
+          {
+            "id": 5081143,
+            "review_display_id": 6725572,
+            "time_added": 1748790229,
+            "text": "Формально всё правильно - модули работают данные передаются.\nФактически - так и не удалось довести устройство до рабочего состояния\n20 дней выполнения вместо 4-5 обещаных",
+            "auto_mode": null,
+            "good": false,
+            "bad": true,
+            "kwork": {
+              "id": 255535,
+              "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+              "active": 1,
+              "feat": true
+            },
+            "writer": {
+              "id": 2774154,
+              "username": "LaserTower",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/41/2774154-1.jpg"
+            },
+            "answer": {
+              "id": 2449063,
+              "text": "Срок оговаривали 2-3 недели. \nДоговаривались на консультацию и проверку боем.\nПосле оплаты как раз на майские попали, и я написал что 4-5 дней перерыв, покупатель перерыв со сроком выполнения попутал.\nСкетчи и результаты проверки я предоставил, работу выполнил?",
+              "user_id": 198065,
+              "time_added": 1748803628,
+              "username": "teleprog",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/04/198065-2.jpg"
+            }
+          },
+          {
+            "id": 4580456,
+            "review_display_id": 6186776,
+            "time_added": 1726077658,
+            "text": "С задачей человек справился на все 100%\nИсполнитель заранее очерчивает границы заказа и хорошо идет на помощь, к тому же договаривались на неделю, заняло у нас почти две) \nВ целом все окей, но просто по человечески работать с таким исполнителем не приятно",
+            "auto_mode": null,
+            "good": false,
+            "bad": true,
+            "kwork": {
+              "id": 255535,
+              "title": "Напишу и протестирую скетч для Arduino, ESP32, ESP8266",
+              "active": 1,
+              "feat": true
+            },
+            "writer": {
+              "id": 4810610,
+              "username": "tylor034",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/noprofilepicture.gif"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "userSearch_worker",
+      "endpoint": "userSearch",
+      "params": {
+        "query": "teleprog",
+        "page": 1
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 870,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "paging": {
+          "page": 1,
+          "total": 2,
+          "limit": 36,
+          "pages": 1
+        },
+        "response_type": "list",
+        "response_count": 2,
+        "response_item_keys": [
+          "id",
+          "username",
+          "fullname",
+          "profilepicture",
+          "rating",
+          "reviews_count",
+          "rating_count",
+          "is_online"
+        ],
+        "sample_items": [
+          {
+            "id": 198065,
+            "username": "teleprog",
+            "fullname": "Дмитрий",
+            "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/04/198065-2.jpg",
+            "rating": 5,
+            "reviews_count": 378,
+            "rating_count": 0,
+            "is_online": false
+          },
+          {
+            "id": 461994,
+            "username": "teleprogi",
+            "fullname": "",
+            "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/noprofilepicture.gif",
+            "rating": 0,
+            "reviews_count": 0,
+            "rating_count": 0,
+            "is_online": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "getKworkDetailsExtra_first",
+      "endpoint": "getKworkDetailsExtra",
+      "params": {
+        "id": 255535
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 933,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response"
+        ],
+        "success": true,
+        "response_type": "dict",
+        "response_keys": [
+          "recommended_kworks",
+          "similar_kworks",
+          "other_kworks",
+          "goodReviews",
+          "badReviews",
+          "frequently_asked_questions_count",
+          "not_available_for_company",
+          "last_reviews",
+          "reviews_count",
+          "kwork_ratings",
+          "isSubscription"
+        ],
+        "recommended_kworks_count": 12,
+        "recommended_kworks_item_keys": [
+          "id",
+          "category_id",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "not_available_for_company",
+          "isSubscription",
+          "badges"
+        ],
+        "similar_kworks_count": 20,
+        "similar_kworks_item_keys": [
+          "id",
+          "category_id",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "not_available_for_company",
+          "isSubscription",
+          "badges"
+        ],
+        "other_kworks_count": 1,
+        "other_kworks_item_keys": [
+          "id",
+          "category_id",
+          "title",
+          "url",
+          "share_url",
+          "image_url",
+          "cover",
+          "price",
+          "is_price_from",
+          "is_best",
+          "is_hidden",
+          "is_favorite",
+          "lang",
+          "worker",
+          "not_available_for_company",
+          "profile_sort",
+          "isSubscription",
+          "badges"
+        ],
+        "last_reviews_count": 3,
+        "last_reviews_item_keys": [
+          "id",
+          "time_added",
+          "text",
+          "good",
+          "bad",
+          "writer"
+        ],
+        "reviews_count": 121,
+        "kwork_ratings_keys": [
+          "speed",
+          "quality",
+          "communication"
+        ],
+        "sample": {
+          "recommended_kworks": [
+            {
+              "id": 29072946,
+              "category_id": 41,
+              "title": "Напишу Telegram бота",
+              "url": "/script-programming/29072946/napishu-telegram-bota",
+              "share_url": "https://kwork.ru/script-programming/29072946/napishu-telegram-bota",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/32/29072946-6909e56b103a7.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/32/29072946-6909e56b103a7.jpg"
+              },
+              "price": 500,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 15792531,
+                "username": "asyncioso",
+                "fullname": "Андрей",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/09/15792531-3.jpg",
+                "rating": 5,
+                "reviews_count": 81,
+                "rating_count": 81,
+                "is_online": false
+              },
+              "not_available_for_company": false,
+              "isSubscription": false,
+              "badges": []
+            },
+            {
+              "id": 74605,
+              "category_id": 41,
+              "title": "Напишу скрипт на Питоне",
+              "url": "/script-programming/74605/napishu-skript-na-pitone",
+              "share_url": "https://kwork.ru/script-programming/74605/napishu-skript-na-pitone",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/37/74605-1.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/37/74605-1.jpg"
+              },
+              "price": 1000,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 55821,
+                "username": "gresaggr",
+                "fullname": "Сергей",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/21/55821-1.jpg",
+                "rating": 5,
+                "reviews_count": 1730,
+                "rating_count": 1686,
+                "is_online": false
+              },
+              "not_available_for_company": false,
+              "isSubscription": false,
+              "badges": [
+                {
+                  "name": "ВЫБОР KWORK",
+                  "backgroundColor": "#13244b",
+                  "textColor": "#ffffff",
+                  "composite_text_colors": {
+                    "ВЫБОР ": "#ffffff",
+                    "KWORK": "#f1a004"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 4001365,
+              "category_id": 41,
+              "title": "Напишу скрипт на Python",
+              "url": "/script-programming/4001365/napishu-skript-na-python",
+              "share_url": "https://kwork.ru/script-programming/4001365/napishu-skript-na-python",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/97/4001365-69f0de48c89f4.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/97/4001365-69f0de48c89f4.jpg"
+              },
+              "price": 1000,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 1413220,
+                "username": "kilrea",
+                "fullname": "Иван",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/01/1413220-3.jpg",
+                "rating": 4.9,
+                "reviews_count": 519,
+                "rating_count": 519,
+                "is_online": false
+              },
+              "not_available_for_company": false,
+              "isSubscription": false,
+              "badges": []
+            },
+            {
+              "id": 41645459,
+              "category_id": 41,
+              "title": "Напишу или доработаю ваш парсер на Python",
+              "url": "/script-programming/41645459/napishu-ili-dorabotayu-vash-parser-na-python",
+              "share_url": "https://kwork.ru/script-programming/41645459/napishu-ili-dorabotayu-vash-parser-na-python",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/04/41645459-692aa502cd882.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/04/41645459-692aa502cd882.jpg"
+              },
+              "price": 1500,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 20160518,
+                "username": "zestyy",
+                "fullname": "Иван",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/38/20160518-1.jpg",
+                "rating": 4.9,
+                "reviews_count": 54,
+                "rating_count": 54,
+                "is_online": false
+              },
+              "not_available_for_company": true,
+              "isSubscription": false,
+              "badges": [
+                {
+                  "name": "ВЫБОР KWORK",
+                  "backgroundColor": "#13244b",
+                  "textColor": "#ffffff",
+                  "composite_text_colors": {
+                    "ВЫБОР ": "#ffffff",
+                    "KWORK": "#f1a004"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 11953433,
+              "category_id": 41,
+              "title": "Script на Bash. Напишу скрипт специально для Вас",
+              "url": "/script-programming/11953433/script-na-bash-napishu-skript-spetsialno-dlya-vas",
+              "share_url": "https://kwork.ru/script-programming/11953433/script-na-bash-napishu-skript-spetsialno-dlya-vas",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/94/11953433-1609704594.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/94/11953433-1609704594.jpg"
+              },
+              "price": 500,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 8275279,
+                "username": "paskot82",
+                "fullname": "Владимир",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/59/8275279-1.jpg",
+                "rating": 5,
+                "reviews_count": 81,
+                "rating_count": 79,
+                "is_online": false
+              },
+              "not_available_for_company": true,
+              "isSubscription": false,
+              "badges": []
+            }
+          ],
+          "similar_kworks": [
+            {
+              "id": 31957655,
+              "category_id": 41,
+              "title": "Google Script скрипт для гугл таблицы apps script",
+              "url": "/script-programming/31957655/google-script-skript-dlya-gugl-tablitsy-apps-script",
+              "share_url": "https://kwork.ru/script-programming/31957655/google-script-skript-dlya-gugl-tablitsy-apps-script",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/08/31957655-65e20c5486e4e.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/08/31957655-65e20c5486e4e.jpg"
+              },
+              "price": 2500,
+              "is_price_from": false,
+              "is_best": false,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 56093,
+                "username": "sauwork",
+                "fullname": "ПроКод",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/56/56093-17.jpg",
+                "rating": 4.9,
+                "reviews_count": 88,
+                "rating_count": 88,
+                "is_online": true
+              },
+              "not_available_for_company": true,
+              "isSubscription": false,
+              "badges": []
+            },
+            {
+              "id": 22568889,
+              "category_id": 41,
+              "title": "Готовое колесо фортуны с призами и промокодами",
+              "url": "/script-programming/22568889/gotovoe-koleso-fortuny-s-prizami-i-promokodami",
+              "share_url": "https://kwork.ru/script-programming/22568889/gotovoe-koleso-fortuny-s-prizami-i-promokodami",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/59/22568889-1662632759.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/59/22568889-1662632759.jpg"
+              },
+              "price": 1500,
+              "is_price_from": false,
+              "is_best": false,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 2053931,
+                "username": "WebDevGuru",
+                "fullname": "Раман",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/52/2053931-3.jpg",
+                "rating": 4.9,
+                "reviews_count": 182,
+                "rating_count": 174,
+                "is_online": false
+              },
+              "not_available_for_company": true,
+              "isSubscription": false,
+              "badges": []
+            },
+            {
+              "id": 7165035,
+              "category_id": 41,
+              "title": "Скрипт на JavaScript",
+              "url": "/script-programming/7165035/skript-na-javascript",
+              "share_url": "https://kwork.ru/script-programming/7165035/skript-na-javascript",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/01/7165035-1589823401.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/01/7165035-1589823401.jpg"
+              },
+              "price": 500,
+              "is_price_from": false,
+              "is_best": false,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 1825721,
+                "username": "_Yandex_",
+                "fullname": "Александр",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/07/1825721-11.jpg",
+                "rating": 5,
+                "reviews_count": 280,
+                "rating_count": 279,
+                "is_online": false
+              },
+              "not_available_for_company": true,
+              "isSubscription": false,
+              "badges": [
+                {
+                  "name": "ВЫБОР KWORK",
+                  "backgroundColor": "#13244b",
+                  "textColor": "#ffffff",
+                  "composite_text_colors": {
+                    "ВЫБОР ": "#ffffff",
+                    "KWORK": "#f1a004"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 29072946,
+              "category_id": 41,
+              "title": "Напишу Telegram бота",
+              "url": "/script-programming/29072946/napishu-telegram-bota",
+              "share_url": "https://kwork.ru/script-programming/29072946/napishu-telegram-bota",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/32/29072946-6909e56b103a7.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/32/29072946-6909e56b103a7.jpg"
+              },
+              "price": 500,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 15792531,
+                "username": "asyncioso",
+                "fullname": "Андрей",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/09/15792531-3.jpg",
+                "rating": 5,
+                "reviews_count": 81,
+                "rating_count": 81,
+                "is_online": false
+              },
+              "not_available_for_company": false,
+              "isSubscription": false,
+              "badges": []
+            },
+            {
+              "id": 4457065,
+              "category_id": 41,
+              "title": "Скрипт на BrowserAutomationStudio BAS, Автоматизация действий браузера",
+              "url": "/script-programming/4457065/skript-na-browserautomationstudio-bas-avtomatizatsiya-deystviy-brauzera",
+              "share_url": "https://kwork.ru/script-programming/4457065/skript-na-browserautomationstudio-bas-avtomatizatsiya-deystviy-brauzera",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/65/4457065-1580716565.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/65/4457065-1580716565.jpg"
+              },
+              "price": 1000,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 915557,
+                "username": "Basinstructor",
+                "fullname": "Михаил",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/04/915557-1.jpg",
+                "rating": 5,
+                "reviews_count": 53,
+                "rating_count": 53,
+                "is_online": false
+              },
+              "not_available_for_company": false,
+              "isSubscription": false,
+              "badges": [
+                {
+                  "name": "ВЫБОР KWORK",
+                  "backgroundColor": "#13244b",
+                  "textColor": "#ffffff",
+                  "composite_text_colors": {
+                    "ВЫБОР ": "#ffffff",
+                    "KWORK": "#f1a004"
+                  }
+                }
+              ]
+            }
+          ],
+          "other_kworks": [
+            {
+              "id": 243669,
+              "category_id": 80,
+              "title": "Напишу программу под Windows",
+              "url": "/software/243669/napishu-programmu-pod-windows",
+              "share_url": "https://kwork.ru/software/243669/napishu-programmu-pod-windows",
+              "image_url": "https://cdn-edge.kwork.ru/pics/t3/74/243669-1.jpg",
+              "cover": {
+                "phone": "<redacted>",
+                "tablet": "https://cdn-edge.kwork.ru/pics/t3/74/243669-1.jpg"
+              },
+              "price": 1000,
+              "is_price_from": false,
+              "is_best": true,
+              "is_hidden": false,
+              "is_favorite": false,
+              "lang": "ru",
+              "worker": {
+                "id": 198065,
+                "username": "teleprog",
+                "fullname": "Дмитрий",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/04/198065-2.jpg",
+                "rating": 5,
+                "reviews_count": 378,
+                "rating_count": 374,
+                "is_online": false
+              },
+              "not_available_for_company": true,
+              "profile_sort": 150,
+              "isSubscription": false,
+              "badges": [
+                {
+                  "name": "ВЫБОР KWORK",
+                  "backgroundColor": "#13244b",
+                  "textColor": "#ffffff",
+                  "composite_text_colors": {
+                    "ВЫБОР ": "#ffffff",
+                    "KWORK": "#f1a004"
+                  }
+                }
+              ]
+            }
+          ],
+          "goodReviews": 119,
+          "badReviews": 2,
+          "frequently_asked_questions_count": 0,
+          "not_available_for_company": true,
+          "last_reviews": [
+            {
+              "id": 5694678,
+              "time_added": 1782726846,
+              "text": "Все отлично!",
+              "good": true,
+              "bad": false,
+              "writer": {
+                "id": 2096014,
+                "username": "DmitryRekhmunov",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/28/2096014-1.jpg"
+              }
+            },
+            {
+              "id": 5631170,
+              "time_added": 1778145112,
+              "text": "В целом все хорошо, все выполнено в соответствии с заданием, но за несколько более длительное время. Исполнительно однозначно рекомендую.",
+              "good": true,
+              "bad": false,
+              "writer": {
+                "id": 23611498,
+                "username": "771377",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/noprofilepicture.gif"
+              }
+            },
+            {
+              "id": 5538001,
+              "time_added": 1772565558,
+              "text": "Нужно было внести в проект на Ардуино изменения.\nДмитрий сделал все с первого раза,все заработало.в процессе установки и прошивки у меня  возникало очень очень много вопросов.\nДмитрий терпеливо и последовательно отвечал на все.И мы отсекали все неверные вариан?",
+              "good": true,
+              "bad": false,
+              "writer": {
+                "id": 720364,
+                "username": "TEMA_34",
+                "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/noprofilepicture.gif"
+              }
+            }
+          ],
+          "reviews_count": 121,
+          "kwork_ratings": {
+            "speed": 4.8,
+            "quality": 4.9,
+            "communication": 5
+          },
+          "isSubscription": false
+        }
+      }
+    },
+    {
+      "name": "getKworkAnswers_first",
+      "endpoint": "getKworkAnswers",
+      "params": {
+        "id": 255535
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 878,
+      "summary": {
+        "top_keys": [
+          "success"
+        ],
+        "success": true,
+        "response_type": "NoneType",
+        "response": null
+      }
+    },
+    {
+      "name": "getKworkPortfolios_first",
+      "endpoint": "getKworkPortfolios",
+      "params": {
+        "id": 255535,
+        "page": 1
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 792,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "paging": {
+          "page": 1,
+          "total": 0,
+          "limit": 12,
+          "pages": 1
+        },
+        "response_type": "list",
+        "response_count": 0,
+        "response_item_keys": [],
+        "sample_items": []
+      }
+    },
+    {
+      "name": "getKworkReviews_first_all",
+      "endpoint": "getKworkReviews",
+      "params": {
+        "kwork_id": 255535,
+        "type": "all",
+        "page": 1
+      },
+      "use_token": false,
+      "status": "ok",
+      "elapsed_ms": 885,
+      "summary": {
+        "top_keys": [
+          "success",
+          "response",
+          "paging"
+        ],
+        "success": true,
+        "paging": {
+          "page": 1,
+          "total": 121,
+          "limit": 30,
+          "pages": 5
+        },
+        "response_type": "list",
+        "response_count": 30,
+        "response_item_keys": [
+          "id",
+          "time_added",
+          "text",
+          "good",
+          "bad",
+          "writer"
+        ],
+        "sample_items": [
+          {
+            "id": 5694678,
+            "time_added": 1782726846,
+            "text": "Все отлично!",
+            "good": true,
+            "bad": false,
+            "writer": {
+              "id": 2096014,
+              "username": "DmitryRekhmunov",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/28/2096014-1.jpg"
+            }
+          },
+          {
+            "id": 5631170,
+            "time_added": 1778145112,
+            "text": "В целом все хорошо, все выполнено в соответствии с заданием, но за несколько более длительное время. Исполнительно однозначно рекомендую.",
+            "good": true,
+            "bad": false,
+            "writer": {
+              "id": 23611498,
+              "username": "771377",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/noprofilepicture.gif"
+            }
+          },
+          {
+            "id": 5538001,
+            "time_added": 1772565558,
+            "text": "Нужно было внести в проект на Ардуино изменения.\nДмитрий сделал все с первого раза,все заработало.в процессе установки и прошивки у меня  возникало очень очень много вопросов.\nДмитрий терпеливо и последовательно отвечал на все.И мы отсекали все неверные вариан?",
+            "good": true,
+            "bad": false,
+            "writer": {
+              "id": 720364,
+              "username": "TEMA_34",
+              "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/big/noprofilepicture.gif"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

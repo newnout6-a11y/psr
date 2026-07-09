@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-07-08T22:19:47Z",
+  "source": "codex.kwork_manual_verification_diagnostic",
+  "cookies_count": 15,
+  "cookie_names": [
+    "RORSSQIHEK",
+    "_kmfvt",
+    "_kmid",
+    "_kmwl",
+    "accept_cookie_device_id",
+    "csrf_user_token",
+    "list_type_sdisplay",
+    "referrer_url",
+    "seo_activation_request_uri",
+    "seo_activation_set_time",
+    "seo_activation_source",
+    "show_mobile_app_banner_date",
+    "slrememberme",
+    "uad",
+    "userId"
+  ],
+  "proxy": "http://127.0.0.1:17990",
+  "checks": {
+    "current_open_new_helper": {
+      "ok": false,
+      "http_status": 200,
+      "code": "manual_verification_required",
+      "detail": "Kwork requires a manual SmartCaptcha/robot check. Open the Kwork verification window in PSR and complete it by hand.",
+      "final_url": "https://kwork.ru/new"
+    },
+    "new": {
+      "error": "PatternError: nothing to repeat at position 0",
+      "elapsed_ms": 856
+    },
+    "loadclassification_root": {
+      "error": "PatternError: nothing to repeat at position 0",
+      "elapsed_ms": 211
+    },
+    "mobile_getCaptchaStatus": false
+  },
+  "timings_ms": {
+    "total": 5653
+  }
+}

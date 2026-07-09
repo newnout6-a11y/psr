@@ -1,0 +1,708 @@
+{
+  "timestamp_utc": "2026-07-08T17:40:26.275440+00:00",
+  "purpose": "Validate/link remaining isolated freeprice and portfolio endpoints without storing secrets",
+  "proxy": {
+    "before": {
+      "running": true,
+      "profileId": "2b2125f2-7dc3-4ea1-b1ff-565b51aca2fd",
+      "profileName": "russia5",
+      "country": "Russia",
+      "proxyUrl": "http://127.0.0.1:17990",
+      "host": "127.0.0.1",
+      "port": 17990
+    },
+    "rotate": {
+      "running": true,
+      "profileId": "fc54e62e-76e5-4e4b-8f78-954455593c43",
+      "profileName": "russiavless2",
+      "country": null,
+      "proxyUrl": "http://127.0.0.1:17990",
+      "host": "127.0.0.1",
+      "port": 17990
+    },
+    "after": {
+      "running": true,
+      "profileId": "fc54e62e-76e5-4e4b-8f78-954455593c43",
+      "profileName": "russiavless2",
+      "country": null,
+      "proxyUrl": "http://127.0.0.1:17990",
+      "host": "127.0.0.1",
+      "port": 17990
+    },
+    "effective_proxy_url": "http://127.0.0.1:17990"
+  },
+  "auth": {
+    "token_in_memory": true,
+    "token_error": null,
+    "session_hub_cookie_count": 14
+  },
+  "seeds": {
+    "own_kwork_id": 51594444,
+    "own_category_id": 41,
+    "attributesId": 3587
+  },
+  "results": [
+    {
+      "name": "freeprice_category_11",
+      "method": "GET",
+      "url_label": "web:/api/freeprice/categorygetprices",
+      "params": {
+        "categoryId": 11,
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 30,
+      "elapsed_ms": 663,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "success",
+          "prices"
+        ],
+        "prices": null
+      }
+    },
+    {
+      "name": "freeprice_category_15",
+      "method": "GET",
+      "url_label": "web:/api/freeprice/categorygetprices",
+      "params": {
+        "categoryId": 15,
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 30,
+      "elapsed_ms": 130,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "success",
+          "prices"
+        ],
+        "prices": null
+      }
+    },
+    {
+      "name": "freeprice_category_41",
+      "method": "GET",
+      "url_label": "web:/api/freeprice/categorygetprices",
+      "params": {
+        "categoryId": 41,
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 1552,
+      "elapsed_ms": 398,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "success",
+          "prices"
+        ],
+        "prices": {
+          "priceGradation": {
+            "priceStandard": [
+              500,
+              1000,
+              1500,
+              2000,
+              2500,
+              3000,
+              3500,
+              4000,
+              4500,
+              5000,
+              6000,
+              7000,
+              8000,
+              9000,
+              10000,
+              11000,
+              12000,
+              13000,
+              14000,
+              15000,
+              16000,
+              17000,
+              18000,
+              19000,
+              20000,
+              21000,
+              22000,
+              23000,
+              24000,
+              25000,
+              28000,
+              30000,
+              32000,
+              35000,
+              38000,
+              40000,
+              42000,
+              45000,
+              48000,
+              50000,
+              55000,
+              60000
+            ],
+            "priceMedium": {
+              "1": 1000,
+              "2": 1500,
+              "3": 2000,
+              "4": 2500,
+              "5": 3000,
+              "6": 3500,
+              "7": 4000,
+              "8": 4500,
+              "9": 5000,
+              "10": 6000,
+              "11": 7000,
+              "12": 8000,
+              "13": 9000,
+              "14": 10000,
+              "15": 11000,
+              "16": 12000,
+              "17": 13000,
+              "18": 14000,
+              "19": 15000,
+              "20": 16000,
+              "21": 17000,
+              "22": 18000,
+              "23": 19000,
+              "24": 20000,
+              "25": 21000,
+              "26": 22000,
+              "27": 23000,
+              "28": 24000,
+              "29": 25000,
+              "30": 28000,
+              "31": 30000,
+              "32": 32000,
+              "33": 35000,
+              "34": 38000,
+              "35": 40000,
+              "36": 42000,
+              "37": 45000,
+              "38": 48000,
+              "39": 50000,
+              "40": 55000,
+              "41": 60000,
+              "42": 65000
+            },
+            "pricePremium": {
+              "2": 1500,
+              "3": 2000,
+              "4": 2500,
+              "5": 3000,
+              "6": 3500,
+              "7": 4000,
+              "8": 4500,
+              "9": 5000,
+              "10": 6000,
+              "11": 7000,
+              "12": 8000,
+              "13": 9000,
+              "14": 10000,
+              "15": 11000,
+              "16": 12000,
+              "17": 13000,
+              "18": 14000,
+              "19": 15000,
+              "20": 16000,
+              "21": 17000,
+              "22": 18000,
+              "23": 19000,
+              "24": 20000,
+              "25": 21000,
+              "26": 22000,
+              "27": 23000,
+              "28": 24000,
+              "29": 25000,
+              "30": 28000,
+              "31": 30000,
+              "32": 32000,
+              "33": 35000,
+              "34": 38000,
+              "35": 40000,
+              "36": 42000,
+              "37": 45000,
+              "38": 48000,
+              "39": 50000,
+              "40": 55000,
+              "41": 60000,
+              "42": 65000,
+              "43": 70000
+            }
+          },
+          "minPrice": 500,
+          "maxPrice": 71183,
+          "typicalPriceGradation": [
+            500,
+            1000,
+            1500,
+            2000,
+            2500,
+            3000,
+            3500,
+            4000,
+            4500,
+            5000,
+            6000,
+            7000,
+            8000,
+            9000,
+            10000,
+            11000,
+            12000,
+            13000,
+            14000,
+            15000,
+            16000,
+            17000,
+            18000,
+            19000,
+            20000,
+            21000,
+            22000,
+            23000,
+            24000,
+            25000,
+            27000,
+            30000,
+            33000,
+            35000,
+            37000,
+            40000,
+            43000,
+            45000,
+            47000,
+            50000,
+            55000,
+            60000,
+            65000,
+            70000
+          ],
+          "predefinedPackageItem": null
+        }
+      }
+    },
+    {
+      "name": "freeprice_category_41",
+      "method": "GET",
+      "url_label": "web:/api/freeprice/categorygetprices",
+      "params": {
+        "categoryId": 41,
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 1552,
+      "elapsed_ms": 133,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "success",
+          "prices"
+        ],
+        "prices": {
+          "priceGradation": {
+            "priceStandard": [
+              500,
+              1000,
+              1500,
+              2000,
+              2500,
+              3000,
+              3500,
+              4000,
+              4500,
+              5000,
+              6000,
+              7000,
+              8000,
+              9000,
+              10000,
+              11000,
+              12000,
+              13000,
+              14000,
+              15000,
+              16000,
+              17000,
+              18000,
+              19000,
+              20000,
+              21000,
+              22000,
+              23000,
+              24000,
+              25000,
+              28000,
+              30000,
+              32000,
+              35000,
+              38000,
+              40000,
+              42000,
+              45000,
+              48000,
+              50000,
+              55000,
+              60000
+            ],
+            "priceMedium": {
+              "1": 1000,
+              "2": 1500,
+              "3": 2000,
+              "4": 2500,
+              "5": 3000,
+              "6": 3500,
+              "7": 4000,
+              "8": 4500,
+              "9": 5000,
+              "10": 6000,
+              "11": 7000,
+              "12": 8000,
+              "13": 9000,
+              "14": 10000,
+              "15": 11000,
+              "16": 12000,
+              "17": 13000,
+              "18": 14000,
+              "19": 15000,
+              "20": 16000,
+              "21": 17000,
+              "22": 18000,
+              "23": 19000,
+              "24": 20000,
+              "25": 21000,
+              "26": 22000,
+              "27": 23000,
+              "28": 24000,
+              "29": 25000,
+              "30": 28000,
+              "31": 30000,
+              "32": 32000,
+              "33": 35000,
+              "34": 38000,
+              "35": 40000,
+              "36": 42000,
+              "37": 45000,
+              "38": 48000,
+              "39": 50000,
+              "40": 55000,
+              "41": 60000,
+              "42": 65000
+            },
+            "pricePremium": {
+              "2": 1500,
+              "3": 2000,
+              "4": 2500,
+              "5": 3000,
+              "6": 3500,
+              "7": 4000,
+              "8": 4500,
+              "9": 5000,
+              "10": 6000,
+              "11": 7000,
+              "12": 8000,
+              "13": 9000,
+              "14": 10000,
+              "15": 11000,
+              "16": 12000,
+              "17": 13000,
+              "18": 14000,
+              "19": 15000,
+              "20": 16000,
+              "21": 17000,
+              "22": 18000,
+              "23": 19000,
+              "24": 20000,
+              "25": 21000,
+              "26": 22000,
+              "27": 23000,
+              "28": 24000,
+              "29": 25000,
+              "30": 28000,
+              "31": 30000,
+              "32": 32000,
+              "33": 35000,
+              "34": 38000,
+              "35": 40000,
+              "36": 42000,
+              "37": 45000,
+              "38": 48000,
+              "39": 50000,
+              "40": 55000,
+              "41": 60000,
+              "42": 65000,
+              "43": 70000
+            }
+          },
+          "minPrice": 500,
+          "maxPrice": 71183,
+          "typicalPriceGradation": [
+            500,
+            1000,
+            1500,
+            2000,
+            2500,
+            3000,
+            3500,
+            4000,
+            4500,
+            5000,
+            6000,
+            7000,
+            8000,
+            9000,
+            10000,
+            11000,
+            12000,
+            13000,
+            14000,
+            15000,
+            16000,
+            17000,
+            18000,
+            19000,
+            20000,
+            21000,
+            22000,
+            23000,
+            24000,
+            25000,
+            27000,
+            30000,
+            33000,
+            35000,
+            37000,
+            40000,
+            43000,
+            45000,
+            47000,
+            50000,
+            55000,
+            60000,
+            65000,
+            70000
+          ],
+          "predefinedPackageItem": null
+        }
+      }
+    },
+    {
+      "name": "freeprice_attribute_11_208",
+      "method": "GET",
+      "url_label": "web:/api/freeprice/attributegetprices",
+      "params": {
+        "categoryId": 11,
+        "attributeId": 208,
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 30,
+      "elapsed_ms": 140,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "success",
+          "prices"
+        ],
+        "prices": null
+      }
+    },
+    {
+      "name": "freeprice_attribute_41_3587",
+      "method": "GET",
+      "url_label": "web:/api/freeprice/attributegetprices",
+      "params": {
+        "categoryId": 41,
+        "attributeId": 3587,
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 30,
+      "elapsed_ms": 129,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "success",
+          "prices"
+        ],
+        "prices": null
+      }
+    },
+    {
+      "name": "freeprice_attribute_41_3587",
+      "method": "GET",
+      "url_label": "web:/api/freeprice/attributegetprices",
+      "params": {
+        "categoryId": 41,
+        "attributeId": 3587,
+        "lang": "ru"
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 30,
+      "elapsed_ms": 126,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "prices"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "success",
+          "prices"
+        ],
+        "prices": null
+      }
+    },
+    {
+      "name": "portfolio_load_form_orders_own_kwork",
+      "method": "POST",
+      "url_label": "web:/portfolio/load_form_orders",
+      "data": {
+        "kworkId": 51594444
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 62,
+      "elapsed_ms": 136,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "data"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "anotherVideos",
+          "hasOrders"
+        ],
+        "anotherVideos_count": 0,
+        "anotherVideos_sample": [],
+        "hasOrders": false
+      }
+    },
+    {
+      "name": "portfolio_load_form_orders_full_own_kwork",
+      "method": "POST",
+      "url_label": "web:/portfolio/load_form_orders_full",
+      "data": {
+        "kworkIds": 51594444
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 37,
+      "elapsed_ms": 129,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "data"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "orders"
+        ],
+        "orders_count": 0,
+        "orders_sample": []
+      }
+    },
+    {
+      "name": "portfolio_load_form_kworks_category_attr",
+      "method": "POST",
+      "url_label": "web:/portfolio/load_form_kworks",
+      "data": {
+        "categoryId": 41,
+        "attributesId": 3587
+      },
+      "status_code": 200,
+      "content_type": "application/json",
+      "body_len": 55,
+      "elapsed_ms": 125,
+      "body_kind": "json",
+      "summary": {
+        "json_type": "dict",
+        "keys": [
+          "success",
+          "data"
+        ],
+        "success": true,
+        "target_type": "dict",
+        "target_keys": [
+          "kworks",
+          "hasOrders"
+        ],
+        "kworks_count": 0,
+        "kworks_sample": [],
+        "hasOrders": false
+      }
+    },
+    {
+      "name": "portfolio_log_portfolio_view",
+      "status": "skipped",
+      "reason": "analytics/view counter endpoint; static JS context only, live mutation intentionally not performed",
+      "params": [
+        "portfolio_video_id",
+        "view_type"
+      ]
+    }
+  ]
+}

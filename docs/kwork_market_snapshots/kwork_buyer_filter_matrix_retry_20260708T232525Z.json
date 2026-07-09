@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-07-08T23:25:25Z",
+  "source": "psr.kwork_buyer_filter_matrix_retry",
+  "cases": [
+    {
+      "name": "telegram_low5",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "error",
+      "error": "TimeoutError: "
+    },
+    {
+      "name": "telegram_zero",
+      "filters": {
+        "kworks_filter_to": 0
+      },
+      "status": "error",
+      "error": "TimeoutError: "
+    },
+    {
+      "name": "telegram_budget30_low5",
+      "filters": {
+        "price_from": 30000,
+        "kworks_filter_to": 5
+      },
+      "status": "error",
+      "error": "TimeoutError: "
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-07-08T14:56:32Z",
+  "results": [
+    {
+      "method": "POST",
+      "path": "/portfolio_large/1123924",
+      "data": {},
+      "status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "location": null,
+      "bytes": 3942,
+      "body_prefix": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\">",
+      "contains_portfolio": true,
+      "contains_kwork": true,
+      "contains_json_success": false
+    },
+    {
+      "method": "POST",
+      "path": "/portfolio_large/14040541",
+      "data": {},
+      "status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "location": null,
+      "bytes": 3850,
+      "body_prefix": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\">",
+      "contains_portfolio": true,
+      "contains_kwork": true,
+      "contains_json_success": false
+    },
+    {
+      "method": "POST",
+      "path": "/portfolio_large/29072946",
+      "data": {},
+      "status": 404,
+      "content_type": "application/json",
+      "location": null,
+      "bytes": 106,
+      "body_prefix": "\"\\u0421\\u0442\\u0440\\u0430\\u043d\\u0438\\u0446\\u0430 \\u043d\\u0435 \\u043d\\u0430\\u0439\\u0434\\u0435\\u043d\\u0430\"",
+      "contains_portfolio": false,
+      "contains_kwork": false,
+      "contains_json_success": false
+    },
+    {
+      "method": "GET",
+      "path": "/portfolio_large/1123924",
+      "data": null,
+      "status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "location": null,
+      "bytes": 3967,
+      "body_prefix": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\">",
+      "contains_portfolio": true,
+      "contains_kwork": true,
+      "contains_json_success": false
+    },
+    {
+      "method": "POST",
+      "path": "/catalog_kworks_filters/programming",
+      "data": {
+        "page": 1
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "location": null,
+      "bytes": 319072,
+      "body_prefix": "{\"success\":true,\"data\":{\"stateData\":{\"viewData\":{\"filters\":{\"excludeIds\":[],\"sdeliverytime\":0,\"sMinReview\":0,\"sOrdersQueue\":0,\"sMinUserSales\":0,\"sMinKworkSales\":0,\"sview\":0,\"strack\":0,\"scoefficient\":1,\"sellerLvl\":0,\"swithreviews\":0,\"isHidden\":0,\"sonline\":\"\",\"translationsTo\":\"\",\"translationsFrom\":\"\",\"price\":\"\",\"filterPr",
+      "contains_portfolio": true,
+      "contains_kwork": true,
+      "contains_json_success": true
+    },
+    {
+      "method": "POST",
+      "path": "/catalog_kworks_filters/programming",
+      "data": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "location": null,
+      "bytes": 318982,
+      "body_prefix": "{\"success\":true,\"data\":{\"stateData\":{\"viewData\":{\"filters\":{\"excludeIds\":[],\"sdeliverytime\":0,\"sMinReview\":0,\"sOrdersQueue\":0,\"sMinUserSales\":0,\"sMinKworkSales\":0,\"sview\":0,\"strack\":0,\"scoefficient\":1,\"sellerLvl\":0,\"swithreviews\":0,\"isHidden\":0,\"sonline\":\"\",\"translationsTo\":\"\",\"translationsFrom\":\"\",\"price\":\"\",\"filterPr",
+      "contains_portfolio": true,
+      "contains_kwork": true,
+      "contains_json_success": true
+    },
+    {
+      "method": "POST",
+      "path": "/catalog_kworks_filters/design",
+      "data": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "location": null,
+      "bytes": 407351,
+      "body_prefix": "{\"success\":true,\"data\":{\"stateData\":{\"viewData\":{\"filters\":{\"excludeIds\":[],\"sdeliverytime\":0,\"sMinReview\":0,\"sOrdersQueue\":0,\"sMinUserSales\":0,\"sMinKworkSales\":0,\"sview\":0,\"strack\":0,\"scoefficient\":1,\"sellerLvl\":0,\"swithreviews\":0,\"isHidden\":0,\"sonline\":\"\",\"translationsTo\":\"\",\"translationsFrom\":\"\",\"price\":\"\",\"filterPr",
+      "contains_portfolio": true,
+      "contains_kwork": true,
+      "contains_json_success": true
+    },
+    {
+      "method": "POST",
+      "path": "/catalog_kworks_filters/telegram-boty",
+      "data": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "location": null,
+      "bytes": 29,
+      "body_prefix": "{\"success\":false,\"data\":null}",
+      "contains_portfolio": false,
+      "contains_kwork": false,
+      "contains_json_success": true
+    }
+  ]
+}

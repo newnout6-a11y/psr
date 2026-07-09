@@ -1,0 +1,470 @@
+{
+  "timestamp_utc": "2026-07-08T15:54:12.498088+00:00",
+  "purpose": "Probe JS-only read-like kwork sites and first portfolio helpers plus minimal REST API documentation discovery paths.",
+  "proxy": {
+    "running": true,
+    "profileName": "germanyvless1",
+    "country": "Germany",
+    "proxyUrl": "http://<redacted_ip>:17990"
+  },
+  "session_hub": {
+    "status_code": 200,
+    "cookie_count": "<redacted>",
+    "names": [
+      "RORSSQIHEK",
+      "_kmfvt",
+      "_kmid",
+      "_kmwl",
+      "accept_cookie_device_id",
+      "csrf_user_token",
+      "list_type_sdisplay",
+      "referrer_url",
+      "seo_activation_request_uri",
+      "seo_activation_set_time",
+      "seo_activation_source",
+      "show_mobile_app_banner_date",
+      "slrememberme",
+      "uad"
+    ]
+  },
+  "cases_count": 15,
+  "results": [
+    {
+      "name": "getkworksites_29072946_show0",
+      "method": "GET",
+      "path": "/api/kwork/getkworksites",
+      "params_keys": [
+        "kworkId",
+        "offset",
+        "showHosts"
+      ],
+      "data_keys": [],
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "location": null,
+        "body_len": 65,
+        "final_path": "/api/kwork/getkworksites",
+        "body_kind": "json",
+        "json_type": "dict",
+        "json_keys": [
+          "html",
+          "linksSites",
+          "orderedLinksSites",
+          "success"
+        ],
+        "success": true,
+        "linksSites_count": 0,
+        "html_len": 0,
+        "summary": {
+          "html": "",
+          "linksSites": [],
+          "orderedLinksSites": [],
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "getkworksites_29072946_show1",
+      "method": "GET",
+      "path": "/api/kwork/getkworksites",
+      "params_keys": [
+        "kworkId",
+        "offset",
+        "showHosts"
+      ],
+      "data_keys": [],
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "location": null,
+        "body_len": 65,
+        "final_path": "/api/kwork/getkworksites",
+        "body_kind": "json",
+        "json_type": "dict",
+        "json_keys": [
+          "html",
+          "linksSites",
+          "orderedLinksSites",
+          "success"
+        ],
+        "success": true,
+        "linksSites_count": 0,
+        "html_len": 0,
+        "summary": {
+          "html": "",
+          "linksSites": [],
+          "orderedLinksSites": [],
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "getkworksites_1_show0",
+      "method": "GET",
+      "path": "/api/kwork/getkworksites",
+      "params_keys": [
+        "kworkId",
+        "offset",
+        "showHosts"
+      ],
+      "data_keys": [],
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "location": null,
+        "body_len": 65,
+        "final_path": "/api/kwork/getkworksites",
+        "body_kind": "json",
+        "json_type": "dict",
+        "json_keys": [
+          "html",
+          "linksSites",
+          "orderedLinksSites",
+          "success"
+        ],
+        "success": true,
+        "linksSites_count": 0,
+        "html_len": 0,
+        "summary": {
+          "html": "",
+          "linksSites": [],
+          "orderedLinksSites": [],
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "getkworksites_1_show1",
+      "method": "GET",
+      "path": "/api/kwork/getkworksites",
+      "params_keys": [
+        "kworkId",
+        "offset",
+        "showHosts"
+      ],
+      "data_keys": [],
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "location": null,
+        "body_len": 65,
+        "final_path": "/api/kwork/getkworksites",
+        "body_kind": "json",
+        "json_type": "dict",
+        "json_keys": [
+          "html",
+          "linksSites",
+          "orderedLinksSites",
+          "success"
+        ],
+        "success": true,
+        "linksSites_count": 0,
+        "html_len": 0,
+        "summary": {
+          "html": "",
+          "linksSites": [],
+          "orderedLinksSites": [],
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "first_portfolio_post_29072946",
+      "method": "POST",
+      "path": "/kwork_first_portfolio/29072946",
+      "params_keys": [],
+      "data_keys": [
+        "isWebpAccepted"
+      ],
+      "response": {
+        "status_code": 404,
+        "content_type": "application/json",
+        "location": null,
+        "body_len": 106,
+        "final_path": "/kwork_first_portfolio/29072946",
+        "body_kind": "json",
+        "json_type": "str",
+        "json_sample": "Страница не найдена"
+      }
+    },
+    {
+      "name": "first_portfolio_post_1123924",
+      "method": "POST",
+      "path": "/kwork_first_portfolio/1123924",
+      "params_keys": [],
+      "data_keys": [
+        "isWebpAccepted"
+      ],
+      "response": {
+        "status_code": 404,
+        "content_type": "application/json",
+        "location": null,
+        "body_len": 106,
+        "final_path": "/kwork_first_portfolio/1123924",
+        "body_kind": "json",
+        "json_type": "str",
+        "json_sample": "Страница не найдена"
+      }
+    },
+    {
+      "name": "first_portfolio_post_14040541",
+      "method": "POST",
+      "path": "/kwork_first_portfolio/14040541",
+      "params_keys": [],
+      "data_keys": [
+        "isWebpAccepted"
+      ],
+      "response": {
+        "status_code": 404,
+        "content_type": "application/json",
+        "location": null,
+        "body_len": 106,
+        "final_path": "/kwork_first_portfolio/14040541",
+        "body_kind": "json",
+        "json_type": "str",
+        "json_sample": "Страница не найдена"
+      }
+    },
+    {
+      "name": "apidoc_kwork.ru_swagger.json",
+      "method": "GET",
+      "path": "/swagger.json",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "location": null,
+        "body_len": 56713,
+        "final_path": "/swagger.json",
+        "body_kind": "text",
+        "markers": {
+          "success": false,
+          "linksSites": false,
+          "kwork": true,
+          "portfolio": true,
+          "control-overlay": false,
+          "qrator": false,
+          "swagger": false,
+          "openapi": false,
+          "api-docs": false,
+          "not found": false,
+          "???????? ?? ???????": false,
+          "access denied": false
+        },
+        "snippet": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variables.css?ver=33b19c22abb558ff8f_cors\" type=\"text/css\" media=\"screen\"><meta name=\"format-detection\" content=\"telephone=no\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta property=\"og:image\" content=\"https://cdn-edge.kwork.ru/images/large"
+      }
+    },
+    {
+      "name": "apidoc_kwork.ru_api-docs",
+      "method": "GET",
+      "path": "/api-docs",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "location": null,
+        "body_len": 56713,
+        "final_path": "/api-docs",
+        "body_kind": "text",
+        "markers": {
+          "success": false,
+          "linksSites": false,
+          "kwork": true,
+          "portfolio": true,
+          "control-overlay": false,
+          "qrator": false,
+          "swagger": false,
+          "openapi": false,
+          "api-docs": false,
+          "not found": false,
+          "???????? ?? ???????": false,
+          "access denied": false
+        },
+        "snippet": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variables.css?ver=33b19c22abb558ff8f_cors\" type=\"text/css\" media=\"screen\"><meta name=\"format-detection\" content=\"telephone=no\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta property=\"og:image\" content=\"https://cdn-edge.kwork.ru/images/large"
+      }
+    },
+    {
+      "name": "apidoc_kwork.ru_openapi.json",
+      "method": "GET",
+      "path": "/openapi.json",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "location": null,
+        "body_len": 56713,
+        "final_path": "/openapi.json",
+        "body_kind": "text",
+        "markers": {
+          "success": false,
+          "linksSites": false,
+          "kwork": true,
+          "portfolio": true,
+          "control-overlay": false,
+          "qrator": false,
+          "swagger": false,
+          "openapi": false,
+          "api-docs": false,
+          "not found": false,
+          "???????? ?? ???????": false,
+          "access denied": false
+        },
+        "snippet": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variables.css?ver=33b19c22abb558ff8f_cors\" type=\"text/css\" media=\"screen\"><meta name=\"format-detection\" content=\"telephone=no\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta property=\"og:image\" content=\"https://cdn-edge.kwork.ru/images/large"
+      }
+    },
+    {
+      "name": "apidoc_kwork.ru_.well-known_openapi.json",
+      "method": "GET",
+      "path": "/.well-known/openapi.json",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "location": null,
+        "body_len": 56713,
+        "final_path": "/.well-known/openapi.json",
+        "body_kind": "text",
+        "markers": {
+          "success": false,
+          "linksSites": false,
+          "kwork": true,
+          "portfolio": true,
+          "control-overlay": false,
+          "qrator": false,
+          "swagger": false,
+          "openapi": false,
+          "api-docs": false,
+          "not found": false,
+          "???????? ?? ???????": false,
+          "access denied": false
+        },
+        "snippet": "<!DOCTYPE html> <html lang=\"ru\" ><head><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/dist/fonts_c04a7a1370c33a99.css?ver=33_cors\" type=\"text/css\" media=\"screen\"><link rel=\"stylesheet\" href=\"https://cdn-edge.kwork.ru/css/variables.css?ver=33b19c22abb558ff8f_cors\" type=\"text/css\" media=\"screen\"><meta name=\"format-detection\" content=\"telephone=no\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta property=\"og:image\" content=\"https://cdn-edge.kwork.ru/images/large"
+      }
+    },
+    {
+      "name": "apidoc_api.kwork.ru_swagger.json",
+      "method": "GET",
+      "path": "/swagger.json",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 401,
+        "content_type": "text/html",
+        "location": null,
+        "body_len": 574,
+        "final_path": "/swagger.json",
+        "body_kind": "text",
+        "markers": {
+          "success": false,
+          "linksSites": false,
+          "kwork": false,
+          "portfolio": false,
+          "control-overlay": false,
+          "qrator": false,
+          "swagger": false,
+          "openapi": false,
+          "api-docs": false,
+          "not found": false,
+          "???????? ?? ???????": false,
+          "access denied": false
+        },
+        "snippet": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error pag"
+      }
+    },
+    {
+      "name": "apidoc_api.kwork.ru_api-docs",
+      "method": "GET",
+      "path": "/api-docs",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 401,
+        "content_type": "text/html",
+        "location": null,
+        "body_len": 574,
+        "final_path": "/api-docs",
+        "body_kind": "text",
+        "markers": {
+          "success": false,
+          "linksSites": false,
+          "kwork": false,
+          "portfolio": false,
+          "control-overlay": false,
+          "qrator": false,
+          "swagger": false,
+          "openapi": false,
+          "api-docs": false,
+          "not found": false,
+          "???????? ?? ???????": false,
+          "access denied": false
+        },
+        "snippet": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error pag"
+      }
+    },
+    {
+      "name": "apidoc_api.kwork.ru_openapi.json",
+      "method": "GET",
+      "path": "/openapi.json",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 401,
+        "content_type": "text/html",
+        "location": null,
+        "body_len": 574,
+        "final_path": "/openapi.json",
+        "body_kind": "text",
+        "markers": {
+          "success": false,
+          "linksSites": false,
+          "kwork": false,
+          "portfolio": false,
+          "control-overlay": false,
+          "qrator": false,
+          "swagger": false,
+          "openapi": false,
+          "api-docs": false,
+          "not found": false,
+          "???????? ?? ???????": false,
+          "access denied": false
+        },
+        "snippet": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error pag"
+      }
+    },
+    {
+      "name": "apidoc_api.kwork.ru_.well-known_openapi.json",
+      "method": "GET",
+      "path": "/.well-known/openapi.json",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 401,
+        "content_type": "text/html",
+        "location": null,
+        "body_len": 574,
+        "final_path": "/.well-known/openapi.json",
+        "body_kind": "text",
+        "markers": {
+          "success": false,
+          "linksSites": false,
+          "kwork": false,
+          "portfolio": false,
+          "control-overlay": false,
+          "qrator": false,
+          "swagger": false,
+          "openapi": false,
+          "api-docs": false,
+          "not found": false,
+          "???????? ?? ???????": false,
+          "access denied": false
+        },
+        "snippet": "<html> <head><title>401 Authorization Required</title></head> <body> <center><h1>401 Authorization Required</h1></center> <hr><center>nginx</center> </body> </html> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error page --> <!-- a padding to disable MSIE and Chrome friendly error pag"
+      }
+    }
+  ]
+}

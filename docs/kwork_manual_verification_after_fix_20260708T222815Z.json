@@ -1,0 +1,27 @@
+{
+  "ok": false,
+  "http_status": 403,
+  "code": "manual_verification_required",
+  "detail": "Kwork requires a manual SmartCaptcha/robot check. Open the Kwork verification window in PSR and complete it by hand.",
+  "final_url": "https://kwork.ru/not_access.php",
+  "evidence": {
+    "manual_required": true,
+    "strong_matches": [
+      "data-sitekey",
+      "smart-captcha",
+      "smartcaptcha"
+    ],
+    "weak_matches": [
+      "автоматические скрипт",
+      "автоматическими скрипт",
+      "большой нагрузк",
+      "подтвердите, что вы не робот"
+    ],
+    "challenge_url": true,
+    "challenge_status": true,
+    "has_new_form": false
+  },
+  "cookies_count": 15,
+  "elapsed_ms": 1660,
+  "generated_at": "2026-07-08T22:28:15Z"
+}

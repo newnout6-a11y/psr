@@ -1,0 +1,1003 @@
+{
+  "generated_at": "2026-07-09T08:07:15.397630+00:00",
+  "source": "psr.kwork_buyer_history_deep_probe",
+  "username": "Salvador1w1332",
+  "hub_cookie_count": 11,
+  "hub_error": null,
+  "proxy_url": null,
+  "pages": {
+    "https://kwork.ru/projects/list/Salvador1w1332": {
+      "url": "https://kwork.ru/projects/list/Salvador1w1332",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/projects/list/Salvador1w1332",
+      "bytes": 162392,
+      "content_type": "text/html; charset=UTF-8",
+      "title": "Фриланс проекты: Salvador1w1332",
+      "state_key_count": 195,
+      "state_keys": [
+        "categoriesWithFavoritesList",
+        "complainCategoriesList",
+        "computedConnectsByUserLevel",
+        "isMainPageUnauthorizedUser",
+        "isMobileUserAgent",
+        "isRedesignPaginationTabs",
+        "isTabletUserAgent",
+        "isUserConfirmedSeller",
+        "isUserInBlockFundsFocusGroup",
+        "isUserManualPollAnswer",
+        "isUserTester",
+        "isWantsOnly",
+        "lastUserPenaltyDate",
+        "modelUserKworkAllowStatusDeny",
+        "modelUserStatusBlocked",
+        "newWantsCount",
+        "onlineUserCount",
+        "userAvatar",
+        "userCanBuyFromYescrow",
+        "userName",
+        "userNeedPortfolioList",
+        "wantModelStatuses",
+        "wantReview",
+        "wantViews",
+        "wants",
+        "wantsCount",
+        "wantsCountShowThreshold",
+        "wants_20891_data"
+      ],
+      "candidate_lists": [
+        {
+          "path": "wants.data",
+          "len": 4,
+          "score": 7,
+          "keys": [
+            "alreadyWork",
+            "altStatusHint",
+            "availableDurations",
+            "categoryLinksIdRu",
+            "category_id",
+            "currentUserReviewType",
+            "dateView",
+            "date_active",
+            "date_create",
+            "date_expire",
+            "description",
+            "files",
+            "getPriceThreshold",
+            "getReviewCanChange",
+            "getWantsActiveCount",
+            "hasPortfolioAvailable",
+            "id",
+            "isHigherPrice",
+            "isNeural",
+            "isOtherActiveWantsExceptByWantId",
+            "isUserWant",
+            "isWantActive",
+            "isWantArchive",
+            "kwork_count",
+            "lang",
+            "max_days",
+            "name",
+            "orderManagerStatusDone",
+            "possiblePriceLimit",
+            "priceLimit",
+            "projectReviewType",
+            "status",
+            "timeLeft",
+            "turnover",
+            "user",
+            "views_dirty",
+            "wantDates",
+            "wantGetSumOrderCount",
+            "wantUserGetProfileUrl"
+          ],
+          "sample": [
+            {
+              "id": "3212022",
+              "possiblePriceLimit": "30000",
+              "description": "Интересует сотрудничество по инвайтингу или рассылке в Telegram. Рассматриваю долгосрочную работу, поэтому хотелось бы узнать подробнее о ваших возможностях и у",
+              "kwork_count": "1",
+              "name": "Массовый инвайтинг +рассылка с отчетом",
+              "priceLimit": "10000.00",
+              "date_create": "2026-07-06 18:18:33"
+            },
+            {
+              "id": "3202311",
+              "possiblePriceLimit": "90000",
+              "description": "Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы. Есть база для упоминания около 10к пользователей. Материалы для раб",
+              "kwork_count": "",
+              "name": "Нужно создать 5&ndash;6 Telegram Stories с упоминанием",
+              "priceLimit": "30000.00",
+              "date_create": "2026-06-21 21:06:50"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.15.cats",
+          "len": 11,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "28",
+              "name": "Арт и иллюстрации"
+            },
+            {
+              "id": "24",
+              "name": "Веб и мобильный дизайн"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.11.cats",
+          "len": 9,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "79",
+              "name": "Верстка"
+            },
+            {
+              "id": "80",
+              "name": "Десктоп программирование"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.83.cats",
+          "len": 8,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "64",
+              "name": "Бухгалтерия и налоги"
+            },
+            {
+              "id": "262",
+              "name": "Обзвоны и продажи"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.17.cats",
+          "len": 7,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "44",
+              "name": "SEO аудиты, консультации"
+            },
+            {
+              "id": "43",
+              "name": "Внутренняя оптимизация"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.7.cats",
+          "len": 7,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "20",
+              "name": "Аудиозапись и озвучка"
+            },
+            {
+              "id": "76",
+              "name": "Видеоролики"
+            }
+          ]
+        },
+        {
+          "path": "headerMenu",
+          "len": 7,
+          "score": 2,
+          "keys": [
+            "columns",
+            "id",
+            "name",
+            "url"
+          ],
+          "sample": [
+            {
+              "id": "69",
+              "name": "Дизайн"
+            },
+            {
+              "id": "144",
+              "name": "Разработка и IT"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.45.cats",
+          "len": 6,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "108",
+              "name": "E-mail маркетинг и рассылки"
+            },
+            {
+              "id": "113",
+              "name": "Базы данных и клиентов"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.5.cats",
+          "len": 6,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "303",
+              "name": "ИИ-тексты"
+            },
+            {
+              "id": "75",
+              "name": "Набор текста"
+            }
+          ]
+        },
+        {
+          "path": "complainCategoriesList",
+          "len": 2,
+          "score": 2,
+          "keys": [
+            "commentRequired",
+            "id",
+            "isFileUploaderNotAuth",
+            "subCategories",
+            "title"
+          ],
+          "sample": [
+            {
+              "id": "1",
+              "title": "Некорректный контент"
+            },
+            {
+              "id": "4",
+              "title": "Нарушение авторских и интеллектуальных прав"
+            }
+          ]
+        },
+        {
+          "path": "complainCategoriesList[0].subCategories",
+          "len": 2,
+          "score": 2,
+          "keys": [
+            "commentRequired",
+            "id",
+            "isFileUploaderNotAuth",
+            "title",
+            "titleWithLink"
+          ],
+          "sample": [
+            {
+              "id": "3",
+              "title": "Нарушение законодательства"
+            },
+            {
+              "id": "2",
+              "title": "Сомнительный контент"
+            }
+          ]
+        }
+      ],
+      "parser_projects_count": 0,
+      "regex_project_ids": [],
+      "contains_username": true,
+      "scripts": [
+        "https://cdn-edge.kwork.ru/js/locales/ru_RU/projects-list-fcp.js?ver=34e86ba925702df5ac_cors",
+        "https://cdn-edge.kwork.ru/js/dist/projects-list-fcp_b721ef6516c11949.js?ver=34_cors"
+      ],
+      "count_window.stateData": 1,
+      "count_wants": 17,
+      "count_pagination": 0,
+      "count_projects/list": 7,
+      "count_wantData": 0,
+      "count_portfolio": 18
+    },
+    "https://kwork.ru/projects/list/Salvador1w1332?page=1": {
+      "url": "https://kwork.ru/projects/list/Salvador1w1332?page=1",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/projects/list/Salvador1w1332?page=1",
+      "bytes": 162402,
+      "content_type": "text/html; charset=UTF-8",
+      "title": "Фриланс проекты: Salvador1w1332",
+      "state_key_count": 195,
+      "state_keys": [
+        "categoriesWithFavoritesList",
+        "complainCategoriesList",
+        "computedConnectsByUserLevel",
+        "isMainPageUnauthorizedUser",
+        "isMobileUserAgent",
+        "isRedesignPaginationTabs",
+        "isTabletUserAgent",
+        "isUserConfirmedSeller",
+        "isUserInBlockFundsFocusGroup",
+        "isUserManualPollAnswer",
+        "isUserTester",
+        "isWantsOnly",
+        "lastUserPenaltyDate",
+        "modelUserKworkAllowStatusDeny",
+        "modelUserStatusBlocked",
+        "newWantsCount",
+        "onlineUserCount",
+        "userAvatar",
+        "userCanBuyFromYescrow",
+        "userName",
+        "userNeedPortfolioList",
+        "wantModelStatuses",
+        "wantReview",
+        "wantViews",
+        "wants",
+        "wantsCount",
+        "wantsCountShowThreshold",
+        "wants_20891_data"
+      ],
+      "candidate_lists": [
+        {
+          "path": "wants.data",
+          "len": 4,
+          "score": 7,
+          "keys": [
+            "alreadyWork",
+            "altStatusHint",
+            "availableDurations",
+            "categoryLinksIdRu",
+            "category_id",
+            "currentUserReviewType",
+            "dateView",
+            "date_active",
+            "date_create",
+            "date_expire",
+            "description",
+            "files",
+            "getPriceThreshold",
+            "getReviewCanChange",
+            "getWantsActiveCount",
+            "hasPortfolioAvailable",
+            "id",
+            "isHigherPrice",
+            "isNeural",
+            "isOtherActiveWantsExceptByWantId",
+            "isUserWant",
+            "isWantActive",
+            "isWantArchive",
+            "kwork_count",
+            "lang",
+            "max_days",
+            "name",
+            "orderManagerStatusDone",
+            "possiblePriceLimit",
+            "priceLimit",
+            "projectReviewType",
+            "status",
+            "timeLeft",
+            "turnover",
+            "user",
+            "views_dirty",
+            "wantDates",
+            "wantGetSumOrderCount",
+            "wantUserGetProfileUrl"
+          ],
+          "sample": [
+            {
+              "id": "3212022",
+              "possiblePriceLimit": "30000",
+              "description": "Интересует сотрудничество по инвайтингу или рассылке в Telegram. Рассматриваю долгосрочную работу, поэтому хотелось бы узнать подробнее о ваших возможностях и у",
+              "kwork_count": "1",
+              "name": "Массовый инвайтинг +рассылка с отчетом",
+              "priceLimit": "10000.00",
+              "date_create": "2026-07-06 18:18:33"
+            },
+            {
+              "id": "3202311",
+              "possiblePriceLimit": "90000",
+              "description": "Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы. Есть база для упоминания около 10к пользователей. Материалы для раб",
+              "kwork_count": "",
+              "name": "Нужно создать 5&ndash;6 Telegram Stories с упоминанием",
+              "priceLimit": "30000.00",
+              "date_create": "2026-06-21 21:06:50"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.15.cats",
+          "len": 11,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "28",
+              "name": "Арт и иллюстрации"
+            },
+            {
+              "id": "24",
+              "name": "Веб и мобильный дизайн"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.11.cats",
+          "len": 9,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "79",
+              "name": "Верстка"
+            },
+            {
+              "id": "80",
+              "name": "Десктоп программирование"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.83.cats",
+          "len": 8,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "64",
+              "name": "Бухгалтерия и налоги"
+            },
+            {
+              "id": "262",
+              "name": "Обзвоны и продажи"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.17.cats",
+          "len": 7,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "44",
+              "name": "SEO аудиты, консультации"
+            },
+            {
+              "id": "43",
+              "name": "Внутренняя оптимизация"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.7.cats",
+          "len": 7,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "20",
+              "name": "Аудиозапись и озвучка"
+            },
+            {
+              "id": "76",
+              "name": "Видеоролики"
+            }
+          ]
+        },
+        {
+          "path": "headerMenu",
+          "len": 7,
+          "score": 2,
+          "keys": [
+            "columns",
+            "id",
+            "name",
+            "url"
+          ],
+          "sample": [
+            {
+              "id": "69",
+              "name": "Дизайн"
+            },
+            {
+              "id": "144",
+              "name": "Разработка и IT"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.45.cats",
+          "len": 6,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "108",
+              "name": "E-mail маркетинг и рассылки"
+            },
+            {
+              "id": "113",
+              "name": "Базы данных и клиентов"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.5.cats",
+          "len": 6,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "303",
+              "name": "ИИ-тексты"
+            },
+            {
+              "id": "75",
+              "name": "Набор текста"
+            }
+          ]
+        },
+        {
+          "path": "complainCategoriesList",
+          "len": 2,
+          "score": 2,
+          "keys": [
+            "commentRequired",
+            "id",
+            "isFileUploaderNotAuth",
+            "subCategories",
+            "title"
+          ],
+          "sample": [
+            {
+              "id": "1",
+              "title": "Некорректный контент"
+            },
+            {
+              "id": "4",
+              "title": "Нарушение авторских и интеллектуальных прав"
+            }
+          ]
+        },
+        {
+          "path": "complainCategoriesList[0].subCategories",
+          "len": 2,
+          "score": 2,
+          "keys": [
+            "commentRequired",
+            "id",
+            "isFileUploaderNotAuth",
+            "title",
+            "titleWithLink"
+          ],
+          "sample": [
+            {
+              "id": "3",
+              "title": "Нарушение законодательства"
+            },
+            {
+              "id": "2",
+              "title": "Сомнительный контент"
+            }
+          ]
+        }
+      ],
+      "parser_projects_count": 0,
+      "regex_project_ids": [],
+      "contains_username": true,
+      "scripts": [
+        "https://cdn-edge.kwork.ru/js/locales/ru_RU/projects-list-fcp.js?ver=34e86ba925702df5ac_cors",
+        "https://cdn-edge.kwork.ru/js/dist/projects-list-fcp_b721ef6516c11949.js?ver=34_cors"
+      ],
+      "count_window.stateData": 1,
+      "count_wants": 17,
+      "count_pagination": 0,
+      "count_projects/list": 7,
+      "count_wantData": 0,
+      "count_portfolio": 18
+    },
+    "https://kwork.ru/projects/list/Salvador1w1332?page=2": {
+      "url": "https://kwork.ru/projects/list/Salvador1w1332?page=2",
+      "status_code": 200,
+      "final_url": "https://kwork.ru/projects/list/Salvador1w1332?page=2",
+      "bytes": 147390,
+      "content_type": "text/html; charset=UTF-8",
+      "title": "Фриланс проекты: Salvador1w1332",
+      "state_key_count": 195,
+      "state_keys": [
+        "categoriesWithFavoritesList",
+        "complainCategoriesList",
+        "computedConnectsByUserLevel",
+        "isMainPageUnauthorizedUser",
+        "isMobileUserAgent",
+        "isRedesignPaginationTabs",
+        "isTabletUserAgent",
+        "isUserConfirmedSeller",
+        "isUserInBlockFundsFocusGroup",
+        "isUserManualPollAnswer",
+        "isUserTester",
+        "isWantsOnly",
+        "lastUserPenaltyDate",
+        "modelUserKworkAllowStatusDeny",
+        "modelUserStatusBlocked",
+        "newWantsCount",
+        "onlineUserCount",
+        "userAvatar",
+        "userCanBuyFromYescrow",
+        "userName",
+        "userNeedPortfolioList",
+        "wantModelStatuses",
+        "wantReview",
+        "wantViews",
+        "wants",
+        "wantsCount",
+        "wantsCountShowThreshold",
+        "wants_20891_data"
+      ],
+      "candidate_lists": [
+        {
+          "path": "categoriesWithFavoritesList.15.cats",
+          "len": 11,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "28",
+              "name": "Арт и иллюстрации"
+            },
+            {
+              "id": "24",
+              "name": "Веб и мобильный дизайн"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.11.cats",
+          "len": 9,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "79",
+              "name": "Верстка"
+            },
+            {
+              "id": "80",
+              "name": "Десктоп программирование"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.83.cats",
+          "len": 8,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "64",
+              "name": "Бухгалтерия и налоги"
+            },
+            {
+              "id": "262",
+              "name": "Обзвоны и продажи"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.17.cats",
+          "len": 7,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "44",
+              "name": "SEO аудиты, консультации"
+            },
+            {
+              "id": "43",
+              "name": "Внутренняя оптимизация"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.7.cats",
+          "len": 7,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "20",
+              "name": "Аудиозапись и озвучка"
+            },
+            {
+              "id": "76",
+              "name": "Видеоролики"
+            }
+          ]
+        },
+        {
+          "path": "headerMenu",
+          "len": 7,
+          "score": 2,
+          "keys": [
+            "columns",
+            "id",
+            "name",
+            "url"
+          ],
+          "sample": [
+            {
+              "id": "69",
+              "name": "Дизайн"
+            },
+            {
+              "id": "144",
+              "name": "Разработка и IT"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.45.cats",
+          "len": 6,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "108",
+              "name": "E-mail маркетинг и рассылки"
+            },
+            {
+              "id": "113",
+              "name": "Базы данных и клиентов"
+            }
+          ]
+        },
+        {
+          "path": "categoriesWithFavoritesList.5.cats",
+          "len": 6,
+          "score": 2,
+          "keys": [
+            "CATID",
+            "attributes",
+            "id",
+            "is_favourite",
+            "mobile_description",
+            "name",
+            "sort_index"
+          ],
+          "sample": [
+            {
+              "id": "303",
+              "name": "ИИ-тексты"
+            },
+            {
+              "id": "75",
+              "name": "Набор текста"
+            }
+          ]
+        },
+        {
+          "path": "complainCategoriesList",
+          "len": 2,
+          "score": 2,
+          "keys": [
+            "commentRequired",
+            "id",
+            "isFileUploaderNotAuth",
+            "subCategories",
+            "title"
+          ],
+          "sample": [
+            {
+              "id": "1",
+              "title": "Некорректный контент"
+            },
+            {
+              "id": "4",
+              "title": "Нарушение авторских и интеллектуальных прав"
+            }
+          ]
+        },
+        {
+          "path": "complainCategoriesList[0].subCategories",
+          "len": 2,
+          "score": 2,
+          "keys": [
+            "commentRequired",
+            "id",
+            "isFileUploaderNotAuth",
+            "title",
+            "titleWithLink"
+          ],
+          "sample": [
+            {
+              "id": "3",
+              "title": "Нарушение законодательства"
+            },
+            {
+              "id": "2",
+              "title": "Сомнительный контент"
+            }
+          ]
+        }
+      ],
+      "parser_projects_count": 0,
+      "regex_project_ids": [],
+      "contains_username": true,
+      "scripts": [
+        "https://cdn-edge.kwork.ru/js/locales/ru_RU/projects-list-fcp.js?ver=34e86ba925702df5ac_cors",
+        "https://cdn-edge.kwork.ru/js/dist/projects-list-fcp_b721ef6516c11949.js?ver=34_cors"
+      ],
+      "count_window.stateData": 1,
+      "count_wants": 9,
+      "count_pagination": 0,
+      "count_projects/list": 9,
+      "count_wantData": 0,
+      "count_portfolio": 14
+    }
+  }
+}

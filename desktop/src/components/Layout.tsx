@@ -307,11 +307,16 @@ export default function Layout() {
   const refreshKworkHealth = useCallback(async () => {
     try {
       const getHealth = (api as typeof api & {
-        getHealth?: () => Promise<{ captcha_required?: boolean; username?: string }>
+        getHealth?: () => Promise<{
+          captcha_required?: boolean
+          manual_verification_required?: boolean
+          captcha_api_flag?: boolean
+          username?: string
+        }>
       }).getHealth
       if (!getHealth) return
       const health = await getHealth()
-      if (health?.captcha_required) {
+      if (health?.manual_verification_required) {
         markKworkVerificationNeeded(
           'health',
           health.username ? `Аккаунт ${health.username}: Kwork требует ручную проверку.` : 'Kwork требует ручную проверку.',

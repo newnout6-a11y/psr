@@ -586,6 +586,7 @@ class KworkAutopublishService:
                     "The user-defined price and work_time are fixed inputs; do not optimize or override them.",
                     "Use competitor examples only as market references and best practices. Do not copy text verbatim.",
                     "Prefer concrete scope, deliverables, buyer instructions, and limits.",
+                    "If audience is empty, keep auditory empty. Do not invent a target audience.",
                 ],
                 "category": {
                     "id": request.get("category_id"),
@@ -604,7 +605,7 @@ class KworkAutopublishService:
                     "title": "string, <=80 chars",
                     "description": "string, 600-1200 chars",
                     "instruction": "string, what buyer should provide",
-                    "auditory": "string, target audience",
+                    "auditory": "string, target audience; empty string when audience input is empty",
                     "service_size": "string",
                     "volume": "string",
                     "price": "integer rubles",
@@ -758,6 +759,8 @@ class KworkAutopublishService:
                 "First compare attached competitor covers and recent generated covers when images are provided. "
                 "Choose a composition strategy that is visibly different from recent generated covers while still fitting the market. "
                 "Do not default to the same dark SaaS dashboard or left text panel unless the provided visual evidence makes it clearly best. "
+                "Avoid fake detailed UI screenshots, tiny unreadable interface text, random icons, and cluttered collage layouts. "
+                "Prefer one clean commercial composition with a clear subject, strong hierarchy, premium lighting, and enough empty space for Russian text. "
                 "Name concrete composition, palette, subject, text placement, and what should be better than the competitor average. "
                 "Never copy competitor covers exactly, never include logos, contacts, watermarks, or brand names. "
                 "The image model itself must draw the provided short Russian offer as clean readable text."
@@ -1046,7 +1049,8 @@ class KworkAutopublishService:
             f"{cover_text}"
             "Place the text on a high-contrast calm area chosen for this composition; do not force a left-panel layout. "
             "No extra readable text, no logos, no brand names, no contacts, no watermarks. "
-            "Make it look like a credible service preview, with a concrete visual outcome rather than abstract decoration. "
+            "Avoid fake detailed UI screenshots, tiny unreadable interface text, random icon collages, and generic dark dashboard banners. "
+            "Make it look like a premium, credible service preview with one clear subject, clean hierarchy, polished lighting, and a concrete outcome rather than abstract decoration. "
             f"Service title: {draft.get('title')}. "
             f"Audience: {request.get('audience') or draft.get('auditory') or ''}. "
             f"Category: {request.get('category_name') or ''}. "
@@ -1082,7 +1086,7 @@ class KworkAutopublishService:
             "title": title,
             "description": description,
             "instruction": "Опишите задачу, приложите примеры, доступы без паролей или тестовые данные, сроки и желаемый формат результата.",
-            "auditory": str(request.get("audience") or "Предприниматели, команды и специалисты, которым нужна практичная автоматизация."),
+            "auditory": str(request.get("audience") or ""),
             "service_size": "1 задача",
             "volume": "1 готовое решение",
             "price": int(request.get("price") or 500),
@@ -1135,7 +1139,7 @@ class KworkAutopublishService:
             "model": os.getenv("KWORK_COVER_IMAGE_MODEL", os.getenv("PROPOSAL_IMAGE_MODEL", "gpt-image-2")),
             "prompt": prompt,
             "size": os.getenv("KWORK_COVER_IMAGE_SIZE", "1536x1024"),
-            "quality": os.getenv("KWORK_COVER_IMAGE_QUALITY", os.getenv("PROPOSAL_IMAGE_QUALITY", "low")),
+            "quality": os.getenv("KWORK_COVER_IMAGE_QUALITY", os.getenv("PROPOSAL_IMAGE_QUALITY", "medium")),
         }
         fallback_payloads = [
             primary_payload,

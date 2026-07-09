@@ -1,0 +1,1926 @@
+{
+  "generated_at": "2026-07-09T12:50:15Z",
+  "source": "psr.kwork_buyer_scout",
+  "status": "ok",
+  "config": {
+    "max_probes": 10,
+    "page": 1,
+    "project_page_limit": 1,
+    "per_probe_limit": 8,
+    "top_limit": 30,
+    "include_project_details": false,
+    "include_want_details": false,
+    "include_buyer_history": false,
+    "detail_limit": 8,
+    "buyer_history_limit": 6,
+    "budget_max": 5000,
+    "include_query_suggestions": false,
+    "query_suggestion_limit": 5
+  },
+  "probes": [
+    {
+      "name": "cat_programming_low_offer",
+      "categories": "41",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "ok",
+      "count": 7,
+      "sample_count": 7,
+      "sample": [
+        {
+          "id": "3153751",
+          "title": "Программа для риэлторов",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 1,
+          "time_left": null,
+          "max_days": 10,
+          "views": "16300",
+          "orders": null,
+          "date_create": "2026-04-17 08:01:50",
+          "date_expire": "2026-07-10 14:57:27",
+          "user_hired_percent": 37,
+          "user_id": 481306,
+          "username": "bpavelv",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/bpavelv",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 481306,
+            "username": "bpavelv",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3022438",
+          "title": "Скрипт на n8n, либо любой другой ЯП",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 500.0,
+          "possible_price_limit": 1500,
+          "offers": 2,
+          "time_left": null,
+          "max_days": 10,
+          "views": "38146",
+          "orders": null,
+          "date_create": "2025-11-17 19:35:29",
+          "date_expire": "2026-07-10 12:05:06",
+          "user_hired_percent": 57,
+          "user_id": 16693601,
+          "username": "igores1990",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/igores1990",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 16693601,
+            "username": "igores1990",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3201859",
+          "title": "Программа просмотра видео на Ютуб",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 5,
+          "time_left": null,
+          "max_days": 10,
+          "views": "8339",
+          "orders": null,
+          "date_create": "2026-06-20 21:12:59",
+          "date_expire": "2026-07-10 09:54:27",
+          "user_hired_percent": 0,
+          "user_id": 24524731,
+          "username": "y2203341",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/y2203341",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 24524731,
+            "username": "y2203341",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3213750",
+          "title": "База инструментов Freedom/KASE + API",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 5,
+          "time_left": null,
+          "max_days": 10,
+          "views": "345",
+          "orders": null,
+          "date_create": "2026-07-09 09:19:58",
+          "date_expire": "2026-07-10 09:27:24",
+          "user_hired_percent": 55,
+          "user_id": 10673588,
+          "username": "Evgeny343",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/Evgeny343",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 10673588,
+            "username": "Evgeny343",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3210602",
+          "title": "Создать мессенджер",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 5,
+          "time_left": null,
+          "max_days": 10,
+          "views": "2577",
+          "orders": null,
+          "date_create": "2026-07-04 10:09:55",
+          "date_expire": "2026-07-10 09:10:26",
+          "user_hired_percent": 0,
+          "user_id": 24589192,
+          "username": "melurnik",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/melurnik",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 24589192,
+            "username": "melurnik",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3211082",
+          "title": "Программа продвижения в Дзен",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 2,
+          "time_left": null,
+          "max_days": 10,
+          "views": "1714",
+          "orders": null,
+          "date_create": "2026-07-05 08:32:25",
+          "date_expire": "2026-07-10 09:08:20",
+          "user_hired_percent": 0,
+          "user_id": 24675980,
+          "username": "erorkast",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/erorkast",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 24675980,
+            "username": "erorkast",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3212623",
+          "title": "Нужно разборка скрипта на BAS или zenno программа",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 2,
+          "time_left": null,
+          "max_days": 10,
+          "views": "900",
+          "orders": null,
+          "date_create": "2026-07-07 16:19:11",
+          "date_expire": "2026-07-10 07:22:53",
+          "user_hired_percent": 25,
+          "user_id": 23995428,
+          "username": "esimhanov_790_",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/esimhanov_790_",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 23995428,
+            "username": "esimhanov_790_",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        }
+      ],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&c=41&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": null
+        },
+        "paging": {
+          "page": 1,
+          "total": 7,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 7,
+          "sample_count": 7,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 2203
+      }
+    },
+    {
+      "name": "cat_seo_low_offer",
+      "categories": "43",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "error": ""
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 12178
+      }
+    },
+    {
+      "name": "cat_video_low_offer",
+      "categories": "78",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "ok",
+      "count": 1,
+      "sample_count": 1,
+      "sample": [
+        {
+          "id": "3137879",
+          "title": "Видео-истории с Барби и другими куклами",
+          "category_id": 78,
+          "parent_category_id": 0,
+          "price": 500.0,
+          "possible_price_limit": 1500,
+          "offers": 0,
+          "time_left": null,
+          "max_days": 10,
+          "views": "26351",
+          "orders": null,
+          "date_create": "2026-03-31 21:35:11",
+          "date_expire": "2026-07-10 14:03:14",
+          "user_hired_percent": 20,
+          "user_id": 412372,
+          "username": "Stirt5",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/Stirt5",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 412372,
+            "username": "Stirt5",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        }
+      ],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&c=78&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": null
+        },
+        "paging": {
+          "page": 1,
+          "total": 1,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 1,
+          "sample_count": 1,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 898
+      }
+    },
+    {
+      "name": "cat_85_low_offer",
+      "categories": "85",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "ok",
+      "count": 99,
+      "sample_count": 8,
+      "sample": [
+        {
+          "id": "3213960",
+          "title": "Создать рекламный ИИ-ролик по сценарию",
+          "category_id": 76,
+          "parent_category_id": 0,
+          "price": 2500.0,
+          "possible_price_limit": 2500,
+          "offers": 0,
+          "time_left": null,
+          "max_days": 10,
+          "views": "4",
+          "orders": null,
+          "date_create": "2026-07-09 15:08:30",
+          "date_expire": "2026-07-10 15:49:09",
+          "user_hired_percent": 0,
+          "user_id": 19028884,
+          "username": "alisultanov1996",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/alisultanov1996",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": false,
+          "user": {
+            "id": 19028884,
+            "username": "alisultanov1996",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3213901",
+          "title": "Сделать описание",
+          "category_id": 73,
+          "parent_category_id": 0,
+          "price": 500.0,
+          "possible_price_limit": 1500,
+          "offers": 5,
+          "time_left": null,
+          "max_days": 10,
+          "views": "92",
+          "orders": null,
+          "date_create": "2026-07-09 13:57:05",
+          "date_expire": "2026-07-10 15:41:12",
+          "user_hired_percent": 0,
+          "user_id": 24713737,
+          "username": "ksuskasun",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/ksuskasun",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 24713737,
+            "username": "ksuskasun",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3206989",
+          "title": "Аудит и доработка сайта по требования Роскомнадзора 26г",
+          "category_id": 63,
+          "parent_category_id": 0,
+          "price": 1500.0,
+          "possible_price_limit": 4500,
+          "offers": 1,
+          "time_left": null,
+          "max_days": 10,
+          "views": "402",
+          "orders": null,
+          "date_create": "2026-06-29 00:41:02",
+          "date_expire": "2026-07-10 15:13:17",
+          "user_hired_percent": 60,
+          "user_id": 22467447,
+          "username": "mma556560",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/mma556560",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 22467447,
+            "username": "mma556560",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3213963",
+          "title": "Поиск товара - полуботинки Outventure Lighttrack Pro 41",
+          "category_id": 84,
+          "parent_category_id": 0,
+          "price": 500.0,
+          "possible_price_limit": 1500,
+          "offers": 5,
+          "time_left": null,
+          "max_days": 10,
+          "views": "159",
+          "orders": null,
+          "date_create": "2026-07-09 15:09:57",
+          "date_expire": "2026-07-10 15:09:57",
+          "user_hired_percent": 0,
+          "user_id": 24511661,
+          "username": "shatohinsa",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/shatohinsa",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 24511661,
+            "username": "shatohinsa",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3213920",
+          "title": "Проект газоснабжения частного дома",
+          "category_id": 65,
+          "parent_category_id": 0,
+          "price": 1500.0,
+          "possible_price_limit": 4500,
+          "offers": 1,
+          "time_left": null,
+          "max_days": 10,
+          "views": "70",
+          "orders": null,
+          "date_create": "2026-07-09 14:21:39",
+          "date_expire": "2026-07-10 15:05:05",
+          "user_hired_percent": 0,
+          "user_id": 8244960,
+          "username": "NP-Proekt",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/NP-Proekt",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 8244960,
+            "username": "NP-Proekt",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3213935",
+          "title": "Создание 2D игровых персонажей",
+          "category_id": 28,
+          "parent_category_id": 0,
+          "price": 500.0,
+          "possible_price_limit": 500,
+          "offers": 3,
+          "time_left": null,
+          "max_days": 10,
+          "views": "128",
+          "orders": null,
+          "date_create": "2026-07-09 14:36:13",
+          "date_expire": "2026-07-10 15:01:37",
+          "user_hired_percent": 17,
+          "user_id": 20419170,
+          "username": "va7an",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/va7an",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": false,
+          "user": {
+            "id": 20419170,
+            "username": "va7an",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3213929",
+          "title": "Запись и транскрибация диалогов",
+          "category_id": 84,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 1,
+          "time_left": null,
+          "max_days": 10,
+          "views": "95",
+          "orders": null,
+          "date_create": "2026-07-09 14:30:01",
+          "date_expire": "2026-07-10 15:00:45",
+          "user_hired_percent": 0,
+          "user_id": 24511661,
+          "username": "shatohinsa",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/shatohinsa",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 24511661,
+            "username": "shatohinsa",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        },
+        {
+          "id": "3153751",
+          "title": "Программа для риэлторов",
+          "category_id": 41,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 1,
+          "time_left": null,
+          "max_days": 10,
+          "views": "16300",
+          "orders": null,
+          "date_create": "2026-04-17 08:01:50",
+          "date_expire": "2026-07-10 14:57:27",
+          "user_hired_percent": 37,
+          "user_id": 481306,
+          "username": "bpavelv",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/bpavelv",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 481306,
+            "username": "bpavelv",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        }
+      ],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&c=85&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": null
+        },
+        "paging": {
+          "page": 1,
+          "total": 99,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 99,
+          "sample_count": 12,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 939
+      }
+    },
+    {
+      "name": "cat_80_low_offer",
+      "categories": "80",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "ok",
+      "count": 1,
+      "sample_count": 1,
+      "sample": [
+        {
+          "id": "3213415",
+          "title": "Интеграция RetailCRM и 1C Розница 2.3",
+          "category_id": 80,
+          "parent_category_id": 0,
+          "price": 1000.0,
+          "possible_price_limit": 3000,
+          "offers": 5,
+          "time_left": null,
+          "max_days": 10,
+          "views": "322",
+          "orders": null,
+          "date_create": "2026-07-08 17:12:58",
+          "date_expire": "2026-07-09 17:12:58",
+          "user_hired_percent": 25,
+          "user_id": 499800,
+          "username": "KCart_amocrm",
+          "user_projects_count": 0,
+          "user_active_projects_count": 0,
+          "profile_picture": null,
+          "has_offer": false,
+          "is_viewed": false,
+          "buyer_projects_url": "https://kwork.ru/projects/list/KCart_amocrm",
+          "user_need_kwork": false,
+          "user_need_portfolio": false,
+          "allow_higher_price": false,
+          "is_higher_price": true,
+          "user": {
+            "id": 499800,
+            "username": "KCart_amocrm",
+            "rating": null,
+            "rating_count": null,
+            "projects_count": 0,
+            "active_projects_count": 0
+          }
+        }
+      ],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&c=80&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": null
+        },
+        "paging": {
+          "page": 1,
+          "total": 1,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 1,
+          "sample_count": 1,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 759
+      }
+    },
+    {
+      "name": "telegram_bot_low_offer_ru",
+      "categories": "all",
+      "query": "???????? ???",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=%3F%3F%3F%3F%3F%3F%3F%3F+%3F%3F%3F&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "???????? ???"
+        },
+        "paging": {
+          "page": 1,
+          "total": 0,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 1024
+      }
+    },
+    {
+      "name": "automation_ru_low_offer",
+      "categories": "all",
+      "query": "?????????????",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=%3F%3F%3F%3F%3F%3F%3F%3F%3F%3F%3F%3F%3F&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "?????????????"
+        },
+        "paging": {
+          "page": 1,
+          "total": 0,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 736
+      }
+    },
+    {
+      "name": "parser_ru_low_offer",
+      "categories": "all",
+      "query": "??????",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=%3F%3F%3F%3F%3F%3F&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "??????"
+        },
+        "paging": {
+          "page": 1,
+          "total": 0,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 716
+      }
+    },
+    {
+      "name": "landing_ru_low_offer",
+      "categories": "all",
+      "query": "???????",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=%3F%3F%3F%3F%3F%3F%3F&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "???????"
+        },
+        "paging": {
+          "page": 1,
+          "total": 0,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 742
+      }
+    },
+    {
+      "name": "wordpress_low_offer",
+      "categories": "all",
+      "query": "wordpress",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {
+        "source": "web_state",
+        "auth_mode": "cookie-only",
+        "url": "https://kwork.ru/projects?page=1&keyword=wordpress&price-to=5000&kworks-filters=0",
+        "status_code": 200,
+        "filter": {
+          "price_from": null,
+          "price_to": 5000,
+          "hiring_from": null,
+          "kworks_filters": [
+            "0"
+          ],
+          "prices_filters": null,
+          "keyword": "wordpress"
+        },
+        "paging": {
+          "page": 1,
+          "total": 0,
+          "per_page": 12
+        }
+      },
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": "web_state"
+        }
+      ],
+      "timings_ms": {
+        "total": 883
+      }
+    }
+  ],
+  "top": [
+    {
+      "id": "3137879",
+      "title": "Видео-истории с Барби и другими куклами",
+      "category_id": 78,
+      "parent_category_id": 0,
+      "price": 500.0,
+      "possible_price_limit": 1500,
+      "offers": 0,
+      "time_left": null,
+      "max_days": 10,
+      "views": "26351",
+      "orders": null,
+      "date_create": "2026-03-31 21:35:11",
+      "date_expire": "2026-07-10 14:03:14",
+      "user_hired_percent": 20,
+      "user_id": 412372,
+      "username": "Stirt5",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/Stirt5",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 412372,
+        "username": "Stirt5",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 39.0,
+      "score_reasons": [
+        "0 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_video_low_offer"
+    },
+    {
+      "id": "3213960",
+      "title": "Создать рекламный ИИ-ролик по сценарию",
+      "category_id": 76,
+      "parent_category_id": 0,
+      "price": 2500.0,
+      "possible_price_limit": 2500,
+      "offers": 0,
+      "time_left": null,
+      "max_days": 10,
+      "views": "4",
+      "orders": null,
+      "date_create": "2026-07-09 15:08:30",
+      "date_expire": "2026-07-10 15:49:09",
+      "user_hired_percent": 0,
+      "user_id": 19028884,
+      "username": "alisultanov1996",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/alisultanov1996",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": false,
+      "user": {
+        "id": 19028884,
+        "username": "alisultanov1996",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 39.0,
+      "score_reasons": [
+        "0 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_85_low_offer"
+    },
+    {
+      "id": "3153751",
+      "title": "Программа для риэлторов",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 1,
+      "time_left": null,
+      "max_days": 10,
+      "views": "16300",
+      "orders": null,
+      "date_create": "2026-04-17 08:01:50",
+      "date_expire": "2026-07-10 14:57:27",
+      "user_hired_percent": 37,
+      "user_id": 481306,
+      "username": "bpavelv",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/bpavelv",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 481306,
+        "username": "bpavelv",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 37.0,
+      "score_reasons": [
+        "1-2 offers",
+        "low budget",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "cat_programming_low_offer"
+    },
+    {
+      "id": "3022438",
+      "title": "Скрипт на n8n, либо любой другой ЯП",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 500.0,
+      "possible_price_limit": 1500,
+      "offers": 2,
+      "time_left": null,
+      "max_days": 10,
+      "views": "38146",
+      "orders": null,
+      "date_create": "2025-11-17 19:35:29",
+      "date_expire": "2026-07-10 12:05:06",
+      "user_hired_percent": 57,
+      "user_id": 16693601,
+      "username": "igores1990",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/igores1990",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 16693601,
+        "username": "igores1990",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 37.0,
+      "score_reasons": [
+        "1-2 offers",
+        "low budget",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "cat_programming_low_offer"
+    },
+    {
+      "id": "3206989",
+      "title": "Аудит и доработка сайта по требования Роскомнадзора 26г",
+      "category_id": 63,
+      "parent_category_id": 0,
+      "price": 1500.0,
+      "possible_price_limit": 4500,
+      "offers": 1,
+      "time_left": null,
+      "max_days": 10,
+      "views": "402",
+      "orders": null,
+      "date_create": "2026-06-29 00:41:02",
+      "date_expire": "2026-07-10 15:13:17",
+      "user_hired_percent": 60,
+      "user_id": 22467447,
+      "username": "mma556560",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/mma556560",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 22467447,
+        "username": "mma556560",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 37.0,
+      "score_reasons": [
+        "1-2 offers",
+        "low budget",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "cat_85_low_offer"
+    },
+    {
+      "id": "3211082",
+      "title": "Программа продвижения в Дзен",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 2,
+      "time_left": null,
+      "max_days": 10,
+      "views": "1714",
+      "orders": null,
+      "date_create": "2026-07-05 08:32:25",
+      "date_expire": "2026-07-10 09:08:20",
+      "user_hired_percent": 0,
+      "user_id": 24675980,
+      "username": "erorkast",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/erorkast",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 24675980,
+        "username": "erorkast",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 32.0,
+      "score_reasons": [
+        "1-2 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_programming_low_offer"
+    },
+    {
+      "id": "3212623",
+      "title": "Нужно разборка скрипта на BAS или zenno программа",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 2,
+      "time_left": null,
+      "max_days": 10,
+      "views": "900",
+      "orders": null,
+      "date_create": "2026-07-07 16:19:11",
+      "date_expire": "2026-07-10 07:22:53",
+      "user_hired_percent": 25,
+      "user_id": 23995428,
+      "username": "esimhanov_790_",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/esimhanov_790_",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 23995428,
+        "username": "esimhanov_790_",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 32.0,
+      "score_reasons": [
+        "1-2 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_programming_low_offer"
+    },
+    {
+      "id": "3213920",
+      "title": "Проект газоснабжения частного дома",
+      "category_id": 65,
+      "parent_category_id": 0,
+      "price": 1500.0,
+      "possible_price_limit": 4500,
+      "offers": 1,
+      "time_left": null,
+      "max_days": 10,
+      "views": "70",
+      "orders": null,
+      "date_create": "2026-07-09 14:21:39",
+      "date_expire": "2026-07-10 15:05:05",
+      "user_hired_percent": 0,
+      "user_id": 8244960,
+      "username": "NP-Proekt",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/NP-Proekt",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 8244960,
+        "username": "NP-Proekt",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 32.0,
+      "score_reasons": [
+        "1-2 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_85_low_offer"
+    },
+    {
+      "id": "3213929",
+      "title": "Запись и транскрибация диалогов",
+      "category_id": 84,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 1,
+      "time_left": null,
+      "max_days": 10,
+      "views": "95",
+      "orders": null,
+      "date_create": "2026-07-09 14:30:01",
+      "date_expire": "2026-07-10 15:00:45",
+      "user_hired_percent": 0,
+      "user_id": 24511661,
+      "username": "shatohinsa",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/shatohinsa",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 24511661,
+        "username": "shatohinsa",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 32.0,
+      "score_reasons": [
+        "1-2 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_85_low_offer"
+    },
+    {
+      "id": "3213750",
+      "title": "База инструментов Freedom/KASE + API",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 5,
+      "time_left": null,
+      "max_days": 10,
+      "views": "345",
+      "orders": null,
+      "date_create": "2026-07-09 09:19:58",
+      "date_expire": "2026-07-10 09:27:24",
+      "user_hired_percent": 55,
+      "user_id": 10673588,
+      "username": "Evgeny343",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/Evgeny343",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 10673588,
+        "username": "Evgeny343",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 27.0,
+      "score_reasons": [
+        "<=5 offers",
+        "low budget",
+        "buyer has hiring history"
+      ],
+      "matched_probe": "cat_programming_low_offer"
+    },
+    {
+      "id": "3201859",
+      "title": "Программа просмотра видео на Ютуб",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 5,
+      "time_left": null,
+      "max_days": 10,
+      "views": "8339",
+      "orders": null,
+      "date_create": "2026-06-20 21:12:59",
+      "date_expire": "2026-07-10 09:54:27",
+      "user_hired_percent": 0,
+      "user_id": 24524731,
+      "username": "y2203341",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/y2203341",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 24524731,
+        "username": "y2203341",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 22.0,
+      "score_reasons": [
+        "<=5 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_programming_low_offer"
+    },
+    {
+      "id": "3210602",
+      "title": "Создать мессенджер",
+      "category_id": 41,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 5,
+      "time_left": null,
+      "max_days": 10,
+      "views": "2577",
+      "orders": null,
+      "date_create": "2026-07-04 10:09:55",
+      "date_expire": "2026-07-10 09:10:26",
+      "user_hired_percent": 0,
+      "user_id": 24589192,
+      "username": "melurnik",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/melurnik",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 24589192,
+        "username": "melurnik",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 22.0,
+      "score_reasons": [
+        "<=5 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_programming_low_offer"
+    },
+    {
+      "id": "3213901",
+      "title": "Сделать описание",
+      "category_id": 73,
+      "parent_category_id": 0,
+      "price": 500.0,
+      "possible_price_limit": 1500,
+      "offers": 5,
+      "time_left": null,
+      "max_days": 10,
+      "views": "92",
+      "orders": null,
+      "date_create": "2026-07-09 13:57:05",
+      "date_expire": "2026-07-10 15:41:12",
+      "user_hired_percent": 0,
+      "user_id": 24713737,
+      "username": "ksuskasun",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/ksuskasun",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 24713737,
+        "username": "ksuskasun",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 22.0,
+      "score_reasons": [
+        "<=5 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_85_low_offer"
+    },
+    {
+      "id": "3213963",
+      "title": "Поиск товара - полуботинки Outventure Lighttrack Pro 41",
+      "category_id": 84,
+      "parent_category_id": 0,
+      "price": 500.0,
+      "possible_price_limit": 1500,
+      "offers": 5,
+      "time_left": null,
+      "max_days": 10,
+      "views": "159",
+      "orders": null,
+      "date_create": "2026-07-09 15:09:57",
+      "date_expire": "2026-07-10 15:09:57",
+      "user_hired_percent": 0,
+      "user_id": 24511661,
+      "username": "shatohinsa",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/shatohinsa",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 24511661,
+        "username": "shatohinsa",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 22.0,
+      "score_reasons": [
+        "<=5 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_85_low_offer"
+    },
+    {
+      "id": "3213935",
+      "title": "Создание 2D игровых персонажей",
+      "category_id": 28,
+      "parent_category_id": 0,
+      "price": 500.0,
+      "possible_price_limit": 500,
+      "offers": 3,
+      "time_left": null,
+      "max_days": 10,
+      "views": "128",
+      "orders": null,
+      "date_create": "2026-07-09 14:36:13",
+      "date_expire": "2026-07-10 15:01:37",
+      "user_hired_percent": 17,
+      "user_id": 20419170,
+      "username": "va7an",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/va7an",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": false,
+      "user": {
+        "id": 20419170,
+        "username": "va7an",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 22.0,
+      "score_reasons": [
+        "<=5 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_85_low_offer"
+    },
+    {
+      "id": "3213415",
+      "title": "Интеграция RetailCRM и 1C Розница 2.3",
+      "category_id": 80,
+      "parent_category_id": 0,
+      "price": 1000.0,
+      "possible_price_limit": 3000,
+      "offers": 5,
+      "time_left": null,
+      "max_days": 10,
+      "views": "322",
+      "orders": null,
+      "date_create": "2026-07-08 17:12:58",
+      "date_expire": "2026-07-09 17:12:58",
+      "user_hired_percent": 25,
+      "user_id": 499800,
+      "username": "KCart_amocrm",
+      "user_projects_count": 0,
+      "user_active_projects_count": 0,
+      "profile_picture": null,
+      "has_offer": false,
+      "is_viewed": false,
+      "buyer_projects_url": "https://kwork.ru/projects/list/KCart_amocrm",
+      "user_need_kwork": false,
+      "user_need_portfolio": false,
+      "allow_higher_price": false,
+      "is_higher_price": true,
+      "user": {
+        "id": 499800,
+        "username": "KCart_amocrm",
+        "rating": null,
+        "rating_count": null,
+        "projects_count": 0,
+        "active_projects_count": 0
+      },
+      "score": 22.0,
+      "score_reasons": [
+        "<=5 offers",
+        "low budget"
+      ],
+      "matched_probe": "cat_80_low_offer"
+    }
+  ],
+  "aggregate": {
+    "probe_count": 10,
+    "unique_projects": 16,
+    "zero_offer_count": 2,
+    "low_offer_count": 14,
+    "top_score": 39.0,
+    "market_signals": [
+      {
+        "kind": "zero_offer",
+        "label": "Лоты без откликов",
+        "value": 2,
+        "detail": "Первые цели для быстрого ответа: конкуренция ещё не набежала.",
+        "projects": [
+          {
+            "id": "3137879",
+            "title": "Видео-истории с Барби и другими куклами",
+            "offers": 0,
+            "budget": 500,
+            "username": "Stirt5",
+            "score": 39.0
+          },
+          {
+            "id": "3213960",
+            "title": "Создать рекламный ИИ-ролик по сценарию",
+            "offers": 0,
+            "budget": 2500,
+            "username": "alisultanov1996",
+            "score": 39.0
+          }
+        ]
+      },
+      {
+        "kind": "budget_fit_low_offer",
+        "label": "Реалистичный бюджет",
+        "value": 16,
+        "detail": "Лоты в лимите до 5000 ₽ и с малым числом откликов.",
+        "projects": [
+          {
+            "id": "3213960",
+            "title": "Создать рекламный ИИ-ролик по сценарию",
+            "offers": 0,
+            "budget": 2500,
+            "username": "alisultanov1996",
+            "score": 39.0
+          },
+          {
+            "id": "3137879",
+            "title": "Видео-истории с Барби и другими куклами",
+            "offers": 0,
+            "budget": 500,
+            "username": "Stirt5",
+            "score": 39.0
+          },
+          {
+            "id": "3206989",
+            "title": "Аудит и доработка сайта по требования Роскомнадзора 26г",
+            "offers": 1,
+            "budget": 1500,
+            "username": "mma556560",
+            "score": 37.0
+          },
+          {
+            "id": "3153751",
+            "title": "Программа для риэлторов",
+            "offers": 1,
+            "budget": 1000,
+            "username": "bpavelv",
+            "score": 37.0
+          }
+        ]
+      },
+      {
+        "kind": "proven_buyers",
+        "label": "Покупатели нанимают",
+        "value": 4,
+        "detail": "В карточке покупателя есть заметный процент найма.",
+        "projects": [
+          {
+            "id": "3206989",
+            "title": "Аудит и доработка сайта по требования Роскомнадзора 26г",
+            "offers": 1,
+            "budget": 1500,
+            "username": "mma556560",
+            "score": 37.0
+          },
+          {
+            "id": "3022438",
+            "title": "Скрипт на n8n, либо любой другой ЯП",
+            "offers": 2,
+            "budget": 500,
+            "username": "igores1990",
+            "score": 37.0
+          },
+          {
+            "id": "3213750",
+            "title": "База инструментов Freedom/KASE + API",
+            "offers": 5,
+            "budget": 1000,
+            "username": "Evgeny343",
+            "score": 27.0
+          },
+          {
+            "id": "3153751",
+            "title": "Программа для риэлторов",
+            "offers": 1,
+            "budget": 1000,
+            "username": "bpavelv",
+            "score": 37.0
+          }
+        ]
+      },
+      {
+        "kind": "probe_leaders",
+        "label": "Рабочие поисковые окна",
+        "value": 4,
+        "detail": "Запросы и фильтры, где сейчас находится больше всего живых лотов.",
+        "probes": [
+          {
+            "name": "cat_85_low_offer",
+            "query": "",
+            "count": 99,
+            "sample_count": 8,
+            "filters": {
+              "kworks_filter_to": 5,
+              "price_to": 5000
+            }
+          },
+          {
+            "name": "cat_programming_low_offer",
+            "query": "",
+            "count": 7,
+            "sample_count": 7,
+            "filters": {
+              "kworks_filter_to": 5,
+              "price_to": 5000
+            }
+          },
+          {
+            "name": "cat_video_low_offer",
+            "query": "",
+            "count": 1,
+            "sample_count": 1,
+            "filters": {
+              "kworks_filter_to": 5,
+              "price_to": 5000
+            }
+          },
+          {
+            "name": "cat_80_low_offer",
+            "query": "",
+            "count": 1,
+            "sample_count": 1,
+            "filters": {
+              "kworks_filter_to": 5,
+              "price_to": 5000
+            }
+          }
+        ]
+      }
+    ],
+    "query_suggestions": []
+  },
+  "endpoint_errors": [],
+  "timings_ms": {
+    "total": 21084
+  }
+}

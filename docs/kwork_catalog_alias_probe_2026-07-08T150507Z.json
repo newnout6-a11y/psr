@@ -1,0 +1,2371 @@
+{
+  "generated_at": "2026-07-08T15:04:47Z",
+  "root_aliases": [
+    "design",
+    "programming",
+    "writing-translations",
+    "seo",
+    "promotion",
+    "audio-video",
+    "business"
+  ],
+  "source_pages": [
+    {
+      "url": "https://kwork.ru/categories/design",
+      "status": 200,
+      "bytes": 118744,
+      "content_type": "text/html; charset=UTF-8"
+    },
+    {
+      "url": "https://kwork.ru/categories/programming",
+      "status": 200,
+      "bytes": 104914,
+      "content_type": "text/html; charset=UTF-8"
+    },
+    {
+      "url": "https://kwork.ru/categories/writing-translations",
+      "status": 200,
+      "bytes": 90029,
+      "content_type": "text/html; charset=UTF-8"
+    },
+    {
+      "url": "https://kwork.ru/categories/seo",
+      "status": 200,
+      "bytes": 74464,
+      "content_type": "text/html; charset=UTF-8"
+    },
+    {
+      "url": "https://kwork.ru/categories/promotion",
+      "status": 200,
+      "bytes": 89046,
+      "content_type": "text/html; charset=UTF-8"
+    },
+    {
+      "url": "https://kwork.ru/categories/audio-video",
+      "status": 200,
+      "bytes": 93153,
+      "content_type": "text/html; charset=UTF-8"
+    },
+    {
+      "url": "https://kwork.ru/categories/business",
+      "status": 200,
+      "bytes": 101637,
+      "content_type": "text/html; charset=UTF-8"
+    }
+  ],
+  "aliases": [
+    {
+      "alias": "analytics",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/seo"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "animation",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/audio-video"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "audio",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/audio-video"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "audio-video",
+      "source_count": 7,
+      "sources": [
+        "https://kwork.ru/categories/audio-video",
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/design",
+        "https://kwork.ru/categories/programming",
+        "https://kwork.ru/categories/promotion",
+        "https://kwork.ru/categories/seo",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": [
+        "audio-video",
+        "Аудио, видео, съемка"
+      ]
+    },
+    {
+      "alias": "audit",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/seo"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "bulletin-boards",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/promotion"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "business",
+      "source_count": 7,
+      "sources": [
+        "https://kwork.ru/categories/audio-video",
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/design",
+        "https://kwork.ru/categories/programming",
+        "https://kwork.ru/categories/promotion",
+        "https://kwork.ru/categories/seo",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": [
+        "business",
+        "Бизнес и жизнь"
+      ]
+    },
+    {
+      "alias": "business-copywriting",
+      "source_count": 2,
+      "sources": [
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "calls-sales",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/business"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "context",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/promotion"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "creative-writing",
+      "source_count": 2,
+      "sources": [
+        "https://kwork.ru/categories/audio-video",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "design",
+      "source_count": 7,
+      "sources": [
+        "https://kwork.ru/categories/audio-video",
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/design",
+        "https://kwork.ru/categories/programming",
+        "https://kwork.ru/categories/promotion",
+        "https://kwork.ru/categories/seo",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": [
+        "design",
+        "Дизайн"
+      ]
+    },
+    {
+      "alias": "e-commerce-social-network",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "editing-audio",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/audio-video"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "editing-media",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/audio-video"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "email-marketing",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/promotion"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "engineering",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/business"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "financial-consulting",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/business"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "frontend",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/programming"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "game-dev",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/programming"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "graphic-design",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "illustrations",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "imagegeneration",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "information-bases",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/promotion"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "integrated-promotion",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/seo"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "interior-exterior-design",
+      "source_count": 2,
+      "sources": [
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "intro",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/audio-video"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "keywords",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/seo"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "lawyer-consulting",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/business"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "links",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/seo"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "logo",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "marketing",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/promotion"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "mobile-apps",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/programming"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "music",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/audio-video"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "optimization",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/seo"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "outdoor-advertising",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "packaging",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "personal-assistant",
+      "source_count": 2,
+      "sources": [
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "presentations-infographics",
+      "source_count": 2,
+      "sources": [
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "programming",
+      "source_count": 7,
+      "sources": [
+        "https://kwork.ru/categories/audio-video",
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/design",
+        "https://kwork.ru/categories/programming",
+        "https://kwork.ru/categories/promotion",
+        "https://kwork.ru/categories/seo",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": [
+        "programming",
+        "Разработка и IT"
+      ]
+    },
+    {
+      "alias": "promotion",
+      "source_count": 7,
+      "sources": [
+        "https://kwork.ru/categories/audio-video",
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/design",
+        "https://kwork.ru/categories/programming",
+        "https://kwork.ru/categories/promotion",
+        "https://kwork.ru/categories/seo",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": [
+        "promotion",
+        "Соцсети и маркетинг"
+      ]
+    },
+    {
+      "alias": "recruitment",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/business"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "resumes-and-letters",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "script-programming",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/programming"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "seo",
+      "source_count": 7,
+      "sources": [
+        "https://kwork.ru/categories/audio-video",
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/design",
+        "https://kwork.ru/categories/programming",
+        "https://kwork.ru/categories/promotion",
+        "https://kwork.ru/categories/seo",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": [
+        "SEO и трафик",
+        "seo"
+      ]
+    },
+    {
+      "alias": "server-administration",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/programming"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "sites-for-sale",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/business"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "smm",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/promotion"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "software",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/programming"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "textgeneration",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "traffic",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/seo"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "training-consulting",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/business"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "translations",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "typing",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "usability-testing",
+      "source_count": 2,
+      "sources": [
+        "https://kwork.ru/categories/design",
+        "https://kwork.ru/categories/programming"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "vector-tracing",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "videogeneration",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/audio-video"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "web-plus-mobile-design",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/design"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "website-development",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/programming"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "website-repair",
+      "source_count": 1,
+      "sources": [
+        "https://kwork.ru/categories/programming"
+      ],
+      "texts": []
+    },
+    {
+      "alias": "writing-translations",
+      "source_count": 7,
+      "sources": [
+        "https://kwork.ru/categories/audio-video",
+        "https://kwork.ru/categories/business",
+        "https://kwork.ru/categories/design",
+        "https://kwork.ru/categories/programming",
+        "https://kwork.ru/categories/promotion",
+        "https://kwork.ru/categories/seo",
+        "https://kwork.ru/categories/writing-translations"
+      ],
+      "texts": [
+        "writing-translations",
+        "Тексты и переводы"
+      ]
+    }
+  ],
+  "catalog_filter_probes": [
+    {
+      "alias": "design",
+      "endpoint": "/catalog_kworks_filters/design",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 407353,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 15,
+      "activeCat": {
+        "name": "Дизайн"
+      }
+    },
+    {
+      "alias": "programming",
+      "endpoint": "/catalog_kworks_filters/programming",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 318982,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 11,
+      "activeCat": {
+        "name": "Разработка и IT"
+      }
+    },
+    {
+      "alias": "writing-translations",
+      "endpoint": "/catalog_kworks_filters/writing-translations",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 127722,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 5,
+      "activeCat": {
+        "name": "Тексты и переводы"
+      }
+    },
+    {
+      "alias": "seo",
+      "endpoint": "/catalog_kworks_filters/seo",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 62855,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 17,
+      "activeCat": {
+        "name": "SEO и трафик"
+      }
+    },
+    {
+      "alias": "promotion",
+      "endpoint": "/catalog_kworks_filters/promotion",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 50583,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 45,
+      "activeCat": {
+        "name": "Соцсети и маркетинг"
+      }
+    },
+    {
+      "alias": "audio-video",
+      "endpoint": "/catalog_kworks_filters/audio-video",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 340087,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 7,
+      "activeCat": {
+        "name": "Аудио, видео, съемка"
+      }
+    },
+    {
+      "alias": "business",
+      "endpoint": "/catalog_kworks_filters/business",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 84376,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 83,
+      "activeCat": {
+        "name": "Бизнес и жизнь"
+      }
+    },
+    {
+      "alias": "business-copywriting",
+      "endpoint": "/catalog_kworks_filters/business-copywriting",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 288743,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 74,
+      "activeCat": {
+        "name": "Продающие и бизнес-тексты"
+      }
+    },
+    {
+      "alias": "creative-writing",
+      "endpoint": "/catalog_kworks_filters/creative-writing",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 370518,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 73,
+      "activeCat": {
+        "name": "Тексты и наполнение сайта"
+      }
+    },
+    {
+      "alias": "interior-exterior-design",
+      "endpoint": "/catalog_kworks_filters/interior-exterior-design",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 620973,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 90,
+      "activeCat": {
+        "name": "Интерьер и экстерьер"
+      }
+    },
+    {
+      "alias": "personal-assistant",
+      "endpoint": "/catalog_kworks_filters/personal-assistant",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 73292,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 84,
+      "activeCat": {
+        "name": "Персональный помощник"
+      }
+    },
+    {
+      "alias": "presentations-infographics",
+      "endpoint": "/catalog_kworks_filters/presentations-infographics",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 402183,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 270,
+      "activeCat": {
+        "name": "Презентации и инфографика"
+      }
+    },
+    {
+      "alias": "usability-testing",
+      "endpoint": "/catalog_kworks_filters/usability-testing",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 63268,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 81,
+      "activeCat": {
+        "name": "Юзабилити, тесты и помощь"
+      }
+    },
+    {
+      "alias": "analytics",
+      "endpoint": "/catalog_kworks_filters/analytics",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 141882,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 56,
+      "activeCat": {
+        "name": "Статистика и аналитика"
+      }
+    },
+    {
+      "alias": "animation",
+      "endpoint": "/catalog_kworks_filters/animation",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 379825,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 76,
+      "activeCat": {
+        "name": "Видеоролики"
+      }
+    },
+    {
+      "alias": "audio",
+      "endpoint": "/catalog_kworks_filters/audio",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 298935,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 20,
+      "activeCat": {
+        "name": "Аудиозапись и озвучка"
+      }
+    },
+    {
+      "alias": "audit",
+      "endpoint": "/catalog_kworks_filters/audit",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 59492,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 44,
+      "activeCat": {
+        "name": "SEO аудиты, консультации"
+      }
+    },
+    {
+      "alias": "bulletin-boards",
+      "endpoint": "/catalog_kworks_filters/bulletin-boards",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 74013,
+      "success": true,
+      "state_keys": [
+        "viewData",
+        "isWidePage",
+        "isRedesign",
+        "isRedesignCard",
+        "isRedesignFilter",
+        "isShowSticker",
+        "isNeedYescrowDigitalSign"
+      ],
+      "view_keys": [
+        "filters",
+        "kworks"
+      ],
+      "filter_keys_sample": [
+        "excludeIds",
+        "sdeliverytime",
+        "sMinReview",
+        "sOrdersQueue",
+        "sMinUserSales",
+        "sMinKworkSales",
+        "sview",
+        "strack",
+        "scoefficient",
+        "sellerLvl",
+        "swithreviews",
+        "isHidden",
+        "sonline",
+        "translationsTo",
+        "translationsFrom",
+        "price",
+        "filterPrice",
+        "kworksCount",
+        "onlyPromo",
+        "selectedCurrency",
+        "fakePayerLevel",
+        "attributesIds",
+        "attributesTree",
+        "unembeddedFilters",
+        "selectedAttributes",
+        "filterAttributes",
+        "selectedAttributesIds",
+        "selectedSubattributesIds",
+        "selectedAttributeParentsIds",
+        "selectedAttributeParents"
+      ],
+      "kworks_type": "dict",
+      "kworksCount": 0,
+      "activeCategoryId": 112,
+      "activeCat": {
+        "name": "Маркетплейсы и доски объявлений"
+      }
+    },
+    {
+      "alias": "calls-sales",
+      "endpoint": "/catalog_kworks_filters/calls-sales",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "context",
+      "endpoint": "/catalog_kworks_filters/context",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "e-commerce-social-network",
+      "endpoint": "/catalog_kworks_filters/e-commerce-social-network",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "editing-audio",
+      "endpoint": "/catalog_kworks_filters/editing-audio",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "editing-media",
+      "endpoint": "/catalog_kworks_filters/editing-media",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "email-marketing",
+      "endpoint": "/catalog_kworks_filters/email-marketing",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "engineering",
+      "endpoint": "/catalog_kworks_filters/engineering",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "financial-consulting",
+      "endpoint": "/catalog_kworks_filters/financial-consulting",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "frontend",
+      "endpoint": "/catalog_kworks_filters/frontend",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "game-dev",
+      "endpoint": "/catalog_kworks_filters/game-dev",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "graphic-design",
+      "endpoint": "/catalog_kworks_filters/graphic-design",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "illustrations",
+      "endpoint": "/catalog_kworks_filters/illustrations",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "imagegeneration",
+      "endpoint": "/catalog_kworks_filters/imagegeneration",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "information-bases",
+      "endpoint": "/catalog_kworks_filters/information-bases",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "integrated-promotion",
+      "endpoint": "/catalog_kworks_filters/integrated-promotion",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "intro",
+      "endpoint": "/catalog_kworks_filters/intro",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "keywords",
+      "endpoint": "/catalog_kworks_filters/keywords",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "lawyer-consulting",
+      "endpoint": "/catalog_kworks_filters/lawyer-consulting",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "links",
+      "endpoint": "/catalog_kworks_filters/links",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "logo",
+      "endpoint": "/catalog_kworks_filters/logo",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "marketing",
+      "endpoint": "/catalog_kworks_filters/marketing",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "mobile-apps",
+      "endpoint": "/catalog_kworks_filters/mobile-apps",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "music",
+      "endpoint": "/catalog_kworks_filters/music",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "optimization",
+      "endpoint": "/catalog_kworks_filters/optimization",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "outdoor-advertising",
+      "endpoint": "/catalog_kworks_filters/outdoor-advertising",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "packaging",
+      "endpoint": "/catalog_kworks_filters/packaging",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "recruitment",
+      "endpoint": "/catalog_kworks_filters/recruitment",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "resumes-and-letters",
+      "endpoint": "/catalog_kworks_filters/resumes-and-letters",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "script-programming",
+      "endpoint": "/catalog_kworks_filters/script-programming",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "server-administration",
+      "endpoint": "/catalog_kworks_filters/server-administration",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "sites-for-sale",
+      "endpoint": "/catalog_kworks_filters/sites-for-sale",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "smm",
+      "endpoint": "/catalog_kworks_filters/smm",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "software",
+      "endpoint": "/catalog_kworks_filters/software",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "textgeneration",
+      "endpoint": "/catalog_kworks_filters/textgeneration",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "traffic",
+      "endpoint": "/catalog_kworks_filters/traffic",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "training-consulting",
+      "endpoint": "/catalog_kworks_filters/training-consulting",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "translations",
+      "endpoint": "/catalog_kworks_filters/translations",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "typing",
+      "endpoint": "/catalog_kworks_filters/typing",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "vector-tracing",
+      "endpoint": "/catalog_kworks_filters/vector-tracing",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "videogeneration",
+      "endpoint": "/catalog_kworks_filters/videogeneration",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "web-plus-mobile-design",
+      "endpoint": "/catalog_kworks_filters/web-plus-mobile-design",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "website-development",
+      "endpoint": "/catalog_kworks_filters/website-development",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    },
+    {
+      "alias": "website-repair",
+      "endpoint": "/catalog_kworks_filters/website-repair",
+      "method": "POST",
+      "request_params": {
+        "page": 1,
+        "pageSize": 10
+      },
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 1726,
+      "json_error": "JSONDecodeError",
+      "body_prefix": "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Доступ заблокирован</title>\n\t<meta charset=\"UTF-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-07-09T09:51:57.629844+00:00",
+  "scope": "captcha_false_positive_probe",
+  "checks": {
+    "api_available": true,
+    "getCaptchaStatus_error": "KworkException: Некорректные значения параметров",
+    "account_health": {
+      "username": "",
+      "completed": 0,
+      "cancelled": 0,
+      "active_orders": 0,
+      "busy_risk": false,
+      "captcha_required": false,
+      "connects_free": 0,
+      "connects_total": 0
+    },
+    "session_hub_cookie_count": 15,
+    "web_open_new": {
+      "code": null,
+      "success": null,
+      "ok": true,
+      "http_status": null,
+      "final_url": "https://kwork.ru/new",
+      "evidence": null,
+      "has_form": false,
+      "field_count": 0
+    }
+  }
+}

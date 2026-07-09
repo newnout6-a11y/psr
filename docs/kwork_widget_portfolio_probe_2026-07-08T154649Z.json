@@ -1,0 +1,1175 @@
+{
+  "timestamp_utc": "2026-07-08T15:47:00.630878Z",
+  "purpose": "Read-like probe for Tavily-discovered widget endpoint and unresolved portfolio detail helpers.",
+  "proxy": {
+    "running": true,
+    "profileName": "germanyvless1",
+    "profileId": "868cd3f1-854c-4765-a836-2e3242dfc7cb",
+    "country": "Germany",
+    "proxyUrl": "http://<redacted_ip>:17990"
+  },
+  "session_hub": "<redacted>",
+  "cases_count": 9,
+  "results": [
+    {
+      "name": "widget_get_1",
+      "method": "GET",
+      "url_path": "/api/widget/get",
+      "params_keys": [
+        "cat_type",
+        "count",
+        "json",
+        "popular_type",
+        "ref",
+        "user_style",
+        "width"
+      ],
+      "data_keys": [],
+      "response": {
+        "status_code": 302,
+        "content_type": "text/html; charset=UTF-8",
+        "content_length": null,
+        "final_url_path": "/api/widget/get",
+        "final_url_query_keys": [
+          "cat_type",
+          "count",
+          "json",
+          "popular_type",
+          "ref",
+          "user_style",
+          "width"
+        ],
+        "body_kind": "text",
+        "text_summary": {
+          "length": 0,
+          "markers": {
+            "success": false,
+            "portfolio": false,
+            "kwork": false,
+            "widget": false,
+            "qrator": false,
+            "access denied": false,
+            "???????? ?? ???????": false,
+            "page not found": false,
+            "control-overlay": false
+          },
+          "snippet": ""
+        }
+      }
+    },
+    {
+      "name": "widget_get_2",
+      "method": "GET",
+      "url_path": "/api/widget/get",
+      "params_keys": [
+        "cat_type",
+        "count",
+        "json",
+        "popular_type",
+        "ref",
+        "user_style",
+        "width"
+      ],
+      "data_keys": [],
+      "response": {
+        "status_code": 302,
+        "content_type": "text/html; charset=UTF-8",
+        "content_length": null,
+        "final_url_path": "/api/widget/get",
+        "final_url_query_keys": [
+          "cat_type",
+          "count",
+          "json",
+          "popular_type",
+          "ref",
+          "user_style",
+          "width"
+        ],
+        "body_kind": "text",
+        "text_summary": {
+          "length": 0,
+          "markers": {
+            "success": false,
+            "portfolio": false,
+            "kwork": false,
+            "widget": false,
+            "qrator": false,
+            "access denied": false,
+            "???????? ?? ???????": false,
+            "page not found": false,
+            "control-overlay": false
+          },
+          "snippet": ""
+        }
+      }
+    },
+    {
+      "name": "widget_get_3",
+      "method": "GET",
+      "url_path": "/api/widget/get",
+      "params_keys": [
+        "bookmarks_type",
+        "cat_type",
+        "count",
+        "json",
+        "kwork_list_type",
+        "my_kworks_type",
+        "popular_type",
+        "ref",
+        "user_style",
+        "width"
+      ],
+      "data_keys": [],
+      "response": {
+        "status_code": 302,
+        "content_type": "text/html; charset=UTF-8",
+        "content_length": null,
+        "final_url_path": "/api/widget/get",
+        "final_url_query_keys": [
+          "bookmarks_type",
+          "cat_type",
+          "count",
+          "json",
+          "kwork_list_type",
+          "my_kworks_type",
+          "popular_type",
+          "ref",
+          "user_style",
+          "width"
+        ],
+        "body_kind": "text",
+        "text_summary": {
+          "length": 0,
+          "markers": {
+            "success": false,
+            "portfolio": false,
+            "kwork": false,
+            "widget": false,
+            "qrator": false,
+            "access denied": false,
+            "???????? ?? ???????": false,
+            "page not found": false,
+            "control-overlay": false
+          },
+          "snippet": ""
+        }
+      }
+    },
+    {
+      "name": "portfolio_large_get_1123924",
+      "method": "GET",
+      "url_path": "/portfolio_large/1123924",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "content_length": null,
+        "final_url_path": "/portfolio_large/1123924",
+        "final_url_query_keys": [],
+        "body_kind": "text",
+        "text_summary": {
+          "length": 3896,
+          "markers": {
+            "success": false,
+            "portfolio": true,
+            "kwork": true,
+            "widget": false,
+            "qrator": false,
+            "access denied": false,
+            "???????? ?? ???????": false,
+            "page not found": false,
+            "control-overlay": true
+          },
+          "snippet": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.prev();\" class=\"control control-pr"
+        }
+      }
+    },
+    {
+      "name": "portfolio_large_get_14040541",
+      "method": "GET",
+      "url_path": "/portfolio_large/14040541",
+      "params_keys": [],
+      "data_keys": [],
+      "response": {
+        "status_code": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "content_length": null,
+        "final_url_path": "/portfolio_large/14040541",
+        "final_url_query_keys": [],
+        "body_kind": "text",
+        "text_summary": {
+          "length": 3804,
+          "markers": {
+            "success": false,
+            "portfolio": true,
+            "kwork": true,
+            "widget": false,
+            "qrator": false,
+            "access denied": false,
+            "???????? ?? ???????": false,
+            "page not found": false,
+            "control-overlay": true
+          },
+          "snippet": "<a href=\"javascript: window.portfolioCard.prev();\" class=\"control-overlay control-prev js-portfolio-prev js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.next();\" class=\"control-overlay control-next js-portfolio-next js-portfolio-control-overlay\" style=\"display: none;\"></a><a href=\"javascript: window.portfolioCard.prev();\" class=\"control control-pr"
+        }
+      }
+    },
+    {
+      "name": "portfolio_get_popup_portfolioId_1123924",
+      "method": "POST",
+      "url_path": "/portfolio/get_popup",
+      "params_keys": [],
+      "data_keys": [
+        "portfolioId"
+      ],
+      "response": {
+        "status_code": 404,
+        "content_type": "application/json",
+        "content_length": null,
+        "final_url_path": "/portfolio/get_popup",
+        "final_url_query_keys": [],
+        "body_kind": "json",
+        "json_type": "str",
+        "json_sample": "Страница не найдена"
+      }
+    },
+    {
+      "name": "portfolio_get_popup_portfolio_id_1123924",
+      "method": "POST",
+      "url_path": "/portfolio/get_popup",
+      "params_keys": [],
+      "data_keys": [
+        "portfolio_id"
+      ],
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "content_length": null,
+        "final_url_path": "/portfolio/get_popup",
+        "final_url_query_keys": [],
+        "body_kind": "json",
+        "json_keys": [
+          "data",
+          "success"
+        ],
+        "json_summary": {
+          "data": {
+            "portfolio": null,
+            "additional": {
+              "canDeletePortfolio": false,
+              "kworks": [],
+              "anotherVideos": [],
+              "categories": [
+                {
+                  "CATID": 20,
+                  "parent": "7",
+                  "name": "Аудиозапись и озвучка",
+                  "portfolio_type": "audio",
+                  "max_photo_count": "500",
+                  "sort_index": 6,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 23,
+                  "parent": "7",
+                  "name": "Музыка и песни",
+                  "portfolio_type": "audio",
+                  "max_photo_count": "500",
+                  "sort_index": 5,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 24,
+                  "parent": "15",
+                  "name": "Веб и мобильный дизайн",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 2,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 25,
+                  "parent": "15",
+                  "name": "Логотип и брендинг",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 1,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 27,
+                  "parent": "15",
+                  "name": "Полиграфия",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 5,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 28,
+                  "parent": "15",
+                  "name": "Арт и иллюстрации",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 37,
+                  "parent": "11",
+                  "name": "Создание сайта",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 2,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 39,
+                  "parent": "11",
+                  "name": "Мобильные приложения",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 6,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 40,
+                  "parent": "11",
+                  "name": "Игры",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 7,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 56,
+                  "parent": "17",
+                  "name": "Статистика и аналитика",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 65,
+                  "parent": "83",
+                  "name": "Стройка и ремонт",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 9,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 68,
+                  "parent": "15",
+                  "name": "Обработка и редактирование",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 13,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 73,
+                  "parent": "5",
+                  "name": "Тексты и наполнение сайта",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 74,
+                  "parent": "5",
+                  "name": "Продающие и бизнес-тексты",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 3,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 76,
+                  "parent": "7",
+                  "name": "Видеоролики",
+                  "portfolio_type": "video",
+                  "max_photo_count": "500",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 77,
+                  "parent": "7",
+                  "name": "Интро и анимация логотипа",
+                  "portfolio_type": "video",
+                  "max_photo_count": "500",
+                  "sort_index": 3,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 78,
+                  "parent": "7",
+                  "name": "Видеосъемка и монтаж",
+                  "portfolio_type": "video",
+                  "max_photo_count": "500",
+                  "sort_index": 2,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 79,
+                  "parent": "11",
+                  "name": "Верстка",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 84,
+                  "parent": "83",
+                  "name": "Персональный помощник",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 3,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 90,
+                  "parent": "15",
+                  "name": "Интерьер и экстерьер",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 7,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 106,
+                  "parent": "7",
+                  "name": "Редактирование аудио",
+                  "portfolio_type": "audio",
+                  "max_photo_count": "500",
+                  "sort_index": 1,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 235,
+                  "parent": "5",
+                  "name": "Резюме и вакансии",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 1,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 250,
+                  "parent": "15",
+                  "name": "Промышленный дизайн",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 10,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 270,
+                  "parent": "15",
+                  "name": "Презентации и инфографика",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 11,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 272,
+                  "parent": "15",
+                  "name": "Наружная реклама",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 14,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 286,
+                  "parent": "15",
+                  "name": "Маркетплейсы и соцсети",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 15,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 300,
+                  "parent": "7",
+                  "name": "ИИ-генерация видео",
+                  "portfolio_type": "video",
+                  "max_photo_count": "500",
+                  "sort_index": 7,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 303,
+                  "parent": "5",
+                  "name": "ИИ-тексты",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 7,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 306,
+                  "parent": "15",
+                  "name": "ИИ-генерация изображений",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 11,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                }
+              ],
+              "parentCategories": [
+                {
+                  "CATID": 5,
+                  "parent": "0",
+                  "name": "Тексты и переводы",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 15,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 7,
+                  "parent": "0",
+                  "name": "Аудио, видео, съемка",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 30,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 11,
+                  "parent": "0",
+                  "name": "Разработка и IT",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 10,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 15,
+                  "parent": "0",
+                  "name": "Дизайн",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 5,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 17,
+                  "parent": "0",
+                  "name": "SEO и трафик",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 20,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 83,
+                  "parent": "0",
+                  "name": "Бизнес и жизнь",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 40,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                }
+              ],
+              "order": null,
+              "hasOrders": false,
+              "workNum": 1
+            }
+          },
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "portfolio_get_popup_id_1123924",
+      "method": "POST",
+      "url_path": "/portfolio/get_popup",
+      "params_keys": [],
+      "data_keys": [
+        "id"
+      ],
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "content_length": null,
+        "final_url_path": "/portfolio/get_popup",
+        "final_url_query_keys": [],
+        "body_kind": "json",
+        "json_keys": [
+          "data",
+          "success"
+        ],
+        "json_summary": {
+          "data": {
+            "portfolio": null,
+            "additional": {
+              "canDeletePortfolio": false,
+              "kworks": [],
+              "anotherVideos": [],
+              "categories": [
+                {
+                  "CATID": 20,
+                  "parent": "7",
+                  "name": "Аудиозапись и озвучка",
+                  "portfolio_type": "audio",
+                  "max_photo_count": "500",
+                  "sort_index": 6,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 23,
+                  "parent": "7",
+                  "name": "Музыка и песни",
+                  "portfolio_type": "audio",
+                  "max_photo_count": "500",
+                  "sort_index": 5,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 24,
+                  "parent": "15",
+                  "name": "Веб и мобильный дизайн",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 2,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 25,
+                  "parent": "15",
+                  "name": "Логотип и брендинг",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 1,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 27,
+                  "parent": "15",
+                  "name": "Полиграфия",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 5,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 28,
+                  "parent": "15",
+                  "name": "Арт и иллюстрации",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 37,
+                  "parent": "11",
+                  "name": "Создание сайта",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 2,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 39,
+                  "parent": "11",
+                  "name": "Мобильные приложения",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 6,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 40,
+                  "parent": "11",
+                  "name": "Игры",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 7,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 56,
+                  "parent": "17",
+                  "name": "Статистика и аналитика",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 65,
+                  "parent": "83",
+                  "name": "Стройка и ремонт",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 9,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 68,
+                  "parent": "15",
+                  "name": "Обработка и редактирование",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 13,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 73,
+                  "parent": "5",
+                  "name": "Тексты и наполнение сайта",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 74,
+                  "parent": "5",
+                  "name": "Продающие и бизнес-тексты",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 3,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 76,
+                  "parent": "7",
+                  "name": "Видеоролики",
+                  "portfolio_type": "video",
+                  "max_photo_count": "500",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 77,
+                  "parent": "7",
+                  "name": "Интро и анимация логотипа",
+                  "portfolio_type": "video",
+                  "max_photo_count": "500",
+                  "sort_index": 3,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 78,
+                  "parent": "7",
+                  "name": "Видеосъемка и монтаж",
+                  "portfolio_type": "video",
+                  "max_photo_count": "500",
+                  "sort_index": 2,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 79,
+                  "parent": "11",
+                  "name": "Верстка",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 4,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 84,
+                  "parent": "83",
+                  "name": "Персональный помощник",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 3,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 90,
+                  "parent": "15",
+                  "name": "Интерьер и экстерьер",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 7,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 106,
+                  "parent": "7",
+                  "name": "Редактирование аудио",
+                  "portfolio_type": "audio",
+                  "max_photo_count": "500",
+                  "sort_index": 1,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 235,
+                  "parent": "5",
+                  "name": "Резюме и вакансии",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 1,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 250,
+                  "parent": "15",
+                  "name": "Промышленный дизайн",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 10,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 270,
+                  "parent": "15",
+                  "name": "Презентации и инфографика",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 11,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 272,
+                  "parent": "15",
+                  "name": "Наружная реклама",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 14,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 286,
+                  "parent": "15",
+                  "name": "Маркетплейсы и соцсети",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 15,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 300,
+                  "parent": "7",
+                  "name": "ИИ-генерация видео",
+                  "portfolio_type": "video",
+                  "max_photo_count": "500",
+                  "sort_index": 7,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 303,
+                  "parent": "5",
+                  "name": "ИИ-тексты",
+                  "portfolio_type": "pdf",
+                  "max_photo_count": "10",
+                  "sort_index": 7,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 306,
+                  "parent": "15",
+                  "name": "ИИ-генерация изображений",
+                  "portfolio_type": "photo",
+                  "max_photo_count": "500",
+                  "sort_index": 11,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                }
+              ],
+              "parentCategories": [
+                {
+                  "CATID": 5,
+                  "parent": "0",
+                  "name": "Тексты и переводы",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 15,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 7,
+                  "parent": "0",
+                  "name": "Аудио, видео, съемка",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 30,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 11,
+                  "parent": "0",
+                  "name": "Разработка и IT",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 10,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 15,
+                  "parent": "0",
+                  "name": "Дизайн",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 5,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 17,
+                  "parent": "0",
+                  "name": "SEO и трафик",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 20,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                },
+                {
+                  "CATID": 83,
+                  "parent": "0",
+                  "name": "Бизнес и жизнь",
+                  "portfolio_type": "none",
+                  "max_photo_count": "3",
+                  "sort_index": 40,
+                  "resolution": {
+                    "width": 660,
+                    "height": 440
+                  }
+                }
+              ],
+              "order": null,
+              "hasOrders": false,
+              "workNum": 1
+            }
+          },
+          "success": true
+        }
+      }
+    },
+    {
+      "name": "portfolio_get_popup_portfolioId_14040541",
+      "method": "POST",
+      "url_path": "/portfolio/get_popup",
+      "params_keys": [],
+      "data_keys": [
+        "portfolioId"
+      ],
+      "response": {
+        "status_code": 404,
+        "content_type": "application/json",
+        "content_length": null,
+        "final_url_path": "/portfolio/get_popup",
+        "final_url_query_keys": [],
+        "body_kind": "json",
+        "json_type": "str",
+        "json_sample": "Страница не найдена"
+      }
+    }
+  ]
+}

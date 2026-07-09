@@ -21,6 +21,7 @@ from yarl import URL
 
 from src.paths import KWORK_MANUAL_COOKIES_FILE
 from src.platforms.kwork_ext import KworkExtensions, apply_kwork_patches
+from src.utils.vpnte_proxy import kwork_http_proxy_url
 
 apply_kwork_patches()
 
@@ -57,16 +58,80 @@ def _as_float(value: Any) -> float | None:
         return None
 
 
+def _repair_text_encoding(text: str) -> str:
+    bad_sequences = (
+        "\u0420\u040e",
+        "\u0420\u00a0",
+        "\u0420\u0454",
+        "\u0420\u00b0",
+        "\u0420\u00b5",
+        "\u0421\u0402",
+        "\u0421\u201a",
+        "\u0421\u0403",
+        "\u0421\u0152",
+        "\u0432\u0402",
+        "\u0412\xa0",
+        "\u0420\u0403",
+        "\u0421\u2018",
+        "\u00d0",
+        "\u00d1",
+        "\u00f0",
+        "\u00f2",
+        "\u00e5",
+        "\u00eb",
+        "\u00e8",
+        "\u00e0",
+        "\u00ea",
+    )
+    if not text:
+        return text
+
+    def _bad_score(value: str) -> int:
+        high_latin = sum(1 for char in value if "\u00c0" <= char <= "\u00ff")
+        return high_latin + sum(value.count(marker) * 4 for marker in bad_sequences)
+
+    def _cyrillic_score(value: str) -> int:
+        return sum(1 for char in value if "\u0400" <= char <= "\u04ff")
+
+    current = text
+    for _ in range(3):
+        current_bad_score = _bad_score(current)
+        current_cyrillic_score = _cyrillic_score(current)
+        if current_bad_score <= 0:
+            break
+        best = current
+        best_score = 0
+        for source_encoding, target_encoding in (("latin1", "utf-8"), ("cp1251", "utf-8"), ("latin1", "cp1251")):
+            try:
+                candidate = current.encode(source_encoding).decode(target_encoding)
+            except UnicodeError:
+                continue
+            candidate_bad_score = _bad_score(candidate)
+            candidate_cyrillic_score = _cyrillic_score(candidate)
+            if candidate_cyrillic_score <= 0:
+                continue
+            score = ((current_bad_score - candidate_bad_score) * 3) + (
+                (candidate_cyrillic_score - current_cyrillic_score) * 2
+            )
+            if score > best_score and candidate != current:
+                best = candidate
+                best_score = score
+        if best == current:
+            break
+        current = best
+    return current
+
+
 def _strip_html(value: Any) -> str:
     text = str(value or "")
     if "<" not in text and "&" not in text:
-        return text.strip()
+        return _repair_text_encoding(text).strip()
     try:
         from bs4 import BeautifulSoup
 
-        return BeautifulSoup(text, "lxml").get_text(" ", strip=True)
+        return _repair_text_encoding(BeautifulSoup(text, "lxml").get_text(" ", strip=True))
     except Exception:
-        return text.strip()
+        return _repair_text_encoding(text).strip()
 
 
 def parse_cookie_env(raw: str) -> dict[str, str]:
@@ -235,6 +300,8 @@ class KworkStateDataParser:
     @classmethod
     def projects_from_state(cls, state: dict[str, Any]) -> list[ProjectItem]:
         wants = state.get("wants")
+        if isinstance(wants, dict):
+            wants = wants.get("data") or wants.get("items") or wants.get("wants")
         if not wants:
             pagination = state.get("pagination") or {}
             wants = pagination.get("data")
@@ -284,7 +351,7 @@ class KworkStateDataParser:
             return None
 
         user = cls._user_payload(want)
-        title = str(want.get("name") or want.get("title") or "").strip()
+        title = _strip_html(want.get("name") or want.get("title") or "")
         description = _strip_html(want.get("description") or "")
         _price = _as_float(want.get("priceLimit"))
         budget = _price if _price is not None and _price > 0 else _as_float(want.get("possiblePriceLimit"))
@@ -357,6 +424,7 @@ class KworkService:
 
     def __post_init__(self) -> None:
         self._api: Any = None
+        self._token_api: Any = None
         self._reset_count: int = 0
         self._session_hub_cookies: dict[str, str] = {}
         self._session_hub_cookies_at: float = 0.0
@@ -412,7 +480,7 @@ class KworkService:
         password = os.getenv("KWORK_PASSWORD", "")
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(trust_env=False) as client:
                 resp = await client.get(
                     f"{hub_url}?domain=kwork.ru",
                     timeout=10.0,
@@ -453,6 +521,7 @@ class KworkService:
             # Create Kwork client with cookies from Session Hub
             from kwork import Kwork
             from src.platforms.kwork_ext import get_proxy_rotator
+            from src.utils.vpnte_proxy import vpnte_proxy_enabled
 
             phone = os.getenv("KWORK_PHONE", "")
             api = Kwork(
@@ -461,11 +530,16 @@ class KworkService:
                 phone_last=phone if phone else None,
                 timeout=self.timeout,
                 retry_max_attempts=max(1, self.retry_max_attempts),
-                proxy=get_proxy_rotator().next() if os.getenv("KWORK_PROXY_LIST") else (os.getenv("PROXY_URL") or None),
+                proxy=(
+                    get_proxy_rotator().next()
+                    if os.getenv("KWORK_PROXY_LIST") or vpnte_proxy_enabled()
+                    else (os.getenv("PROXY_URL") or None)
+                ),
             )
             # Force-create the underlying HTTP session before injecting cookies.
             self._apply_cookies_to_api(api, cookie_dict)
             auth_mode = "email+cookies" if email and password else "cookie-only"
+            api._psr_auth_mode = auth_mode
 
             logger.info(f"KworkService: API-клиент инициализирован через Session Hub ({len(cookie_dict)} кук)")
             logger.debug(f"KworkService: Session Hub auth mode: {auth_mode}")
@@ -498,7 +572,7 @@ class KworkService:
 
         hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(trust_env=False) as client:
                 resp = await client.get(f"{hub_url}?domain=kwork.ru", timeout=10.0)
             if resp.status_code != 200:
                 logger.debug(f"KworkService: Session Hub returned HTTP {resp.status_code}")
@@ -645,6 +719,8 @@ class KworkService:
                     "Referer": "https://kwork.ru/inbox",
                 },
                 timeout=20.0,
+                proxy=kwork_http_proxy_url(rotate=False),
+                trust_env=False,
             ) as client:
                 resp = await client.get(f"{KWORK_BASE_URL}/inbox", cookies=cookie_dict)
             if resp.status_code != 200:
@@ -680,6 +756,8 @@ class KworkService:
                     "X-Requested-With": "XMLHttpRequest",
                 },
                 timeout=30.0,
+                proxy=kwork_http_proxy_url(rotate=False),
+                trust_env=False,
             ) as client:
                 inbox = await client.get(f"{KWORK_BASE_URL}/inbox", cookies=cookie_dict)
                 chats = self._extract_chat_list(inbox.text)
@@ -760,6 +838,8 @@ class KworkService:
                         "Referer": "https://kwork.ru/inbox",
                     },
                     timeout=20.0,
+                    proxy=kwork_http_proxy_url(rotate=False),
+                    trust_env=False,
                 ) as client:
                     inbox = await client.get(f"{KWORK_BASE_URL}/inbox", cookies=cookie_dict)
                     chats = self._extract_chat_list(inbox.text)
@@ -852,6 +932,7 @@ class KworkService:
                 proxy=proxy,
                 relogin_on_auth_error=True,
             )
+            api._psr_auth_mode = "email+password"
             logger.info(
                 f"KworkService: API-клиент инициализирован через email/password (proxy={'yes' if proxy else 'no'})"
             )
@@ -859,6 +940,22 @@ class KworkService:
         except Exception as e:
             logger.warning(f"KworkService: ошибка авторизации email/password: {e}")
             return None
+
+    async def get_token_api(self) -> Any | None:
+        """Return an API client suitable for token-required mobile endpoints."""
+        if self._token_api is not None:
+            return self._token_api
+        if self._api is not None and getattr(self._api, "_psr_auth_mode", "") != "cookie-only":
+            return self._api
+        if self._api is not None and not (os.getenv("KWORK_EMAIL") and os.getenv("KWORK_PASSWORD")):
+            return self._api
+
+        api = await self._try_email_password()
+        if api is not None:
+            self._token_api = api
+            return self._token_api
+
+        return await self.get_api()
 
     def reset_api(self) -> None:
         """Reset current client for re-authorization.
@@ -910,13 +1007,20 @@ class KworkService:
         return f"keys={keys}, success={data.get('success')!r}, error={error!r}"
 
     async def close(self) -> None:
-        """Close resources and release the API client."""
+        """Close resources and release API clients."""
+        clients = []
         if self._api is not None:
+            clients.append(("_api", self._api))
+        if self._token_api is not None and self._token_api is not self._api:
+            clients.append(("_token_api", self._token_api))
+        for attr, api in clients:
             try:
-                await self._api.close()
+                await api.close()
             except Exception:
                 pass
-            self._api = None
+            setattr(self, attr, None)
+        self._api = None
+        self._token_api = None
 
     async def get_projects(
         self,
@@ -1041,7 +1145,7 @@ class KworkService:
 
     async def get_project_details_raw(self, project_id: str | int) -> dict[str, Any] | None:
         """Получить детали проекта через API (skills, files, dates)."""
-        api = await self.get_api()
+        api = await self.get_token_api()
         if not api:
             return None
         return await KworkExtensions.get_project_details(api, project_id)
@@ -1109,6 +1213,122 @@ class KworkService:
 
         return get_connects_monitor().can_send() and get_success_rate_monitor().can_send()
 
+    @staticmethod
+    def _web_projects_filter_id(kworks_filter_from: int | None, kworks_filter_to: int | None) -> str | None:
+        if kworks_filter_from in (None, 0) and kworks_filter_to is not None and kworks_filter_to <= 5:
+            return "0"
+        if kworks_filter_from == 5 and kworks_filter_to == 10:
+            return "1"
+        if kworks_filter_from == 10 and kworks_filter_to == 15:
+            return "2"
+        if kworks_filter_from == 15 and kworks_filter_to == 20:
+            return "3"
+        if kworks_filter_from is not None and kworks_filter_from >= 20 and kworks_filter_to is None:
+            return "4"
+        return None
+
+    @staticmethod
+    def _project_item_to_raw_dict(project: ProjectItem) -> dict[str, Any]:
+        platform_data = project.platform_data if isinstance(project.platform_data, dict) else {}
+        user = platform_data.get("user") if isinstance(platform_data.get("user"), dict) else {}
+        return {
+            "id": project.id,
+            "title": project.title,
+            "description": project.description,
+            "price": project.budget,
+            "possible_price_limit": platform_data.get("possible_price_limit"),
+            "offers": project.offers_count,
+            "date_create": project.created_at or platform_data.get("date_create"),
+            "category_id": platform_data.get("category_id"),
+            "classification_id": platform_data.get("classification_id"),
+            "parent_category_id": platform_data.get("parent_category_id"),
+            "views": platform_data.get("views_dirty"),
+            "user_id": project.client_user_id,
+            "username": user.get("username"),
+            "user_hired_percent": project.client_hired_percent,
+            "user_projects_count": platform_data.get("user_projects_count"),
+            "user_active_projects_count": platform_data.get("user_active_projects_count"),
+            "allow_higher_price": platform_data.get("allow_higher_price"),
+            "is_higher_price": platform_data.get("is_higher_price"),
+            "user_need_portfolio": platform_data.get("user_need_portfolio"),
+            "url": project.url,
+            "platform_data": platform_data,
+            "source": "kwork_web_projects_state",
+        }
+
+    async def get_web_raw_projects(
+        self,
+        *,
+        categories: str = "all",
+        page: int = 1,
+        query: str = "",
+        price_from: int | None = None,
+        price_to: int | None = None,
+        hiring_from: int | None = None,
+        kworks_filter_from: int | None = None,
+        kworks_filter_to: int | None = None,
+        **filters: Any,
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        """Read buyer projects from Kwork web stateData using Session Hub cookies."""
+        import httpx
+
+        cookie_dict = await self._fetch_session_hub_cookies()
+        if not cookie_dict:
+            return [], {"source": "web_state", "auth_mode": "cookie-only", "error": "missing web cookies"}
+
+        params: dict[str, Any] = {"page": max(1, int(page or 1))}
+        category_text = str(categories or "all").strip()
+        if category_text and category_text != "all":
+            parts = [part.strip() for part in category_text.split(",") if part.strip()]
+            if len(parts) == 1 and parts[0].isdigit():
+                params["c"] = parts[0]
+        if query:
+            params["keyword"] = query
+        if price_from is not None:
+            params["price-from"] = int(price_from)
+        if price_to is not None:
+            params["price-to"] = int(price_to)
+        if hiring_from is not None:
+            params["hiring-from"] = int(hiring_from)
+        web_kworks_filter = self._web_projects_filter_id(kworks_filter_from, kworks_filter_to)
+        if web_kworks_filter is not None:
+            params["kworks-filters"] = web_kworks_filter
+        if filters.get("prices_filters") is not None:
+            params["prices-filters"] = filters["prices_filters"]
+
+        try:
+            async with httpx.AsyncClient(
+                headers={
+                    "Accept": "text/html,application/xhtml+xml",
+                    "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+                    "User-Agent": "Mozilla/5.0 PSR-KworkWebProjects/1.0",
+                },
+                cookies=cookie_dict,
+                timeout=12.0,
+                follow_redirects=True,
+                proxy=kwork_http_proxy_url(rotate=False),
+                trust_env=False,
+            ) as client:
+                response = await client.get(f"{KWORK_BASE_URL}/projects", params=params)
+            state = KworkStateDataParser.extract(response.text) or {}
+            projects = [self._project_item_to_raw_dict(item) for item in KworkStateDataParser.projects_from_state(state)]
+            pagination = state.get("pagination") if isinstance(state.get("pagination"), dict) else {}
+            return projects, {
+                "source": "web_state",
+                "auth_mode": "cookie-only",
+                "url": str(response.url),
+                "status_code": response.status_code,
+                "filter": state.get("filter"),
+                "paging": {
+                    "page": pagination.get("current_page") or page,
+                    "total": pagination.get("total") or len(projects),
+                    "per_page": pagination.get("per_page") or len(projects),
+                },
+            }
+        except Exception as e:
+            logger.debug(f"KworkService: failed to read web projects state: {e}")
+            return [], {"source": "web_state", "auth_mode": "cookie-only", "error": str(e)}
+
     async def get_raw_projects(
         self,
         *,
@@ -1123,9 +1343,21 @@ class KworkService:
         **filters: Any,
     ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """Получить сырые проекты со всеми полями API (без WantWorker)."""
-        api = await self.get_api()
+        api = await self.get_token_api()
         if not api:
             return [], {}
+        if getattr(api, "_psr_auth_mode", "") == "cookie-only":
+            return await self.get_web_raw_projects(
+                categories=categories,
+                page=page,
+                query=query,
+                price_from=price_from,
+                price_to=price_to,
+                hiring_from=hiring_from,
+                kworks_filter_from=kworks_filter_from,
+                kworks_filter_to=kworks_filter_to,
+                **filters,
+            )
         return await KworkExtensions.get_raw_projects(
             api,
             categories=categories,
@@ -1226,9 +1458,13 @@ class KworkService:
         return await KworkExtensions.is_dialog_allow(api, user_id)
 
     async def get_wants_count(self, categories: str = "all", **filters: Any) -> int:
-        api = await self.get_api()
+        api = await self.get_token_api()
         if not api:
             return 0
+        if getattr(api, "_psr_auth_mode", "") == "cookie-only":
+            _projects, meta = await self.get_web_raw_projects(categories=categories, page=1, **filters)
+            paging = meta.get("paging") if isinstance(meta.get("paging"), dict) else {}
+            return int(paging.get("total") or 0)
         return await KworkExtensions.get_wants_count(api, categories, **filters)
 
     async def exchange_info(self) -> dict[str, Any]:

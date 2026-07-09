@@ -18,7 +18,13 @@ import aiohttp
 import pytest
 from yarl import URL
 
-from src.platforms.kwork import KworkService, env_kwork_web_cookies, manual_kwork_web_cookies, parse_cookie_env
+from src.platforms.kwork import (
+    KworkService,
+    KworkStateDataParser,
+    env_kwork_web_cookies,
+    manual_kwork_web_cookies,
+    parse_cookie_env,
+)
 
 
 @pytest.fixture
@@ -108,6 +114,112 @@ class TestGetApiSessionHubPriority:
         assert api is mock_kwork
         assert kwork_cls.call_args.kwargs["login"] == ""
         assert kwork_cls.call_args.kwargs["password"] == ""
+
+    @pytest.mark.asyncio
+    async def test_token_api_bypasses_cookie_only_client(self, service, monkeypatch):
+        """Token-required endpoints can fall back to email/password when Session Hub is cookie-only."""
+        monkeypatch.setenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
+        monkeypatch.setenv("KWORK_EMAIL", "test@test.com")
+        monkeypatch.setenv("KWORK_PASSWORD", "pass123")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "status": "ok",
+            "count": 1,
+            "cookies": [{"name": "PHPSESSID", "value": "abc123"}],
+        }
+
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=mock_response)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=False)
+
+        cookie_api = MagicMock()
+        cookie_api._session = None
+        cookie_api.session = None
+        token_api = MagicMock()
+
+        with patch("httpx.AsyncClient", return_value=mock_client):
+            with patch("kwork.Kwork", side_effect=[cookie_api, token_api]) as kwork_cls:
+                api = await service.get_api()
+                token = await service.get_token_api()
+
+        assert api is cookie_api
+        assert api._psr_auth_mode == "email+cookies"
+        assert token is api
+        assert kwork_cls.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_token_api_uses_email_password_after_cookie_only_cache(self, service, monkeypatch):
+        """A cached cookie-only client is not reused for token-required endpoints."""
+        monkeypatch.setenv("KWORK_EMAIL", "test@test.com")
+        monkeypatch.setenv("KWORK_PASSWORD", "pass123")
+
+        cookie_api = MagicMock()
+        cookie_api._psr_auth_mode = "cookie-only"
+        service._api = cookie_api
+        token_api = MagicMock()
+
+        with patch("kwork.Kwork", return_value=token_api):
+            token = await service.get_token_api()
+
+        assert token is token_api
+        assert service._api is cookie_api
+        assert service._token_api is token_api
+        assert token_api._psr_auth_mode == "email+password"
+
+    def test_web_state_project_parser_repairs_cp1251_mojibake(self):
+        title = "\u0421\u043a\u0440\u0438\u043f\u0442 \u043d\u0430 n8n, \u043b\u0438\u0431\u043e \u043b\u044e\u0431\u043e\u0439 \u0434\u0440\u0443\u0433\u043e\u0439 \u042f\u041f"
+        description = "\u041d\u0443\u0436\u0435\u043d \u0431\u043e\u0442 \u043d\u0430 python"
+        state = {
+            "pagination": {
+                "data": [
+                    {
+                        "id": 3022438,
+                        "name": title.encode("cp1251").decode("latin1"),
+                        "description": f"<p>{description.encode('cp1251').decode('latin1')}</p>",
+                        "possiblePriceLimit": 500,
+                        "kwork_count": 2,
+                        "user": {"id": 77, "username": "buyer"},
+                    }
+                ]
+            }
+        }
+
+        projects = KworkStateDataParser.projects_from_state(state)
+
+        assert projects[0].title == title
+        assert projects[0].description == description
+
+    @pytest.mark.asyncio
+    async def test_token_required_project_calls_use_web_state_for_cookie_only_client(self, service, monkeypatch):
+        """Project exchange endpoints should use fast web state fallback with cookie-only auth."""
+        cookie_api = MagicMock()
+        cookie_api._psr_auth_mode = "cookie-only"
+        cookie_api.request = AsyncMock()
+        service._api = cookie_api
+        web_calls: list[dict] = []
+
+        async def fake_web_projects(**kwargs):
+            web_calls.append(kwargs)
+            return (
+                [{"id": "321", "title": "Need bot", "price": 3000, "offers": 0}],
+                {"auth_mode": "cookie-only", "source": "web_state", "paging": {"total": 1}},
+            )
+
+        monkeypatch.setattr(service, "get_web_raw_projects", fake_web_projects)
+
+        projects, meta = await service.get_raw_projects(categories="all", query="telegram", kworks_filter_to=5)
+        count = await service.get_wants_count(categories="all", query="telegram", kworks_filter_to=5)
+
+        assert projects[0]["id"] == "321"
+        assert meta["source"] == "web_state"
+        assert meta["auth_mode"] == "cookie-only"
+        assert count == 1
+        assert web_calls[0]["query"] == "telegram"
+        assert web_calls[0]["kworks_filter_to"] == 5
+        cookie_api.request.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_session_hub_cookies_are_applied_to_created_session(self, service):
@@ -453,7 +565,7 @@ class TestClose:
 
     @pytest.mark.asyncio
     async def test_close_calls_api_close(self, service):
-        """close() calls api.close() and sets _api to None."""
+        """close() calls api.close() and clears cached clients."""
         mock_api = AsyncMock()
         service._api = mock_api
 
@@ -461,6 +573,35 @@ class TestClose:
 
         mock_api.close.assert_called_once()
         assert service._api is None
+        assert service._token_api is None
+
+    @pytest.mark.asyncio
+    async def test_close_calls_token_api_close(self, service):
+        """close() also releases a separate token-mode API client."""
+        mock_api = AsyncMock()
+        token_api = AsyncMock()
+        service._api = mock_api
+        service._token_api = token_api
+
+        await service.close()
+
+        mock_api.close.assert_called_once()
+        token_api.close.assert_called_once()
+        assert service._api is None
+        assert service._token_api is None
+
+    @pytest.mark.asyncio
+    async def test_close_does_not_double_close_shared_token_api(self, service):
+        """close() does not double-close when both caches point at one client."""
+        mock_api = AsyncMock()
+        service._api = mock_api
+        service._token_api = mock_api
+
+        await service.close()
+
+        mock_api.close.assert_called_once()
+        assert service._api is None
+        assert service._token_api is None
 
     @pytest.mark.asyncio
     async def test_close_handles_exception(self, service):
@@ -472,6 +613,7 @@ class TestClose:
         await service.close()  # Should not raise
 
         assert service._api is None
+        assert service._token_api is None
 
     @pytest.mark.asyncio
     async def test_close_when_no_api(self, service):
@@ -479,6 +621,7 @@ class TestClose:
         assert service._api is None
         await service.close()  # Should not raise
         assert service._api is None
+        assert service._token_api is None
 
 
 class TestCachedClient:

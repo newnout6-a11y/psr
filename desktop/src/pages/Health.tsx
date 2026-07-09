@@ -1,6 +1,6 @@
 import { useApi } from '../hooks/useApi'
-import { api, HealthData } from '../lib/api'
-import { HeartPulse, AlertTriangle, CheckCircle2, XCircle, Activity, Bell, Shield, Zap, Clock, MessageCircle } from 'lucide-react'
+import { api, HealthData, type KworkVerificationStatus } from '../lib/api'
+import { HeartPulse, AlertTriangle, CheckCircle2, XCircle, Activity, Bell, Shield, Zap, Clock, MessageCircle, RefreshCw } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 export default function Health() {
@@ -8,11 +8,23 @@ export default function Health() {
   const { data: connectsCheck } = useApi(() => (api as any).getConnectsCheck(), [])
   const { data: breakerData } = useApi(() => api.getBreaker(), [])
   const { data: alertsData } = useApi(() => (api as any).getAlerts(), [])
+  const {
+    data: verificationStatus,
+    loading: verificationLoading,
+    error: verificationError,
+    refetch: refetchVerification,
+  } = useApi(() => api.getKworkVerificationStatus(false), [])
 
   const h = data as HealthData | null
+  const verification = verificationStatus as KworkVerificationStatus | undefined
 
   if (loading) return <div className="p-4 text-zinc-500">Загрузка...</div>
   if (!h) return <div className="p-4 text-zinc-500">Нет данных</div>
+
+  const manualVerificationRequired = Boolean(h.manual_verification_required || verification?.manual_verification_required)
+  const verificationOk = verification?.status === 'ok'
+  const verificationWarn = verification?.status === 'api_flag_only'
+  const verificationBad = verification?.status === 'manual_required' || verification?.status === 'error'
 
   return (
     <div className="space-y-4 p-6 max-lg:p-4">
@@ -48,15 +60,23 @@ export default function Health() {
       </div>
 
       <div className="grid grid-cols-4 gap-3 max-lg:grid-cols-2">
-        <div className={cn('card p-4', h.captcha_required && 'border-red-500/50')}>
+        <div className={cn('card p-4', manualVerificationRequired && 'border-red-500/50')}>
           <div className="flex items-center gap-2 mb-1">
-            {h.captcha_required ? <XCircle className="w-4 h-4 text-red-400" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+            {manualVerificationRequired ? <XCircle className="w-4 h-4 text-red-400" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
             <span className="text-xs text-zinc-500">Капча</span>
           </div>
-          <div className={cn('text-lg font-bold', h.captcha_required ? 'text-red-400' : 'text-emerald-400')}>
-            {h.captcha_required ? 'Требуется' : 'OK'}
+          <div className={cn('text-lg font-bold', manualVerificationRequired ? 'text-red-400' : 'text-emerald-400')}>
+            {manualVerificationRequired ? 'Требуется' : 'OK'}
           </div>
         </div>
+
+        {h.captcha_api_flag && !manualVerificationRequired && (
+          <div className="card p-4 border-amber-500/30">
+            <div className="text-xs text-zinc-500">Captcha API flag</div>
+            <div className="mt-1 text-sm font-medium text-amber-300">API flag only</div>
+            {h.captcha_check_error && <div className="mt-1 text-xs text-zinc-500">check error</div>}
+          </div>
+        )}
 
         <div className={cn('card p-4', h.success_rate < 80 && 'border-yellow-500/50')}>
           <div className="flex items-center gap-2 mb-1">
@@ -90,6 +110,81 @@ export default function Health() {
           </div>
           <div className="text-xs text-zinc-500">непрочитанных</div>
         </div>
+      </div>
+
+      <div className={cn(
+        'card p-4',
+        verificationOk && 'border-emerald-500/30',
+        verificationWarn && 'border-amber-500/30',
+        verificationBad && 'border-red-500/40',
+      )}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-sm font-medium text-zinc-200 flex items-center gap-2">
+              <Shield className={cn(
+                'w-4 h-4',
+                verificationOk ? 'text-emerald-400' : verificationWarn ? 'text-amber-400' : verificationBad ? 'text-red-400' : 'text-zinc-500',
+              )} />
+              Kwork web verification
+            </h3>
+            <div className={cn(
+              'mt-2 text-sm font-medium',
+              verificationOk ? 'text-emerald-300' : verificationWarn ? 'text-amber-300' : verificationBad ? 'text-red-300' : 'text-zinc-400',
+            )}>
+              {verificationLoading ? 'Checking...' : verification?.status || 'not checked'}
+            </div>
+            <div className="mt-1 text-xs text-zinc-500">
+              {verificationError || verification?.detail || 'Checks Kwork web pages, not only getCaptchaStatus.'}
+            </div>
+          </div>
+          <button onClick={refetchVerification} disabled={verificationLoading} className="btn btn-ghost shrink-0 py-1 text-xs">
+            <RefreshCw className={cn('h-3.5 w-3.5', verificationLoading && 'animate-spin')} />
+            Refresh
+          </button>
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-2 text-xs max-lg:grid-cols-2">
+          <div className="rounded-md border border-surface-700 bg-surface-950/40 px-2 py-1.5">
+            <div className="text-zinc-500">cookies</div>
+            <div className="text-zinc-200">{verification?.cookie_count ?? '—'}</div>
+          </div>
+          <div className="rounded-md border border-surface-700 bg-surface-950/40 px-2 py-1.5">
+            <div className="text-zinc-500">web session</div>
+            <div className={verification?.web_session_ok ? 'text-emerald-300' : 'text-zinc-400'}>
+              {verification?.web_session_ok ? 'ok' : 'unknown'}
+            </div>
+          </div>
+          <div className="rounded-md border border-surface-700 bg-surface-950/40 px-2 py-1.5">
+            <div className="text-zinc-500">SmartCaptcha script</div>
+            <div className={verification?.smartcaptcha_scripts_seen ? 'text-amber-300' : 'text-zinc-400'}>
+              {verification?.smartcaptcha_scripts_seen ? 'seen' : 'not seen'}
+            </div>
+          </div>
+          <div className="rounded-md border border-surface-700 bg-surface-950/40 px-2 py-1.5">
+            <div className="text-zinc-500">API flag</div>
+            <div className={verification?.captcha_status?.required ? 'text-amber-300' : 'text-zinc-400'}>
+              {verification?.captcha_status?.required ? 'required' : verification?.captcha_status?.error ? 'error' : 'clear'}
+            </div>
+          </div>
+        </div>
+        {!!verification?.pages?.length && (
+          <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
+            {verification.pages.map((page) => (
+              <span
+                key={page.path}
+                className={cn(
+                  'rounded border px-1.5 py-0.5',
+                  page.evidence?.manual_required
+                    ? 'border-red-500/40 text-red-300'
+                    : page.status_code >= 200 && page.status_code < 400
+                      ? 'border-emerald-500/30 text-emerald-300'
+                      : 'border-zinc-700 text-zinc-500',
+                )}
+              >
+                {page.path}: {page.status_code || 'err'}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Connects check + Breaker */}

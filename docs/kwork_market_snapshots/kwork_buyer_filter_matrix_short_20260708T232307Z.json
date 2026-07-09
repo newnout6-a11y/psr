@@ -1,0 +1,617 @@
+{
+  "generated_at": "2026-07-08T23:23:07Z",
+  "source": "psr.kwork_buyer_filter_matrix_short",
+  "endpoint_map": {
+    "POST /projects": [
+      "categories",
+      "page",
+      "query",
+      "price_from",
+      "price_to",
+      "hiring_from",
+      "kworks_filter_from",
+      "kworks_filter_to",
+      "extra filters passthrough"
+    ],
+    "POST /getWantsCount": [
+      "categories",
+      "query",
+      "same filter keys as /projects"
+    ]
+  },
+  "cases": [
+    {
+      "name": "telegram_low5",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "error",
+      "error": "TimeoutError: "
+    },
+    {
+      "name": "telegram_zero",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 0
+      },
+      "status": "error",
+      "error": "TimeoutError: "
+    },
+    {
+      "name": "telegram_budget30_low5",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "price_from": 30000,
+        "kworks_filter_to": 5
+      },
+      "status": "error",
+      "error": "TimeoutError: "
+    },
+    {
+      "name": "telegram_hiring80_low5",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "hiring_from": 80,
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 0,
+      "sample_count": 0,
+      "sample_ids": [],
+      "zero_offer_sample": 0,
+      "low_offer_sample": 0,
+      "sample": [],
+      "paging": null,
+      "connects": null,
+      "elapsed_ms": 1517
+    },
+    {
+      "name": "telegram_sort_date_probe",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 5,
+        "sort": "date"
+      },
+      "status": "ok",
+      "count": 16,
+      "sample_count": 12,
+      "sample_ids": [
+        3203050,
+        3203045,
+        3190904,
+        3202311,
+        3213124,
+        3204600
+      ],
+      "zero_offer_sample": 1,
+      "low_offer_sample": 5,
+      "sample": [
+        {
+          "id": 3203050,
+          "title": "Массовые отметки пользователей в Telegram Stories",
+          "offers": 2,
+          "price": 30000,
+          "possible_price_limit": 90000,
+          "allow_higher_price": true,
+          "user_hired_percent": 23,
+          "views": null,
+          "date_confirm": 1782145840,
+          "description_excerpt": "Есть готовые Stories и база пользователей для отметок. Требуется исполнитель, который сможет качественно и в срок выполнить массовые отметки пользователей в Telegram.<br>Объём рабо"
+        },
+        {
+          "id": 3203045,
+          "title": "Отметки пользователей в Telegram Stories",
+          "offers": 1,
+          "price": 33000,
+          "possible_price_limit": 99000,
+          "allow_higher_price": true,
+          "user_hired_percent": 23,
+          "views": null,
+          "date_confirm": 1782145745,
+          "description_excerpt": "<br>Предоставляется база для отметок &mdash; около 10 000 пользователей.<br>Все материалы для публикации готовы и будут переданы исполнителю.<br>Требования:<br>&mdash; Опыт работы "
+        },
+        {
+          "id": 3190904,
+          "title": "Нужно создать 5-6 Telegram Stories с упоминанием",
+          "offers": 4,
+          "price": 23000,
+          "possible_price_limit": 69000,
+          "allow_higher_price": true,
+          "user_hired_percent": 23,
+          "views": null,
+          "date_confirm": 1780591007,
+          "description_excerpt": " <br>Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы <br>Создать 5-6 Telegram Stories и упомянуть людей из базы<br>Есть база для упомина"
+        },
+        {
+          "id": 3202311,
+          "title": "Нужно создать 5&ndash;6 Telegram Stories с упоминанием",
+          "offers": 0,
+          "price": 30000,
+          "possible_price_limit": 90000,
+          "allow_higher_price": true,
+          "user_hired_percent": 37,
+          "views": null,
+          "date_confirm": 1782065210,
+          "description_excerpt": "Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы.<br>Есть база для упоминания около 10к пользователей.<br>Материалы для работы предоставл"
+        },
+        {
+          "id": 3213124,
+          "title": "Рассылка в телеграм по мебели",
+          "offers": 5,
+          "price": 10000,
+          "possible_price_limit": 30000,
+          "allow_higher_price": true,
+          "user_hired_percent": 0,
+          "views": null,
+          "date_confirm": 1783497690,
+          "description_excerpt": "Нужно разослать со своих телеграм аккаунтов по моей базе заготовленный оффер по изготовлению мебели и передать контакты заинтересованных. Оплата 500 рублей за квал. лид, объем сооб"
+        },
+        {
+          "id": 3204600,
+          "title": "Вывести канал в ТОП поиска малоизвестной тематике",
+          "offers": 2,
+          "price": 30000,
+          "possible_price_limit": 90000,
+          "allow_higher_price": true,
+          "user_hired_percent": 23,
+          "views": null,
+          "date_confirm": 1782336470,
+          "description_excerpt": "Задача: вывести Telegram канал или бота  в ТОП поиска Telegram по целевому запросу и удержать позиции не менее 30 дней.<br>Требования к результату:<br>&bull; Бот должен находиться "
+        }
+      ],
+      "paging": {
+        "page": 1,
+        "total": 16,
+        "limit": 12,
+        "pages": 2
+      },
+      "connects": {
+        "all_connects": 30,
+        "active_connects": 30,
+        "update_time": 1786222800
+      },
+      "elapsed_ms": 420
+    },
+    {
+      "name": "telegram_bot_low5",
+      "categories": "all",
+      "query": "телеграм бот",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 22,
+      "sample_count": 12,
+      "sample_ids": [
+        3212981,
+        3203050,
+        3203045,
+        3190904,
+        3202311,
+        3213124
+      ],
+      "zero_offer_sample": 1,
+      "low_offer_sample": 5,
+      "sample": [
+        {
+          "id": 3212981,
+          "title": "Вывод бота в топ телег",
+          "offers": 2,
+          "price": 5000,
+          "possible_price_limit": 15000,
+          "allow_higher_price": true,
+          "user_hired_percent": 0,
+          "views": null,
+          "date_confirm": 1783483870,
+          "description_excerpt": "Добрый день! Необходимо вывести бота в топ по ключевым запросам: &quot;доставка из Китая&quot;, &quot;карго из Китая&quot;, &quot;посылки из Китая&quot; ну или любой другой релеван"
+        },
+        {
+          "id": 3203050,
+          "title": "Массовые отметки пользователей в Telegram Stories",
+          "offers": 2,
+          "price": 30000,
+          "possible_price_limit": 90000,
+          "allow_higher_price": true,
+          "user_hired_percent": 23,
+          "views": null,
+          "date_confirm": 1782145840,
+          "description_excerpt": "Есть готовые Stories и база пользователей для отметок. Требуется исполнитель, который сможет качественно и в срок выполнить массовые отметки пользователей в Telegram.<br>Объём рабо"
+        },
+        {
+          "id": 3203045,
+          "title": "Отметки пользователей в Telegram Stories",
+          "offers": 1,
+          "price": 33000,
+          "possible_price_limit": 99000,
+          "allow_higher_price": true,
+          "user_hired_percent": 23,
+          "views": null,
+          "date_confirm": 1782145745,
+          "description_excerpt": "<br>Предоставляется база для отметок &mdash; около 10 000 пользователей.<br>Все материалы для публикации готовы и будут переданы исполнителю.<br>Требования:<br>&mdash; Опыт работы "
+        },
+        {
+          "id": 3190904,
+          "title": "Нужно создать 5-6 Telegram Stories с упоминанием",
+          "offers": 4,
+          "price": 23000,
+          "possible_price_limit": 69000,
+          "allow_higher_price": true,
+          "user_hired_percent": 23,
+          "views": null,
+          "date_confirm": 1780591007,
+          "description_excerpt": " <br>Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы <br>Создать 5-6 Telegram Stories и упомянуть людей из базы<br>Есть база для упомина"
+        },
+        {
+          "id": 3202311,
+          "title": "Нужно создать 5&ndash;6 Telegram Stories с упоминанием",
+          "offers": 0,
+          "price": 30000,
+          "possible_price_limit": 90000,
+          "allow_higher_price": true,
+          "user_hired_percent": 37,
+          "views": null,
+          "date_confirm": 1782065210,
+          "description_excerpt": "Есть готовые промоматериалы, от исполнителя нужна только работа по упоминанию людей из базы.<br>Есть база для упоминания около 10к пользователей.<br>Материалы для работы предоставл"
+        },
+        {
+          "id": 3213124,
+          "title": "Рассылка в телеграм по мебели",
+          "offers": 5,
+          "price": 10000,
+          "possible_price_limit": 30000,
+          "allow_higher_price": true,
+          "user_hired_percent": 0,
+          "views": null,
+          "date_confirm": 1783497690,
+          "description_excerpt": "Нужно разослать со своих телеграм аккаунтов по моей базе заготовленный оффер по изготовлению мебели и передать контакты заинтересованных. Оплата 500 рублей за квал. лид, объем сооб"
+        }
+      ],
+      "paging": {
+        "page": 1,
+        "total": 22,
+        "limit": 12,
+        "pages": 2
+      },
+      "connects": {
+        "all_connects": 30,
+        "active_connects": 30,
+        "update_time": 1786222800
+      },
+      "elapsed_ms": 440
+    },
+    {
+      "name": "site_zero",
+      "categories": "all",
+      "query": "сайт",
+      "filters": {
+        "kworks_filter_to": 0
+      },
+      "status": "ok",
+      "count": 5,
+      "sample_count": 5,
+      "sample_ids": [
+        3206832,
+        3213459,
+        3206860,
+        3213584,
+        3211575
+      ],
+      "zero_offer_sample": 5,
+      "low_offer_sample": 0,
+      "sample": [
+        {
+          "id": 3206832,
+          "title": "Коммуникация с сайтами",
+          "offers": 0,
+          "price": 500,
+          "possible_price_limit": 500,
+          "allow_higher_price": false,
+          "user_hired_percent": 67,
+          "views": null,
+          "date_confirm": 1782668071,
+          "description_excerpt": "Отправить информацию о проекте через формы обратной связи минимум на 100 сайтах<br>Зафиксировать результат в таблице<br>Немного о нас<br>Мы передовая социальная сеть, доступная в A"
+        },
+        {
+          "id": 3213459,
+          "title": "Ищу партнера по поиску клиентов на разработку сайтов",
+          "offers": 0,
+          "price": 1000,
+          "possible_price_limit": 3000,
+          "allow_higher_price": true,
+          "user_hired_percent": 0,
+          "views": null,
+          "date_confirm": 1783522705,
+          "description_excerpt": " Я занимаюсь:<br>Созданием современных лендингов;<br>доработкой существующих сайтов;<br>обновлением и улучшением дизайна;<br>адаптацией сайтов под мобильные устройства;<br>исправле"
+        },
+        {
+          "id": 3206860,
+          "title": "Публикации новостей в СМИ",
+          "offers": 0,
+          "price": 500,
+          "possible_price_limit": 500,
+          "allow_higher_price": false,
+          "user_hired_percent": 67,
+          "views": null,
+          "date_confirm": 1782713389,
+          "description_excerpt": "Чудесного дня и рада видеть в команде 😊<br>Важно <br>Публиковать новости о проекте<br>Размещать на сайтах<br>Отправлять материалы редакциям"
+        },
+        {
+          "id": 3213584,
+          "title": "Поиск заказчиков",
+          "offers": 0,
+          "price": 200000,
+          "possible_price_limit": 200000,
+          "allow_higher_price": true,
+          "user_hired_percent": 0,
+          "views": null,
+          "date_confirm": 1783535468,
+          "description_excerpt": "Привет! Нужно найти заказчика на мои услуги - разработка сайта, лендинга, визитки. Стек: HTML+CSS, TypeScript, React; NodeJS, C#. После заключения сделки ваши 20%"
+        },
+        {
+          "id": 3211575,
+          "title": "Поиск клиентов постоянно",
+          "offers": 0,
+          "price": 40000,
+          "possible_price_limit": 120000,
+          "allow_higher_price": true,
+          "user_hired_percent": 44,
+          "views": null,
+          "date_confirm": 1783323053,
+          "description_excerpt": "Ищу партнёра по привлечению клиентов на IT-разработку<br>Я закрываю разработку &mdash; вы приводите заказы.<br>Условия:<br>- 20% от стоимости каждого заказа, который приходит от ва"
+        }
+      ],
+      "paging": {
+        "page": 1,
+        "total": 5,
+        "limit": 12,
+        "pages": 1
+      },
+      "connects": {
+        "all_connects": 30,
+        "active_connects": 30,
+        "update_time": 1786222800
+      },
+      "elapsed_ms": 391
+    },
+    {
+      "name": "website_maintenance_low10",
+      "categories": "all",
+      "query": "доработка сайта",
+      "filters": {
+        "kworks_filter_to": 10
+      },
+      "status": "ok",
+      "count": 29,
+      "sample_count": 12,
+      "sample_ids": [
+        2664819,
+        2467011,
+        3213459,
+        3206832,
+        2798882,
+        3213617
+      ],
+      "zero_offer_sample": 2,
+      "low_offer_sample": 2,
+      "sample": [
+        {
+          "id": 2664819,
+          "title": "Доработка сайта Unisite",
+          "offers": 4,
+          "price": 5000,
+          "possible_price_limit": 15000,
+          "allow_higher_price": true,
+          "user_hired_percent": 37,
+          "views": null,
+          "date_confirm": 1733284902,
+          "description_excerpt": " Требуется специалист хорошо знающий движок unisite<br>Обязательно с опытом работы<br>Основной момент который нужен - это поменять дизайн на некоторых страницах"
+        },
+        {
+          "id": 2467011,
+          "title": "Поменять визуально сайт",
+          "offers": 9,
+          "price": 500,
+          "possible_price_limit": 500,
+          "allow_higher_price": false,
+          "user_hired_percent": 47,
+          "views": null,
+          "date_confirm": 1782393065,
+          "description_excerpt": "Требуется поменять дизаин. Любые недорогие решения. Чтобы остался функционал. Например Можем отправить новый дизаин в psd, или установить в новом шаблоне. Как вам удобно.<br>Предла"
+        },
+        {
+          "id": 3213459,
+          "title": "Ищу партнера по поиску клиентов на разработку сайтов",
+          "offers": 0,
+          "price": 1000,
+          "possible_price_limit": 3000,
+          "allow_higher_price": true,
+          "user_hired_percent": 0,
+          "views": null,
+          "date_confirm": 1783522705,
+          "description_excerpt": " Я занимаюсь:<br>Созданием современных лендингов;<br>доработкой существующих сайтов;<br>обновлением и улучшением дизайна;<br>адаптацией сайтов под мобильные устройства;<br>исправле"
+        },
+        {
+          "id": 3206832,
+          "title": "Коммуникация с сайтами",
+          "offers": 0,
+          "price": 500,
+          "possible_price_limit": 500,
+          "allow_higher_price": false,
+          "user_hired_percent": 67,
+          "views": null,
+          "date_confirm": 1782668071,
+          "description_excerpt": "Отправить информацию о проекте через формы обратной связи минимум на 100 сайтах<br>Зафиксировать результат в таблице<br>Немного о нас<br>Мы передовая социальная сеть, доступная в A"
+        },
+        {
+          "id": 2798882,
+          "title": "Оформление разделов на сайте wordpress",
+          "offers": 4,
+          "price": 500,
+          "possible_price_limit": 500,
+          "allow_higher_price": false,
+          "user_hired_percent": 47,
+          "views": null,
+          "date_confirm": 1760754968,
+          "description_excerpt": "Продвинутый пользователь wordpress, дизаин<br>Требуется оформление разделов на сайте wordpress.<br>Навыки дизаина, вырезать-встроить.<br>Ознакомиться с админ-частью wordpress(опыт "
+        },
+        {
+          "id": 3213617,
+          "title": "Иконки и фавикон на сайт",
+          "offers": 9,
+          "price": 1000,
+          "possible_price_limit": 3000,
+          "allow_higher_price": true,
+          "user_hired_percent": 57,
+          "views": null,
+          "date_confirm": 1783538868,
+          "description_excerpt": "Всем добрый день! Мне необходимо сделать иконки на сайт, лучше в векторе, так как они относятся к нескольким цветовым (стилям на сайте) или предложить альтернативный вариант, о кот"
+        }
+      ],
+      "paging": {
+        "page": 1,
+        "total": 29,
+        "limit": 12,
+        "pages": 3
+      },
+      "connects": {
+        "all_connects": 30,
+        "active_connects": 30,
+        "update_time": 1786222800
+      },
+      "elapsed_ms": 412
+    },
+    {
+      "name": "category_41_low5",
+      "categories": "41",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5
+      },
+      "status": "ok",
+      "count": 6,
+      "sample_count": 6,
+      "sample_ids": [
+        3213339,
+        3189457,
+        3189570,
+        3198895,
+        3201859,
+        3211082
+      ],
+      "zero_offer_sample": 0,
+      "low_offer_sample": 6,
+      "sample": [
+        {
+          "id": 3213339,
+          "title": "Настройка автоворонки и оплат через Prodamus",
+          "offers": 4,
+          "price": 1500,
+          "possible_price_limit": 4500,
+          "allow_higher_price": true,
+          "user_hired_percent": 60,
+          "views": null,
+          "date_confirm": 1783515807,
+          "description_excerpt": "Нужен специалист по Prodamus для создания автоворонки и приема платежей.<br>Принципиальное условие: вся система должна быть построена полностью внутри экосистемы Prodamus либо с ис"
+        },
+        {
+          "id": 3189457,
+          "title": "ИИ контент завод",
+          "offers": 5,
+          "price": 190000,
+          "possible_price_limit": 200000,
+          "allow_higher_price": true,
+          "user_hired_percent": 57,
+          "views": null,
+          "date_confirm": 1780447814,
+          "description_excerpt": "Надо сделать ИИ контент завод<br>Главные критерий - с помощью органического трафика делать просмотры, приводить подписчиков и заявки (можно по кодовому слову или с помощью других с"
+        },
+        {
+          "id": 3189570,
+          "title": "Программа просмотра публикаций в Дзен",
+          "offers": 2,
+          "price": 500,
+          "possible_price_limit": 1500,
+          "allow_higher_price": true,
+          "user_hired_percent": 67,
+          "views": null,
+          "date_confirm": 1780472009,
+          "description_excerpt": "Нужна программа просмотра статей и видео в Дзен с аккаунтов дзен-каналов, одноклассники, в контакте или по другому. Главное чтоб Дзен &quot;защитывал&quot;. Принцип работы: програм"
+        },
+        {
+          "id": 3198895,
+          "title": "Программа для просмотра/дочит. дзен/ютуб/рутуб",
+          "offers": 2,
+          "price": 1000,
+          "possible_price_limit": 3000,
+          "allow_higher_price": true,
+          "user_hired_percent": 0,
+          "views": null,
+          "date_confirm": 1781620007,
+          "description_excerpt": "С достижением монетизации, последующего использования, без блокировок и прочих санкций. Рассмотрю любые предложения с реальным достижением успеха. "
+        },
+        {
+          "id": 3201859,
+          "title": "Программа просмотра видео на Ютуб",
+          "offers": 5,
+          "price": 1000,
+          "possible_price_limit": 3000,
+          "allow_higher_price": true,
+          "user_hired_percent": 0,
+          "views": null,
+          "date_confirm": 1781980322,
+          "description_excerpt": "Программа просмотра видео на Ютуб для доведения до монетизации и дальнейшей эксплуатации. Прокси, капчи и все что необходимо для достижения результата предлагайте.<br>Тест перед сд"
+        },
+        {
+          "id": 3211082,
+          "title": "Программа продвижения в Дзен",
+          "offers": 3,
+          "price": 1000,
+          "possible_price_limit": 3000,
+          "allow_higher_price": true,
+          "user_hired_percent": 0,
+          "views": null,
+          "date_confirm": 1783247497,
+          "description_excerpt": "Требуется написать программу или улучшенную или свой вариант. Опишите как Вы видите решение. Стоимость и срок укажите в сообщении."
+        }
+      ],
+      "paging": {
+        "page": 1,
+        "total": 6,
+        "limit": 12,
+        "pages": 1
+      },
+      "connects": {
+        "all_connects": 30,
+        "active_connects": 30,
+        "update_time": 1786222800
+      },
+      "elapsed_ms": 333
+    }
+  ],
+  "equivalent_signatures": {
+    "(0, ())": [
+      "telegram_hiring80_low5"
+    ],
+    "(16, (3203050, 3203045, 3190904, 3202311, 3213124))": [
+      "telegram_sort_date_probe"
+    ],
+    "(22, (3212981, 3203050, 3203045, 3190904, 3202311))": [
+      "telegram_bot_low5"
+    ],
+    "(5, (3206832, 3213459, 3206860, 3213584, 3211575))": [
+      "site_zero"
+    ],
+    "(29, (2664819, 2467011, 3213459, 3206832, 2798882))": [
+      "website_maintenance_low10"
+    ],
+    "(6, (3213339, 3189457, 3189570, 3198895, 3201859))": [
+      "category_41_low5"
+    ]
+  }
+}
