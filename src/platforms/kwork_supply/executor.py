@@ -13,6 +13,7 @@ import time
 from typing import Any
 
 import httpx
+from kwork.exceptions import KworkHTTPException
 
 from src.platforms.kwork_market import KworkMarketClient
 
@@ -894,6 +895,15 @@ class MarketOperationExecutor:
                 worker_id=worker.worker_id,
                 operation_id=str(operation["operation_id"]),
             )
+        except KworkHTTPException as exc:
+            status_code = getattr(exc, "status", None)
+            if status_code in {403, 429}:
+                raise await self._protection_retry_for_status(
+                    worker,
+                    source="mobile_kworks",
+                    status_code=status_code,
+                ) from exc
+            raise
         except (httpx.HTTPError, TimeoutError, OSError) as exc:
             raise RetryableOperationError(
                 f"enrichment network error: {type(exc).__name__}: {exc}",
@@ -1332,11 +1342,30 @@ class MarketOperationExecutor:
             if isinstance(raw_status, int) and raw_status in {403, 429}:
                 status_code = raw_status
             retry_after = adapter_metadata.get("retry_after")
+        return await self._protection_retry_for_status(
+            worker,
+            source=batch.source,
+            status_code=status_code,
+            retry_after=retry_after,
+        )
+
+    async def _protection_retry_for_status(
+        self,
+        worker: MarketWorker,
+        *,
+        source: str,
+        status_code: int,
+        retry_after: object = None,
+    ) -> RetryableOperationError:
+        """Apply the shared retry and transport policy to a Kwork protection response."""
+
+        if status_code not in {403, 429}:
+            raise ValueError("protection retry requires HTTP 403 or 429")
         async with self._rate_control_lock:
             result = record_protection_response(
                 self.rate_control_policy,
                 self._rate_control_state,
-                source=batch.source,
+                source=source,
                 status_code=status_code,
                 retry_after=retry_after,
                 now=time.monotonic(),
@@ -1347,7 +1376,7 @@ class MarketOperationExecutor:
             await worker.quarantine_current_transport(reason="http_403", until=retry_at)
         failure_kind = "protection" if status_code == 403 else "rate_limited"
         return RetryableOperationError(
-            f"{batch.source} returned HTTP {status_code}",
+            f"{source} returned HTTP {status_code}",
             retry_at=retry_at,
             failure_kind=failure_kind,
         )

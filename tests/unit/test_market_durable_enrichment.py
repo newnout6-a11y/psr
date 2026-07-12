@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
+from kwork.exceptions import KworkHTTPException
 
 from src.platforms.kwork_supply.coordinator import MarketScanCoordinator
 from src.platforms.kwork_supply.executor import MarketOperationExecutor
@@ -19,6 +20,7 @@ from src.platforms.kwork_supply.models import (
 )
 from src.platforms.kwork_supply.repository import MarketJobRepository
 from src.platforms.kwork_supply.semantic import LocalSemanticAnalyzer
+from src.platforms.kwork_supply.worker import RetryableOperationError
 
 
 async def _collected_job(
@@ -211,6 +213,31 @@ class _EnrichmentClientFactory:
         return client
 
 
+class _ForbiddenEnrichmentClient(_EnrichmentClient):
+    async def request(self, endpoint: str, **params: object) -> dict[str, object]:
+        self.calls.append((endpoint, dict(params)))
+        raise KworkHTTPException("HTTP 403 for POST /getKworkDetails", status=403, endpoint=endpoint)
+
+
+class _ForbiddenEnrichmentClientFactory:
+    def __init__(self) -> None:
+        self.created: list[_ForbiddenEnrichmentClient] = []
+
+    def __call__(self, _proxy_url: str | None) -> _ForbiddenEnrichmentClient:
+        client = _ForbiddenEnrichmentClient()
+        self.created.append(client)
+        return client
+
+
+class _ProtectionEnrichmentWorker(_EnrichmentWorker):
+    def __init__(self) -> None:
+        self.quarantine_calls: list[dict[str, str | None]] = []
+
+    async def quarantine_current_transport(self, *, reason: str, until: str | None = None) -> bool:
+        self.quarantine_calls.append({"reason": reason, "until": until})
+        return True
+
+
 @pytest.mark.asyncio
 async def test_executor_persists_listing_reviews_and_fetches_one_seller_profile_per_job(tmp_path: Path):
     repository = MarketJobRepository(tmp_path / "market.sqlite3")
@@ -254,6 +281,34 @@ async def test_executor_persists_listing_reviews_and_fetches_one_seller_profile_
     assert seller["seller_rating_count"] == 101
     assert seller["seller_reviews_count"] == 99
     assert seller["completed_orders_count"] == 120
+
+
+@pytest.mark.asyncio
+async def test_executor_retries_kwork_403_and_quarantines_the_current_transport(tmp_path: Path):
+    repository = MarketJobRepository(tmp_path / "market.sqlite3")
+    coordinator = MarketScanCoordinator(repository)
+    await _collected_job(
+        repository,
+        job_id="job_enrichment_403",
+        listings=[{"id": 15, "gtitle": "Protected", "userName": "alice", "price": 4900}],
+    )
+    prepared = await repository.prepare_listing_enrichment("job_enrichment_403")
+    assert prepared["queued"] == 1
+    operation = await repository.lease_operation("worker_enrichment", job_id="job_enrichment_403")
+    assert operation is not None
+
+    factory = _ForbiddenEnrichmentClientFactory()
+    executor = MarketOperationExecutor(coordinator, client_factory=factory)
+    worker = _ProtectionEnrichmentWorker()
+    worker.job_id = "job_enrichment_403"
+
+    with pytest.raises(RetryableOperationError) as exc_info:
+        await executor.handle_enrich_listing(worker, operation)
+
+    assert exc_info.value.failure_kind == "protection"
+    assert exc_info.value.retry_at is not None
+    assert worker.quarantine_calls == [{"reason": "http_403", "until": exc_info.value.retry_at}]
+    assert factory.created[0].closed is True
 
 
 @pytest.mark.asyncio
