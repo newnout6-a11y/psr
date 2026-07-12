@@ -396,6 +396,65 @@ async def test_terminal_enrichment_failure_blocks_analysis_until_explicit_retry(
     assert all(operation["kind"] != OperationKind.ANALYZE_SNAPSHOT.value for operation in operations)
 
 
+@pytest.mark.asyncio
+async def test_successful_explicit_retry_supersedes_the_original_terminal_enrichment_failure(tmp_path: Path):
+    repository = MarketJobRepository(tmp_path / "market.sqlite3")
+    coordinator = MarketScanCoordinator(repository)
+    listings = await _collected_job(
+        repository,
+        job_id="job_retry_enrichment",
+        listings=[{"id": 71, "gtitle": "Eligible", "userName": "alice", "price": 4900}],
+    )
+    job = await repository.get_job("job_retry_enrichment")
+    assert job is not None
+    await repository.update_job_state(
+        "job_retry_enrichment",
+        JobState.ENRICHING,
+        phase=JobPhase.ENRICH,
+        expected_revision=job["revision"],
+    )
+    listing_id = int(listings[0]["listing_id"])
+    await repository.enqueue_operation(
+        Operation(
+            operation_id="enrich_retry_source",
+            job_id="job_retry_enrichment",
+            shard_id=None,
+            kind=OperationKind.ENRICH_LISTING,
+            payload={"listing_id": listing_id, "generation": 1},
+        )
+    )
+    failed = await repository.lease_operation("worker_retry", job_id="job_retry_enrichment")
+    assert failed is not None
+    await repository.fail_operation(
+        failed["operation_id"],
+        "worker_retry",
+        "temporary upstream failure",
+        failure_kind="network_error",
+    )
+    await repository.persist_listing_enrichment(
+        job_id="job_retry_enrichment",
+        listing_id=listing_id,
+        listing_features={
+            "status": "ok",
+            "generation": 1,
+            "detail": {"description": "Recovered"},
+            "extra": {},
+            "expires_at": "2030-01-01T00:00:00Z",
+        },
+    )
+
+    retry = await coordinator.retry_operation("job_retry_enrichment", failed["operation_id"])
+    leased_retry = await repository.lease_operation("worker_retry", job_id="job_retry_enrichment")
+    assert leased_retry is not None and leased_retry["operation_id"] == retry["operation_id"]
+    await repository.complete_operation(leased_retry["operation_id"], "worker_retry")
+
+    analysis = await coordinator.ensure_analysis_operation("job_retry_enrichment")
+    refreshed = await repository.get_job("job_retry_enrichment")
+
+    assert analysis is not None and analysis["kind"] == OperationKind.ANALYZE_SNAPSHOT.value
+    assert refreshed is not None and refreshed["state"] == JobState.ANALYZING.value
+
+
 class _SingleGroupEmbedder:
     model_name = "test-single-group"
 

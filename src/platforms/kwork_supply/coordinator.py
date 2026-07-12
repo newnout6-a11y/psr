@@ -85,7 +85,7 @@ class MarketScanCoordinator:
         """Ensure a new job always has one durable ``map_scope`` operation."""
 
         job = await self._require_job(job_id)
-        existing = await self.repository.list_operations(job_id, limit=500)
+        existing = await self._list_all_operations(job_id)
         for operation in existing:
             if operation["kind"] == OperationKind.MAP_SCOPE.value:
                 return operation, False
@@ -632,10 +632,18 @@ class MarketScanCoordinator:
                 OperationState.RETRY_WAIT.value,
             }:
                 return operation
+        retried_operation_ids = {
+            str(payload["retry_of"])
+            for item in existing
+            if isinstance((payload := item.get("payload")), Mapping)
+            and isinstance(payload.get("retry_of"), str)
+            and payload["retry_of"].strip()
+        }
         terminal_enrichment = [
             operation
             for operation in existing
             if operation["kind"] == OperationKind.ENRICH_LISTING.value
+            and operation["operation_id"] not in retried_operation_ids
             and operation["state"]
             in {
                 OperationState.FAILED.value,
@@ -700,6 +708,18 @@ class MarketScanCoordinator:
             operation_id=operation["operation_id"],
         )
         return operation
+
+    async def _list_all_operations(self, job_id: str) -> list[JsonDict]:
+        """Read every operation when a completion decision must be global to the job."""
+
+        operations: list[JsonDict] = []
+        cursor: str | None = None
+        while True:
+            page = await self.repository.list_operations(job_id, cursor=cursor, limit=1_000)
+            operations.extend(page)
+            if len(page) < 1_000:
+                return operations
+            cursor = str(page[-1]["operation_id"])
 
     async def command_worker(
         self,
