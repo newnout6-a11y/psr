@@ -21,6 +21,7 @@ import httpx
 from loguru import logger
 
 from src.paths import PROPOSAL_ASSETS_DIR, ensure_parent
+from src.platforms.kwork_form_contract import attribute_manifest_hash, normalize_attribute_selection
 from src.platforms.kwork_listing import KworkWebListingClient, selected_attribute_ids
 
 API_BASE_URL = os.getenv("PSR_API_PUBLIC_BASE", "http://127.0.0.1:7788").rstrip("/")
@@ -56,6 +57,19 @@ def _extract_json_object(text: str) -> dict[str, Any] | None:
         return value if isinstance(value, dict) else None
     except json.JSONDecodeError:
         return None
+
+
+def _normalized_draft_selection(draft: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Use a stored manifest contract whenever a draft carries one."""
+
+    selection = draft.get("attribute_selection") or draft.get("attributes") or {}
+    if not isinstance(selection, dict):
+        selection = {}
+    manifest = draft.get("attribute_manifest")
+    if not isinstance(manifest, dict) or not isinstance(manifest.get("controls"), list):
+        return selection, None
+    normalized = normalize_attribute_selection(manifest, selection)
+    return dict(normalized["selection"]), normalized
 
 
 def _png_chunk(kind: bytes, data: bytes) -> bytes:
@@ -1305,9 +1319,7 @@ class KworkAutopublishService:
     def build_form_payload(draft: dict[str, Any]) -> list[tuple[str, str]]:
         """Build a form-compatible payload preserving repeated checkbox names."""
         faq = draft.get("faq") if isinstance(draft.get("faq"), list) else []
-        selection = draft.get("attribute_selection") or draft.get("attributes") or {}
-        if not isinstance(selection, dict):
-            selection = {}
+        selection, _ = _normalized_draft_selection(draft)
 
         pairs: list[tuple[str, str]] = [
             ("lang", str(draft.get("lang") or "ru")),
@@ -1381,9 +1393,7 @@ class KworkAutopublishService:
 
     def build_save_payload(self, draft: dict[str, Any]) -> dict[str, Any]:
         faq = draft.get("faq") if isinstance(draft.get("faq"), list) else []
-        selection = draft.get("attribute_selection") or draft.get("attributes") or {}
-        if not isinstance(selection, dict):
-            selection = {}
+        selection, normalization = _normalized_draft_selection(draft)
         form_payload = self.build_form_payload(draft)
         return {
             "lang": draft.get("lang") or "ru",
@@ -1399,6 +1409,10 @@ class KworkAutopublishService:
             "attributes": selection,
             "attribute_ids": selected_attribute_ids(selection),
             "attribute_manifest": draft.get("attribute_manifest") or {},
+            "attribute_manifest_hash": (
+                normalization["manifest_hash"] if normalization is not None else draft.get("attribute_manifest_hash")
+            ),
+            "selection_hash": normalization["selection_hash"] if normalization is not None else draft.get("selection_hash"),
             "faq": faq,
             "is_save_kwork": 1,
             "form_payload": form_payload,
@@ -1472,31 +1486,30 @@ class KworkAutopublishService:
     @staticmethod
     def live_preflight(draft: dict[str, Any]) -> dict[str, Any]:
         missing: list[str] = []
-        selection = draft.get("attribute_selection") or draft.get("attributes") or {}
+        selection, normalization = _normalized_draft_selection(draft)
         if not isinstance(selection, dict) or not any(
             value not in (None, "") and not (isinstance(value, list) and len(value) == 0) for value in selection.values()
         ):
             missing.append("attribute_selection")
 
         manifest = draft.get("attribute_manifest") if isinstance(draft.get("attribute_manifest"), dict) else {}
-        controls = manifest.get("controls") if isinstance(manifest.get("controls"), list) else []
         if not manifest or ("controls" not in manifest and "unresolved_required" not in manifest):
             missing.append("attribute_manifest")
-        unresolved = manifest.get("unresolved_required") if isinstance(manifest.get("unresolved_required"), list) else []
+        unresolved = (
+            normalization["unresolved_required"]
+            if normalization is not None
+            else manifest.get("unresolved_required") if isinstance(manifest.get("unresolved_required"), list) else []
+        )
         for item in unresolved:
             if item not in (None, "") and str(item) not in missing:
                 missing.append(str(item))
-        for control in controls:
-            if not isinstance(control, dict):
-                continue
-            if control.get("disabled"):
-                continue
-            name = str(control.get("name") or "").strip()
-            if not name or name in missing:
-                continue
-            value = selection.get(name)
-            if value in (None, "") or (isinstance(value, list) and len(value) == 0):
-                missing.append(name)
+        if normalization is not None:
+            if normalization["issues"] or not normalization["valid"]:
+                missing.append("attribute_selection_invalid")
+            expected_manifest_hash = str(draft.get("attribute_manifest_hash") or "").strip()
+            actual_manifest_hash = attribute_manifest_hash(manifest)
+            if expected_manifest_hash and expected_manifest_hash != actual_manifest_hash:
+                missing.append("attribute_manifest_stale")
 
         has_cover_upload = isinstance(draft.get("cover_upload"), dict) and bool(
             draft["cover_upload"].get("first_photo_json") or draft["cover_upload"].get("first_photo_path")
@@ -1510,6 +1523,18 @@ class KworkAutopublishService:
             "missing": list(dict.fromkeys(missing)),
             "code": "ok" if not missing else "live_preflight_failed",
             "detail": "" if not missing else f"Live publish requires: {', '.join(missing)}.",
+            "selection_validation": (
+                {
+                    "valid": normalization["valid"],
+                    "clean": normalization["clean"],
+                    "issues": normalization["issues"],
+                    "unresolved_required": normalization["unresolved_required"],
+                    "manifest_hash": normalization["manifest_hash"],
+                    "selection_hash": normalization["selection_hash"],
+                }
+                if normalization is not None
+                else None
+            ),
         }
 
     def publish_preflight(self, draft: dict[str, Any]) -> dict[str, Any]:

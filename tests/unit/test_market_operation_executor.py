@@ -508,7 +508,11 @@ async def test_executor_collects_one_mobile_page_and_persists_bounded_evidence(t
     assert all(observation["requested_cursor"]["page"] == 1 for observation in snapshot["observations"])
     assert all(observation["reported_cursor"]["page"] == 1 for observation in snapshot["observations"])
     assert raw_files
-    assert [operation["kind"] for operation in queued] == [OperationKind.ANALYZE_SNAPSHOT.value]
+    assert [operation["kind"] for operation in queued] == [
+        OperationKind.ENRICH_LISTING.value,
+        OperationKind.ENRICH_LISTING.value,
+    ]
+    assert {operation["payload"]["listing_id"] for operation in queued} == {1, 2}
 
 
 @pytest.mark.asyncio

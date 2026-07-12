@@ -1465,17 +1465,25 @@ class MarketAssistant:
             if isinstance(item, dict) and _as_int(item.get("id")) > 0
         ]
         raw_listings = _complete_market_listings(snapshot, payload)
+        durable_semantic_mode = snapshot.get("assistant_mode") == "durable_semantic_dossier"
+        semantic_dossier = snapshot.get("semantic_dossier") if isinstance(snapshot.get("semantic_dossier"), dict) else {}
         context = {
             "scope": snapshot.get("scope"),
             "coverage": snapshot.get("coverage"),
             "slices": snapshot.get("slices"),
             "sample": snapshot.get("sample"),
             "analysis": snapshot.get("analysis"),
+            "semantic_dossier": semantic_dossier,
             "market_database": {
-                "storage": "local",
-                "listing_count": len(raw_listings),
-                "access": "Responses function tools",
-                "full_market_tool": "analyze_full_market",
+                "storage": "durable local semantic clusters" if durable_semantic_mode else "local",
+                "listing_count": (
+                    (snapshot.get("coverage") or {}).get("observed_unique_cards", len(raw_listings))
+                    if durable_semantic_mode
+                    else len(raw_listings)
+                ),
+                "bounded_representative_count": len(raw_listings) if durable_semantic_mode else None,
+                "access": "semantic dossier plus bounded representative tools" if durable_semantic_mode else "Responses function tools",
+                "full_market_tool": None if durable_semantic_mode else "analyze_full_market",
             },
             "allowed_refresh_classifier_ids": allowed_slice_ids,
             "history": history,
@@ -1495,15 +1503,24 @@ class MarketAssistant:
             "slices": snapshot.get("slices"),
             "sample": snapshot.get("sample"),
             "analysis": snapshot.get("analysis"),
+            "semantic_dossier": semantic_dossier,
             "listing_count": len(raw_listings),
         }
-        system_prompt += (
-            " Полная база находится локально и доступна через инструменты. Не проси вставить её в prompt. "
-            "На приветствие или обычную реплику отвечай без инструментов. Для любого вывода о рынке целиком, "
-            "нишах, спросе, предложении, конкуренции или позиционировании обязательно вызови analyze_full_market: "
-            "он обработает каждую сохранённую карточку. Для точечного поиска используй search_market_listings и "
-            "get_market_listing. Никогда не утверждай, что проанализировал всю базу, если analyze_full_market не вызван."
-        )
+        if durable_semantic_mode:
+            system_prompt += (
+                " Контекст содержит durable локальный semantic dossier, построенный по полному набору "
+                "price-eligible и enriched карточек job. Используй его для выводов о группах, спросе, "
+                "конкуренции и позиционировании. Инструменты поиска и чтения содержат только bounded "
+                "представителей групп: не называй их полной raw-базой и не вызывай analyze_full_market."
+            )
+        else:
+            system_prompt += (
+                " Полная база находится локально и доступна через инструменты. Не проси вставить её в prompt. "
+                "На приветствие или обычную реплику отвечай без инструментов. Для любого вывода о рынке целиком, "
+                "нишах, спросе, предложении, конкуренции или позиционировании обязательно вызови analyze_full_market: "
+                "он обработает каждую сохранённую карточку. Для точечного поиска используй search_market_listings и "
+                "get_market_listing. Никогда не утверждай, что проанализировал всю базу, если analyze_full_market не вызван."
+            )
         prompt = (
             f"Вопрос пользователя: {question}\n\n"
             "Лёгкий контекст и описание локальной базы:\n"

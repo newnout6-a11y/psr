@@ -217,6 +217,10 @@ class MarketScanCoordinator:
             expected_revision=expected_revision if expected_revision is not None else job["revision"],
         )
         await self.emit_state_changed(updated)
+        if phase == JobPhase.ENRICH.value:
+            await self.ensure_enrichment_operations(job_id)
+            refreshed = await self._require_job(job_id)
+            return refreshed
         return updated
 
     async def _resume_interrupted_collection(
@@ -542,10 +546,73 @@ class MarketScanCoordinator:
         await self.ensure_analysis_operation(job_id)
         return await self._require_job(job_id)
 
-    async def ensure_analysis_operation(self, job_id: str) -> JsonDict | None:
-        """Queue deterministic analysis only after durable collection is drained."""
+    async def ensure_enrichment_operations(self, job_id: str) -> JsonDict | None:
+        """Price-gate and queue durable local enrichment after collection drains.
+
+        Re-entering this method is intentional: the repository keeps pending
+        operations and cache generations stable, so resume never starts the
+        market pass from scratch or duplicates an active listing request.
+        """
 
         job = await self._require_job(job_id)
+        phase = str(job["phase"])
+        active_states = (
+            OperationState.QUEUED,
+            OperationState.LEASED,
+            OperationState.RUNNING,
+            OperationState.RETRY_WAIT,
+        )
+        if phase == JobPhase.COLLECT.value:
+            if job["state"] not in {JobState.RUNNING.value, JobState.COMPLETING.value}:
+                return None
+            active = await self.repository.list_operations(job_id, state=active_states, limit=1)
+            if active:
+                return None
+            transitioned = await self.repository.update_job_state(
+                job_id,
+                JobState.ENRICHING,
+                phase=JobPhase.ENRICH,
+                expected_revision=job["revision"],
+            )
+            await self.emit_state_changed(transitioned)
+            job = transitioned
+        elif phase == JobPhase.ENRICH.value:
+            if job["state"] not in {
+                JobState.ENRICHING.value,
+                JobState.RUNNING.value,
+                JobState.COMPLETING.value,
+            }:
+                return None
+        else:
+            return None
+
+        summary = await self.repository.prepare_listing_enrichment(job_id)
+        queued = await self.repository.list_operations(
+            job_id,
+            state=OperationState.QUEUED,
+            limit=1,
+        )
+        if summary["queued"]:
+            await self.emit(
+                job_id,
+                "enrichment.queued",
+                summary,
+                revision=job["revision"],
+                operation_id=queued[0]["operation_id"] if queued else None,
+            )
+        return queued[0] if queued else None
+
+    async def ensure_analysis_operation(self, job_id: str) -> JsonDict | None:
+        """Queue deterministic analysis only after local enrichment is drained."""
+
+        job = await self._require_job(job_id)
+        if job["phase"] in {JobPhase.COLLECT.value, JobPhase.ENRICH.value}:
+            enrichment = await self.ensure_enrichment_operations(job_id)
+            if enrichment is not None:
+                return enrichment
+            job = await self._require_job(job_id)
+            if job["phase"] != JobPhase.ENRICH.value:
+                return None
         existing = await self.repository.list_operations(job_id, limit=500)
         for operation in existing:
             if operation["kind"] == OperationKind.ANALYZE_SNAPSHOT.value and operation["state"] in {
@@ -555,7 +622,39 @@ class MarketScanCoordinator:
                 OperationState.RETRY_WAIT.value,
             }:
                 return operation
-        if job["state"] not in {JobState.RUNNING.value, JobState.COMPLETING.value} or job["phase"] != JobPhase.COLLECT.value:
+        terminal_enrichment = [
+            operation
+            for operation in existing
+            if operation["kind"] == OperationKind.ENRICH_LISTING.value
+            and operation["state"]
+            in {
+                OperationState.FAILED.value,
+                OperationState.CONTRACT_VIOLATION.value,
+                OperationState.BLOCKED.value,
+            }
+        ]
+        if terminal_enrichment:
+            if job["state"] != JobState.BLOCKED.value:
+                blocked = await self.repository.update_job_state(
+                    job_id,
+                    JobState.BLOCKED,
+                    phase=JobPhase.ENRICH,
+                    expected_revision=job["revision"],
+                    last_warning="enrichment_incomplete",
+                )
+                await self.emit_state_changed(
+                    blocked,
+                    {
+                        "reason": "enrichment_incomplete",
+                        "failed_operation_ids": [item["operation_id"] for item in terminal_enrichment[:10]],
+                    },
+                )
+            return None
+        if job["state"] not in {
+            JobState.ENRICHING.value,
+            JobState.RUNNING.value,
+            JobState.COMPLETING.value,
+        } or job["phase"] != JobPhase.ENRICH.value:
             return None
         active = await self.repository.list_operations(
             job_id,

@@ -18,6 +18,7 @@ from urllib.parse import urlencode
 
 import httpx
 from loguru import logger
+from src.platforms.kwork_form_contract import normalize_attribute_selection
 from src.utils.vpnte_proxy import kwork_http_proxy_url
 
 KWORK_WEB_BASE_URL = "https://kwork.ru"
@@ -974,19 +975,81 @@ class KworkWebListingClient:
         classifier_id: int | None = None,
         lang: str = "ru",
     ) -> dict[str, Any]:
-        selected = dict(selection or {})
+        candidate_selection = dict(selection or {})
         root = await self.load_classification(category_id, lang=lang)
-        controls = list(root["controls"])
 
-        if classifier_id and root["controls"] and not selected:
+        if classifier_id and root["controls"] and not candidate_selection:
             first = root["controls"][0]
             option_ids = {int(option["id"]) for option in first.get("options", []) if option.get("id") is not None}
             if int(classifier_id) in option_ids:
-                selected[first["name"]] = int(classifier_id)
+                candidate_selection[first["name"]] = int(classifier_id)
 
-        visited: set[int] = set()
-        queue = selected_attribute_ids(selected)
         fragments = [root]
+        deduped: dict[str, dict[str, Any]] = {}
+
+        def register_controls(fragment: dict[str, Any]) -> None:
+            parent_id = _as_int(fragment.get("attribute_id"))
+            for raw_control in fragment.get("controls") or []:
+                if not isinstance(raw_control, dict):
+                    continue
+                name = str(raw_control.get("name") or "").strip()
+                if not name:
+                    continue
+                control = dict(raw_control)
+                control["options"] = [dict(option) for option in raw_control.get("options") or [] if isinstance(option, dict)]
+                parent_ids = set(_selection_values(control.get("parent_option_ids")))
+                if parent_id is not None:
+                    parent_ids.add(parent_id)
+                control["parent_option_ids"] = sorted(parent_ids)
+                existing = deduped.get(name)
+                if existing is None:
+                    deduped[name] = control
+                    continue
+
+                existing["parent_option_ids"] = sorted(
+                    set(_selection_values(existing.get("parent_option_ids"))).union(parent_ids)
+                )
+                existing["required"] = bool(existing.get("required") or control.get("required"))
+                existing["multiple"] = bool(existing.get("multiple") or control.get("multiple"))
+                known_option_ids = {
+                    option_id
+                    for option in existing.get("options") or []
+                    if (option_id := _as_int(option.get("id"))) is not None
+                }
+                for option in control["options"]:
+                    option_id = _as_int(option.get("id"))
+                    if option_id is None or option_id in known_option_ids:
+                        continue
+                    existing["options"].append(option)
+                    known_option_ids.add(option_id)
+
+        register_controls(root)
+
+        def normalized_selection() -> dict[str, Any]:
+            return normalize_attribute_selection(
+                {
+                    "category_id": category_id,
+                    "classifier_id": classifier_id,
+                    "lang": lang,
+                    "controls": list(deduped.values()),
+                },
+                candidate_selection,
+            )
+
+        def selected_dynamic_parent_ids(current_selection: dict[str, Any]) -> list[int]:
+            selected_ids = set(selected_attribute_ids(current_selection))
+            parent_ids: list[int] = []
+            for control in deduped.values():
+                for option in control.get("options") or []:
+                    option_id = _as_int(option.get("id"))
+                    if option_id is not None and option_id in selected_ids and option.get("has_child"):
+                        parent_ids.append(option_id)
+            return parent_ids
+
+        normalization = normalized_selection()
+        selected = normalization["selection"]
+        visited: set[int] = set()
+        queue = selected_dynamic_parent_ids(selected)
         while queue:
             attribute_id = queue.pop(0)
             if attribute_id in visited:
@@ -994,20 +1057,30 @@ class KworkWebListingClient:
             visited.add(attribute_id)
             fragment = await self.load_classification(category_id, attribute_id=attribute_id, lang=lang)
             fragments.append(fragment)
-            controls.extend(fragment["controls"])
-            for next_id in selected_attribute_ids(selected):
+            register_controls(fragment)
+            normalization = normalized_selection()
+            selected = normalization["selection"]
+            for next_id in selected_dynamic_parent_ids(selected):
                 if next_id not in visited and next_id not in queue:
                     queue.append(next_id)
 
-        deduped: dict[str, dict[str, Any]] = {}
-        for control in controls:
-            deduped[control["name"]] = control
         manifest_controls = list(deduped.values())
         metadata = _apply_fragment_metadata(manifest_controls, fragments)
+        normalization = normalize_attribute_selection(
+            {
+                "category_id": category_id,
+                "classifier_id": classifier_id,
+                "lang": lang,
+                "controls": manifest_controls,
+            },
+            candidate_selection,
+        )
+        selected = normalization["selection"]
         status_fragment = next((item for item in fragments if item.get("code")), None)
 
         return {
             "category_id": category_id,
+            "classifier_id": classifier_id,
             "lang": lang,
             "success": not bool(status_fragment),
             "code": status_fragment.get("code") if status_fragment else "",
@@ -1017,6 +1090,15 @@ class KworkWebListingClient:
             "selected": selected,
             "controls": manifest_controls,
             "metadata": metadata,
+            "manifest_contract": normalization["manifest"],
+            "manifest_hash": normalization["manifest_hash"],
+            "selection_hash": normalization["selection_hash"],
+            "selection_validation": {
+                "valid": normalization["valid"],
+                "clean": normalization["clean"],
+                "issues": normalization["issues"],
+                "active_controls": normalization["active_controls"],
+            },
             "fragments": [
                 {
                     "attribute_id": item["attribute_id"],
@@ -1029,9 +1111,5 @@ class KworkWebListingClient:
                 }
                 for item in fragments
             ],
-            "unresolved_required": [
-                control["name"]
-                for control in manifest_controls
-                if control.get("required") and not _is_control_satisfied(control, selected)
-            ],
+            "unresolved_required": normalization["unresolved_required"],
         }

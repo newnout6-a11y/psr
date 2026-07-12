@@ -248,7 +248,7 @@ async def test_build_attribute_manifest_loads_selected_children(monkeypatch):
         calls.append(attribute_id)
         if attribute_id is None:
             controls = parse_classification_html(
-                '<input type="radio" name="attribute[208]" id="bot" value="3587">'
+                '<input type="radio" name="attribute[208]" id="bot" value="3587" data-has-child="1">'
                 '<label for="bot">Чат-боты</label>'
             )
         else:
@@ -276,6 +276,46 @@ async def test_build_attribute_manifest_loads_selected_children(monkeypatch):
     assert calls == [None, 3587]
     assert [item["name"] for item in manifest["controls"]] == ["attribute[208]", "attribute[3610][]"]
     assert manifest["selected"] == {"attribute[208]": 3587}
+
+
+@pytest.mark.asyncio
+async def test_build_attribute_manifest_drops_stale_child_selection_after_parent_change(monkeypatch):
+    calls: list[int | None] = []
+
+    async def fake_load(self, category_id, attribute_id=None, lang="ru"):
+        calls.append(attribute_id)
+        if attribute_id is None:
+            controls = parse_classification_html(
+                '<input type="radio" name="attribute[208]" id="bot" value="3587">'
+                '<label for="bot">Bots</label>'
+                '<input type="radio" name="attribute[208]" id="other" value="9999">'
+                '<label for="other">Other</label>'
+            )
+        else:
+            controls = parse_classification_html(
+                '<label><input type="checkbox" name="attribute[3610][]" value="3612">Telegram</label>'
+            )
+        return {
+            "success": True,
+            "category_id": category_id,
+            "attribute_id": attribute_id,
+            "controls": controls,
+            "count": len(controls),
+            "selectedCount": 0,
+            "raw_keys": [],
+        }
+
+    monkeypatch.setattr(KworkWebListingClient, "load_classification", fake_load)
+
+    manifest = await KworkWebListingClient().build_attribute_manifest(
+        41,
+        selection={"attribute[208]": 9999, "attribute[3610][]": [3612]},
+    )
+
+    assert calls == [None]
+    assert manifest["selected"] == {"attribute[208]": 9999}
+    assert "attribute[3610][]" in manifest["selection_validation"]["issues"]["unknown_fields"]
+    assert manifest["manifest_hash"].startswith("sha256:")
 
 
 @pytest.mark.asyncio

@@ -21,6 +21,7 @@ from src.paths import PROPOSAL_ASSETS_DIR, REFERENCE_DIR
 from src.platforms.kwork import KWORK_BASE_URL, KworkStateDataParser, get_kwork_service
 from src.platforms.kwork_autopublish import KworkAutopublishService
 from src.platforms.kwork_ext import KworkExtensions
+from src.platforms.kwork_form_contract import normalize_attribute_selection
 from src.platforms.kwork_listing import KworkWebListingClient, manual_verification_evidence
 from src.platforms.kwork_market import KworkMarketClient
 from src.platforms.kwork_market_supply import KworkSupplyScanner, MarketAssistant
@@ -290,12 +291,30 @@ def _attribute_suggestion_selection(
     multiple = bool(control.get("multiple"))
     next_selection = dict(payload.selection or {})
     next_selection[name] = clean_ids if multiple else clean_ids[0]
+    controls = [control]
+    controls.extend(
+        item
+        for item in payload.controls
+        if isinstance(item, dict) and str(item.get("name") or "").strip() != name
+    )
+    normalized = normalize_attribute_selection({"controls": controls, "lang": payload.lang}, next_selection)
+    normalized_selection = normalized["selection"]
+    normalized_values = normalized_selection.get(name)
+    if normalized_values in (None, "") or normalized_values == []:
+        raise HTTPException(status_code=422, detail="Suggested option is inactive or unavailable in this form state")
     return {
         "ok": True,
         "source": source,
         "control": name,
-        "selected_ids": clean_ids,
-        "selection": next_selection,
+        "selected_ids": normalized_values if isinstance(normalized_values, list) else [normalized_values],
+        "selection": normalized_selection,
+        "selection_validation": {
+            "manifest_hash": normalized["manifest_hash"],
+            "selection_hash": normalized["selection_hash"],
+            "valid": normalized["valid"],
+            "issues": normalized["issues"],
+            "unresolved_required": normalized["unresolved_required"],
+        },
         "reason": reason,
         "confidence": confidence,
     }

@@ -12,6 +12,8 @@ import json
 import time
 from typing import Any
 
+import httpx
+
 from src.platforms.kwork_market import KworkMarketClient
 
 from .analyzer import MarketResultsAnalyzer
@@ -23,6 +25,7 @@ from .mapper import ScopeMapper, ScopePartition
 from .models import (
     JobPhase,
     JobState,
+    MAX_ENRICHMENT_PRICE,
     MarketJob,
     MarketScope,
     NetworkPolicy,
@@ -30,6 +33,7 @@ from .models import (
     OperationKind,
     OperationState,
     SourcePolicy,
+    utc_now,
 )
 from .planner import ShardPlanner
 from .rate_control import (
@@ -131,6 +135,132 @@ def _job_model(record: Mapping[str, Any]) -> MarketJob:
     )
 
 
+def _response_mapping(payload: object) -> JsonDict:
+    if not isinstance(payload, Mapping):
+        return {}
+    response = payload.get("response")
+    return dict(response) if isinstance(response, Mapping) else dict(payload)
+
+
+def _optional_text(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _optional_int(value: object) -> int | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return int(float(str(value)))
+    except (TypeError, ValueError):
+        return None
+
+
+def _optional_number(value: object) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return float(str(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def _review_timestamp(value: object) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return str(int(value))
+    return _optional_text(value)
+
+
+def _review_identity(review: Mapping[str, Any], index: int) -> str:
+    explicit = _optional_text(review.get("id") or review.get("review_id"))
+    if explicit is not None:
+        return explicit
+    stable = {
+        "index": index,
+        "time_added": review.get("time_added"),
+        "writer": review.get("writer"),
+        "text": review.get("text"),
+    }
+    encoded = json.dumps(stable, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    return f"derived:{sha256(encoded.encode('utf-8')).hexdigest()[:24]}"
+
+
+def _listing_reviews(extra: Mapping[str, Any]) -> list[JsonDict]:
+    raw_reviews = extra.get("last_reviews")
+    if not isinstance(raw_reviews, list):
+        return []
+    normalized: list[JsonDict] = []
+    for index, raw in enumerate(raw_reviews[:3]):
+        if not isinstance(raw, Mapping):
+            continue
+        writer = raw.get("writer")
+        writer_name = (
+            _optional_text(writer.get("username") or writer.get("name") or writer.get("fullname"))
+            if isinstance(writer, Mapping)
+            else _optional_text(writer)
+        )
+        answer = raw.get("answer")
+        answer_text = (
+            _optional_text(answer.get("text") or answer.get("answer"))
+            if isinstance(answer, Mapping)
+            else _optional_text(answer)
+        )
+        normalized.append(
+            {
+                "review_key": _review_identity(raw, index),
+                "time_added": _review_timestamp(raw.get("time_added")),
+                "is_good": raw.get("good"),
+                "is_bad": raw.get("bad"),
+                "text": _optional_text(raw.get("text")),
+                "writer": writer_name,
+                "answer": answer_text,
+                "raw": dict(raw),
+            }
+        )
+    return normalized
+
+
+def _seller_snapshot(username: str, profile: Mapping[str, Any], *, expires_at: str) -> JsonDict:
+    user = profile.get("user") if isinstance(profile.get("user"), Mapping) else profile
+    stats = profile.get("stats") if isinstance(profile.get("stats"), Mapping) else {}
+    reviews = profile.get("reviews") if isinstance(profile.get("reviews"), Mapping) else {}
+    return {
+        "seller_key": username,
+        "seller_id": _optional_text(user.get("id") or profile.get("user_id") or profile.get("id")),
+        "status": "ok",
+        "profile": dict(profile),
+        "seller_rating": _optional_number(user.get("rating") or profile.get("rating") or stats.get("rating")),
+        "seller_rating_count": _optional_int(
+            user.get("rating_count") or profile.get("rating_count") or stats.get("rating_count")
+        ),
+        "seller_reviews_count": _optional_int(
+            user.get("reviews_count")
+            or profile.get("reviews_count")
+            or stats.get("reviews_count")
+            or reviews.get("count")
+        ),
+        "seller_addtime": _review_timestamp(user.get("addtime") or profile.get("addtime")),
+        "completed_orders_count": _optional_int(
+            stats.get("completed_orders_count")
+            or stats.get("completed_orders")
+            or profile.get("completed_orders_count")
+            or profile.get("completed_orders")
+            or user.get("orders_done")
+        ),
+        "active_kworks_count": _optional_int(
+            stats.get("active_kworks_count")
+            or profile.get("active_kworks_count")
+            or profile.get("kworks_count")
+        ),
+        "fetched_at": utc_now(),
+        "expires_at": expires_at,
+    }
+
+
 class MarketOperationExecutor:
     """Execute validated map and web batch operations for in-process workers."""
 
@@ -163,12 +293,14 @@ class MarketOperationExecutor:
             now=time.monotonic(),
         )
         self._rate_control_lock = asyncio.Lock()
+        self._seller_enrichment_locks: dict[str, asyncio.Lock] = {}
 
     @property
     def handlers(self) -> dict[OperationKind, Callable[[MarketWorker, Mapping[str, Any]], Any]]:
         return {
             OperationKind.MAP_SCOPE: self.handle_map_scope,
             OperationKind.FETCH_BATCH: self.handle_fetch_batch,
+            OperationKind.ENRICH_LISTING: self.handle_enrich_listing,
             OperationKind.ANALYZE_SNAPSHOT: self.handle_analyze_snapshot,
             OperationKind.EXPORT_SNAPSHOT: self.handle_export_snapshot,
         }
@@ -643,6 +775,171 @@ class MarketOperationExecutor:
         finally:
             await self._close_client(client)
 
+    async def handle_enrich_listing(self, worker: MarketWorker, operation: Mapping[str, Any]) -> None:
+        """Fetch durable listing and seller facts for one price-eligible card."""
+
+        payload = operation.get("payload")
+        payload = payload if isinstance(payload, Mapping) else {}
+        listing_id = _optional_int(payload.get("listing_id"))
+        if listing_id is None:
+            raise RetryableOperationError("enrichment operation has no listing_id", failure_kind="scope_invalid")
+        listing = await self.coordinator.repository.get_listing(worker.job_id, listing_id)
+        if listing is None:
+            raise RetryableOperationError("enrichment listing is missing", failure_kind="scope_invalid")
+
+        requested_price_limit = _optional_number(payload.get("price_limit"))
+        price_limit = min(requested_price_limit or MAX_ENRICHMENT_PRICE, MAX_ENRICHMENT_PRICE)
+        price = _optional_number(listing.get("price"))
+        if price is not None and price > price_limit:
+            await self.coordinator.repository.persist_listing_enrichment(
+                job_id=worker.job_id,
+                listing_id=listing_id,
+                listing_features={
+                    "status": "reject_price",
+                    "generation": _optional_int(payload.get("generation")) or 0,
+                    "last_error": None,
+                },
+            )
+            return
+
+        expires_at = _optional_text(payload.get("cache_expires_at"))
+        if expires_at is None:
+            expires_at = (datetime.now(UTC) + timedelta(hours=24)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        current = await self.coordinator.repository.get_listing_enrichment(worker.job_id, listing_id)
+        now = utc_now()
+        if (
+            current is not None
+            and current.get("status") in {"ok", "partial"}
+            and isinstance(current.get("expires_at"), str)
+            and current["expires_at"] > now
+        ):
+            return
+
+        client = self.client_factory(worker.transport_proxy_url)
+        try:
+            listing_key = _optional_text(listing.get("listing_key"))
+            if listing_key is None:
+                raise RetryableOperationError("enrichment listing has no source key", failure_kind="scope_invalid")
+            details = _response_mapping(await self._enrichment_request(client, "getKworkDetails", id=listing_key))
+            extra = _response_mapping(await self._enrichment_request(client, "getKworkDetailsExtra", id=listing_key))
+            short_user = details.get("short_user_info") if isinstance(details.get("short_user_info"), Mapping) else {}
+            canonical = listing.get("canonical") if isinstance(listing.get("canonical"), Mapping) else {}
+            seller_username = _optional_text(
+                short_user.get("username")
+                or details.get("username")
+                or canonical.get("userName")
+                or canonical.get("username")
+                or listing.get("seller_key")
+            )
+            if seller_username is not None and seller_username.isdecimal():
+                seller_username = _optional_text(canonical.get("userName") or canonical.get("username"))
+
+            seller_features: JsonDict | None = None
+            if seller_username is not None:
+                seller_features = await self._load_or_fetch_seller_features(
+                    worker,
+                    client,
+                    seller_username,
+                    expires_at=expires_at,
+                )
+
+            reviews = _listing_reviews(extra)
+            review_times = [review["time_added"] for review in reviews if isinstance(review.get("time_added"), str)]
+            listing_features: JsonDict = {
+                "status": "ok" if seller_username is not None else "partial",
+                "generation": _optional_int(payload.get("generation")) or 1,
+                "resolved_seller_key": seller_username,
+                "detail": details,
+                "extra": extra,
+                "description": _optional_text(
+                    details.get("kwork_description") or details.get("description") or details.get("gdesc")
+                ),
+                "instructions": _optional_text(
+                    details.get("kwork_instructions") or details.get("instructions") or details.get("ginst")
+                ),
+                "service_size": _optional_text(
+                    details.get("unit_and_quantity") or details.get("volume") or details.get("gwork")
+                ),
+                "queue_count": _optional_int(details.get("orders_in_queue_count") or details.get("queueCount")),
+                "work_time_seconds": _optional_int(details.get("term") or details.get("avgWorkTime")),
+                "listing_reviews_count": _optional_int(extra.get("reviews_count")),
+                "good_reviews": _optional_int(extra.get("goodReviews")),
+                "bad_reviews": _optional_int(extra.get("badReviews")),
+                "last_review_at": max(review_times) if review_times else None,
+                "fetched_at": now,
+                "expires_at": expires_at,
+            }
+            stored = await self.coordinator.repository.persist_listing_enrichment(
+                job_id=worker.job_id,
+                listing_id=listing_id,
+                listing_features=listing_features,
+                seller_features=seller_features,
+                reviews=reviews,
+            )
+            job = await self._require_job(worker.job_id)
+            await self.coordinator.emit(
+                worker.job_id,
+                "enrichment.completed",
+                {
+                    "listing_id": listing_id,
+                    "status": stored["status"],
+                    "reviews": len(reviews),
+                    "seller_cached": seller_features is None,
+                },
+                revision=job["revision"],
+                worker_id=worker.worker_id,
+                operation_id=str(operation["operation_id"]),
+            )
+        except (httpx.HTTPError, TimeoutError, OSError) as exc:
+            raise RetryableOperationError(
+                f"enrichment network error: {type(exc).__name__}: {exc}",
+                retry_at=self._retry_at(Decimal(str(DEFAULT_RATE_CONTROL_POLICY.fallback_retry_seconds))),
+                failure_kind="network_error",
+            ) from exc
+        finally:
+            await self._close_client(client)
+
+    async def _enrichment_request(self, client: Any, endpoint: str, **params: Any) -> JsonDict:
+        await self._acquire_source_permit("mobile_kworks")
+        request = getattr(client, "request", None)
+        if not callable(request):
+            raise RetryableOperationError(
+                "market client does not expose request() for enrichment",
+                failure_kind="client_contract",
+            )
+        result = request(endpoint, **params)
+        if inspect.isawaitable(result):
+            result = await result
+        if not isinstance(result, Mapping):
+            raise RetryableOperationError(
+                f"{endpoint} returned a non-mapping payload",
+                failure_kind="contract_violation",
+            )
+        return dict(result)
+
+    async def _load_or_fetch_seller_features(
+        self,
+        worker: MarketWorker,
+        client: Any,
+        username: str,
+        *,
+        expires_at: str,
+    ) -> JsonDict | None:
+        lock_key = f"{worker.job_id}:{username.casefold()}"
+        lock = self._seller_enrichment_locks.setdefault(lock_key, asyncio.Lock())
+        async with lock:
+            cached = await self.coordinator.repository.get_seller_enrichment(worker.job_id, username)
+            now = utc_now()
+            if (
+                cached is not None
+                and cached.get("status") in {"ok", "partial"}
+                and isinstance(cached.get("expires_at"), str)
+                and cached["expires_at"] > now
+            ):
+                return None
+            profile = _response_mapping(await self._enrichment_request(client, "userByUsername", username=username))
+            return _seller_snapshot(username, profile, expires_at=expires_at)
+
     async def handle_analyze_snapshot(self, worker: MarketWorker, operation: Mapping[str, Any]) -> None:
         """Project metrics, checkpoint them, then queue the deterministic export."""
 
@@ -654,13 +951,19 @@ class MarketOperationExecutor:
         selection_summary = (
             {"selected_count": selection.get("selected_count", 0)} if isinstance(selection, Mapping) else {}
         )
-        evidence_sample = ai_evidence.get("evidence_sample") if isinstance(ai_evidence, Mapping) else None
+        terra_dossier = ai_evidence.get("terra_dossier") if isinstance(ai_evidence, Mapping) else None
+        coverage = terra_dossier.get("coverage") if isinstance(terra_dossier, Mapping) else None
+        groups = terra_dossier.get("groups") if isinstance(terra_dossier, Mapping) else []
+        included_evidence_count = sum(
+            len(group.get("evidence_ids") or []) for group in groups if isinstance(group, Mapping)
+        )
         ai_summary = {
             "enabled": ai_evidence.get("enabled", True) if isinstance(ai_evidence, Mapping) else False,
-            "included_evidence_count": evidence_sample.get("included_evidence_count", 0)
-            if isinstance(evidence_sample, Mapping)
-            else 0,
-            "sample_based": ai_evidence.get("sample_based", True) if isinstance(ai_evidence, Mapping) else True,
+            "included_evidence_count": included_evidence_count,
+            "included_group_count": coverage.get("included_group_count", len(groups))
+            if isinstance(coverage, Mapping)
+            else len(groups),
+            "sample_based": ai_evidence.get("sample_based", False) if isinstance(ai_evidence, Mapping) else False,
         }
         await self.coordinator.emit(
             worker.job_id,

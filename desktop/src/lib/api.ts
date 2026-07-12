@@ -857,10 +857,12 @@ export interface KworkFormControl {
   value?: string
   placeholder?: string
   data?: Record<string, unknown>
+  parent_option_ids?: number[]
 }
 
 export interface KworkFormManifest {
   category_id: number
+  classifier_id?: number | null
   lang: string
   success?: boolean
   code?: string
@@ -871,6 +873,14 @@ export interface KworkFormManifest {
   controls: KworkFormControl[]
   fragments?: Array<Record<string, unknown>>
   unresolved_required?: string[]
+  manifest_hash?: string
+  selection_hash?: string
+  selection_validation?: {
+    valid?: boolean
+    clean?: boolean
+    issues?: Record<string, unknown>
+    active_controls?: string[]
+  }
 }
 
 export interface KworkFormManifestRequest {
@@ -902,6 +912,7 @@ export interface KworkAttributeSuggestResult {
   selection: Record<string, unknown>
   reason?: string
   confidence?: number
+  selection_validation?: Record<string, unknown>
 }
 
 export interface KworkDraftRequest {

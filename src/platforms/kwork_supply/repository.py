@@ -12,6 +12,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import asdict, is_dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
@@ -23,6 +24,7 @@ from .models import (
     CommandState,
     JobPhase,
     JobState,
+    MAX_ENRICHMENT_PRICE,
     MarketJobCreate,
     Operation,
     OperationKind,
@@ -268,6 +270,164 @@ CREATE TABLE IF NOT EXISTS market_listing_observations (
 CREATE INDEX IF NOT EXISTS idx_market_observations_job ON market_listing_observations(job_id, observation_id);
 CREATE INDEX IF NOT EXISTS idx_market_observations_listing ON market_listing_observations(listing_id, observation_id);
 
+CREATE TABLE IF NOT EXISTS market_listing_features (
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    listing_id INTEGER NOT NULL REFERENCES market_listings(listing_id) ON DELETE CASCADE,
+    status TEXT NOT NULL,
+    generation INTEGER NOT NULL DEFAULT 0,
+    resolved_seller_key TEXT,
+    detail_json TEXT NOT NULL DEFAULT '{}',
+    extra_json TEXT NOT NULL DEFAULT '{}',
+    description TEXT,
+    instructions TEXT,
+    service_size TEXT,
+    queue_count INTEGER,
+    work_time_seconds INTEGER,
+    listing_reviews_count INTEGER,
+    good_reviews INTEGER,
+    bad_reviews INTEGER,
+    last_review_at TEXT,
+    fetched_at TEXT,
+    expires_at TEXT,
+    last_error TEXT,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(job_id, listing_id)
+);
+CREATE INDEX IF NOT EXISTS idx_market_listing_features_status
+    ON market_listing_features(job_id, status, expires_at, listing_id);
+
+CREATE TABLE IF NOT EXISTS market_seller_features (
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    seller_key TEXT NOT NULL,
+    seller_id TEXT,
+    status TEXT NOT NULL,
+    profile_json TEXT NOT NULL DEFAULT '{}',
+    seller_rating REAL,
+    seller_rating_count INTEGER,
+    seller_reviews_count INTEGER,
+    seller_addtime TEXT,
+    completed_orders_count INTEGER,
+    active_kworks_count INTEGER,
+    fetched_at TEXT,
+    expires_at TEXT,
+    last_error TEXT,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(job_id, seller_key)
+);
+CREATE INDEX IF NOT EXISTS idx_market_seller_features_status
+    ON market_seller_features(job_id, status, expires_at, seller_key);
+
+CREATE TABLE IF NOT EXISTS market_listing_reviews (
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    listing_id INTEGER NOT NULL REFERENCES market_listings(listing_id) ON DELETE CASCADE,
+    review_key TEXT NOT NULL,
+    time_added TEXT,
+    is_good INTEGER,
+    is_bad INTEGER,
+    review_text TEXT,
+    writer TEXT,
+    answer TEXT,
+    raw_json TEXT NOT NULL DEFAULT '{}',
+    observed_at TEXT NOT NULL,
+    PRIMARY KEY(job_id, listing_id, review_key)
+);
+CREATE INDEX IF NOT EXISTS idx_market_listing_reviews_recent
+    ON market_listing_reviews(job_id, listing_id, time_added DESC);
+
+CREATE TABLE IF NOT EXISTS market_listing_embeddings (
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    listing_id INTEGER NOT NULL REFERENCES market_listings(listing_id) ON DELETE CASCADE,
+    model_name TEXT NOT NULL,
+    text_hash TEXT NOT NULL,
+    vector_json TEXT NOT NULL,
+    dimension INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(job_id, listing_id)
+);
+CREATE INDEX IF NOT EXISTS idx_market_listing_embeddings_model
+    ON market_listing_embeddings(job_id, model_name, text_hash);
+
+CREATE TABLE IF NOT EXISTS market_semantic_clusters (
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    cluster_id TEXT NOT NULL,
+    label TEXT NOT NULL,
+    state TEXT NOT NULL,
+    confidence INTEGER NOT NULL,
+    member_count INTEGER NOT NULL,
+    metrics_json TEXT NOT NULL DEFAULT '{}',
+    dossier_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(job_id, cluster_id)
+);
+CREATE INDEX IF NOT EXISTS idx_market_semantic_clusters_state
+    ON market_semantic_clusters(job_id, state, confidence DESC);
+
+CREATE TABLE IF NOT EXISTS market_semantic_dossiers (
+    job_id TEXT PRIMARY KEY REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    dossier_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS market_semantic_cluster_members (
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    cluster_id TEXT NOT NULL,
+    listing_id INTEGER NOT NULL REFERENCES market_listings(listing_id) ON DELETE CASCADE,
+    position INTEGER NOT NULL,
+    PRIMARY KEY(job_id, cluster_id, listing_id),
+    FOREIGN KEY(job_id, cluster_id)
+        REFERENCES market_semantic_clusters(job_id, cluster_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_market_semantic_cluster_members_listing
+    ON market_semantic_cluster_members(job_id, listing_id);
+
+CREATE TABLE IF NOT EXISTS market_recommendations (
+    recommendation_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    source_cluster_id TEXT,
+    state TEXT NOT NULL,
+    category_id INTEGER NOT NULL,
+    classifier_id INTEGER,
+    service_summary TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    work_time INTEGER NOT NULL,
+    evidence_ids_json TEXT NOT NULL DEFAULT '[]',
+    terra_result_json TEXT NOT NULL DEFAULT '{}',
+    content_hash TEXT NOT NULL,
+    revision INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_market_recommendations_job
+    ON market_recommendations(job_id, updated_at DESC, recommendation_id);
+
+CREATE TABLE IF NOT EXISTS market_draft_handoffs (
+    handoff_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    recommendation_id TEXT NOT NULL UNIQUE REFERENCES market_recommendations(recommendation_id) ON DELETE CASCADE,
+    state TEXT NOT NULL,
+    category_id INTEGER NOT NULL,
+    classifier_id INTEGER,
+    service_summary TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    work_time INTEGER NOT NULL,
+    manifest_json TEXT NOT NULL DEFAULT '{}',
+    manifest_hash TEXT,
+    selection_json TEXT NOT NULL DEFAULT '{}',
+    selection_hash TEXT,
+    validation_json TEXT NOT NULL DEFAULT '{}',
+    generator_request_json TEXT NOT NULL DEFAULT '{}',
+    draft_json TEXT NOT NULL DEFAULT '{}',
+    draft_hash TEXT,
+    revision INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_market_draft_handoffs_job
+    ON market_draft_handoffs(job_id, updated_at DESC, handoff_id);
+
 CREATE TABLE IF NOT EXISTS market_events (
     job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
     sequence INTEGER NOT NULL,
@@ -401,6 +561,25 @@ def _optional_number(value: Any) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _optional_int(value: Any) -> int | None:
+    number = _optional_number(value)
+    return int(number) if number is not None else None
+
+
+def _optional_flag(value: Any) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"", "none", "null"}:
+            return None
+        if normalized in {"0", "false", "no"}:
+            return 0
+        if normalized in {"1", "true", "yes"}:
+            return 1
+    return int(bool(value))
 
 
 def _listing_title(listing: Mapping[str, Any]) -> str | None:
@@ -873,6 +1052,257 @@ class MarketJobRepository:
 
         return await asyncio.to_thread(self._list_listings_sync, job_id, cursor, limit, shard_id)
 
+    async def prepare_listing_enrichment(
+        self,
+        job_id: str,
+        *,
+        price_limit: float = 15_000,
+        cache_ttl_seconds: int = 86_400,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Durably price-gate listings and queue one enrichment operation per eligible card.
+
+        The operation queue, price rejections, and cache generations are written in
+        one SQLite transaction. Repeating this call after a pause is safe: active
+        operations are retained and completed, unexpired records are reused.
+        """
+
+        if price_limit <= 0 or price_limit > MAX_ENRICHMENT_PRICE:
+            raise ValueError(f"price_limit must be between 0 and {int(MAX_ENRICHMENT_PRICE)}")
+        if cache_ttl_seconds <= 0:
+            raise ValueError("cache_ttl_seconds must be positive")
+        return await asyncio.to_thread(
+            self._prepare_listing_enrichment_sync,
+            job_id,
+            float(price_limit),
+            int(cache_ttl_seconds),
+            _timestamp(now),
+        )
+
+    async def get_listing_enrichment(self, job_id: str, listing_id: int | str) -> JsonDict | None:
+        """Return local listing features and the durable last-review projection."""
+
+        return await asyncio.to_thread(self._get_listing_enrichment_sync, job_id, listing_id)
+
+    async def get_seller_enrichment(self, job_id: str, seller_key: str) -> JsonDict | None:
+        """Return one seller snapshot kept for the current market job."""
+
+        return await asyncio.to_thread(self._get_seller_enrichment_sync, job_id, seller_key)
+
+    async def persist_listing_enrichment(
+        self,
+        *,
+        job_id: str,
+        listing_id: int | str,
+        listing_features: Mapping[str, Any],
+        seller_features: Mapping[str, Any] | None = None,
+        reviews: Sequence[Mapping[str, Any]] = (),
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Persist one listing snapshot, its review projection, and an optional seller cache entry."""
+
+        if not isinstance(listing_features, Mapping):
+            raise TypeError("listing_features must be a mapping")
+        if seller_features is not None and not isinstance(seller_features, Mapping):
+            raise TypeError("seller_features must be a mapping when provided")
+        if not isinstance(reviews, Sequence) or isinstance(reviews, (str, bytes)):
+            raise TypeError("reviews must be a sequence of mappings")
+        if not all(isinstance(review, Mapping) for review in reviews):
+            raise TypeError("reviews must contain mappings")
+        return await asyncio.to_thread(
+            self._persist_listing_enrichment_sync,
+            job_id,
+            listing_id,
+            dict(listing_features),
+            dict(seller_features) if seller_features is not None else None,
+            tuple(dict(review) for review in reviews),
+            _timestamp(now),
+        )
+
+    async def mark_listing_enrichment_failed(
+        self,
+        job_id: str,
+        listing_id: int | str,
+        *,
+        generation: int,
+        error: str,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Keep a terminal enrichment failure durable without erasing prior facts."""
+
+        return await asyncio.to_thread(
+            self._mark_listing_enrichment_failed_sync,
+            job_id,
+            listing_id,
+            max(int(generation), 1),
+            _optional_text(error) or "enrichment failed",
+            _timestamp(now),
+        )
+
+    async def list_local_analysis_inputs(self, job_id: str) -> list[JsonDict]:
+        """Return price-eligible enriched cards with seller and review features."""
+
+        return await asyncio.to_thread(self._list_local_analysis_inputs_sync, job_id)
+
+    async def get_embedding_cache(self, job_id: str, model_name: str) -> dict[str, list[float]]:
+        """Return reusable local vectors keyed by the exact normalized text hash."""
+
+        normalized_model = _optional_text(model_name)
+        if normalized_model is None:
+            raise ValueError("model_name cannot be blank")
+        return await asyncio.to_thread(self._get_embedding_cache_sync, job_id, normalized_model)
+
+    async def replace_semantic_analysis(
+        self,
+        job_id: str,
+        analysis: Mapping[str, Any],
+        *,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Atomically persist local vectors, cluster membership, and Terra dossier."""
+
+        if not isinstance(analysis, Mapping):
+            raise TypeError("analysis must be a mapping")
+        return await asyncio.to_thread(
+            self._replace_semantic_analysis_sync,
+            job_id,
+            dict(analysis),
+            _timestamp(now),
+        )
+
+    async def get_semantic_analysis(self, job_id: str) -> JsonDict:
+        """Load durable semantic clusters and their bounded dossier records."""
+
+        return await asyncio.to_thread(self._get_semantic_analysis_sync, job_id)
+
+    async def create_recommendation(
+        self,
+        job_id: str,
+        *,
+        category_id: int,
+        service_summary: str,
+        price: int,
+        work_time: int,
+        classifier_id: int | None = None,
+        source_cluster_id: str | None = None,
+        evidence_ids: Sequence[str] = (),
+        terra_result: Mapping[str, Any] | None = None,
+        recommendation_id: str | None = None,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Persist a proposed market recommendation before user confirmation."""
+
+        if category_id <= 0 or price <= 0 or work_time <= 0:
+            raise ValueError("category_id, price, and work_time must be positive")
+        if not _optional_text(service_summary):
+            raise ValueError("service_summary cannot be blank")
+        return await asyncio.to_thread(
+            self._create_recommendation_sync,
+            job_id,
+            int(category_id),
+            _optional_text(service_summary) or "",
+            int(price),
+            int(work_time),
+            int(classifier_id) if classifier_id is not None else None,
+            _optional_text(source_cluster_id),
+            tuple(str(item) for item in evidence_ids if _optional_text(item)),
+            dict(terra_result) if isinstance(terra_result, Mapping) else {},
+            recommendation_id,
+            _timestamp(now),
+        )
+
+    async def get_recommendation(self, recommendation_id: str) -> JsonDict | None:
+        """Return one durable recommendation."""
+
+        return await asyncio.to_thread(self._get_recommendation_sync, recommendation_id)
+
+    async def list_recommendations(self, job_id: str, *, limit: int = 100) -> list[JsonDict]:
+        """List recommendations created for one market job."""
+
+        return await asyncio.to_thread(self._list_recommendations_sync, job_id, limit)
+
+    async def transition_recommendation(
+        self,
+        recommendation_id: str,
+        state: str,
+        *,
+        expected_revision: int | None = None,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Confirm or reject a recommendation and create its handoff on confirm."""
+
+        if state not in {"recommendation_confirmed", "rejected"}:
+            raise ValueError("recommendation state must be recommendation_confirmed or rejected")
+        return await asyncio.to_thread(
+            self._transition_recommendation_sync,
+            recommendation_id,
+            state,
+            expected_revision,
+            _timestamp(now),
+        )
+
+    async def get_draft_handoff(self, handoff_id: str) -> JsonDict | None:
+        """Return one durable recommendation-to-draft handoff."""
+
+        return await asyncio.to_thread(self._get_draft_handoff_sync, handoff_id)
+
+    async def get_draft_handoff_for_recommendation(self, recommendation_id: str) -> JsonDict | None:
+        """Return the one handoff owned by a recommendation, when it exists."""
+
+        return await asyncio.to_thread(self._get_draft_handoff_for_recommendation_sync, recommendation_id)
+
+    async def save_draft_handoff_fields(
+        self,
+        handoff_id: str,
+        *,
+        manifest: Mapping[str, Any],
+        manifest_hash: str,
+        selection: Mapping[str, Any],
+        selection_hash: str,
+        validation: Mapping[str, Any],
+        fields_confirmed: bool,
+        expected_manifest_hash: str | None = None,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Persist one validated manifest/selection snapshot and invalidate stale drafts."""
+
+        if not manifest_hash.startswith("sha256:") or not selection_hash.startswith("sha256:"):
+            raise ValueError("manifest_hash and selection_hash must use sha256")
+        if fields_confirmed and not bool(validation.get("valid")):
+            raise ValueError("required Kwork fields are unresolved")
+        return await asyncio.to_thread(
+            self._save_draft_handoff_fields_sync,
+            handoff_id,
+            dict(manifest),
+            manifest_hash,
+            dict(selection),
+            selection_hash,
+            dict(validation),
+            bool(fields_confirmed),
+            expected_manifest_hash,
+            _timestamp(now),
+        )
+
+    async def store_draft_handoff_draft(
+        self,
+        handoff_id: str,
+        *,
+        draft: Mapping[str, Any],
+        draft_hash: str,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Persist a generated draft after the field snapshot was confirmed."""
+
+        if not draft_hash:
+            raise ValueError("draft_hash cannot be blank")
+        return await asyncio.to_thread(
+            self._store_draft_handoff_draft_sync,
+            handoff_id,
+            dict(draft),
+            draft_hash,
+            _timestamp(now),
+        )
+
     async def list_listing_metrics_inputs(self, job_id: str) -> list[JsonDict]:
         """Return all normalized listing inputs needed for server-side metrics.
 
@@ -1024,6 +1454,14 @@ class MarketJobRepository:
                 "ALTER TABLE market_workers ADD COLUMN job_id TEXT REFERENCES market_jobs(job_id) ON DELETE SET NULL"
             )
         connection.execute("CREATE INDEX IF NOT EXISTS idx_market_workers_job ON market_workers(job_id, worker_id)")
+        handoff_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_draft_handoffs)")}
+        if "generator_request_json" not in handoff_columns:
+            connection.execute(
+                "ALTER TABLE market_draft_handoffs ADD COLUMN generator_request_json TEXT NOT NULL DEFAULT '{}'"
+            )
+        listing_feature_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_listing_features)")}
+        if "resolved_seller_key" not in listing_feature_columns:
+            connection.execute("ALTER TABLE market_listing_features ADD COLUMN resolved_seller_key TEXT")
         MarketJobRepository._backfill_listing_projection(connection)
 
     @staticmethod
@@ -2327,6 +2765,982 @@ class MarketJobRepository:
             rows = connection.execute(query, parameters).fetchall()
         return [self._listing_record(row) for row in rows]
 
+    def _prepare_listing_enrichment_sync(
+        self,
+        job_id: str,
+        price_limit: float,
+        cache_ttl_seconds: int,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        expires_at = _lease_deadline(now, cache_ttl_seconds)
+        active_states = (
+            OperationState.QUEUED.value,
+            OperationState.LEASED.value,
+            OperationState.RUNNING.value,
+            OperationState.RETRY_WAIT.value,
+        )
+        summary = {
+            "total_listings": 0,
+            "eligible_listings": 0,
+            "price_rejected": 0,
+            "cached": 0,
+            "pending": 0,
+            "failed": 0,
+            "queued": 0,
+            "price_limit": price_limit,
+            "cache_expires_at": expires_at,
+        }
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                self._require_job_row(connection, job_id)
+                listings = connection.execute(
+                    """
+                    SELECT listing_id, price
+                    FROM market_listings
+                    WHERE job_id = ?
+                    ORDER BY listing_id ASC
+                    """,
+                    (job_id,),
+                ).fetchall()
+                summary["total_listings"] = len(listings)
+                for listing in listings:
+                    listing_id = int(listing["listing_id"])
+                    price = _optional_number(listing["price"])
+                    feature = connection.execute(
+                        """
+                        SELECT status, generation, expires_at
+                        FROM market_listing_features
+                        WHERE job_id = ? AND listing_id = ?
+                        """,
+                        (job_id, listing_id),
+                    ).fetchone()
+                    if price is not None and price > price_limit:
+                        connection.execute(
+                            """
+                            INSERT INTO market_listing_features (
+                                job_id, listing_id, status, generation, updated_at
+                            ) VALUES (?, ?, 'reject_price', 0, ?)
+                            ON CONFLICT(job_id, listing_id) DO UPDATE SET
+                                status = 'reject_price',
+                                last_error = NULL,
+                                updated_at = excluded.updated_at
+                            """,
+                            (job_id, listing_id, now),
+                        )
+                        summary["price_rejected"] += 1
+                        continue
+
+                    summary["eligible_listings"] += 1
+                    feature_status = str(feature["status"]) if feature is not None else ""
+                    feature_expires_at = feature["expires_at"] if feature is not None else None
+                    if feature_status in {"ok", "partial"} and feature_expires_at and feature_expires_at > now:
+                        summary["cached"] += 1
+                        continue
+                    if feature_status == "failed":
+                        summary["failed"] += 1
+                        continue
+
+                    active = connection.execute(
+                        f"""
+                        SELECT 1
+                        FROM market_operations
+                        WHERE job_id = ?
+                          AND kind = ?
+                          AND idempotency_key LIKE ?
+                          AND state IN ({','.join('?' for _ in active_states)})
+                        LIMIT 1
+                        """,
+                        (
+                            job_id,
+                            OperationKind.ENRICH_LISTING.value,
+                            f"enrich:{listing_id}:%",
+                            *active_states,
+                        ),
+                    ).fetchone()
+                    if active is not None:
+                        summary["pending"] += 1
+                        continue
+
+                    generation = int(feature["generation"] or 0) + 1 if feature is not None else 1
+                    connection.execute(
+                        """
+                        INSERT INTO market_listing_features (
+                            job_id, listing_id, status, generation, expires_at, last_error, updated_at
+                        ) VALUES (?, ?, 'pending', ?, ?, NULL, ?)
+                        ON CONFLICT(job_id, listing_id) DO UPDATE SET
+                            status = 'pending',
+                            generation = excluded.generation,
+                            expires_at = excluded.expires_at,
+                            last_error = NULL,
+                            updated_at = excluded.updated_at
+                        """,
+                        (job_id, listing_id, generation, expires_at, now),
+                    )
+                    values = self._operation_values(
+                        Operation(
+                            operation_id=_new_identifier("op"),
+                            job_id=job_id,
+                            shard_id=None,
+                            kind=OperationKind.ENRICH_LISTING,
+                            state=OperationState.QUEUED,
+                            priority=450,
+                            idempotency_key=f"enrich:{listing_id}:{generation}",
+                            payload={
+                                "listing_id": listing_id,
+                                "generation": generation,
+                                "price_limit": price_limit,
+                                "cache_expires_at": expires_at,
+                            },
+                        )
+                    )
+                    self._enqueue_operation_locked(connection, values, now)
+                    summary["queued"] += 1
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return summary
+
+    def _get_listing_enrichment_sync(self, job_id: str, listing_id: int | str) -> JsonDict | None:
+        self._ensure_initialized()
+        identifier = self._listing_id_cursor(listing_id)
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT features.*, listings.seller_key
+                FROM market_listing_features AS features
+                JOIN market_listings AS listings ON listings.listing_id = features.listing_id
+                WHERE features.job_id = ? AND features.listing_id = ?
+                """,
+                (job_id, identifier),
+            ).fetchone()
+            if row is None:
+                return None
+            reviews = connection.execute(
+                """
+                SELECT * FROM market_listing_reviews
+                WHERE job_id = ? AND listing_id = ?
+                ORDER BY time_added DESC, review_key ASC
+                """,
+                (job_id, identifier),
+            ).fetchall()
+        return {
+            **self._listing_feature_record(row),
+            "reviews": [self._listing_review_record(review) for review in reviews],
+        }
+
+    def _get_seller_enrichment_sync(self, job_id: str, seller_key: str) -> JsonDict | None:
+        self._ensure_initialized()
+        normalized = _optional_text(seller_key)
+        if normalized is None:
+            return None
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT * FROM market_seller_features
+                WHERE job_id = ? AND seller_key = ?
+                """,
+                (job_id, normalized),
+            ).fetchone()
+        return self._seller_feature_record(row) if row else None
+
+    def _mark_listing_enrichment_failed_sync(
+        self,
+        job_id: str,
+        listing_id: int | str,
+        generation: int,
+        error: str,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        identifier = self._listing_id_cursor(listing_id)
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                listing = connection.execute(
+                    "SELECT 1 FROM market_listings WHERE job_id = ? AND listing_id = ?",
+                    (job_id, identifier),
+                ).fetchone()
+                if listing is None:
+                    raise MarketJobNotFoundError(f"listing {identifier!r} was not found in job {job_id!r}")
+                connection.execute(
+                    """
+                    INSERT INTO market_listing_features (
+                        job_id, listing_id, status, generation, last_error, updated_at
+                    ) VALUES (?, ?, 'failed', ?, ?, ?)
+                    ON CONFLICT(job_id, listing_id) DO UPDATE SET
+                        status = 'failed',
+                        generation = MAX(generation, excluded.generation),
+                        last_error = excluded.last_error,
+                        updated_at = excluded.updated_at
+                    """,
+                    (job_id, identifier, generation, error, now),
+                )
+                row = connection.execute(
+                    """
+                    SELECT features.*, listings.seller_key
+                    FROM market_listing_features AS features
+                    JOIN market_listings AS listings ON listings.listing_id = features.listing_id
+                    WHERE features.job_id = ? AND features.listing_id = ?
+                    """,
+                    (job_id, identifier),
+                ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._listing_feature_record(row)
+
+    def _persist_listing_enrichment_sync(
+        self,
+        job_id: str,
+        listing_id: int | str,
+        listing_features: JsonDict,
+        seller_features: JsonDict | None,
+        reviews: Sequence[JsonDict],
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        identifier = self._listing_id_cursor(listing_id)
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                listing = connection.execute(
+                    """
+                    SELECT listing_id, seller_key
+                    FROM market_listings
+                    WHERE job_id = ? AND listing_id = ?
+                    """,
+                    (job_id, identifier),
+                ).fetchone()
+                if listing is None:
+                    raise MarketJobNotFoundError(f"listing {identifier!r} was not found in job {job_id!r}")
+                existing = connection.execute(
+                    """
+                    SELECT generation FROM market_listing_features
+                    WHERE job_id = ? AND listing_id = ?
+                    """,
+                    (job_id, identifier),
+                ).fetchone()
+                generation = int(listing_features.get("generation") or (existing["generation"] if existing else 1) or 1)
+                status = _optional_text(listing_features.get("status")) or "ok"
+                expires_at = listing_features.get("expires_at")
+                connection.execute(
+                    """
+                    INSERT INTO market_listing_features (
+                        job_id, listing_id, status, generation, resolved_seller_key, detail_json, extra_json,
+                        description, instructions, service_size, queue_count, work_time_seconds,
+                        listing_reviews_count, good_reviews, bad_reviews, last_review_at,
+                        fetched_at, expires_at, last_error, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(job_id, listing_id) DO UPDATE SET
+                        status = excluded.status,
+                        generation = excluded.generation,
+                        resolved_seller_key = excluded.resolved_seller_key,
+                        detail_json = excluded.detail_json,
+                        extra_json = excluded.extra_json,
+                        description = excluded.description,
+                        instructions = excluded.instructions,
+                        service_size = excluded.service_size,
+                        queue_count = excluded.queue_count,
+                        work_time_seconds = excluded.work_time_seconds,
+                        listing_reviews_count = excluded.listing_reviews_count,
+                        good_reviews = excluded.good_reviews,
+                        bad_reviews = excluded.bad_reviews,
+                        last_review_at = excluded.last_review_at,
+                        fetched_at = excluded.fetched_at,
+                        expires_at = excluded.expires_at,
+                        last_error = excluded.last_error,
+                        updated_at = excluded.updated_at
+                    """,
+                    (
+                        job_id,
+                        identifier,
+                        status,
+                        generation,
+                        _optional_text(listing_features.get("resolved_seller_key")),
+                        _dump_json(listing_features.get("detail", {})),
+                        _dump_json(listing_features.get("extra", {})),
+                        _optional_text(listing_features.get("description")),
+                        _optional_text(listing_features.get("instructions")),
+                        _optional_text(listing_features.get("service_size")),
+                        _optional_int(listing_features.get("queue_count")),
+                        _optional_int(listing_features.get("work_time_seconds")),
+                        _optional_int(listing_features.get("listing_reviews_count")),
+                        _optional_int(listing_features.get("good_reviews")),
+                        _optional_int(listing_features.get("bad_reviews")),
+                        _optional_text(listing_features.get("last_review_at")),
+                        _optional_text(listing_features.get("fetched_at")) or now,
+                        _optional_text(expires_at),
+                        _optional_text(listing_features.get("last_error")),
+                        now,
+                    ),
+                )
+                connection.execute(
+                    "DELETE FROM market_listing_reviews WHERE job_id = ? AND listing_id = ?",
+                    (job_id, identifier),
+                )
+                for review in reviews:
+                    review_key = _optional_text(review.get("review_key"))
+                    if review_key is None:
+                        continue
+                    connection.execute(
+                        """
+                        INSERT INTO market_listing_reviews (
+                            job_id, listing_id, review_key, time_added, is_good, is_bad,
+                            review_text, writer, answer, raw_json, observed_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            job_id,
+                            identifier,
+                            review_key,
+                            _optional_text(review.get("time_added")),
+                            _optional_flag(review.get("is_good")),
+                            _optional_flag(review.get("is_bad")),
+                            _optional_text(review.get("text")),
+                            _optional_text(review.get("writer")),
+                            _optional_text(review.get("answer")),
+                            _dump_json(review.get("raw", review)),
+                            now,
+                        ),
+                    )
+                if seller_features is not None:
+                    seller_key = _optional_text(seller_features.get("seller_key")) or _optional_text(listing["seller_key"])
+                    if seller_key is not None:
+                        connection.execute(
+                            """
+                            INSERT INTO market_seller_features (
+                                job_id, seller_key, seller_id, status, profile_json,
+                                seller_rating, seller_rating_count, seller_reviews_count, seller_addtime,
+                                completed_orders_count, active_kworks_count, fetched_at, expires_at,
+                                last_error, updated_at
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            ON CONFLICT(job_id, seller_key) DO UPDATE SET
+                                seller_id = excluded.seller_id,
+                                status = excluded.status,
+                                profile_json = excluded.profile_json,
+                                seller_rating = excluded.seller_rating,
+                                seller_rating_count = excluded.seller_rating_count,
+                                seller_reviews_count = excluded.seller_reviews_count,
+                                seller_addtime = excluded.seller_addtime,
+                                completed_orders_count = excluded.completed_orders_count,
+                                active_kworks_count = excluded.active_kworks_count,
+                                fetched_at = excluded.fetched_at,
+                                expires_at = excluded.expires_at,
+                                last_error = excluded.last_error,
+                                updated_at = excluded.updated_at
+                            """,
+                            (
+                                job_id,
+                                seller_key,
+                                _optional_text(seller_features.get("seller_id")),
+                                _optional_text(seller_features.get("status")) or "ok",
+                                _dump_json(seller_features.get("profile", {})),
+                                _optional_number(seller_features.get("seller_rating")),
+                                _optional_int(seller_features.get("seller_rating_count")),
+                                _optional_int(seller_features.get("seller_reviews_count")),
+                                _optional_text(seller_features.get("seller_addtime")),
+                                _optional_int(seller_features.get("completed_orders_count")),
+                                _optional_int(seller_features.get("active_kworks_count")),
+                                _optional_text(seller_features.get("fetched_at")) or now,
+                                _optional_text(seller_features.get("expires_at")),
+                                _optional_text(seller_features.get("last_error")),
+                                now,
+                            ),
+                        )
+                row = connection.execute(
+                    """
+                    SELECT features.*, listings.seller_key
+                    FROM market_listing_features AS features
+                    JOIN market_listings AS listings ON listings.listing_id = features.listing_id
+                    WHERE features.job_id = ? AND features.listing_id = ?
+                    """,
+                    (job_id, identifier),
+                ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._listing_feature_record(row)
+
+    def _list_local_analysis_inputs_sync(self, job_id: str) -> list[JsonDict]:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            self._require_job_row(connection, job_id)
+            rows = connection.execute(
+                """
+                SELECT
+                    listings.listing_id,
+                    listings.listing_key,
+                    listings.title,
+                    listings.seller_key,
+                    features.resolved_seller_key,
+                    COALESCE(features.resolved_seller_key, listings.seller_key) AS analysis_seller_key,
+                    listings.price,
+                    listings.canonical_json,
+                    features.status AS feature_status,
+                    features.description,
+                    features.instructions,
+                    features.queue_count,
+                    features.listing_reviews_count,
+                    features.good_reviews,
+                    features.bad_reviews,
+                    seller.profile_json AS seller_profile_json,
+                    seller.seller_rating,
+                    seller.seller_rating_count,
+                    seller.seller_reviews_count,
+                    seller.seller_addtime,
+                    seller.completed_orders_count,
+                    seller.active_kworks_count
+                FROM market_listings AS listings
+                JOIN market_listing_features AS features
+                    ON features.job_id = listings.job_id AND features.listing_id = listings.listing_id
+                LEFT JOIN market_seller_features AS seller
+                    ON seller.job_id = listings.job_id
+                    AND seller.seller_key = COALESCE(features.resolved_seller_key, listings.seller_key) COLLATE NOCASE
+                WHERE listings.job_id = ?
+                  AND features.status IN ('ok', 'partial')
+                  AND (listings.price IS NULL OR listings.price <= 15000)
+                ORDER BY listings.listing_id ASC
+                """,
+                (job_id,),
+            ).fetchall()
+            review_rows = connection.execute(
+                """
+                SELECT * FROM market_listing_reviews
+                WHERE job_id = ?
+                ORDER BY listing_id ASC, time_added DESC, review_key ASC
+                """,
+                (job_id,),
+            ).fetchall()
+        reviews_by_listing: dict[int, list[JsonDict]] = {}
+        for review in review_rows:
+            reviews_by_listing.setdefault(int(review["listing_id"]), []).append(self._listing_review_record(review))
+        records: list[JsonDict] = []
+        for row in rows:
+            listing_id = int(row["listing_id"])
+            canonical = _load_json(row["canonical_json"], {})
+            seller_profile = _load_json(row["seller_profile_json"], {})
+            records.append(
+                {
+                    "listing_id": listing_id,
+                    "listing_key": row["listing_key"],
+                    "title": row["title"],
+                    "seller_key": row["analysis_seller_key"],
+                    "price": row["price"],
+                    "canonical": canonical,
+                    "url": canonical.get("url") or canonical.get("share_url"),
+                    "status": row["feature_status"],
+                    "description": row["description"],
+                    "instructions": row["instructions"],
+                    "queue_count": row["queue_count"],
+                    "listing_reviews_count": row["listing_reviews_count"],
+                    "good_reviews": row["good_reviews"],
+                    "bad_reviews": row["bad_reviews"],
+                    "reviews": reviews_by_listing.get(listing_id, []),
+                    "seller": {
+                        "profile": seller_profile,
+                        "seller_rating": row["seller_rating"],
+                        "seller_rating_count": row["seller_rating_count"],
+                        "seller_reviews_count": row["seller_reviews_count"],
+                        "seller_addtime": row["seller_addtime"],
+                        "completed_orders_count": row["completed_orders_count"],
+                        "active_kworks_count": row["active_kworks_count"],
+                    },
+                }
+            )
+        return records
+
+    def _replace_semantic_analysis_sync(self, job_id: str, analysis: JsonDict, now: str) -> JsonDict:
+        self._ensure_initialized()
+        model_name = _optional_text(analysis.get("embedding_model"))
+        embeddings = analysis.get("embeddings")
+        clusters = analysis.get("clusters")
+        dossier = analysis.get("dossier")
+        if model_name is None:
+            raise ValueError("semantic analysis requires embedding_model")
+        if not isinstance(embeddings, list) or not all(isinstance(item, Mapping) for item in embeddings):
+            raise TypeError("semantic analysis embeddings must be a list of mappings")
+        if not isinstance(clusters, list) or not all(isinstance(item, Mapping) for item in clusters):
+            raise TypeError("semantic analysis clusters must be a list of mappings")
+        if not isinstance(dossier, Mapping):
+            raise TypeError("semantic analysis dossier must be a mapping")
+        groups = dossier.get("groups")
+        group_by_id = {
+            _optional_text(group.get("cluster_id")): dict(group)
+            for group in groups
+            if isinstance(group, Mapping) and _optional_text(group.get("cluster_id"))
+        } if isinstance(groups, list) else {}
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                self._require_job_row(connection, job_id)
+                price_rows = connection.execute(
+                    "SELECT listing_id, price FROM market_listings WHERE job_id = ?",
+                    (job_id,),
+                ).fetchall()
+                allowed_listing_ids = {
+                    int(row["listing_id"])
+                    for row in price_rows
+                    if row["price"] is None or float(row["price"]) <= MAX_ENRICHMENT_PRICE
+                }
+                embedding_ids: set[int] = set()
+                for embedding in embeddings:
+                    listing_id = self._listing_id_cursor(embedding.get("listing_id"))
+                    if listing_id not in allowed_listing_ids:
+                        raise ValueError(f"semantic embedding listing {listing_id} is not price-eligible for job {job_id}")
+                    text_hash = _optional_text(embedding.get("text_hash"))
+                    vector = embedding.get("vector")
+                    if text_hash is None or not isinstance(vector, list) or not vector:
+                        raise ValueError("semantic embedding requires text_hash and a non-empty vector")
+                    values = [float(value) for value in vector]
+                    connection.execute(
+                        """
+                        INSERT INTO market_listing_embeddings (
+                            job_id, listing_id, model_name, text_hash, vector_json, dimension, created_at, updated_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(job_id, listing_id) DO UPDATE SET
+                            model_name = excluded.model_name,
+                            text_hash = excluded.text_hash,
+                            vector_json = excluded.vector_json,
+                            dimension = excluded.dimension,
+                            updated_at = excluded.updated_at
+                        """,
+                        (job_id, listing_id, model_name, text_hash, _dump_json(values), len(values), now, now),
+                    )
+                    embedding_ids.add(listing_id)
+                if embedding_ids:
+                    placeholders = ",".join("?" for _ in embedding_ids)
+                    connection.execute(
+                        f"DELETE FROM market_listing_embeddings WHERE job_id = ? AND listing_id NOT IN ({placeholders})",
+                        (job_id, *sorted(embedding_ids)),
+                    )
+                else:
+                    connection.execute("DELETE FROM market_listing_embeddings WHERE job_id = ?", (job_id,))
+
+                connection.execute("DELETE FROM market_semantic_cluster_members WHERE job_id = ?", (job_id,))
+                connection.execute("DELETE FROM market_semantic_clusters WHERE job_id = ?", (job_id,))
+                connection.execute(
+                    """
+                    INSERT INTO market_semantic_dossiers (job_id, dossier_json, created_at, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(job_id) DO UPDATE SET
+                        dossier_json = excluded.dossier_json,
+                        updated_at = excluded.updated_at
+                    """,
+                    (job_id, _dump_json(dossier), now, now),
+                )
+                for cluster in clusters:
+                    cluster_id = _optional_text(cluster.get("cluster_id"))
+                    label = _optional_text(cluster.get("label"))
+                    state = _optional_text(cluster.get("state"))
+                    member_ids = cluster.get("member_listing_ids")
+                    if cluster_id is None or label is None or state is None or not isinstance(member_ids, list):
+                        raise ValueError("semantic cluster requires cluster_id, label, state, and member_listing_ids")
+                    normalized_member_ids = [self._listing_id_cursor(value) for value in member_ids]
+                    if len(set(normalized_member_ids)) != len(normalized_member_ids):
+                        raise ValueError(f"semantic cluster {cluster_id} has duplicate member listings")
+                    if not set(normalized_member_ids) <= allowed_listing_ids:
+                        raise ValueError(f"semantic cluster {cluster_id} contains a non-eligible listing")
+                    connection.execute(
+                        """
+                        INSERT INTO market_semantic_clusters (
+                            job_id, cluster_id, label, state, confidence, member_count,
+                            metrics_json, dossier_json, created_at, updated_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            job_id,
+                            cluster_id,
+                            label,
+                            state,
+                            max(min(_optional_int(cluster.get("confidence")) or 0, 100), 0),
+                            len(normalized_member_ids),
+                            _dump_json(cluster.get("metrics", {})),
+                            _dump_json(group_by_id.get(cluster_id, {})),
+                            now,
+                            now,
+                        ),
+                    )
+                    for position, listing_id in enumerate(normalized_member_ids):
+                        connection.execute(
+                            """
+                            INSERT INTO market_semantic_cluster_members (
+                                job_id, cluster_id, listing_id, position
+                            ) VALUES (?, ?, ?, ?)
+                            """,
+                            (job_id, cluster_id, listing_id, position),
+                        )
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._get_semantic_analysis_sync(job_id)
+
+    def _get_embedding_cache_sync(self, job_id: str, model_name: str) -> dict[str, list[float]]:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            self._require_job_row(connection, job_id)
+            rows = connection.execute(
+                """
+                SELECT text_hash, vector_json
+                FROM market_listing_embeddings
+                WHERE job_id = ? AND model_name = ?
+                ORDER BY updated_at DESC, listing_id ASC
+                """,
+                (job_id, model_name),
+            ).fetchall()
+        cache: dict[str, list[float]] = {}
+        for row in rows:
+            if row["text_hash"] in cache:
+                continue
+            raw_vector = _load_json(row["vector_json"], [])
+            if not isinstance(raw_vector, list) or not raw_vector:
+                continue
+            try:
+                cache[row["text_hash"]] = [float(value) for value in raw_vector]
+            except (TypeError, ValueError):
+                continue
+        return cache
+
+    def _get_semantic_analysis_sync(self, job_id: str) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            self._require_job_row(connection, job_id)
+            clusters = connection.execute(
+                """
+                SELECT * FROM market_semantic_clusters
+                WHERE job_id = ?
+                ORDER BY confidence DESC, cluster_id ASC
+                """,
+                (job_id,),
+            ).fetchall()
+            members = connection.execute(
+                """
+                SELECT cluster_id, listing_id FROM market_semantic_cluster_members
+                WHERE job_id = ?
+                ORDER BY cluster_id ASC, position ASC
+                """,
+                (job_id,),
+            ).fetchall()
+            embedding_models = connection.execute(
+                "SELECT DISTINCT model_name FROM market_listing_embeddings WHERE job_id = ? ORDER BY model_name ASC",
+                (job_id,),
+            ).fetchall()
+            dossier_row = connection.execute(
+                "SELECT dossier_json FROM market_semantic_dossiers WHERE job_id = ?", (job_id,)
+            ).fetchone()
+        members_by_cluster: dict[str, list[int]] = {}
+        for member in members:
+            members_by_cluster.setdefault(member["cluster_id"], []).append(int(member["listing_id"]))
+        records = [
+            {
+                "cluster_id": row["cluster_id"],
+                "label": row["label"],
+                "state": row["state"],
+                "confidence": int(row["confidence"]),
+                "member_count": int(row["member_count"]),
+                "member_listing_ids": members_by_cluster.get(row["cluster_id"], []),
+                "metrics": _load_json(row["metrics_json"], {}),
+                "dossier": _load_json(row["dossier_json"], {}),
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"],
+            }
+            for row in clusters
+        ]
+        stored_dossier = _load_json(dossier_row["dossier_json"], {}) if dossier_row is not None else {}
+        if not isinstance(stored_dossier, Mapping):
+            stored_dossier = {}
+        dossier = dict(stored_dossier)
+        if not dossier:
+            dossier = {
+                "schema_version": 1,
+                "groups": [record["dossier"] for record in records if record["dossier"]],
+            }
+        return {
+            "schema_version": 1,
+            "job_id": job_id,
+            "embedding_models": [row["model_name"] for row in embedding_models],
+            "cluster_count": len(records),
+            "clusters": records,
+            "dossier": dossier,
+        }
+
+    def _create_recommendation_sync(
+        self,
+        job_id: str,
+        category_id: int,
+        service_summary: str,
+        price: int,
+        work_time: int,
+        classifier_id: int | None,
+        source_cluster_id: str | None,
+        evidence_ids: tuple[str, ...],
+        terra_result: JsonDict,
+        recommendation_id: str | None,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        identifier = recommendation_id or _new_identifier("rec")
+        evidence = list(dict.fromkeys(evidence_ids))
+        content = {
+            "category_id": category_id,
+            "classifier_id": classifier_id,
+            "service_summary": service_summary,
+            "price": price,
+            "work_time": work_time,
+            "source_cluster_id": source_cluster_id,
+            "evidence_ids": evidence,
+            "terra_result": terra_result,
+        }
+        content_hash = f"sha256:{hashlib.sha256(_dump_json(content).encode('utf-8')).hexdigest()}"
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                self._require_job_row(connection, job_id)
+                connection.execute(
+                    """
+                    INSERT INTO market_recommendations (
+                        recommendation_id, job_id, source_cluster_id, state, category_id, classifier_id,
+                        service_summary, price, work_time, evidence_ids_json, terra_result_json,
+                        content_hash, revision, created_at, updated_at
+                    ) VALUES (?, ?, ?, 'proposed', ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                    """,
+                    (
+                        identifier,
+                        job_id,
+                        source_cluster_id,
+                        category_id,
+                        classifier_id,
+                        service_summary,
+                        price,
+                        work_time,
+                        _dump_json(evidence),
+                        _dump_json(terra_result),
+                        content_hash,
+                        now,
+                        now,
+                    ),
+                )
+                row = connection.execute(
+                    "SELECT * FROM market_recommendations WHERE recommendation_id = ?", (identifier,)
+                ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._recommendation_record(row)
+
+    def _get_recommendation_sync(self, recommendation_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM market_recommendations WHERE recommendation_id = ?", (recommendation_id,)
+            ).fetchone()
+        return self._recommendation_record(row) if row is not None else None
+
+    def _list_recommendations_sync(self, job_id: str, limit: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        bounded_limit = max(1, min(int(limit), 1_000))
+        with self._connect() as connection:
+            self._require_job_row(connection, job_id)
+            rows = connection.execute(
+                """
+                SELECT * FROM market_recommendations
+                WHERE job_id = ?
+                ORDER BY updated_at DESC, recommendation_id ASC
+                LIMIT ?
+                """,
+                (job_id, bounded_limit),
+            ).fetchall()
+        return [self._recommendation_record(row) for row in rows]
+
+    def _transition_recommendation_sync(
+        self,
+        recommendation_id: str,
+        state: str,
+        expected_revision: int | None,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                row = connection.execute(
+                    "SELECT * FROM market_recommendations WHERE recommendation_id = ?", (recommendation_id,)
+                ).fetchone()
+                if row is None:
+                    raise MarketJobNotFoundError(f"market recommendation {recommendation_id!r} was not found")
+                if expected_revision is not None and int(row["revision"]) != int(expected_revision):
+                    raise MarketJobRevisionConflictError(
+                        f"market recommendation {recommendation_id!r} revision is {row['revision']}, "
+                        f"not {expected_revision}"
+                    )
+                current_state = row["state"]
+                if current_state == "rejected" and state != "rejected":
+                    raise MarketJobRepositoryError(f"market recommendation {recommendation_id!r} is rejected")
+                if current_state != state:
+                    connection.execute(
+                        """
+                        UPDATE market_recommendations
+                        SET state = ?, revision = revision + 1, updated_at = ?
+                        WHERE recommendation_id = ?
+                        """,
+                        (state, now, recommendation_id),
+                    )
+                    row = connection.execute(
+                        "SELECT * FROM market_recommendations WHERE recommendation_id = ?", (recommendation_id,)
+                    ).fetchone()
+
+                handoff_row = connection.execute(
+                    "SELECT * FROM market_draft_handoffs WHERE recommendation_id = ?", (recommendation_id,)
+                ).fetchone()
+                if state == "recommendation_confirmed" and handoff_row is None:
+                    handoff_id = _new_identifier("handoff")
+                    connection.execute(
+                        """
+                        INSERT INTO market_draft_handoffs (
+                            handoff_id, job_id, recommendation_id, state, category_id, classifier_id,
+                            service_summary, price, work_time, revision, created_at, updated_at
+                        ) VALUES (?, ?, ?, 'mapping', ?, ?, ?, ?, ?, 1, ?, ?)
+                        """,
+                        (
+                            handoff_id,
+                            row["job_id"],
+                            recommendation_id,
+                            row["category_id"],
+                            row["classifier_id"],
+                            row["service_summary"],
+                            row["price"],
+                            row["work_time"],
+                            now,
+                            now,
+                        ),
+                    )
+                    handoff_row = connection.execute(
+                        "SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)
+                    ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return {
+            "recommendation": self._recommendation_record(row),
+            "handoff": self._draft_handoff_record(handoff_row) if handoff_row is not None else None,
+        }
+
+    def _get_draft_handoff_sync(self, handoff_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute("SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)).fetchone()
+        return self._draft_handoff_record(row) if row is not None else None
+
+    def _get_draft_handoff_for_recommendation_sync(self, recommendation_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM market_draft_handoffs WHERE recommendation_id = ?", (recommendation_id,)
+            ).fetchone()
+        return self._draft_handoff_record(row) if row is not None else None
+
+    def _save_draft_handoff_fields_sync(
+        self,
+        handoff_id: str,
+        manifest: JsonDict,
+        manifest_hash: str,
+        selection: JsonDict,
+        selection_hash: str,
+        validation: JsonDict,
+        fields_confirmed: bool,
+        expected_manifest_hash: str | None,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                row = connection.execute("SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)).fetchone()
+                if row is None:
+                    raise MarketJobNotFoundError(f"market draft handoff {handoff_id!r} was not found")
+                if expected_manifest_hash is not None and row["manifest_hash"] != expected_manifest_hash:
+                    raise MarketJobRevisionConflictError(
+                        f"market draft handoff {handoff_id!r} manifest hash no longer matches"
+                    )
+                if row["state"] not in {"mapping", "fields_confirmed", "draft_generated"}:
+                    raise MarketJobRepositoryError(f"market draft handoff {handoff_id!r} cannot accept fields")
+
+                changed = row["manifest_hash"] != manifest_hash or row["selection_hash"] != selection_hash
+                next_state = "fields_confirmed" if fields_confirmed else "mapping"
+                clear_draft = changed or next_state != "draft_generated"
+                connection.execute(
+                    """
+                    UPDATE market_draft_handoffs
+                    SET state = ?, manifest_json = ?, manifest_hash = ?, selection_json = ?, selection_hash = ?,
+                        validation_json = ?, generator_request_json = ?, draft_json = ?, draft_hash = ?,
+                        revision = revision + 1, updated_at = ?
+                    WHERE handoff_id = ?
+                    """,
+                    (
+                        next_state,
+                        _dump_json(manifest),
+                        manifest_hash,
+                        _dump_json(selection),
+                        selection_hash,
+                        _dump_json(validation),
+                        _dump_json({"status": "ready"}) if fields_confirmed else "{}",
+                        "{}" if clear_draft else row["draft_json"],
+                        None if clear_draft else row["draft_hash"],
+                        now,
+                        handoff_id,
+                    ),
+                )
+                updated = connection.execute(
+                    "SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)
+                ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._draft_handoff_record(updated)
+
+    def _store_draft_handoff_draft_sync(
+        self,
+        handoff_id: str,
+        draft: JsonDict,
+        draft_hash: str,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                row = connection.execute("SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)).fetchone()
+                if row is None:
+                    raise MarketJobNotFoundError(f"market draft handoff {handoff_id!r} was not found")
+                if row["state"] != "fields_confirmed":
+                    raise MarketJobRepositoryError(
+                        f"market draft handoff {handoff_id!r} requires fields_confirmed before draft generation"
+                    )
+                connection.execute(
+                    """
+                    UPDATE market_draft_handoffs
+                    SET state = 'draft_generated', draft_json = ?, draft_hash = ?, revision = revision + 1, updated_at = ?
+                    WHERE handoff_id = ?
+                    """,
+                    (_dump_json(draft), draft_hash, now, handoff_id),
+                )
+                updated = connection.execute(
+                    "SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)
+                ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._draft_handoff_record(updated)
+
     def _list_listing_metrics_inputs_sync(self, job_id: str) -> list[JsonDict]:
         self._ensure_initialized()
         with self._connect() as connection:
@@ -3035,6 +4449,51 @@ class MarketJobRepository:
         }
 
     @staticmethod
+    def _recommendation_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "recommendation_id": row["recommendation_id"],
+            "job_id": row["job_id"],
+            "source_cluster_id": row["source_cluster_id"],
+            "state": row["state"],
+            "category_id": int(row["category_id"]),
+            "classifier_id": row["classifier_id"],
+            "service_summary": row["service_summary"],
+            "price": int(row["price"]),
+            "work_time": int(row["work_time"]),
+            "evidence_ids": _load_json(row["evidence_ids_json"], []),
+            "terra_result": _load_json(row["terra_result_json"], {}),
+            "content_hash": row["content_hash"],
+            "revision": int(row["revision"]),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _draft_handoff_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "handoff_id": row["handoff_id"],
+            "job_id": row["job_id"],
+            "recommendation_id": row["recommendation_id"],
+            "state": row["state"],
+            "category_id": int(row["category_id"]),
+            "classifier_id": row["classifier_id"],
+            "service_summary": row["service_summary"],
+            "price": int(row["price"]),
+            "work_time": int(row["work_time"]),
+            "attribute_manifest": _load_json(row["manifest_json"], {}),
+            "attribute_manifest_hash": row["manifest_hash"],
+            "attribute_selection": _load_json(row["selection_json"], {}),
+            "selection_hash": row["selection_hash"],
+            "validation": _load_json(row["validation_json"], {}),
+            "generator_request": _load_json(row["generator_request_json"], {}),
+            "draft": _load_json(row["draft_json"], {}),
+            "draft_hash": row["draft_hash"],
+            "revision": int(row["revision"]),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
     def _operation_record(row: sqlite3.Row) -> JsonDict:
         return {
             "operation_id": row["operation_id"],
@@ -3095,6 +4554,66 @@ class MarketJobRepository:
             "first_seen_at": row["first_seen_at"],
             "last_seen_at": row["last_seen_at"],
             "observation_count": int(row["observation_count"]),
+        }
+
+    @staticmethod
+    def _listing_feature_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "job_id": row["job_id"],
+            "listing_id": int(row["listing_id"]),
+            "seller_key": row["seller_key"],
+            "resolved_seller_key": row["resolved_seller_key"],
+            "status": row["status"],
+            "generation": int(row["generation"]),
+            "detail": _load_json(row["detail_json"], {}),
+            "extra": _load_json(row["extra_json"], {}),
+            "description": row["description"],
+            "instructions": row["instructions"],
+            "service_size": row["service_size"],
+            "queue_count": row["queue_count"],
+            "work_time_seconds": row["work_time_seconds"],
+            "listing_reviews_count": row["listing_reviews_count"],
+            "good_reviews": row["good_reviews"],
+            "bad_reviews": row["bad_reviews"],
+            "last_review_at": row["last_review_at"],
+            "fetched_at": row["fetched_at"],
+            "expires_at": row["expires_at"],
+            "last_error": row["last_error"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _seller_feature_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "job_id": row["job_id"],
+            "seller_key": row["seller_key"],
+            "seller_id": row["seller_id"],
+            "status": row["status"],
+            "profile": _load_json(row["profile_json"], {}),
+            "seller_rating": row["seller_rating"],
+            "seller_rating_count": row["seller_rating_count"],
+            "seller_reviews_count": row["seller_reviews_count"],
+            "seller_addtime": row["seller_addtime"],
+            "completed_orders_count": row["completed_orders_count"],
+            "active_kworks_count": row["active_kworks_count"],
+            "fetched_at": row["fetched_at"],
+            "expires_at": row["expires_at"],
+            "last_error": row["last_error"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _listing_review_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "review_key": row["review_key"],
+            "time_added": row["time_added"],
+            "is_good": bool(row["is_good"]) if row["is_good"] is not None else None,
+            "is_bad": bool(row["is_bad"]) if row["is_bad"] is not None else None,
+            "text": row["review_text"],
+            "writer": row["writer"],
+            "answer": row["answer"],
+            "raw": _load_json(row["raw_json"], {}),
+            "observed_at": row["observed_at"],
         }
 
     @staticmethod

@@ -233,11 +233,11 @@ class MarketWorker:
                 )
                 await self.coordinator.ensure_analysis_operation(self.job_id)
         except RetryableOperationError as exc:
-            await self._fail_operation(operation_id, str(exc), retry_at=exc.retry_at, failure_kind=exc.failure_kind)
+            await self._fail_operation(operation, str(exc), retry_at=exc.retry_at, failure_kind=exc.failure_kind)
         except asyncio.CancelledError:
             raise
         except Exception as exc:  # noqa: BLE001 - handlers are isolated durable operations.
-            await self._fail_operation(operation_id, str(exc), failure_kind="handler_error")
+            await self._fail_operation(operation, str(exc), failure_kind="handler_error")
         finally:
             self._current_operation_id = None
             if not self._drain_requested:
@@ -245,12 +245,13 @@ class MarketWorker:
 
     async def _fail_operation(
         self,
-        operation_id: str,
+        operation: Mapping[str, Any],
         error: str,
         *,
         retry_at: str | None = None,
         failure_kind: str,
     ) -> None:
+        operation_id = str(operation["operation_id"])
         try:
             failed = await self.coordinator.repository.fail_operation(
                 operation_id,
@@ -262,6 +263,22 @@ class MarketWorker:
         except Exception:  # The lease may have been atomically completed by a handler.
             return
         event_type = "operation.contract_violation" if failure_kind == "contract_violation" else "operation.failed"
+        if failed["kind"] == OperationKind.ENRICH_LISTING.value and failed["state"] in {
+            OperationState.FAILED.value,
+            OperationState.CONTRACT_VIOLATION.value,
+            OperationState.BLOCKED.value,
+        }:
+            payload = failed.get("payload") if isinstance(failed.get("payload"), Mapping) else {}
+            listing_id = payload.get("listing_id")
+            try:
+                await self.coordinator.repository.mark_listing_enrichment_failed(
+                    self.job_id,
+                    listing_id,
+                    generation=int(payload.get("generation") or 1),
+                    error=error,
+                )
+            except (TypeError, ValueError):
+                pass
         await self.coordinator.emit(
             self.job_id,
             event_type,
@@ -269,6 +286,7 @@ class MarketWorker:
             worker_id=self.worker_id,
             operation_id=operation_id,
         )
+        await self.coordinator.ensure_analysis_operation(self.job_id)
 
     async def _process_commands(self) -> None:
         queued = await self.coordinator.repository.list_worker_commands(

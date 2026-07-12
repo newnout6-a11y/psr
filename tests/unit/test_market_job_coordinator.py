@@ -257,7 +257,7 @@ async def test_completed_job_without_a_cursor_requeues_mapping_for_new_partition
 
 
 @pytest.mark.asyncio
-async def test_collection_after_resume_queues_new_analysis_after_a_historical_success(coordinator: MarketScanCoordinator):
+async def test_collection_after_resume_runs_enrichment_before_a_new_analysis(coordinator: MarketScanCoordinator):
     await coordinator.create_job(make_job(), job_id="job_reanalyze")
     mapping = await coordinator.repository.lease_operation("worker_reanalyze", job_id="job_reanalyze")
     assert mapping is not None
@@ -286,7 +286,11 @@ async def test_collection_after_resume_queues_new_analysis_after_a_historical_su
     assert queued is not None
     assert queued["operation_id"] != historical["operation_id"]
     assert queued["state"] == OperationState.QUEUED.value
-    assert queued["idempotency_key"] == f"analyze:job_reanalyze:{running['revision'] + 1}"
+    assert queued["idempotency_key"] == f"analyze:job_reanalyze:{running['revision'] + 2}"
+    job = await coordinator.repository.get_job("job_reanalyze")
+    assert job is not None
+    assert job["state"] == JobState.ANALYZING.value
+    assert job["phase"] == JobPhase.ANALYZE.value
 
 
 @pytest.mark.asyncio

@@ -8,6 +8,9 @@ from enum import StrEnum
 from typing import Any, Mapping
 
 
+MAX_ENRICHMENT_PRICE = 15_000.0
+
+
 def utc_now() -> str:
     """Return an RFC 3339 timestamp with second precision."""
 

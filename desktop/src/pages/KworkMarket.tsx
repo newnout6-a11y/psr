@@ -1394,7 +1394,7 @@ export default function KworkMarket() {
         setManifestError(manifest.detail || 'Kwork просит ручную проверку. Открой проверку Kwork в уведомлении сверху.')
       }
       setFormManifest(manifest)
-      setAttributeSelection({ ...(manifest.selected || {}), ...(selection || {}) })
+      setAttributeSelection({ ...(manifest.selected || {}) })
     } catch (e) {
       if (manifestRequestRef.current !== requestId) return
       setManifestError(e instanceof Error ? e.message : String(e))

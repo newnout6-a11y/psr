@@ -16,6 +16,9 @@ from fastapi import APIRouter, HTTPException, Query, Request, WebSocket, WebSock
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.platforms.kwork_supply.coordinator import MarketScanCoordinator
+from src.platforms.kwork_supply.handoff import MarketRecommendationHandoffService
+from src.platforms.kwork_listing import KworkWebListingClient
+from src.platforms.kwork import get_kwork_service
 from src.platforms.kwork_supply.models import (
     JobState,
     MarketJobCreate,
@@ -191,6 +194,46 @@ class MarketAssistantQuestionRequest(BaseModel):
         return message
 
 
+class MarketRecommendationCreateRequest(BaseModel):
+    """One Terra-approved offer proposed for a completed market job."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    category_id: int = Field(..., ge=1)
+    classifier_id: int | None = Field(default=None, ge=1)
+    service_summary: str = Field(..., min_length=1, max_length=2_000)
+    price: int = Field(..., ge=1, le=150_000)
+    work_time: int = Field(..., ge=1, le=365)
+    source_cluster_id: str | None = Field(default=None, max_length=256)
+    terra_result: dict[str, Any]
+
+
+class MarketRecommendationTransitionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_revision: int | None = Field(default=None, ge=1)
+
+
+class MarketHandoffManifestRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    lang: str = Field(default="ru", min_length=2, max_length=16)
+
+
+class MarketHandoffSelectionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    manifest_hash: str = Field(..., min_length=8, max_length=128)
+    selection: dict[str, Any] = Field(default_factory=dict)
+    confirm: bool = False
+
+
+class MarketHandoffDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    generation_options: dict[str, Any] = Field(default_factory=dict)
+
+
 class MarketPageResponse(BaseModel):
     """Uniform pagination envelope for durable operational views."""
 
@@ -216,6 +259,34 @@ def _coordinator(request: Request) -> MarketScanCoordinator:
     return _market_jobs_from_app(request.app)
 
 
+async def _load_handoff_manifest(
+    category_id: int,
+    classifier_id: int | None,
+    selection: dict[str, Any],
+    lang: str,
+) -> dict[str, Any]:
+    """Read a current Kwork form snapshot for a durable handoff."""
+
+    cookies: dict[str, str] = {}
+    try:
+        cookies = await get_kwork_service()._fetch_session_hub_cookies()
+    except Exception:
+        # The listing client returns a structured login/protection response when
+        # the anonymous form cannot be read, which is more useful than hiding it.
+        pass
+    client = KworkWebListingClient(cookies=cookies)
+    return await client.build_attribute_manifest(
+        category_id,
+        selection=selection,
+        classifier_id=classifier_id,
+        lang=lang,
+    )
+
+
+def _handoff_service(request: Request) -> MarketRecommendationHandoffService:
+    return MarketRecommendationHandoffService(_coordinator(request).repository, _load_handoff_manifest)
+
+
 async def _call(operation: Awaitable[_T]) -> _T:
     """Map durable control-plane failures to stable HTTP errors."""
 
@@ -238,6 +309,28 @@ async def _require_job(coordinator: MarketScanCoordinator, job_id: str) -> dict[
     return job
 
 
+async def _require_recommendation(
+    coordinator: MarketScanCoordinator,
+    job_id: str,
+    recommendation_id: str,
+) -> dict[str, Any]:
+    recommendation = await _call(coordinator.repository.get_recommendation(recommendation_id))
+    if recommendation is None or recommendation["job_id"] != job_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"market recommendation {recommendation_id!r} was not found")
+    return recommendation
+
+
+async def _require_handoff(
+    coordinator: MarketScanCoordinator,
+    job_id: str,
+    handoff_id: str,
+) -> dict[str, Any]:
+    handoff = await _call(coordinator.repository.get_draft_handoff(handoff_id))
+    if handoff is None or handoff["job_id"] != job_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"market draft handoff {handoff_id!r} was not found")
+    return handoff
+
+
 def _next_cursor(items: list[dict[str, Any]], key: str) -> str | int | None:
     if not items:
         return None
@@ -249,25 +342,45 @@ async def _market_job_assistant_snapshot(
     coordinator: MarketScanCoordinator,
     job_id: str,
 ) -> dict[str, Any]:
-    """Adapt one durable job read model to the existing bounded market assistant."""
+    """Build an assistant context from the durable semantic job result."""
 
     job = await _require_job(coordinator, job_id)
-    listings, checkpoints = await asyncio.gather(
-        coordinator.repository.list_listings(job_id, limit=250),
+    checkpoints, semantic = await asyncio.gather(
         coordinator.repository.list_checkpoints(job_id, limit=1),
+        coordinator.repository.get_semantic_analysis(job_id),
     )
     metric_inputs = await coordinator.repository.list_listing_metrics_inputs(job_id)
     aggregate_total = (job.get("counters") or {}).get("aggregate_scope_total")
     metrics = market_metrics_to_wire(project_market_metrics(metric_inputs, aggregate_scope_total=aggregate_total))
     latest_checkpoint = checkpoints[0] if checkpoints else None
     stored_metrics = latest_checkpoint.get("metrics") if isinstance(latest_checkpoint, Mapping) else {}
-    raw_listings = [
-        dict(listing["canonical"])
-        for listing in listings
-        if isinstance(listing.get("canonical"), Mapping)
-    ]
+    raw_listings: list[dict[str, Any]] = []
+    seen_listing_ids: set[int] = set()
+    for group in semantic.get("dossier", {}).get("groups", []):
+        if not isinstance(group, Mapping):
+            continue
+        for representative in group.get("representatives", []):
+            if not isinstance(representative, Mapping):
+                continue
+            listing_id = representative.get("listing_id")
+            if not isinstance(listing_id, int) or listing_id in seen_listing_ids:
+                continue
+            seen_listing_ids.add(listing_id)
+            raw_listings.append(
+                {
+                    "id": listing_id,
+                    "gtitle": representative.get("title"),
+                    "price": representative.get("price"),
+                    "url": representative.get("url"),
+                    "description": representative.get("description"),
+                    "seller": representative.get("seller_key"),
+                    "evidence_id": representative.get("evidence_id"),
+                    "bounded_representative": True,
+                }
+            )
     return {
         "source": "psr.durable_market_job",
+        "assistant_mode": "durable_semantic_dossier",
         "job_id": job_id,
         "scope": dict(job.get("scope") or {}),
         "coverage": {
@@ -275,11 +388,14 @@ async def _market_job_assistant_snapshot(
             "phase": job["phase"],
             "target_unique_cards": job["target_unique_cards"],
             "observed_unique_cards": (job.get("counters") or {}).get("unique_cards", 0),
-            "raw_listing_count": len(raw_listings),
+            "raw_listing_count": (job.get("counters") or {}).get("unique_cards", 0),
+            "semantic_cluster_count": semantic.get("cluster_count", 0),
+            "bounded_representative_count": len(raw_listings),
         },
         "slices": [],
         "sample": {"counters": job.get("counters") or {}, "metrics": metrics},
         "analysis": dict(stored_metrics) if isinstance(stored_metrics, Mapping) else {},
+        "semantic_dossier": semantic.get("dossier", {}),
         "raw_listings": raw_listings,
     }
 
@@ -536,6 +652,132 @@ async def get_market_results(request: Request, job_id: str) -> dict[str, Any]:
         "metrics": market_metrics_to_wire(metrics),
         "analysis": analysis,
     }
+
+
+@router.get("/api/kwork/market/jobs/{job_id}/recommendations")
+async def list_market_recommendations(request: Request, job_id: str) -> dict[str, Any]:
+    coordinator = _coordinator(request)
+    await _require_job(coordinator, job_id)
+    items = await _call(coordinator.repository.list_recommendations(job_id))
+    return {"job_id": job_id, "items": items}
+
+
+@router.post("/api/kwork/market/jobs/{job_id}/recommendations", status_code=status.HTTP_201_CREATED)
+async def create_market_recommendation(
+    request: Request,
+    job_id: str,
+    payload: MarketRecommendationCreateRequest,
+) -> dict[str, Any]:
+    coordinator = _coordinator(request)
+    job = await _require_job(coordinator, job_id)
+    scope = job.get("scope") if isinstance(job.get("scope"), Mapping) else {}
+    if payload.category_id != scope.get("category_id"):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="recommendation category_id must match the market job category",
+        )
+    recommendation = await _call(
+        _handoff_service(request).propose(
+            job_id,
+            category_id=payload.category_id,
+            classifier_id=payload.classifier_id,
+            service_summary=payload.service_summary,
+            price=payload.price,
+            work_time=payload.work_time,
+            source_cluster_id=payload.source_cluster_id,
+            terra_result=payload.terra_result,
+        )
+    )
+    return {"recommendation": recommendation}
+
+
+@router.post("/api/kwork/market/jobs/{job_id}/recommendations/{recommendation_id}/confirm")
+async def confirm_market_recommendation(
+    request: Request,
+    job_id: str,
+    recommendation_id: str,
+    payload: MarketRecommendationTransitionRequest | None = None,
+) -> dict[str, Any]:
+    coordinator = _coordinator(request)
+    await _require_recommendation(coordinator, job_id, recommendation_id)
+    return await _call(
+        _handoff_service(request).confirm_recommendation(
+            recommendation_id,
+            expected_revision=payload.expected_revision if payload else None,
+        )
+    )
+
+
+@router.post("/api/kwork/market/jobs/{job_id}/recommendations/{recommendation_id}/reject")
+async def reject_market_recommendation(
+    request: Request,
+    job_id: str,
+    recommendation_id: str,
+    payload: MarketRecommendationTransitionRequest | None = None,
+) -> dict[str, Any]:
+    coordinator = _coordinator(request)
+    await _require_recommendation(coordinator, job_id, recommendation_id)
+    return await _call(
+        _handoff_service(request).reject_recommendation(
+            recommendation_id,
+            expected_revision=payload.expected_revision if payload else None,
+        )
+    )
+
+
+@router.get("/api/kwork/market/jobs/{job_id}/draft-handoffs/{handoff_id}")
+async def get_market_draft_handoff(request: Request, job_id: str, handoff_id: str) -> dict[str, Any]:
+    return await _require_handoff(_coordinator(request), job_id, handoff_id)
+
+
+@router.post("/api/kwork/market/jobs/{job_id}/draft-handoffs/{handoff_id}/refresh-manifest")
+async def refresh_market_draft_handoff_manifest(
+    request: Request,
+    job_id: str,
+    handoff_id: str,
+    payload: MarketHandoffManifestRequest | None = None,
+) -> dict[str, Any]:
+    coordinator = _coordinator(request)
+    await _require_handoff(coordinator, job_id, handoff_id)
+    handoff = await _call(_handoff_service(request).refresh_manifest(handoff_id, lang=payload.lang if payload else "ru"))
+    return {"handoff": handoff}
+
+
+@router.put("/api/kwork/market/jobs/{job_id}/draft-handoffs/{handoff_id}/selection")
+async def update_market_draft_handoff_selection(
+    request: Request,
+    job_id: str,
+    handoff_id: str,
+    payload: MarketHandoffSelectionRequest,
+) -> dict[str, Any]:
+    coordinator = _coordinator(request)
+    await _require_handoff(coordinator, job_id, handoff_id)
+    handoff = await _call(
+        _handoff_service(request).update_selection(
+            handoff_id,
+            selection=payload.selection,
+            expected_manifest_hash=payload.manifest_hash,
+            confirm=payload.confirm,
+        )
+    )
+    return {"handoff": handoff}
+
+
+@router.post("/api/kwork/market/jobs/{job_id}/draft-handoffs/{handoff_id}/draft")
+async def generate_market_draft_handoff_draft(
+    request: Request,
+    job_id: str,
+    handoff_id: str,
+    payload: MarketHandoffDraftRequest | None = None,
+) -> dict[str, Any]:
+    coordinator = _coordinator(request)
+    await _require_handoff(coordinator, job_id, handoff_id)
+    return await _call(
+        _handoff_service(request).generate_draft(
+            handoff_id,
+            generation_options=payload.generation_options if payload else {},
+        )
+    )
 
 
 @router.post("/api/kwork/market/jobs/{job_id}/assistant")
