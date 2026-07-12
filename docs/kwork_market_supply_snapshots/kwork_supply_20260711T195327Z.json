@@ -1,0 +1,954 @@
+{
+  "source": "psr.kwork_supply_scan",
+  "generated_at": "2026-07-11T19:52:29Z",
+  "transport": {
+    "client_pool_size": 10,
+    "source": "KWORK_MARKET_SUPPLY_PROXY_PORTS",
+    "uses_configured_proxy_pool": true
+  },
+  "scope": {
+    "category_id": 38,
+    "category_name": "Доработка и настройка сайта",
+    "classifier_id": 1271,
+    "classifier_name": "Доработка сайта",
+    "reported_category_total": 13005,
+    "reported_selected_slices_total": 6905
+  },
+  "coverage": {
+    "profile": {
+      "name": "balanced",
+      "label": "Рабочий анализ",
+      "max_slices": 24,
+      "pages_per_slice": 3
+    },
+    "concurrency": 2,
+    "inter_wave_delay_ms": 750,
+    "max_requests": 72,
+    "requested_pages_per_slice": 3,
+    "mobile_continuation_policy": "first_page_only_until_validated_web_source",
+    "estimated_requests_for_minimum_cards": 50,
+    "request_budget_can_reach_minimum_target": true,
+    "minimum_cards_target": 500,
+    "expected_cards_per_page": 10,
+    "requests_planned": 1,
+    "requests_started": 1,
+    "requests_completed": 1,
+    "request_errors": 0,
+    "contract_violations": 0,
+    "backoff_seconds_total": 0.75,
+    "slice_count_available": 6,
+    "slice_count_scanned": 1,
+    "confidence": "low",
+    "root_page_cached": false,
+    "aborted_after_upstream_errors": false,
+    "stopped_after_protection_signal": false,
+    "minimum_cards_target_met": false,
+    "stopped_after_minimum_cards": false,
+    "observed_listing_count": 10,
+    "scanned_slices_share_of_category_percent": 53.1
+  },
+  "slices": [
+    {
+      "id": 1271,
+      "name": "Доработка сайта",
+      "kworks_count": 6905,
+      "depth": 0,
+      "is_leaf": true,
+      "observed_cards": 10,
+      "observed_unique_sellers": 10,
+      "pages_requested": 1,
+      "pages_completed": 1
+    }
+  ],
+  "sample": {
+    "observed_listings": 10,
+    "unique_sellers": 10,
+    "reported_selected_scope_total": 6905,
+    "observed_share_of_scanned_scope_percent": 0.1,
+    "price_sample": {
+      "count": 10,
+      "min": 1000,
+      "median": 1000,
+      "max": 65000
+    },
+    "seller_repetition_in_observed_cards": {
+      "repeated_cards": 0,
+      "repeat_share_percent": 0.0,
+      "sellers": []
+    }
+  },
+  "raw_listings": [
+    {
+      "id": 9491608,
+      "title": "Профессиональные доработки и исправление ошибок на CMS 1С-Битрикс",
+      "description": "",
+      "price": 2000,
+      "currency": "RUB",
+      "seller": "Vaskevich_Dev",
+      "reviews": 892,
+      "rating": 5,
+      "classifier_id": 9387,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/9491608/professionalnie-dorabotki-i-ispravlenie-oshibok-na-cms-1s-bitriks",
+      "api_card": {
+        "id": 9491608,
+        "category_id": 38,
+        "title": "Профессиональные доработки и исправление ошибок на CMS 1С-Битрикс",
+        "url": "/website-repair/9491608/professionalnie-dorabotki-i-ispravlenie-oshibok-na-cms-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/9491608/professionalnie-dorabotki-i-ispravlenie-oshibok-na-cms-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/48/9491608-1670961138.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/48/9491608-1670961138.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/48/9491608-1670961138.jpg"
+        },
+        "price": 2000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1371112,
+          "username": "Vaskevich_Dev",
+          "fullname": "Роман Васькевич",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/02/1371112-10.jpg",
+          "rating": 5,
+          "reviews_count": 892,
+          "rating_count": 881,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9387,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    },
+    {
+      "id": 22632498,
+      "title": "Недорогая доработка сайта на 1С Битрикс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Edea",
+      "reviews": 426,
+      "rating": 5,
+      "classifier_id": 9162,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/22632498/nedorogaya-dorabotka-sayta-na-1s-bitriks",
+      "api_card": {
+        "id": 22632498,
+        "category_id": 38,
+        "title": "Недорогая доработка сайта на 1С Битрикс",
+        "url": "/website-repair/22632498/nedorogaya-dorabotka-sayta-na-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/22632498/nedorogaya-dorabotka-sayta-na-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/01/22632498-1663832251.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/01/22632498-1663832251.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/01/22632498-1663832251.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 12300706,
+          "username": "Edea",
+          "fullname": "Иван Прокопович",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/25/12300706-3.jpg",
+          "rating": 5,
+          "reviews_count": 426,
+          "rating_count": 426,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9162,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    },
+    {
+      "id": 9922862,
+      "title": "Доработка сайта MODX",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "modx_master",
+      "reviews": 1146,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/9922862/dorabotka-sayta-modx",
+      "api_card": {
+        "id": 9922862,
+        "category_id": 38,
+        "title": "Доработка сайта MODX",
+        "url": "/website-repair/9922862/dorabotka-sayta-modx",
+        "share_url": "https://kwork.ru/website-repair/9922862/dorabotka-sayta-modx",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/24/9922862-1601801424.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/24/9922862-1601801424.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/24/9922862-1601801424.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 5792778,
+          "username": "modx_master",
+          "fullname": "Игорь",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/03/5792778-1.jpg",
+          "rating": 5,
+          "reviews_count": 1146,
+          "rating_count": 1142,
+          "is_online": true,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    },
+    {
+      "id": 21929453,
+      "title": "Доработка сайта",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Shahzod_webdev",
+      "reviews": 126,
+      "rating": 4.9,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/21929453/dorabotka-sayta",
+      "api_card": {
+        "id": 21929453,
+        "category_id": 38,
+        "title": "Доработка сайта",
+        "url": "/website-repair/21929453/dorabotka-sayta",
+        "share_url": "https://kwork.ru/website-repair/21929453/dorabotka-sayta",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/21929453-6a34f2dd36af9.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/41/21929453-6a34f2dd36af9.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/41/21929453-6a34f2dd36af9.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 9423129,
+          "username": "Shahzod_webdev",
+          "fullname": "Шахзод",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/46/9423129-4.jpg",
+          "rating": 4.9,
+          "reviews_count": 126,
+          "rating_count": 125,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    },
+    {
+      "id": 12870511,
+      "title": "Доработка сайта на WordPress",
+      "description": "",
+      "price": 2000,
+      "currency": "RUB",
+      "seller": "OlegTixomirov",
+      "reviews": 584,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/12870511/dorabotka-sayta-na-wordpress",
+      "api_card": {
+        "id": 12870511,
+        "category_id": 38,
+        "title": "Доработка сайта на WordPress",
+        "url": "/website-repair/12870511/dorabotka-sayta-na-wordpress",
+        "share_url": "https://kwork.ru/website-repair/12870511/dorabotka-sayta-na-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/76/12870511-1664783942.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/76/12870511-1664783942.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/76/12870511-1664783942.jpg"
+        },
+        "price": 2000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 8426320,
+          "username": "OlegTixomirov",
+          "fullname": "Олег",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/57/8426320-6.jpg",
+          "rating": 5,
+          "reviews_count": 584,
+          "rating_count": 582,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    },
+    {
+      "id": 6334,
+      "title": "Доработка сайтов на 1С-Битрикс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "devyanin",
+      "reviews": 406,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/6334/dorabotka-saytov-na-1s-bitriks",
+      "api_card": {
+        "id": 6334,
+        "category_id": 38,
+        "title": "Доработка сайтов на 1С-Битрикс",
+        "url": "/website-repair/6334/dorabotka-saytov-na-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/6334/dorabotka-saytov-na-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/46/6334-2.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/46/6334-2.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/46/6334-2.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 3853,
+          "username": "devyanin",
+          "fullname": "Артур Девянин",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/45/3853-6.jpg",
+          "rating": 5,
+          "reviews_count": 406,
+          "rating_count": 406,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    },
+    {
+      "id": 10381346,
+      "title": "Wordpress - доработаю сайт",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "wordpress_wizard",
+      "reviews": 1290,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/10381346/wordpress-dorabotayu-sayt",
+      "api_card": {
+        "id": 10381346,
+        "category_id": 38,
+        "title": "Wordpress - доработаю сайт",
+        "url": "/website-repair/10381346/wordpress-dorabotayu-sayt",
+        "share_url": "https://kwork.ru/website-repair/10381346/wordpress-dorabotayu-sayt",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/06/10381346-1614677615.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/06/10381346-1614677615.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/06/10381346-1614677615.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1987646,
+          "username": "wordpress_wizard",
+          "fullname": "Дима",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/59/1987646-13.jpg",
+          "rating": 5,
+          "reviews_count": 1290,
+          "rating_count": 1271,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    },
+    {
+      "id": 18028913,
+      "title": "Доработка сайта на 1С Битрикс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "ilkarkarakurt",
+      "reviews": 1065,
+      "rating": 5,
+      "classifier_id": 1281,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/18028913/dorabotka-sayta-na-1s-bitriks",
+      "api_card": {
+        "id": 18028913,
+        "category_id": 38,
+        "title": "Доработка сайта на 1С Битрикс",
+        "url": "/website-repair/18028913/dorabotka-sayta-na-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/18028913/dorabotka-sayta-na-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/15/18028913-1639235613.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/15/18028913-1639235613.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/15/18028913-1639235613.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 10196022,
+          "username": "ilkarkarakurt",
+          "fullname": "Илкэр",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/12/10196022-5.jpg",
+          "rating": 5,
+          "reviews_count": 1065,
+          "rating_count": 1064,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 1281,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    },
+    {
+      "id": 5137308,
+      "title": "Доработка сайта на 1С Битрикс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "molodsom",
+      "reviews": 791,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/5137308/dorabotka-sayta-na-1s-bitriks",
+      "api_card": {
+        "id": 5137308,
+        "category_id": 38,
+        "title": "Доработка сайта на 1С Битрикс",
+        "url": "/website-repair/5137308/dorabotka-sayta-na-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/5137308/dorabotka-sayta-na-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/09/5137308-1583654752.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/09/5137308-1583654752.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/09/5137308-1583654752.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1704856,
+          "username": "molodsom",
+          "fullname": "Булат",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/22/1704856-1.jpg",
+          "rating": 5,
+          "reviews_count": 791,
+          "rating_count": 790,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    },
+    {
+      "id": 160439,
+      "title": "Помогу с переносом товаров, заказов, клиентов Opencart на новую версию",
+      "description": "",
+      "price": 65000,
+      "currency": "RUB",
+      "seller": "IQ-Biz",
+      "reviews": 93,
+      "rating": 5,
+      "classifier_id": 9159,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "share_url": "https://kwork.ru/website-repair/160439/pomogu-s-perenosom-tovarov-zakazov-klientov-opencart-na-novuyu-versiyu",
+      "api_card": {
+        "id": 160439,
+        "category_id": 38,
+        "title": "Помогу с переносом товаров, заказов, клиентов Opencart на новую версию",
+        "url": "/website-repair/160439/pomogu-s-perenosom-tovarov-zakazov-klientov-opencart-na-novuyu-versiyu",
+        "share_url": "https://kwork.ru/website-repair/160439/pomogu-s-perenosom-tovarov-zakazov-klientov-opencart-na-novuyu-versiyu",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/48/160439-1.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/48/160439-1.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/48/160439-1.jpg"
+        },
+        "price": 65000,
+        "is_price_from": false,
+        "is_best": false,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 227809,
+          "username": "IQ-Biz",
+          "fullname": "Алексей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/35/227809-2.jpg",
+          "rating": 5,
+          "reviews_count": 93,
+          "rating_count": 91,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9159,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      },
+      "first_seen_slice_id": 1271,
+      "first_seen_page": 1,
+      "first_seen_requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "first_seen_reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "observation_count": 1
+    }
+  ],
+  "requests": [
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "requested_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "reported_cursor": {
+        "kind": "page",
+        "page": 1
+      },
+      "page_fingerprint": "5701b6fcb8447b92dc354e91185c6bc74b993a63d19111f674742c6e5c589915",
+      "status": "ok",
+      "contract_state": "accepted",
+      "contract_reason_codes": [],
+      "cached": false,
+      "transport_slot": 1,
+      "declared_count": 7107,
+      "card_count": 10,
+      "received_count": 10,
+      "new_unique": 10,
+      "duplicates": 0,
+      "duplicate_rate": 0.0,
+      "source_new_unique": 10,
+      "source_duplicates": 0,
+      "timing_ms": 416,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    }
+  ],
+  "timings_ms": {
+    "total": 2214
+  },
+  "analysis": {
+    "status": "ok",
+    "provider_output": {
+      "summary": {
+        "scope": "Анализ основан только на предоставленной выборке Kwork: рубрика «Доработка и настройка сайта» / классификатор «Доработка сайта», 1 просканированный срез из 6 доступных, 10 карточек с первой страницы, 10 уникальных продавцов. Заявленный размер выбранного среза: 6905 кворков, доля наблюдаемых карточек около 0.1% от среза.",
+        "main_observation": "В наблюдаемой выдаче доминируют услуги доработки сайтов под конкретные CMS: 1С-Битрикс, WordPress, MODX, OpenCart. Большинство карточек предлагают обобщённую «доработку сайта» или «исправление ошибок», но позиционируются через CMS.",
+        "price_observation": "В выборке 10 цен: минимум 1000 RUB, медиана 1000 RUB, максимум 65000 RUB. 8 из 10 карточек стоят 1000–2000 RUB, одна карточка — 65000 RUB за перенос товаров, заказов и клиентов OpenCart на новую версию.",
+        "competition_observation": "Первая страница занята продавцами с сильными социальными доказательствами: рейтинг 4.9–5, отзывы от 93 до 1290, у многих уровень «Высший рейтинг» или «Высший рейтинг плюс», у части есть бейдж «Выбор Kwork».",
+        "confidence": "low"
+      },
+      "supply_shape": {
+        "coverage_limits": "Выводы относятся только к 10 наблюдаемым карточкам первой страницы одного среза «Доработка сайта». Это не весь рынок и не вся категория: всего в категории заявлено 13005 кворков, в выбранных срезах 6905, фактически просмотрено 10.",
+        "visible_supply_pattern": "Верх выдачи выглядит как смесь узких CMS-специалистов и универсальных доработчиков. Наиболее часто встречается 1С-Битрикс: 5 из 10 карточек явно содержат 1С-Битрикс/Битрикс в названии. WordPress встречается в 2 карточках, MODX — в 1, OpenCart — в 1, ещё 1 карточка названа просто «Доработка сайта».",
+        "price_structure": "Базовый вход в выдаче — 1000 RUB: 7 из 10 карточек. Ещё 2 карточки стоят 2000 RUB. Единственный крупный пакет — 65000 RUB — связан не с общей доработкой, а с конкретной задачей миграции данных OpenCart.",
+        "seller_structure": "Повторов продавцов в выборке нет: 10 карточек принадлежат 10 уникальным продавцам. Однако все наблюдаемые продавцы имеют высокий рейтинг, что повышает барьер доверия для нового предложения.",
+        "confidence": "low"
+      },
+      "niches": [
+        {
+          "name": "Доработка и исправление ошибок на 1С-Битрикс",
+          "evidence": [
+            "«Профессиональные доработки и исправление ошибок на CMS 1С-Битрикс», 2000 RUB, 892 отзыва, рейтинг 5",
+            "«Недорогая доработка сайта на 1С Битрикс», 1000 RUB, 426 отзывов, рейтинг 5",
+            "«Доработка сайтов на 1С-Битрикс», 1000 RUB, 406 отзывов, рейтинг 5",
+            "«Доработка сайта на 1С Битрикс», 1000 RUB, 1065 отзывов, рейтинг 5",
+            "«Доработка сайта на 1С Битрикс», 1000 RUB, 791 отзыв, рейтинг 5"
+          ],
+          "why": "Это самая заметная CMS-ниша в наблюдаемой выдаче: 5 из 10 карточек явно посвящены 1С-Битрикс. Спрос/предложение в верхней выдаче, вероятно, уже насыщено сильными исполнителями, поэтому позиционирование должно быть конкретным и доказательным, а не просто «доработка Битрикс».",
+          "confidence": "medium"
+        },
+        {
+          "name": "Доработка сайта на WordPress",
+          "evidence": [
+            "«Доработка сайта на WordPress», 2000 RUB, 584 отзыва, рейтинг 5",
+            "«Wordpress - доработаю сайт», 1000 RUB, 1290 отзывов, рейтинг 5"
+          ],
+          "why": "WordPress представлен 2 карточками из 10, причём оба продавца имеют сильные отзывы. Ниша видима в выдаче, но по данной выборке менее частотна, чем 1С-Битрикс.",
+          "confidence": "low"
+        },
+        {
+          "name": "Доработка сайта MODX",
+          "evidence": [
+            "«Доработка сайта MODX», 1000 RUB, 1146 отзывов, рейтинг 5, продавец modx_master"
+          ],
+          "why": "MODX представлен одной специализированной карточкой с очень большим числом отзывов. Это указывает на наличие отдельного позиционирования по CMS, но по одной карточке нельзя оценить глубину конкуренции.",
+          "confidence": "low"
+        },
+        {
+          "name": "Перенос товаров, заказов и клиентов OpenCart на новую версию",
+          "evidence": [
+            "«Помогу с переносом товаров, заказов, клиентов Opencart на новую версию», 65000 RUB, 93 отзыва, рейтинг 5"
+          ],
+          "why": "Это единственная карточка в выборке с высокой ценой 65000 RUB и конкретной задачей. В отличие от типовых доработок за 1000–2000 RUB, услуга упакована как комплексная миграция данных OpenCart.",
+          "confidence": "low"
+        },
+        {
+          "name": "Универсальная доработка сайта без указания CMS",
+          "evidence": [
+            "«Доработка сайта», 1000 RUB, 126 отзывов, рейтинг 4.9"
+          ],
+          "why": "В выборке есть универсальное предложение без CMS в названии, но оно только одно. На фоне карточек с CMS-уточнением такое позиционирование выглядит менее дифференцированным.",
+          "confidence": "low"
+        }
+      ],
+      "listing_directions": [
+        {
+          "direction": "CMS-специализация в заголовке: «Доработка сайта на 1С-Битрикс»",
+          "evidence": [
+            "5 из 10 наблюдаемых карточек используют 1С-Битрикс/Битрикс в названии",
+            "Цены таких карточек в выборке: 1000–2000 RUB",
+            "У продавцов по этим карточкам 406–1065 отзывов и рейтинг 5"
+          ],
+          "why": "Позиционирование через CMS соответствует структуре видимой выдачи. Но из-за высокой представленности и сильных продавцов простое повторение формата «доработка Битрикс» будет конкурировать напрямую с лидерами.",
+          "confidence": "medium"
+        },
+        {
+          "direction": "CMS-специализация в заголовке: «Доработка сайта на WordPress»",
+          "evidence": [
+            "«Доработка сайта на WordPress», 2000 RUB, 584 отзыва",
+            "«Wordpress - доработаю сайт», 1000 RUB, 1290 отзывов"
+          ],
+          "why": "Видимая выдача подтверждает, что WordPress-формат используется для упаковки услуги. При этом в выборке он встречается реже, чем 1С-Битрикс, но продавцы также сильные по отзывам.",
+          "confidence": "low"
+        },
+        {
+          "direction": "Узкая CMS-карточка под MODX",
+          "evidence": [
+            "«Доработка сайта MODX», 1000 RUB, 1146 отзывов, рейтинг 5"
+          ],
+          "why": "Отдельная карточка под MODX показывает, что узкая CMS-специализация присутствует в верхней выдаче. Практический вариант — не смешивать MODX с общей доработкой сайта, если исполнитель действительно работает с этой CMS.",
+          "confidence": "low"
+        },
+        {
+          "direction": "Дорогой пакет под конкретную миграционную задачу OpenCart",
+          "evidence": [
+            "«Помогу с переносом товаров, заказов, клиентов Opencart на новую версию», 65000 RUB",
+            "Это максимум цены в выборке, при медиане 1000 RUB"
+          ],
+          "why": "Карточка показывает альтернативу конкуренции в низком чеке: не общая доработка, а конкретный результат — перенос товаров, заказов и клиентов на новую версию OpenCart. Такой формат в выборке выделяется ценой и конкретностью.",
+          "confidence": "low"
+        },
+        {
+          "direction": "Базовый входной кворк за 1000 RUB с понятной CMS-привязкой",
+          "evidence": [
+            "7 из 10 карточек стоят 1000 RUB",
+            "Среди них есть 1С-Битрикс, MODX, WordPress и универсальная «Доработка сайта»"
+          ],
+          "why": "Верх выдачи в основном использует низкий входной чек 1000 RUB. Для практического позиционирования это означает, что базовый кворк может быть упакован как стартовая услуга, но ожидания клиента по объёму работ нужно проверять отдельно, так как описания карточек в данных пустые.",
+          "confidence": "medium"
+        },
+        {
+          "direction": "Позиционирование через исправление ошибок, а не только «доработку»",
+          "evidence": [
+            "«Профессиональные доработки и исправление ошибок на CMS 1С-Битрикс»"
+          ],
+          "why": "В выборке только одна карточка явно добавляет «исправление ошибок» в заголовок. Это может быть способом сделать услугу более понятной для клиентов с проблемами на сайте, но данных недостаточно, чтобы утверждать преимущество такого формата.",
+          "confidence": "low"
+        }
+      ],
+      "risks": [
+        {
+          "risk": "Очень малая выборка",
+          "evidence": "Фактически просмотрено 10 карточек из заявленных 6905 в выбранном срезе, только первая страница одного среза.",
+          "impact": "Нельзя уверенно судить о полном распределении ниш, цен и конкуренции."
+        },
+        {
+          "risk": "Сильные конкуренты в верхней выдаче",
+          "evidence": "Все наблюдаемые карточки имеют рейтинг 4.9–5, отзывы от 93 до 1290; у многих уровень «Высший рейтинг плюс» и/или бейдж «Выбор Kwork».",
+          "impact": "Новому или слабее оформленному предложению будет сложно конкурировать только ценой или общим заголовком."
+        },
+        {
+          "risk": "Переизбыток общих формулировок",
+          "evidence": "Многие названия построены вокруг «Доработка сайта» + CMS, без описаний в предоставленных данных.",
+          "impact": "Карточка без конкретизации может выглядеть взаимозаменяемой с существующими предложениями."
+        },
+        {
+          "risk": "Цена 1000 RUB может быть якорем, но не отражает реальный объём",
+          "evidence": "Медиана цены 1000 RUB, но описания карточек пустые, а is_price_from=false у всех карточек.",
+          "impact": "Без проверки состава пакетов нельзя понять, что именно конкуренты включают в базовую цену."
+        },
+        {
+          "risk": "Высокий чек подтверждён только одной карточкой",
+          "evidence": "Единственная карточка за 65000 RUB — перенос товаров, заказов и клиентов OpenCart на новую версию.",
+          "impact": "Нельзя обобщать, что дорогие пакеты широко востребованы в срезе; это только наблюдаемый пример."
+        }
+      ],
+      "questions_to_validate": [
+        "Какие ещё карточки находятся на 2–3 страницах среза «Доработка сайта», и сохраняется ли доминирование 1С-Битрикс?",
+        "Какие конкретные работы включают продавцы в базовые 1000 RUB и 2000 RUB, если открыть полные описания кворков?",
+        "Есть ли в выдаче отдельные карточки по другим CMS внутри этого же среза, не попавшие в первую страницу?",
+        "Как распределяются заказы и отзывы по карточкам 1С-Битрикс, WordPress, MODX и OpenCart за пределами первой страницы?",
+        "Дают ли карточки с более конкретной задачей, как перенос OpenCart, больше возможностей для высокого чека по сравнению с общей «доработкой сайта»?",
+        "Насколько влияет бейдж «Выбор Kwork» на видимость карточек в этом срезе, учитывая что он есть у 7 из 10 наблюдаемых карточек?",
+        "Какие формулировки в описаниях используют лидеры с 400+ отзывами, поскольку в предоставленных данных описания пустые?"
+      ]
+    },
+    "evidence_window": {
+      "raw_listing_count": 10,
+      "included_listing_count": 10,
+      "listing_limit": 5000,
+      "evidence_char_limit": 3500000,
+      "included_chars": 15323,
+      "truncated": false
+    }
+  },
+  "assistant_context_id": "6cbdb5ba80ed41c08a287746942e9da4"
+}

@@ -1,0 +1,3209 @@
+"""SQLite durable store for Kwork market collection jobs.
+
+The repository intentionally owns all SQLite access.  It opens short-lived
+connections configured for WAL, runs blocking calls in ``asyncio.to_thread``,
+and exposes JSON-serializable records for the API and worker layers.
+"""
+
+from __future__ import annotations
+
+import asyncio
+from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import asdict, is_dataclass
+from datetime import UTC, datetime, timedelta
+from enum import Enum
+import json
+from pathlib import Path
+import sqlite3
+import threading
+from typing import Any
+from uuid import uuid4
+
+from .models import (
+    CommandState,
+    JobPhase,
+    JobState,
+    MarketJobCreate,
+    Operation,
+    OperationKind,
+    OperationState,
+    ShardSpec,
+    TransportSnapshot,
+    WorkerCommandKind,
+    WorkerRecord,
+    utc_now,
+)
+
+
+JsonValue = str | int | float | bool | None | list["JsonValue"] | dict[str, "JsonValue"]
+JsonDict = dict[str, Any]
+
+
+class MarketJobRepositoryError(RuntimeError):
+    """Base error raised by the durable market-job store."""
+
+
+class MarketJobNotFoundError(MarketJobRepositoryError):
+    """Raised when a requested market job does not exist."""
+
+
+class MarketJobRevisionConflictError(MarketJobRepositoryError):
+    """Raised when an optimistic job revision check fails."""
+
+
+class MarketOperationNotFoundError(MarketJobRepositoryError):
+    """Raised when an operation does not exist for a requested job."""
+
+
+class MarketOperationLeaseError(MarketJobRepositoryError):
+    """Raised when a worker tries to finish an operation it does not lease."""
+
+
+class MarketCommitConflictError(MarketJobRepositoryError):
+    """Raised when a batch commit key belongs to another operation."""
+
+
+_TERMINAL_JOB_STATES = {JobState.COMPLETED.value, JobState.STOPPED.value, JobState.FAILED.value}
+_NON_LEASABLE_JOB_STATES = (
+    JobState.PAUSING.value,
+    JobState.PAUSED.value,
+    JobState.COMPLETING.value,
+    JobState.STOPPING.value,
+    JobState.STOPPED.value,
+    JobState.BLOCKED.value,
+    JobState.FAILED.value,
+    JobState.COMPLETED.value,
+)
+_UNSET = object()
+
+
+_SCHEMA = """
+CREATE TABLE IF NOT EXISTS market_jobs (
+    job_id TEXT PRIMARY KEY,
+    category_id INTEGER NOT NULL,
+    category_name TEXT NOT NULL DEFAULT '',
+    classifier_id INTEGER,
+    classifier_name TEXT NOT NULL DEFAULT '',
+    canonical_alias TEXT,
+    scope_filters_json TEXT NOT NULL DEFAULT '{}',
+    profile TEXT NOT NULL,
+    target_unique_cards INTEGER NOT NULL,
+    desired_workers INTEGER NOT NULL,
+    network_policy TEXT NOT NULL,
+    source_policy TEXT NOT NULL,
+    include_ai INTEGER NOT NULL,
+    state TEXT NOT NULL,
+    phase TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    request_budget INTEGER,
+    time_budget_seconds INTEGER,
+    counters_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    started_at TEXT,
+    finished_at TEXT,
+    latest_checkpoint_id TEXT,
+    last_error TEXT,
+    last_warning TEXT,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS market_category_aliases (
+    alias_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id INTEGER NOT NULL,
+    canonical_alias TEXT NOT NULL,
+    validation_status TEXT NOT NULL,
+    active_category_id INTEGER,
+    source_url TEXT,
+    last_validated_at TEXT,
+    protection_state TEXT,
+    schema_version INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(category_id, canonical_alias)
+);
+CREATE INDEX IF NOT EXISTS idx_market_category_aliases_category
+    ON market_category_aliases(category_id, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS market_shards (
+    shard_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    source TEXT NOT NULL,
+    alias TEXT NOT NULL,
+    filters_json TEXT NOT NULL DEFAULT '{}',
+    expected_count INTEGER,
+    state TEXT NOT NULL,
+    priority INTEGER NOT NULL DEFAULT 0,
+    cursor_json TEXT,
+    last_fingerprint TEXT,
+    counters_json TEXT NOT NULL DEFAULT '{}',
+    received_count INTEGER NOT NULL DEFAULT 0,
+    new_unique_count INTEGER NOT NULL DEFAULT 0,
+    duplicate_count INTEGER NOT NULL DEFAULT 0,
+    consecutive_zero_novelty INTEGER NOT NULL DEFAULT 0,
+    cooldown_until TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS market_operations (
+    operation_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    shard_id TEXT REFERENCES market_shards(shard_id) ON DELETE SET NULL,
+    kind TEXT NOT NULL,
+    state TEXT NOT NULL,
+    priority INTEGER NOT NULL DEFAULT 0,
+    idempotency_key TEXT,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    not_before TEXT,
+    lease_owner TEXT,
+    lease_deadline TEXT,
+    current_attempt INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    completed_at TEXT,
+    last_error TEXT
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_market_operations_idempotency
+    ON market_operations(job_id, idempotency_key)
+    WHERE idempotency_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_market_operations_queue
+    ON market_operations(job_id, state, not_before, priority DESC, created_at);
+CREATE INDEX IF NOT EXISTS idx_market_operations_lease
+    ON market_operations(state, lease_deadline);
+
+CREATE TABLE IF NOT EXISTS market_operation_attempts (
+    attempt_id TEXT PRIMARY KEY,
+    operation_id TEXT NOT NULL REFERENCES market_operations(operation_id) ON DELETE CASCADE,
+    attempt_number INTEGER NOT NULL,
+    state TEXT NOT NULL,
+    worker_id TEXT,
+    transport_id TEXT,
+    requested_cursor_json TEXT,
+    reported_cursor_json TEXT,
+    request_json TEXT,
+    response_status INTEGER,
+    response_bytes INTEGER,
+    duration_ms INTEGER,
+    received_count INTEGER NOT NULL DEFAULT 0,
+    new_unique_count INTEGER NOT NULL DEFAULT 0,
+    duplicate_count INTEGER NOT NULL DEFAULT 0,
+    page_fingerprint TEXT,
+    raw_response_ref TEXT,
+    failure_kind TEXT,
+    retry_after TEXT,
+    started_at TEXT NOT NULL,
+    finished_at TEXT,
+    error TEXT,
+    UNIQUE(operation_id, attempt_number)
+);
+CREATE INDEX IF NOT EXISTS idx_market_attempts_operation ON market_operation_attempts(operation_id, attempt_number);
+
+CREATE TABLE IF NOT EXISTS market_workers (
+    worker_id TEXT PRIMARY KEY,
+    job_id TEXT REFERENCES market_jobs(job_id) ON DELETE SET NULL,
+    generation INTEGER NOT NULL,
+    desired_state TEXT NOT NULL,
+    actual_state TEXT NOT NULL,
+    runtime_kind TEXT NOT NULL,
+    transport_id TEXT,
+    current_operation_id TEXT REFERENCES market_operations(operation_id) ON DELETE SET NULL,
+    heartbeat_at TEXT,
+    counters_json TEXT NOT NULL DEFAULT '{}',
+    last_error TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS market_transports (
+    transport_id TEXT PRIMARY KEY,
+    kind TEXT NOT NULL,
+    health TEXT NOT NULL,
+    slot INTEGER,
+    proxy_url TEXT,
+    profile_id TEXT,
+    profile_name TEXT,
+    country TEXT,
+    pid INTEGER,
+    generation INTEGER NOT NULL,
+    lease_owner TEXT,
+    quarantine_until TEXT,
+    last_rotate_reason TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_market_transports_slot
+    ON market_transports(slot) WHERE slot IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS market_listings (
+    listing_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    listing_key TEXT NOT NULL,
+    title TEXT,
+    seller_key TEXT,
+    price REAL,
+    canonical_json TEXT NOT NULL,
+    first_seen_at TEXT NOT NULL,
+    last_seen_at TEXT NOT NULL,
+    observation_count INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(job_id, listing_key)
+);
+CREATE INDEX IF NOT EXISTS idx_market_listings_job_seen ON market_listings(job_id, first_seen_at, listing_id);
+
+CREATE TABLE IF NOT EXISTS market_listing_observations (
+    observation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    listing_id INTEGER NOT NULL REFERENCES market_listings(listing_id) ON DELETE CASCADE,
+    operation_id TEXT NOT NULL REFERENCES market_operations(operation_id) ON DELETE CASCADE,
+    attempt_id TEXT REFERENCES market_operation_attempts(attempt_id) ON DELETE SET NULL,
+    source TEXT NOT NULL,
+    shard_id TEXT REFERENCES market_shards(shard_id) ON DELETE SET NULL,
+    response_position INTEGER NOT NULL,
+    requested_cursor_json TEXT,
+    reported_cursor_json TEXT,
+    raw_response_ref TEXT,
+    observed_at TEXT NOT NULL,
+    UNIQUE(operation_id, response_position)
+);
+CREATE INDEX IF NOT EXISTS idx_market_observations_job ON market_listing_observations(job_id, observation_id);
+CREATE INDEX IF NOT EXISTS idx_market_observations_listing ON market_listing_observations(listing_id, observation_id);
+
+CREATE TABLE IF NOT EXISTS market_events (
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    sequence INTEGER NOT NULL,
+    event_type TEXT NOT NULL,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    revision INTEGER,
+    worker_id TEXT,
+    operation_id TEXT REFERENCES market_operations(operation_id) ON DELETE SET NULL,
+    emitted_at TEXT NOT NULL,
+    PRIMARY KEY(job_id, sequence)
+);
+CREATE INDEX IF NOT EXISTS idx_market_events_replay ON market_events(job_id, sequence);
+
+CREATE TABLE IF NOT EXISTS market_checkpoints (
+    checkpoint_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    revision INTEGER NOT NULL,
+    phase TEXT NOT NULL,
+    frontier_json TEXT NOT NULL DEFAULT '{}',
+    metrics_json TEXT NOT NULL DEFAULT '{}',
+    last_event_sequence INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_market_checkpoints_job ON market_checkpoints(job_id, revision DESC);
+
+CREATE TABLE IF NOT EXISTS market_worker_commands (
+    command_id TEXT PRIMARY KEY,
+    job_id TEXT REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    worker_id TEXT REFERENCES market_workers(worker_id) ON DELETE SET NULL,
+    command_type TEXT NOT NULL,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    state TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    acknowledged_at TEXT,
+    completed_at TEXT,
+    error TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_market_worker_commands_queue
+    ON market_worker_commands(worker_id, state, created_at);
+
+CREATE TABLE IF NOT EXISTS market_batch_commits (
+    commit_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    operation_id TEXT NOT NULL REFERENCES market_operations(operation_id) ON DELETE CASCADE,
+    idempotency_key TEXT NOT NULL,
+    result_json TEXT NOT NULL,
+    committed_at TEXT NOT NULL,
+    UNIQUE(job_id, idempotency_key),
+    UNIQUE(job_id, operation_id)
+);
+"""
+
+
+def _enum_value(value: Any) -> Any:
+    return value.value if isinstance(value, Enum) else value
+
+
+def _jsonable(value: Any) -> JsonValue:
+    """Convert supported domain values into JSON-compatible primitives."""
+
+    value = _enum_value(value)
+    if is_dataclass(value):
+        value = asdict(value)
+    if isinstance(value, datetime):
+        return _timestamp(value)
+    if isinstance(value, Mapping):
+        return {str(key): _jsonable(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return [_jsonable(item) for item in value]
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
+
+
+def _dump_json(value: Any) -> str:
+    return json.dumps(_jsonable(value), ensure_ascii=True, separators=(",", ":"), sort_keys=True)
+
+
+def _load_json(value: str | None, default: Any) -> Any:
+    if not value:
+        return default
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return default
+
+
+def _timestamp(value: str | datetime | None = None) -> str:
+    if value is None:
+        return utc_now()
+    if isinstance(value, str):
+        return value
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=UTC)
+    return value.astimezone(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _lease_deadline(now: str, lease_seconds: int) -> str:
+    if lease_seconds <= 0:
+        raise ValueError("lease_seconds must be positive")
+    parsed = datetime.fromisoformat(now.replace("Z", "+00:00"))
+    return _timestamp(parsed + timedelta(seconds=lease_seconds))
+
+
+def _new_identifier(prefix: str) -> str:
+    return f"{prefix}_{uuid4().hex}"
+
+
+def _listing_key(listing: Mapping[str, Any]) -> str:
+    for key in ("listing_key", "listing_id", "id", "PID", "share_url", "url"):
+        value = listing.get(key)
+        if value is None:
+            continue
+        normalized = str(value).strip()
+        if normalized:
+            return normalized
+    raise ValueError("listing requires one of listing_key, listing_id, id, PID, share_url, or url")
+
+
+def _optional_text(value: Any) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _optional_number(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _listing_title(listing: Mapping[str, Any]) -> str | None:
+    for key in ("title", "gtitle", "name", "service_title"):
+        value = _optional_text(listing.get(key))
+        if value is not None:
+            return value
+    return None
+
+
+class MarketJobRepository:
+    """Durable SQLite repository for the Kwork market job control plane."""
+
+    def __init__(self, db_path: str | Path, *, busy_timeout_ms: int = 5_000) -> None:
+        if busy_timeout_ms <= 0:
+            raise ValueError("busy_timeout_ms must be positive")
+        self.db_path = Path(db_path)
+        self.busy_timeout_ms = busy_timeout_ms
+        self._initialized = False
+        self._initialization_lock = threading.Lock()
+
+    async def initialize(self) -> None:
+        """Create the schema before the repository is used by workers."""
+
+        await asyncio.to_thread(self._ensure_initialized)
+
+    async def close(self) -> None:
+        """Keep a symmetric lifecycle hook; connections are request-scoped."""
+
+    async def create_job(self, create: MarketJobCreate, *, job_id: str | None = None) -> JsonDict:
+        """Persist a new job in its initial ``preparing`` state."""
+
+        if not isinstance(create, MarketJobCreate):
+            raise TypeError("create must be a MarketJobCreate")
+        return await asyncio.to_thread(self._create_job_sync, create, job_id)
+
+    async def get_job(self, job_id: str) -> JsonDict | None:
+        """Return one job summary, or ``None`` when it is absent."""
+
+        return await asyncio.to_thread(self._get_job_sync, job_id)
+
+    async def list_jobs(
+        self,
+        *,
+        states: Iterable[JobState | str] | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[JsonDict]:
+        """List job summaries in newest-first order."""
+
+        return await asyncio.to_thread(self._list_jobs_sync, states, limit, offset)
+
+    async def update_job_state(
+        self,
+        job_id: str,
+        state: JobState | str,
+        *,
+        phase: JobPhase | str | None = None,
+        expected_revision: int | None = None,
+        counters: Mapping[str, int | float] | None = None,
+        last_error: str | None | object = _UNSET,
+        last_warning: str | None | object = _UNSET,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Transition a job and increment its revision atomically."""
+
+        return await asyncio.to_thread(
+            self._update_job_state_sync,
+            job_id,
+            _enum_value(state),
+            _enum_value(phase),
+            expected_revision,
+            counters,
+            last_error,
+            last_warning,
+            _timestamp(now),
+        )
+
+    async def update_job_configuration(
+        self,
+        job_id: str,
+        *,
+        desired_workers: int | None = None,
+        target_unique_cards: int | None = None,
+        profile: str | None = None,
+        request_budget: int | None | object = _UNSET,
+        time_budget_seconds: int | None | object = _UNSET,
+        expected_revision: int | None = None,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Update mutable execution controls and advance the job revision.
+
+        Passing ``None`` for a budget explicitly clears it. Omitted values are
+        left unchanged so UI controls can issue narrow optimistic updates.
+        """
+
+        return await asyncio.to_thread(
+            self._update_job_configuration_sync,
+            job_id,
+            desired_workers,
+            target_unique_cards,
+            profile,
+            request_budget,
+            time_budget_seconds,
+            expected_revision,
+            _timestamp(now),
+        )
+
+    async def update_job_settings(
+        self,
+        job_id: str,
+        **settings: Any,
+    ) -> JsonDict:
+        """Compatibility spelling for :meth:`update_job_configuration`."""
+
+        return await self.update_job_configuration(job_id, **settings)
+
+    async def create_shard(self, shard: ShardSpec | Mapping[str, Any]) -> JsonDict:
+        """Create a durable collection shard for an existing job."""
+
+        return await asyncio.to_thread(self._create_shard_sync, shard)
+
+    async def upsert_category_alias(
+        self,
+        category_id: int,
+        canonical_alias: str,
+        *,
+        validation_status: str,
+        active_category_id: int | None = None,
+        source_url: str | None = None,
+        last_validated_at: str | datetime | None = None,
+        protection_state: str | None = None,
+        schema_version: int = 1,
+    ) -> JsonDict:
+        """Persist the latest validation result for a canonical category alias."""
+
+        return await asyncio.to_thread(
+            self._upsert_category_alias_sync,
+            category_id,
+            canonical_alias,
+            validation_status,
+            active_category_id,
+            source_url,
+            _timestamp(last_validated_at) if last_validated_at is not None else None,
+            protection_state,
+            schema_version,
+        )
+
+    async def get_category_alias(self, category_id: int, canonical_alias: str) -> JsonDict | None:
+        """Return one persisted alias validation record."""
+
+        return await asyncio.to_thread(self._get_category_alias_sync, category_id, canonical_alias)
+
+    async def get_shard(self, shard_id: str) -> JsonDict | None:
+        """Return one shard record."""
+
+        return await asyncio.to_thread(self._get_shard_sync, shard_id)
+
+    async def list_shards(self, job_id: str, *, limit: int = 100, offset: int = 0) -> list[JsonDict]:
+        """List a job's shards by priority and creation order."""
+
+        return await asyncio.to_thread(self._list_shards_sync, job_id, limit, offset)
+
+    async def enqueue_operation(self, operation: Operation | Mapping[str, Any]) -> JsonDict:
+        """Enqueue an operation, deduplicating an explicit idempotency key."""
+
+        return await asyncio.to_thread(self._enqueue_operation_sync, operation)
+
+    async def get_operation(self, operation_id: str) -> JsonDict | None:
+        """Return an operation record."""
+
+        return await asyncio.to_thread(self._get_operation_sync, operation_id)
+
+    async def list_operation_attempts(self, operation_id: str, *, limit: int = 100) -> list[JsonDict]:
+        """List one operation's durable request/response evidence by attempt."""
+
+        return await asyncio.to_thread(self._list_operation_attempts_sync, operation_id, limit)
+
+    async def get_job_concurrency_signals(self, job_id: str, *, window: int = 50) -> JsonDict:
+        """Aggregate a bounded recent attempt window for concurrency advice.
+
+        The result is advisory only. It never mutates the job's configured
+        worker count, so an operator's explicit desired pool remains durable.
+        """
+
+        return await asyncio.to_thread(self._get_job_concurrency_signals_sync, job_id, window)
+
+    async def list_operations(
+        self,
+        job_id: str,
+        *,
+        state: OperationState | str | Iterable[OperationState | str] | None = None,
+        cursor: str | None = None,
+        limit: int = 100,
+    ) -> list[JsonDict]:
+        """List job operations after an opaque operation-ID cursor."""
+
+        return await asyncio.to_thread(self._list_operations_sync, job_id, state, cursor, limit)
+
+    async def lease_operation(
+        self,
+        worker_id: str,
+        *,
+        job_id: str | None = None,
+        transport_id: str | None = None,
+        lease_seconds: int = 60,
+        now: str | datetime | None = None,
+    ) -> JsonDict | None:
+        """Lease one ready operation after reclaiming expired leases."""
+
+        return await asyncio.to_thread(
+            self._lease_operation_sync,
+            worker_id,
+            job_id,
+            _optional_text(transport_id),
+            lease_seconds,
+            _timestamp(now),
+        )
+
+    async def lease_next_operation(
+        self,
+        worker_id: str,
+        *,
+        job_id: str | None = None,
+        transport_id: str | None = None,
+        lease_seconds: int = 60,
+        now: str | datetime | None = None,
+    ) -> JsonDict | None:
+        """Compatibility spelling for :meth:`lease_operation`."""
+
+        return await self.lease_operation(
+            worker_id,
+            job_id=job_id,
+            transport_id=transport_id,
+            lease_seconds=lease_seconds,
+            now=now,
+        )
+
+    async def renew_operation_lease(
+        self,
+        operation_id: str,
+        worker_id: str,
+        *,
+        lease_seconds: int = 60,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Extend a worker-owned lease and return the refreshed operation."""
+
+        return await asyncio.to_thread(
+            self._renew_operation_lease_sync,
+            operation_id,
+            worker_id,
+            lease_seconds,
+            _timestamp(now),
+        )
+
+    async def complete_operation(
+        self,
+        operation_id: str,
+        worker_id: str,
+        *,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Complete a generic worker operation owned by ``worker_id``."""
+
+        return await asyncio.to_thread(
+            self._complete_operation_sync,
+            operation_id,
+            worker_id,
+            _timestamp(now),
+        )
+
+    async def fail_operation(
+        self,
+        operation_id: str,
+        worker_id: str,
+        error: str,
+        *,
+        retry_at: str | datetime | None = None,
+        failure_kind: str | None = None,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Fail a lease-owned operation, optionally putting it into retry wait."""
+
+        if not _optional_text(error):
+            raise ValueError("error is required")
+        return await asyncio.to_thread(
+            self._fail_operation_sync,
+            operation_id,
+            worker_id,
+            error,
+            _timestamp(retry_at) if retry_at is not None else None,
+            failure_kind,
+            _timestamp(now),
+        )
+
+    async def recover_expired_operations(self, *, now: str | datetime | None = None) -> int:
+        """Return the number of operations reclaimed from an expired lease."""
+
+        return await asyncio.to_thread(self._recover_expired_operations_sync, _timestamp(now))
+
+    async def cancel_collection_operations(self, job_id: str, *, reason: str) -> int:
+        """Cancel pending collection work while retaining already committed evidence."""
+
+        if not _optional_text(reason):
+            raise ValueError("reason is required")
+        return await asyncio.to_thread(self._cancel_collection_operations_sync, job_id, reason, utc_now())
+
+    async def append_event(
+        self,
+        job_id: str,
+        event_type: str,
+        payload: Mapping[str, Any] | None = None,
+        *,
+        revision: int | None = None,
+        worker_id: str | None = None,
+        operation_id: str | None = None,
+        emitted_at: str | datetime | None = None,
+    ) -> JsonDict:
+        """Append one durable monotonic event for a job."""
+
+        return await asyncio.to_thread(
+            self._append_event_sync,
+            job_id,
+            event_type,
+            payload or {},
+            revision,
+            worker_id,
+            operation_id,
+            _timestamp(emitted_at),
+        )
+
+    async def replay_events(
+        self,
+        job_id: str,
+        *,
+        after_sequence: int = 0,
+        after_seq: int | None = None,
+        limit: int = 500,
+    ) -> list[JsonDict]:
+        """Replay events strictly after a client sequence cursor."""
+
+        if after_seq is not None:
+            after_sequence = after_seq
+        return await asyncio.to_thread(self._replay_events_sync, job_id, after_sequence, limit)
+
+    async def get_event_sequence_bounds(self, job_id: str) -> JsonDict:
+        """Return the first and last durable event sequence for one job."""
+
+        return await asyncio.to_thread(self._get_event_sequence_bounds_sync, job_id)
+
+    async def commit_accepted_batch(
+        self,
+        *,
+        job_id: str,
+        shard_id: str,
+        operation_id: str,
+        listings: Sequence[Mapping[str, Any]],
+        source: str | None = None,
+        idempotency_key: str | None = None,
+        attempt_id: str | None = None,
+        requested_cursor: Mapping[str, Any] | None = None,
+        reported_cursor: Mapping[str, Any] | None = None,
+        next_cursor: Mapping[str, Any] | None = None,
+        raw_response_ref: str | None = None,
+        fingerprint: str | None = None,
+        counter_deltas: Mapping[str, int | float] | None = None,
+        counters: Mapping[str, int | float] | None = None,
+        event_payloads: Sequence[Mapping[str, Any]] | Mapping[str, Any] | None = None,
+        next_operation: Mapping[str, Any] | None = None,
+        shard_state: str = "active",
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Atomically persist an accepted source batch.
+
+        ``counter_deltas`` and the legacy ``counters`` alias are increments;
+        canonical listing and observation totals are always derived from the
+        database.  A replay of the same ``idempotency_key`` returns the first
+        commit result without changing rows, counters, events, or checkpoints.
+        """
+
+        if counter_deltas is not None and counters is not None:
+            raise ValueError("pass either counter_deltas or counters, not both")
+        if not isinstance(listings, Sequence) or isinstance(listings, (str, bytes)):
+            raise TypeError("listings must be a sequence of mappings")
+        if not all(isinstance(listing, Mapping) for listing in listings):
+            raise TypeError("listings must contain mappings")
+        return await asyncio.to_thread(
+            self._commit_accepted_batch_sync,
+            job_id,
+            shard_id,
+            operation_id,
+            tuple(listings),
+            source,
+            idempotency_key or f"accepted:{operation_id}",
+            attempt_id,
+            requested_cursor,
+            reported_cursor,
+            next_cursor,
+            raw_response_ref,
+            fingerprint,
+            counter_deltas if counter_deltas is not None else counters,
+            event_payloads,
+            next_operation,
+            shard_state,
+            _timestamp(now),
+        )
+
+    async def upsert_worker(
+        self,
+        worker: WorkerRecord | Mapping[str, Any],
+        *,
+        job_id: str | None = None,
+    ) -> JsonDict:
+        """Persist the latest durable worker record and optional job binding."""
+
+        return await asyncio.to_thread(self._upsert_worker_sync, worker, job_id)
+
+    async def get_worker(self, worker_id: str) -> JsonDict | None:
+        """Return a worker status record."""
+
+        return await asyncio.to_thread(self._get_worker_sync, worker_id)
+
+    async def list_workers(
+        self,
+        *,
+        job_id: str | None = None,
+        cursor: str | None = None,
+        limit: int = 100,
+    ) -> list[JsonDict]:
+        """List durable worker records, optionally scoped to active job work."""
+
+        return await asyncio.to_thread(self._list_workers_sync, job_id, cursor, limit)
+
+    async def upsert_transport(self, transport: TransportSnapshot | Mapping[str, Any]) -> JsonDict:
+        """Persist the latest durable transport snapshot."""
+
+        return await asyncio.to_thread(self._upsert_transport_sync, transport)
+
+    async def get_transport(self, transport_id: str) -> JsonDict | None:
+        """Return one durable transport record."""
+
+        return await asyncio.to_thread(self._get_transport_sync, transport_id)
+
+    async def list_transports(
+        self,
+        *,
+        job_id: str | None = None,
+        cursor: str | None = None,
+        limit: int = 100,
+    ) -> list[JsonDict]:
+        """List transports, optionally constrained to active job workers."""
+
+        return await asyncio.to_thread(self._list_transports_sync, job_id, cursor, limit)
+
+    async def get_listing(self, job_id: str, listing_id: int | str) -> JsonDict | None:
+        """Return a normalized listing by its durable integer identifier."""
+
+        return await asyncio.to_thread(self._get_listing_sync, job_id, listing_id)
+
+    async def list_listings(
+        self,
+        job_id: str,
+        *,
+        cursor: int | str | None = None,
+        limit: int = 100,
+        shard_id: str | None = None,
+    ) -> list[JsonDict]:
+        """List normalized listings after an integer listing-ID cursor."""
+
+        return await asyncio.to_thread(self._list_listings_sync, job_id, cursor, limit, shard_id)
+
+    async def list_listing_metrics_inputs(self, job_id: str) -> list[JsonDict]:
+        """Return all normalized listing inputs needed for server-side metrics.
+
+        The UI remains paginated; this bounded-by-job query is only used by the
+        results projector and preserves one deterministic first-observed shard
+        attribution per deduplicated listing.
+        """
+
+        return await asyncio.to_thread(self._list_listing_metrics_inputs_sync, job_id)
+
+    async def load_export_snapshot(self, job_id: str) -> JsonDict:
+        """Return one consistent, durable projection used by the local exporter.
+
+        This intentionally bypasses UI pagination: a completed job may export up
+        to the configured 10,000-card target, while API views remain paginated.
+        """
+
+        return await asyncio.to_thread(self._load_export_snapshot_sync, job_id)
+
+    async def create_checkpoint(
+        self,
+        job_id: str,
+        *,
+        frontier: Mapping[str, Any] | None = None,
+        metrics: Mapping[str, Any] | None = None,
+        set_latest: bool = True,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Persist a checkpoint, optionally retaining the prior result checkpoint."""
+
+        return await asyncio.to_thread(
+            self._create_checkpoint_sync,
+            job_id,
+            frontier or {},
+            metrics,
+            set_latest,
+            _timestamp(now),
+        )
+
+    async def get_checkpoint(self, checkpoint_id: str) -> JsonDict | None:
+        """Return one durable checkpoint."""
+
+        return await asyncio.to_thread(self._get_checkpoint_sync, checkpoint_id)
+
+    async def list_checkpoints(
+        self,
+        job_id: str,
+        *,
+        cursor: str | None = None,
+        limit: int = 100,
+    ) -> list[JsonDict]:
+        """List checkpoints newest-first after a checkpoint-ID cursor."""
+
+        return await asyncio.to_thread(self._list_checkpoints_sync, job_id, cursor, limit)
+
+    async def enqueue_worker_command(
+        self,
+        command_type: WorkerCommandKind | str,
+        *,
+        job_id: str | None = None,
+        worker_id: str | None = None,
+        payload: Mapping[str, Any] | None = None,
+        command_id: str | None = None,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Queue a durable control command for a worker or a job."""
+
+        return await asyncio.to_thread(
+            self._enqueue_worker_command_sync,
+            _enum_value(command_type),
+            job_id,
+            worker_id,
+            payload or {},
+            command_id,
+            _timestamp(now),
+        )
+
+    async def enqueue_command(
+        self,
+        command_type: WorkerCommandKind | str,
+        **command: Any,
+    ) -> JsonDict:
+        """Compatibility spelling for :meth:`enqueue_worker_command`."""
+
+        return await self.enqueue_worker_command(command_type, **command)
+
+    async def get_worker_command(self, command_id: str) -> JsonDict | None:
+        """Return one durable worker command."""
+
+        return await asyncio.to_thread(self._get_worker_command_sync, command_id)
+
+    async def list_worker_commands(
+        self,
+        *,
+        job_id: str | None = None,
+        worker_id: str | None = None,
+        state: CommandState | str | Iterable[CommandState | str] | None = None,
+        cursor: str | None = None,
+        limit: int = 100,
+    ) -> list[JsonDict]:
+        """List durable worker commands after a command-ID cursor."""
+
+        return await asyncio.to_thread(
+            self._list_worker_commands_sync,
+            job_id,
+            worker_id,
+            state,
+            cursor,
+            limit,
+        )
+
+    async def update_worker_command(
+        self,
+        command_id: str,
+        state: CommandState | str,
+        *,
+        error: str | None | object = _UNSET,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Advance a command state and persist acknowledgement/completion times."""
+
+        return await asyncio.to_thread(
+            self._update_worker_command_sync,
+            command_id,
+            _enum_value(state),
+            error,
+            _timestamp(now),
+        )
+
+    def _ensure_initialized(self) -> None:
+        if self._initialized:
+            return
+        with self._initialization_lock:
+            if self._initialized:
+                return
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            with self._connect() as connection:
+                connection.executescript(_SCHEMA)
+                self._migrate_schema(connection)
+            self._initialized = True
+
+    @staticmethod
+    def _migrate_schema(connection: sqlite3.Connection) -> None:
+        """Apply additive migrations for local databases created by earlier builds."""
+
+        worker_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_workers)")}
+        if "job_id" not in worker_columns:
+            connection.execute(
+                "ALTER TABLE market_workers ADD COLUMN job_id TEXT REFERENCES market_jobs(job_id) ON DELETE SET NULL"
+            )
+        connection.execute("CREATE INDEX IF NOT EXISTS idx_market_workers_job ON market_workers(job_id, worker_id)")
+        MarketJobRepository._backfill_listing_projection(connection)
+
+    @staticmethod
+    def _backfill_listing_projection(connection: sqlite3.Connection) -> None:
+        """Populate legacy listing summaries from their durable raw card payload."""
+
+        rows = connection.execute(
+            """
+            SELECT listing_id, title, seller_key, canonical_json
+            FROM market_listings
+            WHERE COALESCE(TRIM(title), '') = '' OR COALESCE(TRIM(seller_key), '') = ''
+            """
+        ).fetchall()
+        for row in rows:
+            canonical = _load_json(row["canonical_json"], {})
+            if not isinstance(canonical, Mapping):
+                continue
+            title = _listing_title(canonical) or _optional_text(row["title"])
+            seller_key = MarketJobRepository._seller_key(canonical) or _optional_text(row["seller_key"])
+            if title == row["title"] and seller_key == row["seller_key"]:
+                continue
+            connection.execute(
+                "UPDATE market_listings SET title = ?, seller_key = ? WHERE listing_id = ?",
+                (title, seller_key, int(row["listing_id"])),
+            )
+
+    def _connect(self) -> sqlite3.Connection:
+        connection = sqlite3.connect(
+            self.db_path,
+            timeout=self.busy_timeout_ms / 1_000,
+            isolation_level=None,
+        )
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute(f"PRAGMA busy_timeout = {self.busy_timeout_ms}")
+        connection.execute("PRAGMA journal_mode = WAL").fetchone()
+        connection.execute("PRAGMA synchronous = NORMAL")
+        return connection
+
+    def _create_job_sync(self, create: MarketJobCreate, job_id: str | None) -> JsonDict:
+        self._ensure_initialized()
+        identifier = job_id or _new_identifier("job")
+        now = utc_now()
+        scope = create.scope
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    """
+                    INSERT INTO market_jobs (
+                        job_id, category_id, category_name, classifier_id, classifier_name, canonical_alias,
+                        scope_filters_json, profile, target_unique_cards, desired_workers, network_policy,
+                        source_policy, include_ai, state, phase, revision, request_budget, time_budget_seconds,
+                        counters_json, created_at, started_at, finished_at, latest_checkpoint_id, last_error,
+                        last_warning, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, '{}', ?, NULL, NULL, NULL, NULL, NULL, ?)
+                    """,
+                    (
+                        identifier,
+                        scope.category_id,
+                        scope.category_name,
+                        scope.classifier_id,
+                        scope.classifier_name,
+                        scope.canonical_alias,
+                        _dump_json(scope.filters),
+                        create.profile,
+                        create.target_unique_cards,
+                        create.desired_workers,
+                        _enum_value(create.network_policy),
+                        _enum_value(create.source_policy),
+                        int(create.include_ai),
+                        JobState.PREPARING.value,
+                        JobPhase.PREPARE.value,
+                        create.request_budget,
+                        create.time_budget_seconds,
+                        now,
+                        now,
+                    ),
+                )
+                row = self._require_job_row(connection, identifier)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._job_record(row)
+
+    def _get_job_sync(self, job_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute("SELECT * FROM market_jobs WHERE job_id = ?", (job_id,)).fetchone()
+        return self._job_record(row) if row else None
+
+    def _list_jobs_sync(
+        self,
+        states: Iterable[JobState | str] | None,
+        limit: int,
+        offset: int,
+    ) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, offset)
+        values = tuple(str(_enum_value(state)) for state in states) if states is not None else ()
+        query = "SELECT * FROM market_jobs"
+        parameters: list[Any] = []
+        if values:
+            query += f" WHERE state IN ({','.join('?' for _ in values)})"
+            parameters.extend(values)
+        query += " ORDER BY created_at DESC, job_id DESC LIMIT ? OFFSET ?"
+        parameters.extend((limit, offset))
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [self._job_record(row) for row in rows]
+
+    def _update_job_state_sync(
+        self,
+        job_id: str,
+        state: str,
+        phase: str | None,
+        expected_revision: int | None,
+        counters: Mapping[str, int | float] | None,
+        last_error: str | None | object,
+        last_warning: str | None | object,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                current = self._require_job_row(connection, job_id)
+                if expected_revision is not None and current["revision"] != expected_revision:
+                    raise MarketJobRevisionConflictError(
+                        f"job {job_id} has revision {current['revision']}, expected {expected_revision}"
+                    )
+                merged_counters = self._merge_counter_values(_load_json(current["counters_json"], {}), counters)
+                updates = ["state = ?", "revision = ?", "counters_json = ?", "updated_at = ?"]
+                parameters: list[Any] = [state, int(current["revision"]) + 1, _dump_json(merged_counters), now]
+                if phase is not None:
+                    updates.append("phase = ?")
+                    parameters.append(phase)
+                if current["started_at"] is None and state not in {JobState.PREPARING.value, JobState.PAUSED.value}:
+                    updates.append("started_at = ?")
+                    parameters.append(now)
+                if state in _TERMINAL_JOB_STATES and current["finished_at"] is None:
+                    updates.append("finished_at = ?")
+                    parameters.append(now)
+                if last_error is not _UNSET:
+                    updates.append("last_error = ?")
+                    parameters.append(last_error)
+                if last_warning is not _UNSET:
+                    updates.append("last_warning = ?")
+                    parameters.append(last_warning)
+                parameters.append(job_id)
+                connection.execute(f"UPDATE market_jobs SET {', '.join(updates)} WHERE job_id = ?", parameters)
+                row = self._require_job_row(connection, job_id)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._job_record(row)
+
+    def _update_job_configuration_sync(
+        self,
+        job_id: str,
+        desired_workers: int | None,
+        target_unique_cards: int | None,
+        profile: str | None,
+        request_budget: int | None | object,
+        time_budget_seconds: int | None | object,
+        expected_revision: int | None,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        if (
+            desired_workers is None
+            and target_unique_cards is None
+            and profile is None
+            and request_budget is _UNSET
+            and time_budget_seconds is _UNSET
+        ):
+            raise ValueError("at least one job configuration value is required")
+        if desired_workers is not None and (
+            isinstance(desired_workers, bool) or not isinstance(desired_workers, int) or not 1 <= desired_workers <= 10
+        ):
+            raise ValueError("desired_workers must be between 1 and 10")
+        if target_unique_cards is not None and (
+            isinstance(target_unique_cards, bool)
+            or not isinstance(target_unique_cards, int)
+            or not 1 <= target_unique_cards <= 10_000
+        ):
+            raise ValueError("target_unique_cards must be between 1 and 10000")
+        normalized_profile = _optional_text(profile) if profile is not None else None
+        if profile is not None and normalized_profile is None:
+            raise ValueError("profile is required when it is updated")
+        for name, value in (("request_budget", request_budget), ("time_budget_seconds", time_budget_seconds)):
+            if value is _UNSET or value is None:
+                continue
+            if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                raise ValueError(f"{name} must be a positive integer or None")
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                current = self._require_job_row(connection, job_id)
+                if expected_revision is not None and current["revision"] != expected_revision:
+                    raise MarketJobRevisionConflictError(
+                        f"job {job_id} has revision {current['revision']}, expected {expected_revision}"
+                    )
+                updates = ["revision = ?", "updated_at = ?"]
+                parameters: list[Any] = [int(current["revision"]) + 1, now]
+                if desired_workers is not None:
+                    updates.append("desired_workers = ?")
+                    parameters.append(desired_workers)
+                if target_unique_cards is not None:
+                    updates.append("target_unique_cards = ?")
+                    parameters.append(target_unique_cards)
+                if normalized_profile is not None:
+                    updates.append("profile = ?")
+                    parameters.append(normalized_profile)
+                if request_budget is not _UNSET:
+                    updates.append("request_budget = ?")
+                    parameters.append(request_budget)
+                if time_budget_seconds is not _UNSET:
+                    updates.append("time_budget_seconds = ?")
+                    parameters.append(time_budget_seconds)
+                parameters.append(job_id)
+                connection.execute(f"UPDATE market_jobs SET {', '.join(updates)} WHERE job_id = ?", parameters)
+                row = self._require_job_row(connection, job_id)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._job_record(row)
+
+    def _create_shard_sync(self, shard: ShardSpec | Mapping[str, Any]) -> JsonDict:
+        self._ensure_initialized()
+        values = self._shard_values(shard)
+        now = utc_now()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                self._require_job_row(connection, values["job_id"])
+                connection.execute(
+                    """
+                    INSERT INTO market_shards (
+                        shard_id, job_id, source, alias, filters_json, expected_count, state, priority,
+                        cursor_json, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        values["shard_id"],
+                        values["job_id"],
+                        values["source"],
+                        values["alias"],
+                        _dump_json(values["filters"]),
+                        values["expected_count"],
+                        values["state"],
+                        values["priority"],
+                        _dump_json(values["cursor"]) if values["cursor"] is not None else None,
+                        now,
+                        now,
+                    ),
+                )
+                row = self._require_shard_row(connection, values["shard_id"])
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._shard_record(row)
+
+    def _get_shard_sync(self, shard_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute("SELECT * FROM market_shards WHERE shard_id = ?", (shard_id,)).fetchone()
+        return self._shard_record(row) if row else None
+
+    def _upsert_category_alias_sync(
+        self,
+        category_id: int,
+        canonical_alias: str,
+        validation_status: str,
+        active_category_id: int | None,
+        source_url: str | None,
+        last_validated_at: str | None,
+        protection_state: str | None,
+        schema_version: int,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        alias = _optional_text(canonical_alias)
+        status = _optional_text(validation_status)
+        if category_id <= 0:
+            raise ValueError("category_id must be positive")
+        if alias is None or status is None:
+            raise ValueError("canonical_alias and validation_status are required")
+        if schema_version <= 0:
+            raise ValueError("schema_version must be positive")
+        now = utc_now()
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO market_category_aliases (
+                    category_id, canonical_alias, validation_status, active_category_id, source_url,
+                    last_validated_at, protection_state, schema_version, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(category_id, canonical_alias) DO UPDATE SET
+                    validation_status = excluded.validation_status,
+                    active_category_id = excluded.active_category_id,
+                    source_url = excluded.source_url,
+                    last_validated_at = excluded.last_validated_at,
+                    protection_state = excluded.protection_state,
+                    schema_version = excluded.schema_version,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    category_id,
+                    alias,
+                    status,
+                    active_category_id,
+                    source_url,
+                    last_validated_at,
+                    protection_state,
+                    schema_version,
+                    now,
+                    now,
+                ),
+            )
+            row = connection.execute(
+                """
+                SELECT * FROM market_category_aliases
+                WHERE category_id = ? AND canonical_alias = ?
+                """,
+                (category_id, alias),
+            ).fetchone()
+        return self._category_alias_record(row)
+
+    def _get_category_alias_sync(self, category_id: int, canonical_alias: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT * FROM market_category_aliases
+                WHERE category_id = ? AND canonical_alias = ?
+                """,
+                (category_id, canonical_alias),
+            ).fetchone()
+        return self._category_alias_record(row) if row else None
+
+    def _list_shards_sync(self, job_id: str, limit: int, offset: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, offset)
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT * FROM market_shards
+                WHERE job_id = ?
+                ORDER BY priority DESC, created_at ASC, shard_id ASC
+                LIMIT ? OFFSET ?
+                """,
+                (job_id, limit, offset),
+            ).fetchall()
+        return [self._shard_record(row) for row in rows]
+
+    def _enqueue_operation_sync(self, operation: Operation | Mapping[str, Any]) -> JsonDict:
+        self._ensure_initialized()
+        values = self._operation_values(operation)
+        now = utc_now()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                row = self._enqueue_operation_locked(connection, values, now)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._operation_record(row)
+
+    def _get_operation_sync(self, operation_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute("SELECT * FROM market_operations WHERE operation_id = ?", (operation_id,)).fetchone()
+        return self._operation_record(row) if row else None
+
+    def _list_operation_attempts_sync(self, operation_id: str, limit: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, 0)
+        with self._connect() as connection:
+            self._require_operation_row(connection, operation_id)
+            rows = connection.execute(
+                """
+                SELECT * FROM market_operation_attempts
+                WHERE operation_id = ?
+                ORDER BY attempt_number ASC
+                LIMIT ?
+                """,
+                (operation_id, limit),
+            ).fetchall()
+        return [self._attempt_record(row) for row in rows]
+
+    def _get_job_concurrency_signals_sync(self, job_id: str, window: int) -> JsonDict:
+        self._ensure_initialized()
+        self._validate_pagination(window, 0)
+        with self._connect() as connection:
+            self._require_job_row(connection, job_id)
+            rows = connection.execute(
+                """
+                SELECT
+                    attempts.state,
+                    attempts.failure_kind,
+                    attempts.response_status,
+                    attempts.received_count,
+                    attempts.new_unique_count
+                FROM market_operation_attempts AS attempts
+                JOIN market_operations AS operations ON operations.operation_id = attempts.operation_id
+                WHERE operations.job_id = ?
+                ORDER BY attempts.started_at DESC, attempts.attempt_number DESC, attempts.attempt_id DESC
+                LIMIT ?
+                """,
+                (job_id, window),
+            ).fetchall()
+        successes = 0
+        http_403 = 0
+        http_429 = 0
+        timeouts = 0
+        received = 0
+        new_unique = 0
+        for row in rows:
+            state = str(row["state"])
+            failure_kind = str(row["failure_kind"] or "")
+            status_code = row["response_status"]
+            successes += int(state == OperationState.SUCCEEDED.value)
+            http_403 += int(status_code == 403 or failure_kind == "protection")
+            http_429 += int(status_code == 429 or failure_kind == "rate_limited")
+            timeouts += int(failure_kind == "timeout")
+            received += int(row["received_count"])
+            new_unique += int(row["new_unique_count"])
+        return {
+            "window_attempt_count": len(rows),
+            "success_count": successes,
+            "http_403_count": http_403,
+            "http_429_count": http_429,
+            "timeout_count": timeouts,
+            "received_count": received,
+            "new_unique_count": new_unique,
+            "novelty_rate": new_unique / received if received else None,
+        }
+
+    def _list_operations_sync(
+        self,
+        job_id: str,
+        state: OperationState | str | Iterable[OperationState | str] | None,
+        cursor: str | None,
+        limit: int,
+    ) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, 0)
+        states = self._state_filter_values(state)
+        after = self._cursor_text(cursor)
+        query = "SELECT * FROM market_operations WHERE job_id = ?"
+        parameters: list[Any] = [job_id]
+        if states:
+            query += f" AND state IN ({','.join('?' for _ in states)})"
+            parameters.extend(states)
+        if after is not None:
+            query += " AND operation_id > ?"
+            parameters.append(after)
+        query += " ORDER BY operation_id ASC LIMIT ?"
+        parameters.append(limit)
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [self._operation_record(row) for row in rows]
+
+    def _lease_operation_sync(
+        self,
+        worker_id: str,
+        job_id: str | None,
+        transport_id: str | None,
+        lease_seconds: int,
+        now: str,
+    ) -> JsonDict | None:
+        self._ensure_initialized()
+        if not worker_id.strip():
+            raise ValueError("worker_id is required")
+        deadline = _lease_deadline(now, lease_seconds)
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                self._recover_expired_operations_locked(connection, now)
+                query = f"""
+                    SELECT operations.* FROM market_operations AS operations
+                    JOIN market_jobs AS jobs ON jobs.job_id = operations.job_id
+                    WHERE operations.state IN (?, ?)
+                      AND (operations.not_before IS NULL OR operations.not_before <= ?)
+                      AND jobs.state NOT IN ({','.join('?' for _ in _NON_LEASABLE_JOB_STATES)})
+                """
+                parameters: list[Any] = [
+                    OperationState.QUEUED.value,
+                    OperationState.RETRY_WAIT.value,
+                    now,
+                    *_NON_LEASABLE_JOB_STATES,
+                ]
+                if job_id is not None:
+                    query += " AND operations.job_id = ?"
+                    parameters.append(job_id)
+                query += " ORDER BY priority DESC, created_at ASC, operation_id ASC LIMIT 1"
+                operation = connection.execute(query, parameters).fetchone()
+                if operation is None:
+                    connection.execute("COMMIT")
+                    return None
+                attempt_number = int(operation["current_attempt"]) + 1
+                attempt_id = _new_identifier("attempt")
+                connection.execute(
+                    """
+                    UPDATE market_operations
+                    SET state = ?, lease_owner = ?, lease_deadline = ?, current_attempt = ?, updated_at = ?
+                    WHERE operation_id = ?
+                    """,
+                    (
+                        OperationState.LEASED.value,
+                        worker_id,
+                        deadline,
+                        attempt_number,
+                        now,
+                        operation["operation_id"],
+                    ),
+                )
+                connection.execute(
+                    """
+                    INSERT INTO market_operation_attempts (
+                        attempt_id, operation_id, attempt_number, state, worker_id, transport_id, started_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        attempt_id,
+                        operation["operation_id"],
+                        attempt_number,
+                        OperationState.LEASED.value,
+                        worker_id,
+                        transport_id,
+                        now,
+                    ),
+                )
+                worker = connection.execute(
+                    "SELECT job_id FROM market_workers WHERE worker_id = ?", (worker_id,)
+                ).fetchone()
+                if worker is not None and worker["job_id"] is not None and worker["job_id"] != operation["job_id"]:
+                    raise MarketOperationLeaseError(
+                        f"worker {worker_id} is bound to job {worker['job_id']}, not {operation['job_id']}"
+                    )
+                connection.execute(
+                    """
+                    UPDATE market_workers
+                    SET job_id = ?, current_operation_id = ?, heartbeat_at = ?, updated_at = ?
+                    WHERE worker_id = ?
+                    """,
+                    (operation["job_id"], operation["operation_id"], now, now, worker_id),
+                )
+                leased = self._require_operation_row(connection, operation["operation_id"])
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        result = self._operation_record(leased)
+        result["attempt_id"] = attempt_id
+        return result
+
+    def _renew_operation_lease_sync(
+        self,
+        operation_id: str,
+        worker_id: str,
+        lease_seconds: int,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        deadline = _lease_deadline(now, lease_seconds)
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                updated = connection.execute(
+                    """
+                    UPDATE market_operations
+                    SET lease_deadline = ?, updated_at = ?
+                    WHERE operation_id = ? AND lease_owner = ? AND state IN (?, ?)
+                    """,
+                    (
+                        deadline,
+                        now,
+                        operation_id,
+                        worker_id,
+                        OperationState.LEASED.value,
+                        OperationState.RUNNING.value,
+                    ),
+                ).rowcount
+                if not updated:
+                    raise MarketOperationNotFoundError(f"active lease not found for operation {operation_id}")
+                row = self._require_operation_row(connection, operation_id)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._operation_record(row)
+
+    def _complete_operation_sync(self, operation_id: str, worker_id: str, now: str) -> JsonDict:
+        self._ensure_initialized()
+        if not _optional_text(worker_id):
+            raise ValueError("worker_id is required")
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                operation = self._require_operation_row(connection, operation_id)
+                self._require_lease_owner(operation, worker_id, now)
+                connection.execute(
+                    """
+                    UPDATE market_operations
+                    SET state = ?, lease_owner = NULL, lease_deadline = NULL, completed_at = ?,
+                        updated_at = ?, last_error = NULL
+                    WHERE operation_id = ?
+                    """,
+                    (OperationState.SUCCEEDED.value, now, now, operation_id),
+                )
+                attempt_id = self._latest_attempt_id(connection, operation_id)
+                if attempt_id is not None:
+                    connection.execute(
+                        """
+                        UPDATE market_operation_attempts
+                        SET state = ?, finished_at = ?, error = NULL
+                        WHERE attempt_id = ?
+                        """,
+                        (OperationState.SUCCEEDED.value, now, attempt_id),
+                    )
+                self._clear_worker_operation_locked(connection, worker_id, operation_id, now)
+                row = self._require_operation_row(connection, operation_id)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._operation_record(row)
+
+    def _fail_operation_sync(
+        self,
+        operation_id: str,
+        worker_id: str,
+        error: str,
+        retry_at: str | None,
+        failure_kind: str | None,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        if not _optional_text(worker_id):
+            raise ValueError("worker_id is required")
+        state = OperationState.RETRY_WAIT.value if retry_at is not None else OperationState.FAILED.value
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                operation = self._require_operation_row(connection, operation_id)
+                self._require_lease_owner(operation, worker_id, now)
+                connection.execute(
+                    """
+                    UPDATE market_operations
+                    SET state = ?, not_before = ?, lease_owner = NULL, lease_deadline = NULL,
+                        completed_at = ?, updated_at = ?, last_error = ?
+                    WHERE operation_id = ?
+                    """,
+                    (
+                        state,
+                        retry_at,
+                        now if state == OperationState.FAILED.value else None,
+                        now,
+                        error,
+                        operation_id,
+                    ),
+                )
+                attempt_id = self._latest_attempt_id(connection, operation_id)
+                if attempt_id is not None:
+                    connection.execute(
+                        """
+                        UPDATE market_operation_attempts
+                        SET state = ?, failure_kind = ?, retry_after = ?, finished_at = ?, error = ?
+                        WHERE attempt_id = ?
+                        """,
+                        (OperationState.FAILED.value, failure_kind, retry_at, now, error, attempt_id),
+                    )
+                self._clear_worker_operation_locked(connection, worker_id, operation_id, now)
+                row = self._require_operation_row(connection, operation_id)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._operation_record(row)
+
+    def _recover_expired_operations_sync(self, now: str) -> int:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                recovered = self._recover_expired_operations_locked(connection, now)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return recovered
+
+    def _cancel_collection_operations_sync(self, job_id: str, reason: str, now: str) -> int:
+        self._ensure_initialized()
+        collection_kinds = (
+            OperationKind.MAP_SCOPE.value,
+            OperationKind.RESOLVE_ALIAS.value,
+            OperationKind.FETCH_BATCH.value,
+            OperationKind.ENRICH_LISTING.value,
+        )
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                self._require_job_row(connection, job_id)
+                updated = connection.execute(
+                    f"""
+                    UPDATE market_operations
+                    SET state = ?, completed_at = ?, updated_at = ?, last_error = ?
+                    WHERE job_id = ?
+                      AND kind IN ({','.join('?' for _ in collection_kinds)})
+                      AND state IN (?, ?)
+                    """,
+                    (
+                        OperationState.CANCELLED.value,
+                        now,
+                        now,
+                        reason,
+                        job_id,
+                        *collection_kinds,
+                        OperationState.QUEUED.value,
+                        OperationState.RETRY_WAIT.value,
+                    ),
+                ).rowcount
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return updated
+
+    def _append_event_sync(
+        self,
+        job_id: str,
+        event_type: str,
+        payload: Mapping[str, Any],
+        revision: int | None,
+        worker_id: str | None,
+        operation_id: str | None,
+        emitted_at: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        if not event_type.strip():
+            raise ValueError("event_type is required")
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                self._require_job_row(connection, job_id)
+                row = self._append_event_locked(
+                    connection,
+                    job_id=job_id,
+                    event_type=event_type,
+                    payload=payload,
+                    revision=revision,
+                    worker_id=worker_id,
+                    operation_id=operation_id,
+                    emitted_at=emitted_at,
+                )
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._event_record(row)
+
+    def _replay_events_sync(self, job_id: str, after_sequence: int, limit: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        if after_sequence < 0:
+            raise ValueError("after_sequence cannot be negative")
+        self._validate_pagination(limit, 0)
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT * FROM market_events
+                WHERE job_id = ? AND sequence > ?
+                ORDER BY sequence ASC
+                LIMIT ?
+                """,
+                (job_id, after_sequence, limit),
+            ).fetchall()
+        return [self._event_record(row) for row in rows]
+
+    def _get_event_sequence_bounds_sync(self, job_id: str) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            self._require_job_row(connection, job_id)
+            row = connection.execute(
+                """
+                SELECT MIN(sequence) AS first_sequence, MAX(sequence) AS last_sequence
+                FROM market_events
+                WHERE job_id = ?
+                """,
+                (job_id,),
+            ).fetchone()
+        first = row["first_sequence"] if row is not None else None
+        last = row["last_sequence"] if row is not None else None
+        return {
+            "first_sequence": int(first) if first is not None else None,
+            "last_sequence": int(last) if last is not None else None,
+        }
+
+    def _commit_accepted_batch_sync(
+        self,
+        job_id: str,
+        shard_id: str,
+        operation_id: str,
+        listings: tuple[Mapping[str, Any], ...],
+        source: str | None,
+        idempotency_key: str,
+        attempt_id: str | None,
+        requested_cursor: Mapping[str, Any] | None,
+        reported_cursor: Mapping[str, Any] | None,
+        next_cursor: Mapping[str, Any] | None,
+        raw_response_ref: str | None,
+        fingerprint: str | None,
+        counter_deltas: Mapping[str, int | float] | None,
+        event_payloads: Sequence[Mapping[str, Any]] | Mapping[str, Any] | None,
+        next_operation: Mapping[str, Any] | None,
+        shard_state: str,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        if not idempotency_key.strip():
+            raise ValueError("idempotency_key is required")
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                replay = connection.execute(
+                    """
+                    SELECT * FROM market_batch_commits
+                    WHERE job_id = ? AND (idempotency_key = ? OR operation_id = ?)
+                    LIMIT 1
+                    """,
+                    (job_id, idempotency_key, operation_id),
+                ).fetchone()
+                if replay is not None:
+                    if replay["operation_id"] != operation_id:
+                        raise MarketCommitConflictError(
+                            f"idempotency key {idempotency_key!r} already belongs to {replay['operation_id']}"
+                        )
+                    result = _load_json(replay["result_json"], {})
+                    result["idempotent_replay"] = True
+                    connection.execute("COMMIT")
+                    return result
+
+                job = self._require_job_row(connection, job_id)
+                shard = self._require_shard_row(connection, shard_id)
+                if shard["job_id"] != job_id:
+                    raise MarketCommitConflictError(f"shard {shard_id} does not belong to job {job_id}")
+                operation = self._require_operation_row(connection, operation_id)
+                if operation["job_id"] != job_id or operation["shard_id"] != shard_id:
+                    raise MarketCommitConflictError(f"operation {operation_id} does not belong to the supplied job/shard")
+
+                effective_source = source or shard["source"]
+                effective_attempt_id = attempt_id or self._latest_attempt_id(connection, operation_id)
+                new_listings = 0
+                observations = 0
+                requested_json = _dump_json(requested_cursor) if requested_cursor is not None else None
+                reported_json = _dump_json(reported_cursor) if reported_cursor is not None else None
+
+                for position, listing in enumerate(listings):
+                    listing_key = _listing_key(listing)
+                    existing = connection.execute(
+                        "SELECT listing_id FROM market_listings WHERE job_id = ? AND listing_key = ?",
+                        (job_id, listing_key),
+                    ).fetchone()
+                    if existing is None:
+                        cursor = connection.execute(
+                            """
+                            INSERT INTO market_listings (
+                                job_id, listing_key, title, seller_key, price, canonical_json,
+                                first_seen_at, last_seen_at, observation_count
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                            """,
+                            (
+                                job_id,
+                                listing_key,
+                                _listing_title(listing),
+                                self._seller_key(listing),
+                                _optional_number(listing.get("price")),
+                                _dump_json(listing),
+                                now,
+                                now,
+                            ),
+                        )
+                        listing_id = int(cursor.lastrowid)
+                        new_listings += 1
+                    else:
+                        listing_id = int(existing["listing_id"])
+                        connection.execute(
+                            """
+                            UPDATE market_listings
+                            SET title = ?, seller_key = ?, price = ?, canonical_json = ?, last_seen_at = ?
+                            WHERE listing_id = ?
+                            """,
+                            (
+                                _listing_title(listing),
+                                self._seller_key(listing),
+                                _optional_number(listing.get("price")),
+                                _dump_json(listing),
+                                now,
+                                listing_id,
+                            ),
+                        )
+                    inserted = connection.execute(
+                        """
+                        INSERT OR IGNORE INTO market_listing_observations (
+                            job_id, listing_id, operation_id, attempt_id, source, shard_id, response_position,
+                            requested_cursor_json, reported_cursor_json, raw_response_ref, observed_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            job_id,
+                            listing_id,
+                            operation_id,
+                            effective_attempt_id,
+                            effective_source,
+                            shard_id,
+                            position,
+                            requested_json,
+                            reported_json,
+                            raw_response_ref,
+                            now,
+                        ),
+                    ).rowcount
+                    if inserted:
+                        observations += 1
+                        connection.execute(
+                            "UPDATE market_listings SET observation_count = observation_count + 1 WHERE listing_id = ?",
+                            (listing_id,),
+                        )
+
+                duplicate_count = max(observations - new_listings, 0)
+                zero_novelty = 1 if observations and new_listings == 0 else 0
+                connection.execute(
+                    """
+                    UPDATE market_shards
+                    SET state = ?, cursor_json = ?, last_fingerprint = ?, received_count = received_count + ?,
+                        new_unique_count = new_unique_count + ?, duplicate_count = duplicate_count + ?,
+                        consecutive_zero_novelty = CASE WHEN ? = 1 THEN consecutive_zero_novelty + 1 ELSE 0 END,
+                        updated_at = ?
+                    WHERE shard_id = ?
+                    """,
+                    (
+                        shard_state,
+                        _dump_json(next_cursor) if next_cursor is not None else shard["cursor_json"],
+                        fingerprint,
+                        observations,
+                        new_listings,
+                        duplicate_count,
+                        zero_novelty,
+                        now,
+                        shard_id,
+                    ),
+                )
+                connection.execute(
+                    """
+                    UPDATE market_operations
+                    SET state = ?, lease_owner = NULL, lease_deadline = NULL, completed_at = ?, updated_at = ?
+                    WHERE operation_id = ?
+                    """,
+                    (OperationState.SUCCEEDED.value, now, now, operation_id),
+                )
+                if effective_attempt_id is not None:
+                    connection.execute(
+                        """
+                        UPDATE market_operation_attempts
+                        SET state = ?, requested_cursor_json = ?, reported_cursor_json = ?, received_count = ?,
+                            new_unique_count = ?, duplicate_count = ?, page_fingerprint = ?, raw_response_ref = ?,
+                            finished_at = ?
+                        WHERE attempt_id = ?
+                        """,
+                        (
+                            OperationState.SUCCEEDED.value,
+                            requested_json,
+                            reported_json,
+                            observations,
+                            new_listings,
+                            duplicate_count,
+                            fingerprint,
+                            raw_response_ref,
+                            now,
+                            effective_attempt_id,
+                        ),
+                    )
+
+                totals = connection.execute(
+                    """
+                    SELECT
+                        (SELECT COUNT(*) FROM market_listings WHERE job_id = ?) AS unique_listings,
+                        (SELECT COUNT(*) FROM market_listing_observations WHERE job_id = ?) AS observations
+                    """,
+                    (job_id, job_id),
+                ).fetchone()
+                target_reached = int(totals["unique_listings"]) >= int(job["target_unique_cards"])
+                merged_counters = self._merge_counter_values(_load_json(job["counters_json"], {}), counter_deltas)
+                merged_counters.update(
+                    {
+                        "accepted_batches": int(merged_counters.get("accepted_batches", 0)) + 1,
+                        "unique_listings": int(totals["unique_listings"]),
+                        "unique_cards": int(totals["unique_listings"]),
+                        "listing_observations": int(totals["observations"]),
+                        "card_occurrences": int(totals["observations"]),
+                    }
+                )
+                revision = int(job["revision"]) + 1
+                connection.execute(
+                    "UPDATE market_jobs SET revision = ?, counters_json = ?, updated_at = ? WHERE job_id = ?",
+                    (revision, _dump_json(merged_counters), now, job_id),
+                )
+
+                next_operation_id: str | None = None
+                continuation_allowed = not target_reached and job["state"] not in _NON_LEASABLE_JOB_STATES
+                if next_operation is not None and continuation_allowed:
+                    values = self._operation_values(
+                        {
+                            **next_operation,
+                            "operation_id": next_operation.get("operation_id") or _new_identifier("op"),
+                            "job_id": next_operation.get("job_id") or job_id,
+                            "shard_id": next_operation.get("shard_id") or shard_id,
+                        }
+                    )
+                    next_row = self._enqueue_operation_locked(connection, values, now)
+                    next_operation_id = str(next_row["operation_id"])
+
+                effective_shard_state = shard_state
+                if next_operation is not None and next_operation_id is None:
+                    effective_shard_state = "exhausted"
+                connection.execute(
+                    "UPDATE market_shards SET state = ? WHERE shard_id = ?",
+                    (effective_shard_state, shard_id),
+                )
+                event_rows = self._append_commit_events_locked(
+                    connection,
+                    job_id=job_id,
+                    operation_id=operation_id,
+                    revision=revision,
+                    event_payloads=event_payloads,
+                    default_payload={
+                        "shard_id": shard_id,
+                        "new_listings": new_listings,
+                        "observations": observations,
+                        "next_operation_id": next_operation_id,
+                    },
+                    emitted_at=now,
+                )
+                last_sequence = event_rows[-1]["sequence"] if event_rows else self._latest_event_sequence(connection, job_id)
+                checkpoint_id = _new_identifier("checkpoint")
+                connection.execute(
+                    """
+                    INSERT INTO market_checkpoints (
+                        checkpoint_id, job_id, revision, phase, frontier_json, metrics_json, last_event_sequence, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        checkpoint_id,
+                        job_id,
+                        revision,
+                        job["phase"],
+                        _dump_json({"shard_id": shard_id, "next_cursor": next_cursor}),
+                        _dump_json(merged_counters),
+                        last_sequence,
+                        now,
+                    ),
+                )
+                connection.execute(
+                    "UPDATE market_jobs SET latest_checkpoint_id = ? WHERE job_id = ?",
+                    (checkpoint_id, job_id),
+                )
+                result: JsonDict = {
+                    "job_id": job_id,
+                    "shard_id": shard_id,
+                    "operation_id": operation_id,
+                    "attempt_id": effective_attempt_id,
+                    "idempotency_key": idempotency_key,
+                    "idempotent_replay": False,
+                    "new_listings": new_listings,
+                    "observations": observations,
+                    "revision": revision,
+                    "counters": merged_counters,
+                    "next_operation_id": next_operation_id,
+                    "target_reached": target_reached,
+                    "checkpoint_id": checkpoint_id,
+                    "event_sequences": [int(event["sequence"]) for event in event_rows],
+                }
+                connection.execute(
+                    """
+                    INSERT INTO market_batch_commits (commit_id, job_id, operation_id, idempotency_key, result_json, committed_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (_new_identifier("commit"), job_id, operation_id, idempotency_key, _dump_json(result), now),
+                )
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return result
+
+    def _upsert_worker_sync(self, worker: WorkerRecord | Mapping[str, Any], job_id: str | None) -> JsonDict:
+        self._ensure_initialized()
+        data = asdict(worker) if is_dataclass(worker) else dict(worker)
+        worker_id = _optional_text(data.get("worker_id"))
+        if worker_id is None:
+            raise ValueError("worker_id is required")
+        payload_job_id = _optional_text(data.get("job_id"))
+        requested_job_id = _optional_text(job_id)
+        if requested_job_id is not None and payload_job_id is not None and requested_job_id != payload_job_id:
+            raise ValueError("worker job_id conflicts with the explicit job_id")
+        bound_job_id = requested_job_id or payload_job_id
+        now = utc_now()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                if bound_job_id is not None:
+                    self._require_job_row(connection, bound_job_id)
+                connection.execute(
+                    """
+                    INSERT INTO market_workers (
+                        worker_id, job_id, generation, desired_state, actual_state, runtime_kind, transport_id,
+                        current_operation_id, heartbeat_at, counters_json, last_error, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(worker_id) DO UPDATE SET
+                        job_id = COALESCE(excluded.job_id, market_workers.job_id),
+                        generation = excluded.generation,
+                        desired_state = excluded.desired_state,
+                        actual_state = excluded.actual_state,
+                        runtime_kind = excluded.runtime_kind,
+                        transport_id = excluded.transport_id,
+                        current_operation_id = excluded.current_operation_id,
+                        heartbeat_at = excluded.heartbeat_at,
+                        counters_json = excluded.counters_json,
+                        last_error = excluded.last_error,
+                        updated_at = excluded.updated_at
+                    """,
+                    (
+                        worker_id,
+                        bound_job_id,
+                        int(data.get("generation", 1)),
+                        _enum_value(data.get("desired_state", "running")),
+                        _enum_value(data.get("actual_state", "idle")),
+                        data.get("runtime_kind", "in_process"),
+                        data.get("transport_id"),
+                        data.get("current_operation_id"),
+                        data.get("heartbeat_at"),
+                        _dump_json(data.get("counters", {})),
+                        data.get("last_error"),
+                        now,
+                        now,
+                    ),
+                )
+                row = connection.execute("SELECT * FROM market_workers WHERE worker_id = ?", (worker_id,)).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._worker_record(row)
+
+    def _upsert_transport_sync(self, transport: TransportSnapshot | Mapping[str, Any]) -> JsonDict:
+        self._ensure_initialized()
+        data = asdict(transport) if is_dataclass(transport) else dict(transport)
+        transport_id = _optional_text(data.get("transport_id"))
+        if transport_id is None:
+            raise ValueError("transport_id is required")
+        now = utc_now()
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO market_transports (
+                    transport_id, kind, health, slot, proxy_url, profile_id, profile_name, country, pid,
+                    generation, lease_owner, quarantine_until, last_rotate_reason, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(transport_id) DO UPDATE SET
+                    kind = excluded.kind,
+                    health = excluded.health,
+                    slot = excluded.slot,
+                    proxy_url = excluded.proxy_url,
+                    profile_id = excluded.profile_id,
+                    profile_name = excluded.profile_name,
+                    country = excluded.country,
+                    pid = excluded.pid,
+                    generation = excluded.generation,
+                    lease_owner = excluded.lease_owner,
+                    quarantine_until = excluded.quarantine_until,
+                    last_rotate_reason = excluded.last_rotate_reason,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    transport_id,
+                    _enum_value(data.get("kind", "direct")),
+                    _enum_value(data.get("health", "unknown")),
+                    data.get("slot"),
+                    data.get("proxy_url"),
+                    data.get("profile_id"),
+                    data.get("profile_name"),
+                    data.get("country"),
+                    data.get("pid"),
+                    int(data.get("generation", 1)),
+                    data.get("lease_owner"),
+                    data.get("quarantine_until"),
+                    data.get("last_rotate_reason"),
+                    now,
+                    now,
+                ),
+            )
+            row = connection.execute("SELECT * FROM market_transports WHERE transport_id = ?", (transport_id,)).fetchone()
+        return self._transport_record(row)
+
+    def _get_worker_sync(self, worker_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute("SELECT * FROM market_workers WHERE worker_id = ?", (worker_id,)).fetchone()
+        return self._worker_record(row) if row else None
+
+    def _list_workers_sync(self, job_id: str | None, cursor: str | None, limit: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, 0)
+        after = self._cursor_text(cursor)
+        query = "SELECT workers.* FROM market_workers AS workers WHERE 1 = 1"
+        parameters: list[Any] = []
+        if job_id is not None:
+            query += " AND workers.job_id = ?"
+            parameters.append(job_id)
+        if after is not None:
+            query += " AND workers.worker_id > ?"
+            parameters.append(after)
+        query += " ORDER BY workers.worker_id ASC LIMIT ?"
+        parameters.append(limit)
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [self._worker_record(row) for row in rows]
+
+    def _get_transport_sync(self, transport_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM market_transports WHERE transport_id = ?", (transport_id,)
+            ).fetchone()
+        return self._transport_record(row) if row else None
+
+    def _list_transports_sync(self, job_id: str | None, cursor: str | None, limit: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, 0)
+        after = self._cursor_text(cursor)
+        query = """
+            SELECT DISTINCT transports.*
+            FROM market_transports AS transports
+            LEFT JOIN market_workers AS workers ON workers.transport_id = transports.transport_id
+            WHERE 1 = 1
+        """
+        parameters: list[Any] = []
+        if job_id is not None:
+            # A released worker no longer points at its route, but the route
+            # still belongs to the job's available transport pool.
+            query += " AND (workers.job_id = ? OR transports.lease_owner IS NULL)"
+            parameters.append(job_id)
+        if after is not None:
+            query += " AND transports.transport_id > ?"
+            parameters.append(after)
+        query += " ORDER BY transports.transport_id ASC LIMIT ?"
+        parameters.append(limit)
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [self._transport_record(row) for row in rows]
+
+    def _get_listing_sync(self, job_id: str, listing_id: int | str) -> JsonDict | None:
+        self._ensure_initialized()
+        identifier = self._listing_id_cursor(listing_id)
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM market_listings WHERE job_id = ? AND listing_id = ?",
+                (job_id, identifier),
+            ).fetchone()
+        return self._listing_record(row) if row else None
+
+    def _list_listings_sync(
+        self,
+        job_id: str,
+        cursor: int | str | None,
+        limit: int,
+        shard_id: str | None,
+    ) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, 0)
+        after = self._listing_id_cursor(cursor, allow_zero=True) if cursor is not None else 0
+        query = "SELECT listings.* FROM market_listings AS listings WHERE listings.job_id = ? AND listings.listing_id > ?"
+        parameters: list[Any] = [job_id, after]
+        if shard_id is not None:
+            query += """
+                AND EXISTS (
+                    SELECT 1 FROM market_listing_observations AS observations
+                    WHERE observations.listing_id = listings.listing_id AND observations.shard_id = ?
+                )
+            """
+            parameters.append(shard_id)
+        query += " ORDER BY listings.listing_id ASC LIMIT ?"
+        parameters.append(limit)
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [self._listing_record(row) for row in rows]
+
+    def _list_listing_metrics_inputs_sync(self, job_id: str) -> list[JsonDict]:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            self._require_job_row(connection, job_id)
+            rows = connection.execute(
+                """
+                SELECT
+                    listings.listing_id,
+                    listings.listing_key,
+                    listings.title,
+                    listings.seller_key,
+                    listings.price,
+                    (
+                        SELECT observations.shard_id
+                        FROM market_listing_observations AS observations
+                        WHERE observations.listing_id = listings.listing_id
+                        ORDER BY observations.observation_id ASC
+                        LIMIT 1
+                    ) AS shard_id
+                FROM market_listings AS listings
+                WHERE listings.job_id = ?
+                ORDER BY listings.listing_id ASC
+                """,
+                (job_id,),
+            ).fetchall()
+        return [
+            {
+                "listing_id": int(row["listing_id"]),
+                "listing_key": row["listing_key"],
+                "title": row["title"],
+                "seller_key": row["seller_key"],
+                "price": row["price"],
+                "shard_id": row["shard_id"],
+            }
+            for row in rows
+        ]
+
+    def _load_export_snapshot_sync(self, job_id: str) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            job = self._require_job_row(connection, job_id)
+            listings = connection.execute(
+                "SELECT * FROM market_listings WHERE job_id = ? ORDER BY listing_id ASC",
+                (job_id,),
+            ).fetchall()
+            observations = connection.execute(
+                "SELECT * FROM market_listing_observations WHERE job_id = ? ORDER BY observation_id ASC",
+                (job_id,),
+            ).fetchall()
+            events = connection.execute(
+                "SELECT * FROM market_events WHERE job_id = ? ORDER BY sequence ASC",
+                (job_id,),
+            ).fetchall()
+        return {
+            "job": self._job_record(job),
+            "listings": [self._listing_record(row) for row in listings],
+            "observations": [self._observation_record(row) for row in observations],
+            "events": [self._event_record(row) for row in events],
+        }
+
+    def _create_checkpoint_sync(
+        self,
+        job_id: str,
+        frontier: Mapping[str, Any],
+        metrics: Mapping[str, Any] | None,
+        set_latest: bool,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                job = self._require_job_row(connection, job_id)
+                checkpoint_id = _new_identifier("checkpoint")
+                last_sequence = self._latest_event_sequence(connection, job_id)
+                metric_values = metrics if metrics is not None else _load_json(job["counters_json"], {})
+                connection.execute(
+                    """
+                    INSERT INTO market_checkpoints (
+                        checkpoint_id, job_id, revision, phase, frontier_json, metrics_json, last_event_sequence, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        checkpoint_id,
+                        job_id,
+                        job["revision"],
+                        job["phase"],
+                        _dump_json(frontier),
+                        _dump_json(metric_values),
+                        last_sequence,
+                        now,
+                    ),
+                )
+                if set_latest:
+                    connection.execute(
+                        "UPDATE market_jobs SET latest_checkpoint_id = ?, updated_at = ? WHERE job_id = ?",
+                        (checkpoint_id, now, job_id),
+                    )
+                row = connection.execute(
+                    "SELECT * FROM market_checkpoints WHERE checkpoint_id = ?", (checkpoint_id,)
+                ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._checkpoint_record(row)
+
+    def _get_checkpoint_sync(self, checkpoint_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM market_checkpoints WHERE checkpoint_id = ?", (checkpoint_id,)
+            ).fetchone()
+        return self._checkpoint_record(row) if row else None
+
+    def _list_checkpoints_sync(self, job_id: str, cursor: str | None, limit: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, 0)
+        query = "SELECT * FROM market_checkpoints WHERE job_id = ?"
+        parameters: list[Any] = [job_id]
+        after = self._cursor_text(cursor)
+        with self._connect() as connection:
+            if after is not None:
+                anchor = connection.execute(
+                    """
+                    SELECT revision, created_at, checkpoint_id FROM market_checkpoints
+                    WHERE job_id = ? AND checkpoint_id = ?
+                    """,
+                    (job_id, after),
+                ).fetchone()
+                if anchor is None:
+                    raise ValueError("checkpoint cursor does not belong to this job")
+                query += """
+                    AND (
+                        revision < ?
+                        OR (revision = ? AND created_at < ?)
+                        OR (revision = ? AND created_at = ? AND checkpoint_id < ?)
+                    )
+                """
+                parameters.extend(
+                    (
+                        anchor["revision"],
+                        anchor["revision"],
+                        anchor["created_at"],
+                        anchor["revision"],
+                        anchor["created_at"],
+                        anchor["checkpoint_id"],
+                    )
+                )
+            query += " ORDER BY revision DESC, created_at DESC, checkpoint_id DESC LIMIT ?"
+            parameters.append(limit)
+            rows = connection.execute(query, parameters).fetchall()
+        return [self._checkpoint_record(row) for row in rows]
+
+    def _enqueue_worker_command_sync(
+        self,
+        command_type: str,
+        job_id: str | None,
+        worker_id: str | None,
+        payload: Mapping[str, Any],
+        command_id: str | None,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        command = _optional_text(command_type)
+        if command is None:
+            raise ValueError("command_type is required")
+        if job_id is None and worker_id is None:
+            raise ValueError("worker command requires a job_id or worker_id")
+        if not isinstance(payload, Mapping):
+            raise TypeError("command payload must be a mapping")
+        identifier = _optional_text(command_id) or _new_identifier("command")
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                if job_id is not None:
+                    self._require_job_row(connection, job_id)
+                if worker_id is not None:
+                    worker = connection.execute(
+                        "SELECT worker_id FROM market_workers WHERE worker_id = ?", (worker_id,)
+                    ).fetchone()
+                    if worker is None:
+                        raise MarketJobRepositoryError(f"market worker not found: {worker_id}")
+                connection.execute(
+                    """
+                    INSERT INTO market_worker_commands (
+                        command_id, job_id, worker_id, command_type, payload_json, state, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (identifier, job_id, worker_id, command, _dump_json(payload), CommandState.QUEUED.value, now),
+                )
+                row = self._require_worker_command_row(connection, identifier)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._worker_command_record(row)
+
+    def _get_worker_command_sync(self, command_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM market_worker_commands WHERE command_id = ?", (command_id,)
+            ).fetchone()
+        return self._worker_command_record(row) if row else None
+
+    def _list_worker_commands_sync(
+        self,
+        job_id: str | None,
+        worker_id: str | None,
+        state: CommandState | str | Iterable[CommandState | str] | None,
+        cursor: str | None,
+        limit: int,
+    ) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, 0)
+        states = self._state_filter_values(state)
+        after = self._cursor_text(cursor)
+        query = "SELECT * FROM market_worker_commands WHERE 1 = 1"
+        parameters: list[Any] = []
+        if job_id is not None:
+            query += " AND job_id = ?"
+            parameters.append(job_id)
+        if worker_id is not None:
+            query += " AND worker_id = ?"
+            parameters.append(worker_id)
+        if states:
+            query += f" AND state IN ({','.join('?' for _ in states)})"
+            parameters.extend(states)
+        if after is not None:
+            query += " AND command_id > ?"
+            parameters.append(after)
+        query += " ORDER BY command_id ASC LIMIT ?"
+        parameters.append(limit)
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [self._worker_command_record(row) for row in rows]
+
+    def _update_worker_command_sync(
+        self,
+        command_id: str,
+        state: str,
+        error: str | None | object,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        state_value = _optional_text(state)
+        if state_value is None:
+            raise ValueError("state is required")
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                current = self._require_worker_command_row(connection, command_id)
+                updates = ["state = ?"]
+                parameters: list[Any] = [state_value]
+                if state_value in {CommandState.ACKNOWLEDGED.value, CommandState.COMPLETED.value} and current[
+                    "acknowledged_at"
+                ] is None:
+                    updates.append("acknowledged_at = ?")
+                    parameters.append(now)
+                if state_value in {CommandState.COMPLETED.value, CommandState.FAILED.value} and current[
+                    "completed_at"
+                ] is None:
+                    updates.append("completed_at = ?")
+                    parameters.append(now)
+                if error is not _UNSET:
+                    updates.append("error = ?")
+                    parameters.append(error)
+                parameters.append(command_id)
+                connection.execute(
+                    f"UPDATE market_worker_commands SET {', '.join(updates)} WHERE command_id = ?",
+                    parameters,
+                )
+                row = self._require_worker_command_row(connection, command_id)
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._worker_command_record(row)
+
+    def _enqueue_operation_locked(self, connection: sqlite3.Connection, values: JsonDict, now: str) -> sqlite3.Row:
+        self._require_job_row(connection, values["job_id"])
+        if values["shard_id"] is not None:
+            shard = self._require_shard_row(connection, values["shard_id"])
+            if shard["job_id"] != values["job_id"]:
+                raise MarketCommitConflictError(f"shard {values['shard_id']} does not belong to job {values['job_id']}")
+        try:
+            connection.execute(
+                """
+                INSERT INTO market_operations (
+                    operation_id, job_id, shard_id, kind, state, priority, idempotency_key, payload_json,
+                    not_before, lease_owner, lease_deadline, current_attempt, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    values["operation_id"],
+                    values["job_id"],
+                    values["shard_id"],
+                    values["kind"],
+                    values["state"],
+                    values["priority"],
+                    values["idempotency_key"],
+                    _dump_json(values["payload"]),
+                    values["not_before"],
+                    values["lease_owner"],
+                    values["lease_deadline"],
+                    values["current_attempt"],
+                    now,
+                    now,
+                ),
+            )
+        except sqlite3.IntegrityError:
+            if values["idempotency_key"] is None:
+                raise
+            existing = connection.execute(
+                """
+                SELECT * FROM market_operations
+                WHERE job_id = ? AND idempotency_key = ?
+                """,
+                (values["job_id"], values["idempotency_key"]),
+            ).fetchone()
+            if existing is None:
+                raise
+            return existing
+        return self._require_operation_row(connection, values["operation_id"])
+
+    def _recover_expired_operations_locked(self, connection: sqlite3.Connection, now: str) -> int:
+        expired = connection.execute(
+            """
+            SELECT operation_id FROM market_operations
+            WHERE state IN (?, ?) AND lease_deadline IS NOT NULL AND lease_deadline <= ?
+            """,
+            (OperationState.LEASED.value, OperationState.RUNNING.value, now),
+        ).fetchall()
+        if not expired:
+            return 0
+        operation_ids = tuple(row["operation_id"] for row in expired)
+        placeholders = ",".join("?" for _ in operation_ids)
+        connection.execute(
+            f"""
+            UPDATE market_operation_attempts
+            SET state = 'abandoned', finished_at = ?
+            WHERE operation_id IN ({placeholders}) AND finished_at IS NULL
+            """,
+            (now, *operation_ids),
+        )
+        connection.execute(
+            f"""
+            UPDATE market_operations
+            SET state = ?, lease_owner = NULL, lease_deadline = NULL, updated_at = ?
+            WHERE operation_id IN ({placeholders})
+            """,
+            (OperationState.QUEUED.value, now, *operation_ids),
+        )
+        return len(operation_ids)
+
+    def _append_event_locked(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        job_id: str,
+        event_type: str,
+        payload: Mapping[str, Any],
+        revision: int | None,
+        worker_id: str | None,
+        operation_id: str | None,
+        emitted_at: str,
+    ) -> sqlite3.Row:
+        sequence = self._latest_event_sequence(connection, job_id) + 1
+        connection.execute(
+            """
+            INSERT INTO market_events (
+                job_id, sequence, event_type, payload_json, revision, worker_id, operation_id, emitted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (job_id, sequence, event_type, _dump_json(payload), revision, worker_id, operation_id, emitted_at),
+        )
+        return connection.execute(
+            "SELECT * FROM market_events WHERE job_id = ? AND sequence = ?", (job_id, sequence)
+        ).fetchone()
+
+    def _append_commit_events_locked(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        job_id: str,
+        operation_id: str,
+        revision: int,
+        event_payloads: Sequence[Mapping[str, Any]] | Mapping[str, Any] | None,
+        default_payload: Mapping[str, Any],
+        emitted_at: str,
+    ) -> list[sqlite3.Row]:
+        if event_payloads is None:
+            payloads: tuple[Mapping[str, Any], ...] = ({"event_type": "batch.accepted", "payload": default_payload},)
+        elif isinstance(event_payloads, Mapping):
+            payloads = (event_payloads,)
+        else:
+            payloads = tuple(event_payloads)
+        rows: list[sqlite3.Row] = []
+        for item in payloads:
+            if not isinstance(item, Mapping):
+                raise TypeError("event_payloads must contain mappings")
+            event_type = _optional_text(item.get("event_type") or item.get("type")) or "batch.accepted"
+            raw_payload = item.get("payload")
+            if raw_payload is None:
+                raw_payload = {
+                    key: value
+                    for key, value in item.items()
+                    if key not in {"event_type", "type", "revision", "worker_id", "operation_id"}
+                }
+            if not isinstance(raw_payload, Mapping):
+                raise TypeError("event payload must be a mapping")
+            rows.append(
+                self._append_event_locked(
+                    connection,
+                    job_id=job_id,
+                    event_type=event_type,
+                    payload=raw_payload,
+                    revision=int(item["revision"]) if item.get("revision") is not None else revision,
+                    worker_id=_optional_text(item.get("worker_id")),
+                    operation_id=_optional_text(item.get("operation_id")) or operation_id,
+                    emitted_at=emitted_at,
+                )
+            )
+        return rows
+
+    @staticmethod
+    def _latest_event_sequence(connection: sqlite3.Connection, job_id: str) -> int:
+        row = connection.execute(
+            "SELECT COALESCE(MAX(sequence), 0) AS sequence FROM market_events WHERE job_id = ?", (job_id,)
+        ).fetchone()
+        return int(row["sequence"])
+
+    @staticmethod
+    def _latest_attempt_id(connection: sqlite3.Connection, operation_id: str) -> str | None:
+        row = connection.execute(
+            """
+            SELECT attempt_id FROM market_operation_attempts
+            WHERE operation_id = ?
+            ORDER BY attempt_number DESC
+            LIMIT 1
+            """,
+            (operation_id,),
+        ).fetchone()
+        return str(row["attempt_id"]) if row else None
+
+    @staticmethod
+    def _require_job_row(connection: sqlite3.Connection, job_id: str) -> sqlite3.Row:
+        row = connection.execute("SELECT * FROM market_jobs WHERE job_id = ?", (job_id,)).fetchone()
+        if row is None:
+            raise MarketJobNotFoundError(f"market job not found: {job_id}")
+        return row
+
+    @staticmethod
+    def _require_shard_row(connection: sqlite3.Connection, shard_id: str) -> sqlite3.Row:
+        row = connection.execute("SELECT * FROM market_shards WHERE shard_id = ?", (shard_id,)).fetchone()
+        if row is None:
+            raise MarketJobRepositoryError(f"market shard not found: {shard_id}")
+        return row
+
+    @staticmethod
+    def _require_operation_row(connection: sqlite3.Connection, operation_id: str) -> sqlite3.Row:
+        row = connection.execute("SELECT * FROM market_operations WHERE operation_id = ?", (operation_id,)).fetchone()
+        if row is None:
+            raise MarketOperationNotFoundError(f"market operation not found: {operation_id}")
+        return row
+
+    @staticmethod
+    def _require_worker_command_row(connection: sqlite3.Connection, command_id: str) -> sqlite3.Row:
+        row = connection.execute(
+            "SELECT * FROM market_worker_commands WHERE command_id = ?", (command_id,)
+        ).fetchone()
+        if row is None:
+            raise MarketJobRepositoryError(f"market worker command not found: {command_id}")
+        return row
+
+    @staticmethod
+    def _require_lease_owner(operation: sqlite3.Row, worker_id: str, now: str) -> None:
+        deadline = operation["lease_deadline"]
+        if (
+            operation["lease_owner"] != worker_id
+            or operation["state"] not in {OperationState.LEASED.value, OperationState.RUNNING.value}
+            or deadline is None
+            or deadline <= now
+        ):
+            raise MarketOperationLeaseError(
+                f"worker {worker_id} does not own an active lease for operation {operation['operation_id']}"
+            )
+
+    @staticmethod
+    def _clear_worker_operation_locked(
+        connection: sqlite3.Connection,
+        worker_id: str,
+        operation_id: str,
+        now: str,
+    ) -> None:
+        connection.execute(
+            """
+            UPDATE market_workers
+            SET current_operation_id = NULL, heartbeat_at = ?, updated_at = ?
+            WHERE worker_id = ? AND current_operation_id = ?
+            """,
+            (now, now, worker_id, operation_id),
+        )
+
+    @staticmethod
+    def _merge_counter_values(
+        current: Mapping[str, Any],
+        deltas: Mapping[str, int | float] | None,
+    ) -> JsonDict:
+        merged: JsonDict = dict(current)
+        if deltas is None:
+            return merged
+        for key, delta in deltas.items():
+            if isinstance(delta, bool) or not isinstance(delta, (int, float)):
+                raise TypeError(f"counter delta {key!r} must be a number")
+            existing = merged.get(key, 0)
+            if isinstance(existing, bool) or not isinstance(existing, (int, float)):
+                existing = 0
+            merged[str(key)] = existing + delta
+        return merged
+
+    @staticmethod
+    def _validate_pagination(limit: int, offset: int) -> None:
+        if limit <= 0 or limit > 1_000:
+            raise ValueError("limit must be between 1 and 1000")
+        if offset < 0:
+            raise ValueError("offset cannot be negative")
+
+    @staticmethod
+    def _state_filter_values(
+        state: str | Enum | Iterable[str | Enum] | None,
+    ) -> tuple[str, ...]:
+        if state is None:
+            return ()
+        if isinstance(state, (str, Enum)):
+            values = (state,)
+        else:
+            values = tuple(state)
+        return tuple(str(_enum_value(value)) for value in values)
+
+    @staticmethod
+    def _cursor_text(cursor: str | None) -> str | None:
+        if cursor is None:
+            return None
+        if not isinstance(cursor, str):
+            raise TypeError("cursor must be a string")
+        normalized = cursor.strip()
+        if not normalized:
+            raise ValueError("cursor cannot be blank")
+        return normalized
+
+    @staticmethod
+    def _listing_id_cursor(value: int | str, *, allow_zero: bool = False) -> int:
+        if isinstance(value, bool):
+            raise TypeError("listing cursor must be an integer")
+        try:
+            identifier = int(value)
+        except (TypeError, ValueError) as error:
+            raise ValueError("listing cursor must be an integer") from error
+        minimum = 0 if allow_zero else 1
+        if identifier < minimum:
+            raise ValueError(f"listing cursor must be at least {minimum}")
+        return identifier
+
+    @staticmethod
+    def _seller_key(listing: Mapping[str, Any]) -> str | None:
+        for key in (
+            "seller_key",
+            "seller",
+            "username",
+            "userName",
+            "user_name",
+            "seller_name",
+            "seller_id",
+            "user_id",
+            "userId",
+        ):
+            value = _optional_text(listing.get(key))
+            if value is not None:
+                return value
+        return None
+
+    @staticmethod
+    def _shard_values(shard: ShardSpec | Mapping[str, Any]) -> JsonDict:
+        data = asdict(shard) if is_dataclass(shard) else dict(shard)
+        shard_id = _optional_text(data.get("shard_id"))
+        job_id = _optional_text(data.get("job_id"))
+        source = _optional_text(data.get("source"))
+        alias = _optional_text(data.get("alias"))
+        if not all((shard_id, job_id, source, alias)):
+            raise ValueError("shard_id, job_id, source, and alias are required")
+        filters = data.get("filters", {})
+        if not isinstance(filters, Mapping):
+            raise TypeError("shard filters must be a mapping")
+        cursor = data.get("cursor")
+        if cursor is not None and not isinstance(cursor, Mapping):
+            cursor = _jsonable(cursor)
+        return {
+            "shard_id": shard_id,
+            "job_id": job_id,
+            "source": source,
+            "alias": alias,
+            "filters": filters,
+            "expected_count": data.get("expected_count"),
+            "state": _enum_value(data.get("state", "queued")),
+            "priority": int(data.get("priority", 0)),
+            "cursor": cursor,
+        }
+
+    @staticmethod
+    def _operation_values(operation: Operation | Mapping[str, Any]) -> JsonDict:
+        data = asdict(operation) if is_dataclass(operation) else dict(operation)
+        operation_id = _optional_text(data.get("operation_id")) or _new_identifier("op")
+        job_id = _optional_text(data.get("job_id"))
+        kind = _optional_text(_enum_value(data.get("kind")))
+        if job_id is None or kind is None:
+            raise ValueError("operation job_id and kind are required")
+        payload = data.get("payload", {})
+        if not isinstance(payload, Mapping):
+            raise TypeError("operation payload must be a mapping")
+        return {
+            "operation_id": operation_id,
+            "job_id": job_id,
+            "shard_id": _optional_text(data.get("shard_id")),
+            "kind": kind,
+            "state": _enum_value(data.get("state", OperationState.QUEUED.value)),
+            "priority": int(data.get("priority", 0)),
+            "idempotency_key": _optional_text(data.get("idempotency_key")),
+            "payload": payload,
+            "not_before": data.get("not_before"),
+            "lease_owner": data.get("lease_owner"),
+            "lease_deadline": data.get("lease_deadline"),
+            "current_attempt": int(data.get("current_attempt", 0)),
+        }
+
+    @staticmethod
+    def _job_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "job_id": row["job_id"],
+            "scope": {
+                "category_id": int(row["category_id"]),
+                "category_name": row["category_name"],
+                "classifier_id": row["classifier_id"],
+                "classifier_name": row["classifier_name"],
+                "canonical_alias": row["canonical_alias"],
+                "filters": _load_json(row["scope_filters_json"], {}),
+            },
+            "profile": row["profile"],
+            "target_unique_cards": int(row["target_unique_cards"]),
+            "desired_workers": int(row["desired_workers"]),
+            "network_policy": row["network_policy"],
+            "source_policy": row["source_policy"],
+            "include_ai": bool(row["include_ai"]),
+            "state": row["state"],
+            "phase": row["phase"],
+            "revision": int(row["revision"]),
+            "request_budget": row["request_budget"],
+            "time_budget_seconds": row["time_budget_seconds"],
+            "counters": _load_json(row["counters_json"], {}),
+            "created_at": row["created_at"],
+            "started_at": row["started_at"],
+            "finished_at": row["finished_at"],
+            "latest_checkpoint_id": row["latest_checkpoint_id"],
+            "last_error": row["last_error"],
+            "last_warning": row["last_warning"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _shard_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "shard_id": row["shard_id"],
+            "job_id": row["job_id"],
+            "source": row["source"],
+            "alias": row["alias"],
+            "filters": _load_json(row["filters_json"], {}),
+            "expected_count": row["expected_count"],
+            "state": row["state"],
+            "priority": int(row["priority"]),
+            "cursor": _load_json(row["cursor_json"], None),
+            "last_fingerprint": row["last_fingerprint"],
+            "counters": _load_json(row["counters_json"], {}),
+            "received_count": int(row["received_count"]),
+            "new_unique_count": int(row["new_unique_count"]),
+            "duplicate_count": int(row["duplicate_count"]),
+            "consecutive_zero_novelty": int(row["consecutive_zero_novelty"]),
+            "cooldown_until": row["cooldown_until"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _category_alias_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "category_id": int(row["category_id"]),
+            "canonical_alias": row["canonical_alias"],
+            "validation_status": row["validation_status"],
+            "active_category_id": row["active_category_id"],
+            "source_url": row["source_url"],
+            "last_validated_at": row["last_validated_at"],
+            "protection_state": row["protection_state"],
+            "schema_version": int(row["schema_version"]),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _operation_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "operation_id": row["operation_id"],
+            "job_id": row["job_id"],
+            "shard_id": row["shard_id"],
+            "kind": row["kind"],
+            "state": row["state"],
+            "priority": int(row["priority"]),
+            "idempotency_key": row["idempotency_key"],
+            "payload": _load_json(row["payload_json"], {}),
+            "not_before": row["not_before"],
+            "lease_owner": row["lease_owner"],
+            "lease_deadline": row["lease_deadline"],
+            "current_attempt": int(row["current_attempt"]),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "completed_at": row["completed_at"],
+            "last_error": row["last_error"],
+        }
+
+    @staticmethod
+    def _attempt_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "attempt_id": row["attempt_id"],
+            "operation_id": row["operation_id"],
+            "attempt_number": int(row["attempt_number"]),
+            "state": row["state"],
+            "worker_id": row["worker_id"],
+            "transport_id": row["transport_id"],
+            "requested_cursor": _load_json(row["requested_cursor_json"], None),
+            "reported_cursor": _load_json(row["reported_cursor_json"], None),
+            "request": _load_json(row["request_json"], None),
+            "response_status": row["response_status"],
+            "response_bytes": row["response_bytes"],
+            "duration_ms": row["duration_ms"],
+            "received_count": int(row["received_count"]),
+            "new_unique_count": int(row["new_unique_count"]),
+            "duplicate_count": int(row["duplicate_count"]),
+            "page_fingerprint": row["page_fingerprint"],
+            "raw_response_ref": row["raw_response_ref"],
+            "failure_kind": row["failure_kind"],
+            "retry_after": row["retry_after"],
+            "started_at": row["started_at"],
+            "finished_at": row["finished_at"],
+            "error": row["error"],
+        }
+
+    @staticmethod
+    def _listing_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "listing_id": int(row["listing_id"]),
+            "job_id": row["job_id"],
+            "listing_key": row["listing_key"],
+            "title": row["title"],
+            "seller_key": row["seller_key"],
+            "price": row["price"],
+            "canonical": _load_json(row["canonical_json"], {}),
+            "first_seen_at": row["first_seen_at"],
+            "last_seen_at": row["last_seen_at"],
+            "observation_count": int(row["observation_count"]),
+        }
+
+    @staticmethod
+    def _observation_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "observation_id": int(row["observation_id"]),
+            "job_id": row["job_id"],
+            "listing_id": int(row["listing_id"]),
+            "operation_id": row["operation_id"],
+            "attempt_id": row["attempt_id"],
+            "source": row["source"],
+            "shard_id": row["shard_id"],
+            "response_position": int(row["response_position"]),
+            "requested_cursor": _load_json(row["requested_cursor_json"], None),
+            "reported_cursor": _load_json(row["reported_cursor_json"], None),
+            "raw_response_ref": row["raw_response_ref"],
+            "observed_at": row["observed_at"],
+        }
+
+    @staticmethod
+    def _event_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "job_id": row["job_id"],
+            "sequence": int(row["sequence"]),
+            "event_type": row["event_type"],
+            "payload": _load_json(row["payload_json"], {}),
+            "revision": row["revision"],
+            "worker_id": row["worker_id"],
+            "operation_id": row["operation_id"],
+            "emitted_at": row["emitted_at"],
+        }
+
+    @staticmethod
+    def _worker_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "worker_id": row["worker_id"],
+            "job_id": row["job_id"],
+            "generation": int(row["generation"]),
+            "desired_state": row["desired_state"],
+            "actual_state": row["actual_state"],
+            "runtime_kind": row["runtime_kind"],
+            "transport_id": row["transport_id"],
+            "current_operation_id": row["current_operation_id"],
+            "heartbeat_at": row["heartbeat_at"],
+            "counters": _load_json(row["counters_json"], {}),
+            "last_error": row["last_error"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _transport_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "transport_id": row["transport_id"],
+            "kind": row["kind"],
+            "health": row["health"],
+            "slot": row["slot"],
+            "proxy_url": row["proxy_url"],
+            "profile_id": row["profile_id"],
+            "profile_name": row["profile_name"],
+            "country": row["country"],
+            "pid": row["pid"],
+            "generation": int(row["generation"]),
+            "lease_owner": row["lease_owner"],
+            "quarantine_until": row["quarantine_until"],
+            "last_rotate_reason": row["last_rotate_reason"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _checkpoint_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "checkpoint_id": row["checkpoint_id"],
+            "job_id": row["job_id"],
+            "revision": int(row["revision"]),
+            "phase": row["phase"],
+            "frontier": _load_json(row["frontier_json"], {}),
+            "metrics": _load_json(row["metrics_json"], {}),
+            "last_event_sequence": int(row["last_event_sequence"]),
+            "created_at": row["created_at"],
+        }
+
+    @staticmethod
+    def _worker_command_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "command_id": row["command_id"],
+            "job_id": row["job_id"],
+            "worker_id": row["worker_id"],
+            "command_type": row["command_type"],
+            "payload": _load_json(row["payload_json"], {}),
+            "state": row["state"],
+            "created_at": row["created_at"],
+            "acknowledged_at": row["acknowledged_at"],
+            "completed_at": row["completed_at"],
+            "error": row["error"],
+        }
+
+
+SqliteMarketJobRepository = MarketJobRepository
+
+
+__all__ = [
+    "MarketCommitConflictError",
+    "MarketJobNotFoundError",
+    "MarketJobRepository",
+    "MarketJobRepositoryError",
+    "MarketJobRevisionConflictError",
+    "MarketOperationLeaseError",
+    "MarketOperationNotFoundError",
+    "SqliteMarketJobRepository",
+]

@@ -6,12 +6,12 @@ from pathlib import Path
 import pytest
 
 from src.platforms.kwork_market import (
-    DEFAULT_BUYER_SCOUT_PROBES,
     KworkMarketClient,
     _COMPETITOR_DETAIL_CACHE,
     _MARKET_METRICS_CACHE,
     _SELLER_DETAIL_CACHE,
     _clean_text,
+    _market_api_retry_attempts,
     build_market_insights,
 )
 
@@ -193,6 +193,12 @@ class FakeKworkApi:
         return {}
 
 
+class TimeoutKworkApi(FakeKworkApi):
+    async def request(self, method: str, endpoint: str, **params):
+        self.calls.append((method, endpoint, params))
+        raise RuntimeError("Request POST /kworks failed after 1 attempts: TimeoutError (TimeoutError())")
+
+
 @pytest.mark.asyncio
 async def test_categories_tree_normalizes_nested_children():
     client = KworkMarketClient(api=FakeKworkApi())
@@ -299,12 +305,38 @@ def test_build_market_insights_summarizes_competition_for_ui():
     )
 
     assert insights["price"] == {"min": 1000, "median": 2000, "max": 7000, "sample_size": 3}
-    assert insights["trust"]["reviews_100_plus"] == 2
-    assert insights["concentration"]["repeated_sellers"] == [{"seller": "seller_a", "cards": 2}]
+    assert insights["seller_review_strength"]["reviews_100_plus"] == 2
+    assert insights["seller_repetition_in_sample"]["repeated_sellers"] == [{"seller": "seller_a", "cards": 2}]
     assert insights["top_classifiers"][0]["name"] == "\u0414\u043e\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0441\u0430\u0439\u0442\u0430"
     assert any(item["term"] == "wordpress" for item in insights["title_terms"])
     assert any("13626" in item for item in insights["bullets"])
+    assert any("В выбранном срезе" in item for item in insights["bullets"])
+    assert any("Упакуй доверие" in item for item in insights["recommendations"])
+    visible_text = insights["bullets"] + insights["recommendations"] + [item["name"] for item in insights["top_classifiers"]]
+    assert not any(any(marker in item for marker in ("Рџ", "Р’", "Ð", "PSC")) for item in visible_text)
     assert insights["recommendations"]
+    assert any(item["query"] == "\u0414\u043e\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0441\u0430\u0439\u0442\u0430" for item in insights["search_queries"])
+    assert any(item["source"] == "classifier" for item in insights["search_queries"])
+
+
+@pytest.mark.asyncio
+async def test_market_intelligence_snapshot_scopes_demand_queries_to_seed_rubric():
+    requests: list[dict] = []
+
+    class DemandClient(KworkMarketClient):
+        async def _get_projects_snapshot(self, **kwargs):
+            requests.append(kwargs)
+            return {"status": "ok", "wants_count": 1, "sample_count": 0, "sample": []}
+
+    client = DemandClient(api=FakeKworkApi())
+
+    await client.get_market_intelligence_snapshot(
+        seeds=[{"name": "Доработка сайта", "category_id": 38, "classifier_id": 1271}],
+        include_demand=True,
+    )
+
+    assert any(item.get("query") == "Доработка сайта" for item in requests)
+    assert {item.get("categories") for item in requests} == {"38"}
 
 
 @pytest.mark.asyncio
@@ -351,6 +383,32 @@ async def test_market_metrics_uses_category_id_and_summarizes_competition():
     assert data["classifiers"][0]["id"] == 100
     assert data["competitors"][0]["title"] == "Build a bot"
     assert data["demand"]["status"] == "skipped"
+
+
+@pytest.mark.asyncio
+async def test_market_metrics_degrades_when_kworks_times_out():
+    api = TimeoutKworkApi()
+    client = KworkMarketClient(api=api)
+
+    data = await client.get_market_metrics(category_id=41, include_demand=False)
+
+    assert api.calls[-1] == ("post", "kworks", {"page": 1, "categoryId": 41})
+    assert data["status"] == "timeout"
+    assert data["kworks_count"] == 0
+    assert data["competitors"] == []
+    assert data["demand"]["status"] == "skipped"
+    assert "timed out" in data["detail"]
+
+
+def test_market_api_retry_attempts_defaults_and_env(monkeypatch):
+    monkeypatch.delenv("KWORK_MARKET_API_RETRY_ATTEMPTS", raising=False)
+    assert _market_api_retry_attempts() == 2
+
+    monkeypatch.setenv("KWORK_MARKET_API_RETRY_ATTEMPTS", "4")
+    assert _market_api_retry_attempts() == 4
+
+    monkeypatch.setenv("KWORK_MARKET_API_RETRY_ATTEMPTS", "bad")
+    assert _market_api_retry_attempts() == 2
 
 
 @pytest.mark.asyncio
@@ -715,19 +773,24 @@ async def test_market_intelligence_snapshot_attaches_price_rules():
     assert data["market_rankings"][0]["price_rule_max"] == 70000
 
 
-def test_default_buyer_scout_probes_are_diverse_and_budget_capped():
-    probe_by_name = {str(item.get("name")): item for item in DEFAULT_BUYER_SCOUT_PROBES}
+@pytest.mark.asyncio
+async def test_buyer_scout_without_rubric_or_explicit_probes_does_not_use_default_windows(monkeypatch):
+    from src.platforms import kwork as kwork_module
 
-    assert probe_by_name["telegram_low_offer"]["price_to"] == 5000
-    assert probe_by_name["python_low_offer"]["price_to"] == 5000
-    assert probe_by_name["wordpress_low_offer"]["price_to"] == 5000
-    assert probe_by_name["programming_low_offer"]["categories"] == "41"
-    assert probe_by_name["broad_low_offer"]["categories"] == "85"
-    assert probe_by_name["video_low_offer"]["categories"] == "78"
-    assert probe_by_name["telegram_bot_ru_low_offer"]["query"] == "телеграм бот"
-    assert probe_by_name["automation_ru_low_offer"]["query"] == "автоматизация"
-    assert "telegram_budget30_low_offer" not in probe_by_name
-    assert "telegram_zero_offer" in probe_by_name
+    class Service:
+        async def get_raw_projects(self, **kwargs):
+            raise AssertionError("no request should be made without a rubric or explicit probe")
+
+    monkeypatch.setattr(kwork_module, "get_kwork_service", lambda: Service())
+    data = await KworkMarketClient(api=FakeKworkApi()).get_buyer_scout(
+        probes=[],
+        include_project_details=False,
+        include_want_details=False,
+        include_query_suggestions=False,
+    )
+
+    assert data["probes"] == []
+    assert data["aggregate"]["unique_projects"] == 0
 
 
 def test_buyer_project_score_penalizes_budget_above_cap():
@@ -951,20 +1014,171 @@ async def test_buyer_scout_ranks_low_offer_projects_and_attaches_details(monkeyp
     assert summary["budget_fit_count"] == 0
     assert summary["best_windows"][0]["name"] == "telegram"
     assert summary["next_actions"]
+    assert any("Сначала ответь" in item for item in summary["next_actions"])
+    assert not any("Reply first" in item or "Рџ" in item or "Р’" in item or "Ð" in item for item in summary["next_actions"])
     assert data["top"][0]["id"] == 1
     assert data["top"][0]["score"] > data["top"][1]["score"]
     assert data["top"][0]["project_detail"]["status"] == "ok"
     assert data["top"][0]["want_detail"]["views"] == 10
     assert data["top"][0]["buyer_history"]["projects_count"] == 2
     signal_kinds = {item["kind"] for item in data["aggregate"]["market_signals"]}
-    assert {"zero_offer", "repeat_buyers", "proven_buyers", "probe_leaders"} <= signal_kinds
+    assert {"zero_offer", "repeat_buyers", "proven_buyers"} <= signal_kinds
+    assert "probe_leaders" not in signal_kinds
     signal_labels = {item["kind"]: item["label"] for item in data["aggregate"]["market_signals"]}
     assert signal_labels["zero_offer"] == "\u041b\u043e\u0442\u044b \u0431\u0435\u0437 \u043e\u0442\u043a\u043b\u0438\u043a\u043e\u0432"
     assert signal_labels["proven_buyers"] == "\u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u0438 \u043d\u0430\u043d\u0438\u043c\u0430\u044e\u0442"
+    signal_text = [
+        text
+        for item in data["aggregate"]["market_signals"]
+        for text in (str(item.get("label") or ""), str(item.get("detail") or ""))
+    ]
+    assert not any(any(marker in item for marker in ("Рџ", "Р’", "Ð", "PSC")) for item in signal_text)
     assert "high_budget_low_offer" not in signal_kinds
     assert ("want", {"use_token": True, "id": 1}) in calls
     assert ("buyer_history", {"username": "buyer_one", "limit": 6}) in calls
     assert any(call[0] == "projects" and call[1]["kworks_filter_to"] == 5 for call in calls)
+
+
+@pytest.mark.asyncio
+async def test_buyer_scout_uses_rubric_ai_recommendations(monkeypatch):
+    from src.platforms import kwork as kwork_module
+
+    calls: list[dict] = []
+
+    class Service:
+        async def get_raw_projects(self, **kwargs):
+            calls.append(kwargs)
+            query = str(kwargs.get("query") or "")
+            if not query:
+                return (
+                    [
+                        {
+                            "id": 11,
+                            "title": "Доработка сайта на WordPress",
+                            "description": "Нужно поправить шаблон и ускорить главную страницу.",
+                            "category_id": 41,
+                            "price": 5000,
+                            "offers": 1,
+                            "username": "buyer_one",
+                            "user_hired_percent": 40,
+                        },
+                        {
+                            "id": 12,
+                            "title": "Настройка сайта и формы",
+                            "description": "Нужна настройка формы и базового SEO.",
+                            "category_id": 41,
+                            "price": 7000,
+                            "offers": 0,
+                            "username": "buyer_two",
+                            "user_hired_percent": 50,
+                        },
+                        {
+                            "id": 13,
+                            "title": "Настройка рекламы на Ютуб",
+                            "description": "Чужой лот не должен попасть в рубрику сайтов.",
+                            "category_id": 999,
+                            "price": 5000,
+                            "offers": 0,
+                            "username": "buyer_other",
+                            "user_hired_percent": 50,
+                        },
+                    ],
+                    {"paging": {"total": 2}},
+                )
+            if query == "доработка сайта":
+                return (
+                    [
+                        {
+                            "id": 21,
+                            "title": "Доработка сайта",
+                            "description": "Срочно доработать сайт и исправить ошибки.",
+                            "category_id": 41,
+                            "price": 6000,
+                            "offers": 0,
+                            "username": "buyer_three",
+                            "user_hired_percent": 45,
+                        }
+                    ],
+                    {"paging": {"total": 1}},
+                )
+            return ([], {"paging": {"total": 0}})
+
+    monkeypatch.setattr(kwork_module, "get_kwork_service", lambda: Service())
+    client = KworkMarketClient(api=FakeKworkApi())
+
+    async def fake_recommendations(**kwargs):
+        return [
+            {
+                "query": "доработка сайта",
+                "priority": 5,
+                "why": "Это главный термин текущей рубрики.",
+                "budget": "5000-7000 ₽",
+                "competition": "средняя",
+                "examples": ["Доработка сайта на WordPress"],
+            }
+        ]
+
+    monkeypatch.setattr(client, "build_buyer_rubric_recommendations", fake_recommendations)
+
+    data = await client.get_buyer_scout(
+        category_id=41,
+        category_name="Доработка и настройка сайта",
+        classifier_id=100,
+        classifier_name="Доработка сайта",
+        include_project_details=False,
+        include_want_details=False,
+        include_buyer_history=False,
+        include_query_suggestions=False,
+        include_control_windows=False,
+        project_page_limit=1,
+        per_probe_limit=12,
+        top_limit=5,
+    )
+
+    assert data["status"] == "ok"
+    assert data["aggregate"]["search_recommendations"][0]["query"] == "доработка сайта"
+    assert data["aggregate"]["buyer_summary"]["recommendations"][0]["count"] == 1
+    assert data["aggregate"]["buyer_summary"]["recommendations"][0]["priority"] == 5
+    assert data["probes"][0]["query"] == "доработка сайта"
+    assert data["aggregate"]["unique_projects"] == 1
+    assert any(call.get("query") == "" for call in calls)
+    assert any(call.get("query") == "доработка сайта" for call in calls)
+    assert {call.get("categories") for call in calls} == {"41"}
+    assert all("Ютуб" not in str(project.get("title")) for project in data["top"])
+
+
+@pytest.mark.asyncio
+async def test_buyer_scout_control_probe_does_not_change_rubric_ranking(monkeypatch):
+    from src.platforms import kwork as kwork_module
+
+    class Service:
+        async def get_raw_projects(self, **kwargs):
+            query = str(kwargs.get("query") or "")
+            if query == "сайты":
+                return ([{"id": 1, "title": "Доработка сайта", "category_id": 41, "price": 3000, "offers": 0}], {"paging": {"total": 1}})
+            if query == "ручная проверка":
+                return ([{"id": 2, "title": "Лот только для контроля", "category_id": 41, "price": 3000, "offers": 0}], {"paging": {"total": 1}})
+            return ([{"id": 3, "title": "Сайт", "category_id": 41, "price": 3000, "offers": 0}], {"paging": {"total": 1}})
+
+    monkeypatch.setattr(kwork_module, "get_kwork_service", lambda: Service())
+    client = KworkMarketClient(api=FakeKworkApi())
+
+    async def recommendations(**kwargs):
+        return [{"query": "сайты", "priority": 5, "why": "есть спрос"}]
+
+    monkeypatch.setattr(client, "build_buyer_rubric_recommendations", recommendations)
+    data = await client.get_buyer_scout(
+        category_id=41,
+        probes=[{"name": "manual", "query": "ручная проверка"}],
+        include_control_windows=True,
+        include_project_details=False,
+        include_want_details=False,
+        include_query_suggestions=False,
+    )
+
+    assert data["aggregate"]["unique_projects"] == 1
+    assert [project["id"] for project in data["top"]] == [1]
+    assert data["aggregate"]["control_windows"][0]["sample"][0]["id"] == 2
 
 
 @pytest.mark.asyncio
@@ -1129,3 +1343,18 @@ async def test_market_intelligence_snapshot_collects_seller_profiles(monkeypatch
     assert ("post", "portfolioList", {"user_id": 77, "category_id": "all", "page": 1}) in api.calls
     assert ("post", "userReviews", {"user_id": 77, "type": "all", "page": 1}) in api.calls
     assert ("post", "userReviews", {"user_id": 77, "type": "negative", "page": 1}) in api.calls
+
+
+@pytest.mark.asyncio
+async def test_get_kworks_preserves_top_level_paging_metadata():
+    class PagingApi:
+        async def request(self, _method: str, _endpoint: str, **_params):
+            return {
+                "paging": {"page": 2, "pages": 12},
+                "response": {"kworks": [{"id": "two"}]},
+            }
+
+    catalog = await KworkMarketClient(api=PagingApi()).get_kworks(category_id=38, page=2)
+
+    assert catalog["paging"] == {"page": 2, "pages": 12}
+    assert catalog["_request_params"] == {"page": 2, "categoryId": 38}

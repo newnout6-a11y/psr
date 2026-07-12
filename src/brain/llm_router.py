@@ -14,8 +14,10 @@ Requirements: 10.1, 10.2, 10.3, 10.4, 10.5
 
 from __future__ import annotations
 
+import json
 import os
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -91,10 +93,83 @@ class OpenAICompatibleClient:
         temperature: float,
         max_tokens: int,
         system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
+        request_timeout: Optional[float] = None,
     ) -> str:
         if self.wire_api == "responses":
-            return await self._generate_responses(prompt, model, temperature, max_tokens, system_prompt)
+            return await self._generate_responses(
+                prompt,
+                model,
+                temperature,
+                max_tokens,
+                system_prompt,
+                reasoning_effort,
+                request_timeout,
+            )
         return await self._generate_chat(prompt, model, temperature, max_tokens, system_prompt)
+
+    async def generate_with_tools(
+        self,
+        *,
+        prompt: str,
+        model: str,
+        tools: list[dict[str, Any]],
+        tool_handler: Callable[[str, dict[str, Any]], Awaitable[Any]],
+        temperature: float,
+        max_tokens: int,
+        system_prompt: Optional[str] = None,
+        max_steps: int = 8,
+    ) -> str:
+        """Run a local Responses tool loop without provider-side conversation storage."""
+        if self.wire_api != "responses":
+            raise ValueError("Function tools require the Responses API")
+
+        input_items: list[dict[str, Any]] = [dict(item) for item in self._messages(prompt, system_prompt)]
+        async with httpx.AsyncClient(timeout=LLM_REQUEST_TIMEOUT, trust_env=False) as client:
+            for _ in range(max(1, max_steps)):
+                payload: dict[str, Any] = {
+                    "model": model,
+                    "input": input_items,
+                    "tools": tools,
+                    "tool_choice": "auto",
+                    "temperature": temperature,
+                    "max_output_tokens": max_tokens,
+                    "store": not self.disable_response_storage,
+                }
+                if self.reasoning_effort:
+                    payload["reasoning"] = {"effort": self.reasoning_effort}
+
+                response = await client.post(self._url("responses"), headers=self._headers(), json=payload)
+                self._raise_for_status(response)
+                data = response.json()
+                output = [item for item in data.get("output") or [] if isinstance(item, dict)]
+                calls = [item for item in output if item.get("type") == "function_call"]
+                if not calls:
+                    return self._extract_text(data)
+
+                input_items.extend(output)
+                for call in calls:
+                    arguments = call.get("arguments") or "{}"
+                    try:
+                        parsed_arguments = json.loads(arguments) if isinstance(arguments, str) else arguments
+                    except json.JSONDecodeError as exc:
+                        tool_result: Any = {"error": f"Invalid tool arguments: {exc}"}
+                    else:
+                        if not isinstance(parsed_arguments, dict):
+                            parsed_arguments = {}
+                        try:
+                            tool_result = await tool_handler(str(call.get("name") or ""), parsed_arguments)
+                        except Exception as exc:
+                            tool_result = {"error": f"{type(exc).__name__}: {exc}"}
+                    input_items.append(
+                        {
+                            "type": "function_call_output",
+                            "call_id": call.get("call_id"),
+                            "output": json.dumps(tool_result, ensure_ascii=False, separators=(",", ":")),
+                        }
+                    )
+
+        raise ValueError(f"Responses tool loop exceeded {max_steps} steps")
 
     def _headers(self) -> dict[str, str]:
         api_key = self._next_api_key()
@@ -102,6 +177,21 @@ class OpenAICompatibleClient:
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
+
+    @staticmethod
+    def _raise_for_status(response: httpx.Response) -> None:
+        """Raise an HTTP error with a bounded provider diagnostic payload."""
+
+        if not hasattr(response, "is_success"):
+            response.raise_for_status()
+            return
+        if response.is_success:
+            return
+        detail = response.text.strip().replace("\n", " ")[:1_200]
+        message = f"HTTP {response.status_code} {response.reason_phrase} for {response.url}"
+        if detail:
+            message = f"{message}: {detail}"
+        raise httpx.HTTPStatusError(message, request=response.request, response=response)
 
     def _next_api_key(self) -> str:
         api_key = self.api_keys[self._api_key_index % len(self.api_keys)]
@@ -146,7 +236,7 @@ class OpenAICompatibleClient:
 
         async with httpx.AsyncClient(timeout=LLM_REQUEST_TIMEOUT, trust_env=False) as client:
             response = await client.post(self._url("chat/completions"), headers=self._headers(), json=payload)
-            response.raise_for_status()
+            self._raise_for_status(response)
             return self._extract_text(response.json())
 
     async def _generate_chat(
@@ -180,6 +270,8 @@ class OpenAICompatibleClient:
         temperature: float,
         max_tokens: int,
         system_prompt: Optional[str],
+        reasoning_effort: Optional[str] = None,
+        request_timeout: Optional[float] = None,
     ) -> str:
         payload: dict[str, Any] = {
             "model": model,
@@ -188,12 +280,13 @@ class OpenAICompatibleClient:
             "max_output_tokens": max_tokens,
             "store": not self.disable_response_storage,
         }
-        if self.reasoning_effort:
-            payload["reasoning"] = {"effort": self.reasoning_effort}
+        effort = self.reasoning_effort if reasoning_effort is None else reasoning_effort.strip()
+        if effort:
+            payload["reasoning"] = {"effort": effort}
 
-        async with httpx.AsyncClient(timeout=LLM_REQUEST_TIMEOUT, trust_env=False) as client:
+        async with httpx.AsyncClient(timeout=request_timeout or LLM_REQUEST_TIMEOUT, trust_env=False) as client:
             response = await client.post(self._url("responses"), headers=self._headers(), json=payload)
-            response.raise_for_status()
+            self._raise_for_status(response)
             return self._extract_text(response.json())
 
     @staticmethod
@@ -340,8 +433,12 @@ class LLMRouter:
         max_tokens: int = 2048,
         task: str = "general",
         system_prompt: Optional[str] = None,
+        allow_fallback: bool = True,
     ) -> str:
         candidates = self._candidate_providers(task=task, preferred=provider)
+        requested_provider = self._normalize_provider(provider)
+        if not allow_fallback and requested_provider in candidates:
+            candidates = [requested_provider]
         if not candidates:
             raise ValueError("Нет доступных LLM провайдеров")
 
@@ -378,6 +475,61 @@ class LLMRouter:
 
         # Requirement 10.3: если все провайдеры вернули ошибку — исключение с task и ошибкой последнего
         raise ValueError(f"Все LLM провайдеры недоступны для task={task}: {last_error}")
+
+    async def generate_with_tools(
+        self,
+        *,
+        prompt: str,
+        tools: list[dict[str, Any]],
+        tool_handler: Callable[[str, dict[str, Any]], Awaitable[Any]],
+        provider: Optional[str] = "openai",
+        model: Optional[str] = None,
+        temperature: float = 0.25,
+        max_tokens: int = 3000,
+        task: str = "general",
+        system_prompt: Optional[str] = None,
+        max_steps: int = 8,
+    ) -> str:
+        candidates = self._candidate_providers(task=task, preferred=provider)
+        preferred_provider = self._normalize_provider(provider)
+        last_error = None
+        for provider_name in candidates:
+            client = self.providers.get(provider_name)
+            if not hasattr(client, "generate_with_tools") or getattr(client, "wire_api", "") != "responses":
+                continue
+            model_for_provider = model if (preferred_provider and provider_name == preferred_provider) else None
+            selected_model = self._select_model(provider_name, task, model_for_provider)
+            logger.info(f"LLMRouter: tools task={task} provider={provider_name} model={selected_model} start")
+            try:
+                result = await client.generate_with_tools(
+                    prompt=prompt,
+                    model=selected_model,
+                    tools=tools,
+                    tool_handler=tool_handler,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    system_prompt=system_prompt,
+                    max_steps=max_steps,
+                )
+                self._record_success(provider_name, task, selected_model)
+                self._last_route = {
+                    "provider": provider_name,
+                    "model": selected_model,
+                    "task": task,
+                    "at": time.time(),
+                }
+                logger.info(f"LLMRouter: tools task={task} provider={provider_name} model={selected_model} success")
+                return result
+            except Exception as exc:
+                self._record_failure(provider_name, task, selected_model, exc)
+                last_error = exc
+                logger.warning(
+                    f"LLMRouter: tools task={task} provider={provider_name} model={selected_model} failed: {exc}"
+                )
+                if preferred_provider == provider_name:
+                    break
+
+        raise ValueError(f"Responses tools unavailable for task={task}: {last_error}")
 
     async def generate_with_images(
         self,

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
@@ -11,7 +12,12 @@ import Health from './pages/Health'
 import Chat from './pages/Chat'
 import Conversations from './pages/Conversations'
 import Orders from './pages/Orders'
-import KworkMarket from './pages/KworkMarket'
+
+const KworkMarket = lazy(() => import('./pages/KworkMarket'))
+const KworkMarketWorkspace = lazy(() => import('./pages/KworkMarketWorkspace'))
+const KworkMarketJob = lazy(() => import('./pages/KworkMarketJob'))
+
+const marketFallback = <div className="p-5 text-sm text-zinc-500">Загрузка рабочего пространства рынка...</div>
 
 export default function App() {
   return (
@@ -23,7 +29,9 @@ export default function App() {
         <Route path="skipped" element={<Skipped />} />
         <Route path="conversations" element={<Conversations />} />
         <Route path="orders" element={<Orders />} />
-        <Route path="kwork-market" element={<KworkMarket />} />
+        <Route path="kwork-market" element={<Suspense fallback={marketFallback}><KworkMarketWorkspace /></Suspense>} />
+        <Route path="kwork-market/jobs/:jobId" element={<Suspense fallback={marketFallback}><KworkMarketJob /></Suspense>} />
+        <Route path="kwork-market/legacy" element={<Suspense fallback={marketFallback}><KworkMarket /></Suspense>} />
         <Route path="earnings" element={<Earnings />} />
         <Route path="health" element={<Health />} />
         <Route path="chat" element={<Chat />} />

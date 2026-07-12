@@ -1,0 +1,4269 @@
+{
+  "source": "psr.kwork_supply_scan",
+  "generated_at": "2026-07-10T19:27:28Z",
+  "transport": {
+    "client_pool_size": 10,
+    "source": "KWORK_MARKET_SUPPLY_PROXY_PORTS",
+    "uses_configured_proxy_pool": true
+  },
+  "scope": {
+    "category_id": 38,
+    "category_name": "Доработка и настройка сайта",
+    "classifier_id": null,
+    "classifier_name": "",
+    "reported_category_total": 13034,
+    "reported_selected_slices_total": 12618
+  },
+  "coverage": {
+    "profile": {
+      "name": "balanced",
+      "label": "Рабочий анализ",
+      "max_slices": 24,
+      "pages_per_slice": 3
+    },
+    "concurrency": 2,
+    "inter_wave_delay_ms": 750,
+    "max_requests": 72,
+    "estimated_requests_for_minimum_cards": 50,
+    "request_budget_can_reach_minimum_target": true,
+    "minimum_cards_target": 500,
+    "expected_cards_per_page": 10,
+    "requests_planned": 54,
+    "requests_started": 54,
+    "requests_completed": 54,
+    "request_errors": 0,
+    "backoff_seconds_total": 20.25,
+    "slice_count_available": 6,
+    "slice_count_scanned": 6,
+    "confidence": "medium",
+    "root_page_cached": false,
+    "aborted_after_upstream_errors": false,
+    "stopped_after_protection_signal": false,
+    "minimum_cards_target_met": false,
+    "stopped_after_minimum_cards": false,
+    "observed_listing_count": 60,
+    "scanned_slices_share_of_category_percent": 96.8
+  },
+  "slices": [
+    {
+      "id": 1587,
+      "name": "Ускорение сайта",
+      "kworks_count": 790,
+      "depth": 0,
+      "is_leaf": true,
+      "observed_cards": 10,
+      "observed_unique_sellers": 7,
+      "pages_requested": 9,
+      "pages_completed": 9
+    },
+    {
+      "id": 1273,
+      "name": "Защита и лечение сайта",
+      "kworks_count": 930,
+      "depth": 0,
+      "is_leaf": true,
+      "observed_cards": 10,
+      "observed_unique_sellers": 9,
+      "pages_requested": 9,
+      "pages_completed": 9
+    },
+    {
+      "id": 1276,
+      "name": "Плагины и темы",
+      "kworks_count": 1197,
+      "depth": 0,
+      "is_leaf": true,
+      "observed_cards": 10,
+      "observed_unique_sellers": 8,
+      "pages_requested": 9,
+      "pages_completed": 9
+    },
+    {
+      "id": 1272,
+      "name": "Исправление ошибок",
+      "kworks_count": 1237,
+      "depth": 0,
+      "is_leaf": true,
+      "observed_cards": 10,
+      "observed_unique_sellers": 10,
+      "pages_requested": 9,
+      "pages_completed": 9
+    },
+    {
+      "id": 1275,
+      "name": "Настройка сайта",
+      "kworks_count": 1559,
+      "depth": 0,
+      "is_leaf": true,
+      "observed_cards": 10,
+      "observed_unique_sellers": 10,
+      "pages_requested": 9,
+      "pages_completed": 9
+    },
+    {
+      "id": 1271,
+      "name": "Доработка сайта",
+      "kworks_count": 6905,
+      "depth": 0,
+      "is_leaf": true,
+      "observed_cards": 10,
+      "observed_unique_sellers": 10,
+      "pages_requested": 9,
+      "pages_completed": 9
+    }
+  ],
+  "sample": {
+    "observed_listings": 60,
+    "unique_sellers": 43,
+    "reported_selected_scope_total": 12618,
+    "observed_share_of_scanned_scope_percent": 0.5,
+    "price_sample": {
+      "count": 60,
+      "min": 500,
+      "median": 1250,
+      "max": 65000
+    },
+    "seller_repetition_in_observed_cards": {
+      "repeated_cards": 28,
+      "repeat_share_percent": 46.7,
+      "sellers": [
+        {
+          "seller": "EmOne",
+          "cards": 4
+        },
+        {
+          "seller": "LEOnidUKG",
+          "cards": 3
+        },
+        {
+          "seller": "itolimp",
+          "cards": 3
+        },
+        {
+          "seller": "freax",
+          "cards": 3
+        },
+        {
+          "seller": "modx_master",
+          "cards": 3
+        },
+        {
+          "seller": "k_info",
+          "cards": 2
+        },
+        {
+          "seller": "files",
+          "cards": 2
+        },
+        {
+          "seller": "webshop-dev",
+          "cards": 2
+        },
+        {
+          "seller": "webbypro",
+          "cards": 2
+        },
+        {
+          "seller": "OlegTixomirov",
+          "cards": 2
+        },
+        {
+          "seller": "Vaskevich_Dev",
+          "cards": 2
+        }
+      ]
+    }
+  },
+  "raw_listings": [
+    {
+      "id": 10160085,
+      "title": "Ускорение сайта WordPress по Google PageSpeed Insights. Оптимизация WP",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "fedor-work",
+      "reviews": 758,
+      "rating": 5,
+      "classifier_id": 9267,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/10160085/uskorenie-sayta-wordpress-po-google-pagespeed-insights-optimizatsiya-wp",
+      "api_card": {
+        "id": 10160085,
+        "category_id": 38,
+        "title": "Ускорение сайта WordPress по Google PageSpeed Insights. Оптимизация WP",
+        "url": "/website-repair/10160085/uskorenie-sayta-wordpress-po-google-pagespeed-insights-optimizatsiya-wp",
+        "share_url": "https://kwork.ru/website-repair/10160085/uskorenie-sayta-wordpress-po-google-pagespeed-insights-optimizatsiya-wp",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/79/10160085-1642402420.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/79/10160085-1642402420.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/79/10160085-1642402420.jpg"
+        },
+        "price": 1500,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 6133150,
+          "username": "fedor-work",
+          "fullname": "Фёдор",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/57/6133150-11.jpg",
+          "rating": 5,
+          "reviews_count": 758,
+          "rating_count": 755,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9267,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 1507072,
+      "title": "Ускорение и оптимизация WordPress",
+      "description": "",
+      "price": 2000,
+      "currency": "RUB",
+      "seller": "LEOnidUKG",
+      "reviews": 1720,
+      "rating": 5,
+      "classifier_id": 9264,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/1507072/uskorenie-i-optimizatsiya-wordpress",
+      "api_card": {
+        "id": 1507072,
+        "category_id": 38,
+        "title": "Ускорение и оптимизация WordPress",
+        "url": "/website-repair/1507072/uskorenie-i-optimizatsiya-wordpress",
+        "share_url": "https://kwork.ru/website-repair/1507072/uskorenie-i-optimizatsiya-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/20/1507072-68767b1a413f9.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/20/1507072-68767b1a413f9.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/20/1507072-68767b1a413f9.jpg"
+        },
+        "price": 2000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 210594,
+          "username": "LEOnidUKG",
+          "fullname": "Леонид",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/41/210594-6.jpg",
+          "rating": 5,
+          "reviews_count": 1720,
+          "rating_count": 1720,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9264,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 28571147,
+      "title": "Ускорение, оптимизация скорости Wordpress по Google PageSpeed Insights",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "EmOne",
+      "reviews": 3343,
+      "rating": 5,
+      "classifier_id": 9047,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/28571147/uskorenie-optimizatsiya-skorosti-wordpress-po-google-pagespeed-insights",
+      "api_card": {
+        "id": 28571147,
+        "category_id": 38,
+        "title": "Ускорение, оптимизация скорости Wordpress по Google PageSpeed Insights",
+        "url": "/website-repair/28571147/uskorenie-optimizatsiya-skorosti-wordpress-po-google-pagespeed-insights",
+        "share_url": "https://kwork.ru/website-repair/28571147/uskorenie-optimizatsiya-skorosti-wordpress-po-google-pagespeed-insights",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/07/28571147-64d4e2dbe4f74.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/07/28571147-64d4e2dbe4f74.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/07/28571147-64d4e2dbe4f74.jpg"
+        },
+        "price": 1000,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1991087,
+          "username": "EmOne",
+          "fullname": "Влад",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/59/1991087-4.jpg",
+          "rating": 5,
+          "reviews_count": 3343,
+          "rating_count": 3343,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9047,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 16558346,
+      "title": "Ускорение сайта по Google PageSpeed и Core Web Vitals",
+      "description": "",
+      "price": 3500,
+      "currency": "RUB",
+      "seller": "k_info",
+      "reviews": 261,
+      "rating": 4.9,
+      "classifier_id": 9264,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/16558346/uskorenie-sayta-po-google-pagespeed-i-core-web-vitals",
+      "api_card": {
+        "id": 16558346,
+        "category_id": 38,
+        "title": "Ускорение сайта по Google PageSpeed и Core Web Vitals",
+        "url": "/website-repair/16558346/uskorenie-sayta-po-google-pagespeed-i-core-web-vitals",
+        "share_url": "https://kwork.ru/website-repair/16558346/uskorenie-sayta-po-google-pagespeed-i-core-web-vitals",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/20/16558346-69fd806bb52b0.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/20/16558346-69fd806bb52b0.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/20/16558346-69fd806bb52b0.jpg"
+        },
+        "price": 3500,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 51178,
+          "username": "k_info",
+          "fullname": "Олег",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/20/51178-10.jpg",
+          "rating": 4.9,
+          "reviews_count": 261,
+          "rating_count": 237,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9264,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 1507303,
+      "title": "Ускорение и оптимизация OpenCart и OCStore",
+      "description": "",
+      "price": 2000,
+      "currency": "RUB",
+      "seller": "LEOnidUKG",
+      "reviews": 1720,
+      "rating": 5,
+      "classifier_id": 9264,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/1507303/uskorenie-i-optimizatsiya-opencart-i-ocstore",
+      "api_card": {
+        "id": 1507303,
+        "category_id": 38,
+        "title": "Ускорение и оптимизация OpenCart и OCStore",
+        "url": "/website-repair/1507303/uskorenie-i-optimizatsiya-opencart-i-ocstore",
+        "share_url": "https://kwork.ru/website-repair/1507303/uskorenie-i-optimizatsiya-opencart-i-ocstore",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/57/1507303-68767b6ff3152.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/57/1507303-68767b6ff3152.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/57/1507303-68767b6ff3152.jpg"
+        },
+        "price": 2000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 210594,
+          "username": "LEOnidUKG",
+          "fullname": "Леонид",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/41/210594-6.jpg",
+          "rating": 5,
+          "reviews_count": 1720,
+          "rating_count": 1720,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9264,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 52864,
+      "title": "Ускорение сайта посредством кеширования. Лицензионный плагин WP Rocket",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "itolimp",
+      "reviews": 6407,
+      "rating": 5,
+      "classifier_id": 9047,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/52864/uskorenie-sayta-posredstvom-keshirovaniya-litsenzionniy-plagin-wp-rocket",
+      "api_card": {
+        "id": 52864,
+        "category_id": 38,
+        "title": "Ускорение сайта посредством кеширования. Лицензионный плагин WP Rocket",
+        "url": "/website-repair/52864/uskorenie-sayta-posredstvom-keshirovaniya-litsenzionniy-plagin-wp-rocket",
+        "share_url": "https://kwork.ru/website-repair/52864/uskorenie-sayta-posredstvom-keshirovaniya-litsenzionniy-plagin-wp-rocket",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/93/52864-683308f59fb73.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/93/52864-683308f59fb73.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/93/52864-683308f59fb73.jpg"
+        },
+        "price": 1500,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 47006,
+          "username": "itolimp",
+          "fullname": "Самир Поладов",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/22/47006-43.jpg",
+          "rating": 5,
+          "reviews_count": 6407,
+          "rating_count": 6375,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9047,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 9250841,
+      "title": "Ускорение сайта, Оптимизация скорости загрузки, PageSpeed Speed Vitals",
+      "description": "",
+      "price": 15000,
+      "currency": "RUB",
+      "seller": "alexx47h",
+      "reviews": 148,
+      "rating": 5,
+      "classifier_id": 35636,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/9250841/uskorenie-sayta-optimizatsiya-skorosti-zagruzki-pagespeed-speed-vitals",
+      "api_card": {
+        "id": 9250841,
+        "category_id": 38,
+        "title": "Ускорение сайта, Оптимизация скорости загрузки, PageSpeed Speed Vitals",
+        "url": "/website-repair/9250841/uskorenie-sayta-optimizatsiya-skorosti-zagruzki-pagespeed-speed-vitals",
+        "share_url": "https://kwork.ru/website-repair/9250841/uskorenie-sayta-optimizatsiya-skorosti-zagruzki-pagespeed-speed-vitals",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/43/9250841-663b51ebd809e.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/43/9250841-663b51ebd809e.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/43/9250841-663b51ebd809e.jpg"
+        },
+        "price": 15000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 5609417,
+          "username": "alexx47h",
+          "fullname": "Александр",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/31/5609417-5.jpg",
+          "rating": 5,
+          "reviews_count": 148,
+          "rating_count": 148,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 35636,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 16959115,
+      "title": "Повышение скорости и оценки сайта по тесту Google PageSpeed",
+      "description": "",
+      "price": 4000,
+      "currency": "RUB",
+      "seller": "W-Zilla",
+      "reviews": 458,
+      "rating": 5,
+      "classifier_id": 9047,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/16959115/povyshenie-skorosti-i-otsenki-sayta-po-testu-google-pagespeed",
+      "api_card": {
+        "id": 16959115,
+        "category_id": 38,
+        "title": "Повышение скорости и оценки сайта по тесту Google PageSpeed",
+        "url": "/website-repair/16959115/povyshenie-skorosti-i-otsenki-sayta-po-testu-google-pagespeed",
+        "share_url": "https://kwork.ru/website-repair/16959115/povyshenie-skorosti-i-otsenki-sayta-po-testu-google-pagespeed",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/86/16959115-1633512386.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/86/16959115-1633512386.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/86/16959115-1633512386.jpg"
+        },
+        "price": 4000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 2402023,
+          "username": "W-Zilla",
+          "fullname": "Сергей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/53/2402023-8.jpg",
+          "rating": 5,
+          "reviews_count": 458,
+          "rating_count": 458,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9047,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 35493,
+      "title": "Ускорение сайта на Вордпресс по канонам Гугл Пейдж Спид",
+      "description": "",
+      "price": 3500,
+      "currency": "RUB",
+      "seller": "itolimp",
+      "reviews": 6407,
+      "rating": 5,
+      "classifier_id": 9264,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/35493/uskorenie-sayta-na-vordpress-po-kanonam-gugl-peydzh-spid",
+      "api_card": {
+        "id": 35493,
+        "category_id": 38,
+        "title": "Ускорение сайта на Вордпресс по канонам Гугл Пейдж Спид",
+        "url": "/website-repair/35493/uskorenie-sayta-na-vordpress-po-kanonam-gugl-peydzh-spid",
+        "share_url": "https://kwork.ru/website-repair/35493/uskorenie-sayta-na-vordpress-po-kanonam-gugl-peydzh-spid",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/52/35493-656b545380b7c.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/52/35493-656b545380b7c.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/52/35493-656b545380b7c.jpg"
+        },
+        "price": 3500,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 47006,
+          "username": "itolimp",
+          "fullname": "Самир Поладов",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/22/47006-43.jpg",
+          "rating": 5,
+          "reviews_count": 6407,
+          "rating_count": 6375,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9264,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 13017584,
+      "title": "Ускорение сайта, Оптимизация скорости по PageSpeed Wordpress Elementor",
+      "description": "",
+      "price": 2000,
+      "currency": "RUB",
+      "seller": "EmOne",
+      "reviews": 3343,
+      "rating": 5,
+      "classifier_id": 9047,
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/13017584/uskorenie-sayta-optimizatsiya-skorosti-po-pagespeed-wordpress-elementor",
+      "api_card": {
+        "id": 13017584,
+        "category_id": 38,
+        "title": "Ускорение сайта, Оптимизация скорости по PageSpeed Wordpress Elementor",
+        "url": "/website-repair/13017584/uskorenie-sayta-optimizatsiya-skorosti-po-pagespeed-wordpress-elementor",
+        "share_url": "https://kwork.ru/website-repair/13017584/uskorenie-sayta-optimizatsiya-skorosti-po-pagespeed-wordpress-elementor",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/10/13017584-1628603333.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/10/13017584-1628603333.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/10/13017584-1628603333.jpg"
+        },
+        "price": 2000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1991087,
+          "username": "EmOne",
+          "fullname": "Влад",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/59/1991087-4.jpg",
+          "rating": 5,
+          "reviews_count": 3343,
+          "rating_count": 3343,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9047,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 48414899,
+      "title": "Сканирование сайта на 1С-Битрикс на вирусы и вредоносный код",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "freax",
+      "reviews": 716,
+      "rating": 5,
+      "classifier_id": 9446,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/48414899/skanirovanie-sayta-na-1s-bitriks-na-virusy-i-vredonosniy-kod",
+      "api_card": {
+        "id": 48414899,
+        "category_id": 38,
+        "title": "Сканирование сайта на 1С-Битрикс на вирусы и вредоносный код",
+        "url": "/website-repair/48414899/skanirovanie-sayta-na-1s-bitriks-na-virusy-i-vredonosniy-kod",
+        "share_url": "https://kwork.ru/website-repair/48414899/skanirovanie-sayta-na-1s-bitriks-na-virusy-i-vredonosniy-kod",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/28/48414899-69885625e008f.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/28/48414899-69885625e008f.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/28/48414899-69885625e008f.jpg"
+        },
+        "price": 1500,
+        "is_price_from": true,
+        "is_best": false,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1026731,
+          "username": "freax",
+          "fullname": "Сергей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/33/1026731-3.jpg",
+          "rating": 5,
+          "reviews_count": 716,
+          "rating_count": 716,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9446,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 26079711,
+      "title": "Лечение сайта на 1С Битрикс, удаление вируса",
+      "description": "",
+      "price": 3500,
+      "currency": "RUB",
+      "seller": "max_volkov",
+      "reviews": 962,
+      "rating": 5,
+      "classifier_id": 9011,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/26079711/lechenie-sayta-na-1s-bitriks-udalenie-virusa",
+      "api_card": {
+        "id": 26079711,
+        "category_id": 38,
+        "title": "Лечение сайта на 1С Битрикс, удаление вируса",
+        "url": "/website-repair/26079711/lechenie-sayta-na-1s-bitriks-udalenie-virusa",
+        "share_url": "https://kwork.ru/website-repair/26079711/lechenie-sayta-na-1s-bitriks-udalenie-virusa",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/28/26079711-641ed4b08424d.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/28/26079711-641ed4b08424d.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/28/26079711-641ed4b08424d.jpg"
+        },
+        "price": 3500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 11384131,
+          "username": "max_volkov",
+          "fullname": "Максим",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/19/11384131-2.jpg",
+          "rating": 5,
+          "reviews_count": 962,
+          "rating_count": 931,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9011,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 28305642,
+      "title": "Защита сайта от ботов и накрутки ПФ через WAF. Поведенческие боты",
+      "description": "",
+      "price": 6000,
+      "currency": "RUB",
+      "seller": "Vyacheslav_X",
+      "reviews": 522,
+      "rating": 5,
+      "classifier_id": 35610,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/28305642/zashchita-sayta-ot-botov-i-nakrutki-pf-cherez-waf-povedencheskie-boty",
+      "api_card": {
+        "id": 28305642,
+        "category_id": 38,
+        "title": "Защита сайта от ботов и накрутки ПФ через WAF. Поведенческие боты",
+        "url": "/website-repair/28305642/zashchita-sayta-ot-botov-i-nakrutki-pf-cherez-waf-povedencheskie-boty",
+        "share_url": "https://kwork.ru/website-repair/28305642/zashchita-sayta-ot-botov-i-nakrutki-pf-cherez-waf-povedencheskie-boty",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/54/28305642-69b4fae210e59.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/54/28305642-69b4fae210e59.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/54/28305642-69b4fae210e59.jpg"
+        },
+        "price": 6000,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 178868,
+          "username": "Vyacheslav_X",
+          "fullname": "Вячеслав",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/49/178868-30.jpg",
+          "rating": 5,
+          "reviews_count": 522,
+          "rating_count": 522,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 35610,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 11015,
+      "title": "Защищу твой Wordpress сайт от взлома - лечение от вирусов",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "files",
+      "reviews": 4159,
+      "rating": 5,
+      "classifier_id": 35610,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/11015/zashchishchu-tvoy-wordpress-sayt-ot-vzloma-lechenie-ot-virusov",
+      "api_card": {
+        "id": 11015,
+        "category_id": 38,
+        "title": "Защищу твой Wordpress сайт от взлома - лечение от вирусов",
+        "url": "/website-repair/11015/zashchishchu-tvoy-wordpress-sayt-ot-vzloma-lechenie-ot-virusov",
+        "share_url": "https://kwork.ru/website-repair/11015/zashchishchu-tvoy-wordpress-sayt-ot-vzloma-lechenie-ot-virusov",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/82/11015-1620546651.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/82/11015-1620546651.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/82/11015-1620546651.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1421,
+          "username": "files",
+          "fullname": "Вячеслав Скоблей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/48/1421-5.jpg",
+          "rating": 5,
+          "reviews_count": 4159,
+          "rating_count": 4082,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 35610,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 6031,
+      "title": "Удалить вирусы 1C Bitrix, Wordpress, Joomla и другие системы",
+      "description": "",
+      "price": 3000,
+      "currency": "RUB",
+      "seller": "Bysel",
+      "reviews": 2790,
+      "rating": 4.9,
+      "classifier_id": 9011,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/6031/udalit-virusy-1c-bitrix-wordpress-joomla-i-drugie-sistemy",
+      "api_card": {
+        "id": 6031,
+        "category_id": 38,
+        "title": "Удалить вирусы 1C Bitrix, Wordpress, Joomla и другие системы",
+        "url": "/website-repair/6031/udalit-virusy-1c-bitrix-wordpress-joomla-i-drugie-sistemy",
+        "share_url": "https://kwork.ru/website-repair/6031/udalit-virusy-1c-bitrix-wordpress-joomla-i-drugie-sistemy",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/93/6031-69491d4a7cb88.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/93/6031-69491d4a7cb88.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/93/6031-69491d4a7cb88.jpg"
+        },
+        "price": 3000,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 9203,
+          "username": "Bysel",
+          "fullname": "Семён",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/41/9203-12.jpg",
+          "rating": 4.9,
+          "reviews_count": 2790,
+          "rating_count": 2790,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9011,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 9473629,
+      "title": "Защита от спама сайта MODX",
+      "description": "",
+      "price": 3000,
+      "currency": "RUB",
+      "seller": "modx_master",
+      "reviews": 1146,
+      "rating": 5,
+      "classifier_id": 9011,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/9473629/zashchita-ot-spama-sayta-modx",
+      "api_card": {
+        "id": 9473629,
+        "category_id": 38,
+        "title": "Защита от спама сайта MODX",
+        "url": "/website-repair/9473629/zashchita-ot-spama-sayta-modx",
+        "share_url": "https://kwork.ru/website-repair/9473629/zashchita-ot-spama-sayta-modx",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/83/9473629-1599465084.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/83/9473629-1599465084.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/83/9473629-1599465084.jpg"
+        },
+        "price": 3000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 5792778,
+          "username": "modx_master",
+          "fullname": "Игорь",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/03/5792778-1.jpg",
+          "rating": 5,
+          "reviews_count": 1146,
+          "rating_count": 1142,
+          "is_online": true,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9011,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 2340741,
+      "title": "Защита и удаление вирусов на сайте",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "ROADROUT",
+      "reviews": 1765,
+      "rating": 5,
+      "classifier_id": 35610,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/2340741/zashchita-i-udalenie-virusov-na-sayte",
+      "api_card": {
+        "id": 2340741,
+        "category_id": 38,
+        "title": "Защита и удаление вирусов на сайте",
+        "url": "/website-repair/2340741/zashchita-i-udalenie-virusov-na-sayte",
+        "share_url": "https://kwork.ru/website-repair/2340741/zashchita-i-udalenie-virusov-na-sayte",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/72/2340741-1602541558.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/72/2340741-1602541558.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/72/2340741-1602541558.jpg"
+        },
+        "price": 1000,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 2183,
+          "username": "ROADROUT",
+          "fullname": "Александр",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/46/2183-35.jpg",
+          "rating": 5,
+          "reviews_count": 1765,
+          "rating_count": 1764,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 35610,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 20136036,
+      "title": "Установлю бесплатный SSL сертификат для хостинга RU-center nic.ru",
+      "description": "",
+      "price": 500,
+      "currency": "RUB",
+      "seller": "bossigorxxx",
+      "reviews": 1869,
+      "rating": 5,
+      "classifier_id": 9011,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/20136036/ustanovlyu-besplatniy-ssl-sertifikat-dlya-khostinga-ru-center-nic-ru",
+      "api_card": {
+        "id": 20136036,
+        "category_id": 38,
+        "title": "Установлю бесплатный SSL сертификат для хостинга RU-center nic.ru",
+        "url": "/website-repair/20136036/ustanovlyu-besplatniy-ssl-sertifikat-dlya-khostinga-ru-center-nic-ru",
+        "share_url": "https://kwork.ru/website-repair/20136036/ustanovlyu-besplatniy-ssl-sertifikat-dlya-khostinga-ru-center-nic-ru",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/21/20136036-1649168821.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/21/20136036-1649168821.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/21/20136036-1649168821.jpg"
+        },
+        "price": 500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 476491,
+          "username": "bossigorxxx",
+          "fullname": "Игорь",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/39/476491-1.jpg",
+          "rating": 5,
+          "reviews_count": 1869,
+          "rating_count": 1869,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9011,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 30885025,
+      "title": "Лечение сайта на 1C Bitrix, удаление вирусов после взлома Битрикс",
+      "description": "",
+      "price": 2500,
+      "currency": "RUB",
+      "seller": "freax",
+      "reviews": 716,
+      "rating": 5,
+      "classifier_id": 9011,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/30885025/lechenie-sayta-na-1c-bitrix-udalenie-virusov-posle-vzloma-bitriks",
+      "api_card": {
+        "id": 30885025,
+        "category_id": 38,
+        "title": "Лечение сайта на 1C Bitrix, удаление вирусов после взлома Битрикс",
+        "url": "/website-repair/30885025/lechenie-sayta-na-1c-bitrix-udalenie-virusov-posle-vzloma-bitriks",
+        "share_url": "https://kwork.ru/website-repair/30885025/lechenie-sayta-na-1c-bitrix-udalenie-virusov-posle-vzloma-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/94/30885025-67deecf926dcd.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/94/30885025-67deecf926dcd.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/94/30885025-67deecf926dcd.jpg"
+        },
+        "price": 2500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1026731,
+          "username": "freax",
+          "fullname": "Сергей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/33/1026731-3.jpg",
+          "rating": 5,
+          "reviews_count": 716,
+          "rating_count": 716,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9011,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 33664,
+      "title": "Поиск вирусов на сайтах",
+      "description": "",
+      "price": 2500,
+      "currency": "RUB",
+      "seller": "itolimp",
+      "reviews": 6407,
+      "rating": 5,
+      "classifier_id": 9011,
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/33664/poisk-virusov-na-saytakh",
+      "api_card": {
+        "id": 33664,
+        "category_id": 38,
+        "title": "Поиск вирусов на сайтах",
+        "url": "/website-repair/33664/poisk-virusov-na-saytakh",
+        "share_url": "https://kwork.ru/website-repair/33664/poisk-virusov-na-saytakh",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/00/33664-678b6847bbf77.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/00/33664-678b6847bbf77.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/00/33664-678b6847bbf77.jpg"
+        },
+        "price": 2500,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 47006,
+          "username": "itolimp",
+          "fullname": "Самир Поладов",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/22/47006-43.jpg",
+          "rating": 5,
+          "reviews_count": 6407,
+          "rating_count": 6375,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9011,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 266322,
+      "title": "Настройка формы обратной связи landing page, html сайта",
+      "description": "",
+      "price": 500,
+      "currency": "RUB",
+      "seller": "Dosto",
+      "reviews": 1980,
+      "rating": 5,
+      "classifier_id": 9083,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/266322/nastroyka-formy-obratnoy-svyazi-landing-page-html-sayta",
+      "api_card": {
+        "id": 266322,
+        "category_id": 38,
+        "title": "Настройка формы обратной связи landing page, html сайта",
+        "url": "/website-repair/266322/nastroyka-formy-obratnoy-svyazi-landing-page-html-sayta",
+        "share_url": "https://kwork.ru/website-repair/266322/nastroyka-formy-obratnoy-svyazi-landing-page-html-sayta",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/94/266322-1.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/94/266322-1.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/94/266322-1.jpg"
+        },
+        "price": 500,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 12205,
+          "username": "Dosto",
+          "fullname": "Алекс",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/23/12205-9.jpg",
+          "rating": 5,
+          "reviews_count": 1980,
+          "rating_count": 1783,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9083,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 374624,
+      "title": "Установка и настройка плагина или темы Wordpress",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Prozaik",
+      "reviews": 2057,
+      "rating": 5,
+      "classifier_id": 9083,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/374624/ustanovka-i-nastroyka-plagina-ili-temy-wordpress",
+      "api_card": {
+        "id": 374624,
+        "category_id": 38,
+        "title": "Установка и настройка плагина или темы Wordpress",
+        "url": "/website-repair/374624/ustanovka-i-nastroyka-plagina-ili-temy-wordpress",
+        "share_url": "https://kwork.ru/website-repair/374624/ustanovka-i-nastroyka-plagina-ili-temy-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/05/374624-6a249dc791f5d.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/05/374624-6a249dc791f5d.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/05/374624-6a249dc791f5d.jpg"
+        },
+        "price": 1000,
+        "is_price_from": true,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 19253,
+          "username": "Prozaik",
+          "fullname": "Александр",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/14/19253-3.jpg",
+          "rating": 5,
+          "reviews_count": 2057,
+          "rating_count": 2048,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9083,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 28578406,
+      "title": "Установка плагинов для оптимизации скорости сайта",
+      "description": "",
+      "price": 500,
+      "currency": "RUB",
+      "seller": "EmOne",
+      "reviews": 3343,
+      "rating": 5,
+      "classifier_id": 9083,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/28578406/ustanovka-plaginov-dlya-optimizatsii-skorosti-sayta",
+      "api_card": {
+        "id": 28578406,
+        "category_id": 38,
+        "title": "Установка плагинов для оптимизации скорости сайта",
+        "url": "/website-repair/28578406/ustanovka-plaginov-dlya-optimizatsii-skorosti-sayta",
+        "share_url": "https://kwork.ru/website-repair/28578406/ustanovka-plaginov-dlya-optimizatsii-skorosti-sayta",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/24/28578406-67881c5174efa.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/24/28578406-67881c5174efa.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/24/28578406-67881c5174efa.jpg"
+        },
+        "price": 500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1991087,
+          "username": "EmOne",
+          "fullname": "Влад",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/59/1991087-4.jpg",
+          "rating": 5,
+          "reviews_count": 3343,
+          "rating_count": 3343,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9083,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 1013375,
+      "title": "Настройка лент WPGrabber для WordPress",
+      "description": "",
+      "price": 500,
+      "currency": "RUB",
+      "seller": "wissta77",
+      "reviews": 2121,
+      "rating": 5,
+      "classifier_id": 35661,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/1013375/nastroyka-lent-wpgrabber-dlya-wordpress",
+      "api_card": {
+        "id": 1013375,
+        "category_id": 38,
+        "title": "Настройка лент WPGrabber для WordPress",
+        "url": "/website-repair/1013375/nastroyka-lent-wpgrabber-dlya-wordpress",
+        "share_url": "https://kwork.ru/website-repair/1013375/nastroyka-lent-wpgrabber-dlya-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/14/1013375-1607500031.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/14/1013375-1607500031.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/14/1013375-1607500031.jpg"
+        },
+        "price": 500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 753176,
+          "username": "wissta77",
+          "fullname": "Анастасия",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/32/753176-1.jpg",
+          "rating": 5,
+          "reviews_count": 2121,
+          "rating_count": 2006,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 35661,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 393878,
+      "title": "Установка модуля Opencart",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "webshop-dev",
+      "reviews": 1188,
+      "rating": 5,
+      "classifier_id": 9083,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/393878/ustanovka-modulya-opencart",
+      "api_card": {
+        "id": 393878,
+        "category_id": 38,
+        "title": "Установка модуля Opencart",
+        "url": "/website-repair/393878/ustanovka-modulya-opencart",
+        "share_url": "https://kwork.ru/website-repair/393878/ustanovka-modulya-opencart",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/46/393878-675d96162101e.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/46/393878-675d96162101e.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/46/393878-675d96162101e.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 217928,
+          "username": "webshop-dev",
+          "fullname": "Антон",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/06/217928-5.jpg",
+          "rating": 5,
+          "reviews_count": 1188,
+          "rating_count": 1107,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9083,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 9415385,
+      "title": "Установка плагина Elementor Pro на русском с обновлениями",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Sergei_Dugin",
+      "reviews": 1512,
+      "rating": 5,
+      "classifier_id": 35661,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/9415385/ustanovka-plagina-elementor-pro-na-russkom-s-obnovleniyami",
+      "api_card": {
+        "id": 9415385,
+        "category_id": 38,
+        "title": "Установка плагина Elementor Pro на русском с обновлениями",
+        "url": "/website-repair/9415385/ustanovka-plagina-elementor-pro-na-russkom-s-obnovleniyami",
+        "share_url": "https://kwork.ru/website-repair/9415385/ustanovka-plagina-elementor-pro-na-russkom-s-obnovleniyami",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/10/9415385-64f850dfc249f.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/10/9415385-64f850dfc249f.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/10/9415385-64f850dfc249f.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 630448,
+          "username": "Sergei_Dugin",
+          "fullname": "Сергей Дугин",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/45/630448-3.jpg",
+          "rating": 5,
+          "reviews_count": 1512,
+          "rating_count": 1508,
+          "is_online": true,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 35661,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 139640,
+      "title": "Установлю и настрою любой шаблон Opencart и OcStore",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "webshop-dev",
+      "reviews": 1188,
+      "rating": 5,
+      "classifier_id": 9083,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/139640/ustanovlyu-i-nastroyu-lyuboy-shablon-opencart-i-ocstore",
+      "api_card": {
+        "id": 139640,
+        "category_id": 38,
+        "title": "Установлю и настрою любой шаблон Opencart и OcStore",
+        "url": "/website-repair/139640/ustanovlyu-i-nastroyu-lyuboy-shablon-opencart-i-ocstore",
+        "share_url": "https://kwork.ru/website-repair/139640/ustanovlyu-i-nastroyu-lyuboy-shablon-opencart-i-ocstore",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/24/139640-675d96564943b.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/24/139640-675d96564943b.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/24/139640-675d96564943b.jpg"
+        },
+        "price": 1500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 217928,
+          "username": "webshop-dev",
+          "fullname": "Антон",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/06/217928-5.jpg",
+          "rating": 5,
+          "reviews_count": 1188,
+          "rating_count": 1107,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9083,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 24573900,
+      "title": "Установлю модуль импорта экспорта товаров CSV Price Pro для Opencart",
+      "description": "",
+      "price": 500,
+      "currency": "RUB",
+      "seller": "Adamcknight",
+      "reviews": 1530,
+      "rating": 5,
+      "classifier_id": 9083,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/24573900/ustanovlyu-modul-importa-eksporta-tovarov-csv-price-pro-dlya-opencart",
+      "api_card": {
+        "id": 24573900,
+        "category_id": 38,
+        "title": "Установлю модуль импорта экспорта товаров CSV Price Pro для Opencart",
+        "url": "/website-repair/24573900/ustanovlyu-modul-importa-eksporta-tovarov-csv-price-pro-dlya-opencart",
+        "share_url": "https://kwork.ru/website-repair/24573900/ustanovlyu-modul-importa-eksporta-tovarov-csv-price-pro-dlya-opencart",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/81/24573900-63bfef8976c3a.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/81/24573900-63bfef8976c3a.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/81/24573900-63bfef8976c3a.jpg"
+        },
+        "price": 500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 17987,
+          "username": "Adamcknight",
+          "fullname": "Вадим",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/noprofilepicture.gif",
+          "rating": 5,
+          "reviews_count": 1530,
+          "rating_count": 1529,
+          "is_online": true,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9083,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 2480560,
+      "title": "Установка модулей на CMS Opencart, OcStore",
+      "description": "",
+      "price": 500,
+      "currency": "RUB",
+      "seller": "Opencart-master",
+      "reviews": 1222,
+      "rating": 5,
+      "classifier_id": 9083,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/2480560/ustanovka-moduley-na-cms-opencart-ocstore",
+      "api_card": {
+        "id": 2480560,
+        "category_id": 38,
+        "title": "Установка модулей на CMS Opencart, OcStore",
+        "url": "/website-repair/2480560/ustanovka-moduley-na-cms-opencart-ocstore",
+        "share_url": "https://kwork.ru/website-repair/2480560/ustanovka-moduley-na-cms-opencart-ocstore",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/96/2480560-1569151872.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/96/2480560-1569151872.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/96/2480560-1569151872.jpg"
+        },
+        "price": 500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 226285,
+          "username": "Opencart-master",
+          "fullname": "Григорий",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/12/226285-2.jpg",
+          "rating": 5,
+          "reviews_count": 1222,
+          "rating_count": 1067,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9083,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 26234498,
+      "title": "Установка плагина Elementor Pro с обновлениями и русским переводом",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "EmOne",
+      "reviews": 3343,
+      "rating": 5,
+      "classifier_id": 35661,
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/26234498/ustanovka-plagina-elementor-pro-s-obnovleniyami-i-russkim-perevodom",
+      "api_card": {
+        "id": 26234498,
+        "category_id": 38,
+        "title": "Установка плагина Elementor Pro с обновлениями и русским переводом",
+        "url": "/website-repair/26234498/ustanovka-plagina-elementor-pro-s-obnovleniyami-i-russkim-perevodom",
+        "share_url": "https://kwork.ru/website-repair/26234498/ustanovka-plagina-elementor-pro-s-obnovleniyami-i-russkim-perevodom",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/93/26234498-69ec02fe2e532.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/93/26234498-69ec02fe2e532.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/93/26234498-69ec02fe2e532.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1991087,
+          "username": "EmOne",
+          "fullname": "Влад",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/59/1991087-4.jpg",
+          "rating": 5,
+          "reviews_count": 3343,
+          "rating_count": 3343,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 35661,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 34723,
+      "title": "Техническая помощь: исправление ошибки PHP, JS, CSS",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "k_info",
+      "reviews": 261,
+      "rating": 4.9,
+      "classifier_id": 9119,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/34723/tekhnicheskaya-pomoshch-ispravlenie-oshibki-php-js-css",
+      "api_card": {
+        "id": 34723,
+        "category_id": 38,
+        "title": "Техническая помощь: исправление ошибки PHP, JS, CSS",
+        "url": "/website-repair/34723/tekhnicheskaya-pomoshch-ispravlenie-oshibki-php-js-css",
+        "share_url": "https://kwork.ru/website-repair/34723/tekhnicheskaya-pomoshch-ispravlenie-oshibki-php-js-css",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/65/34723-69f6d97253fd4.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/65/34723-69f6d97253fd4.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/65/34723-69f6d97253fd4.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 51178,
+          "username": "k_info",
+          "fullname": "Олег",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/20/51178-10.jpg",
+          "rating": 4.9,
+          "reviews_count": 261,
+          "rating_count": 237,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9119,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 29772879,
+      "title": "Помощь с сайтом на движке MODX Revolution",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "modx_master",
+      "reviews": 1146,
+      "rating": 5,
+      "classifier_id": 9342,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/29772879/pomoshch-s-saytom-na-dvizhke-modx-revolution",
+      "api_card": {
+        "id": 29772879,
+        "category_id": 38,
+        "title": "Помощь с сайтом на движке MODX Revolution",
+        "url": "/website-repair/29772879/pomoshch-s-saytom-na-dvizhke-modx-revolution",
+        "share_url": "https://kwork.ru/website-repair/29772879/pomoshch-s-saytom-na-dvizhke-modx-revolution",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/33/29772879-6590255b243c3.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/33/29772879-6590255b243c3.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/33/29772879-6590255b243c3.jpg"
+        },
+        "price": 1500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 5792778,
+          "username": "modx_master",
+          "fullname": "Игорь",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/03/5792778-1.jpg",
+          "rating": 5,
+          "reviews_count": 1146,
+          "rating_count": 1142,
+          "is_online": true,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9342,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 40898,
+      "title": "WordPress, Битрикс, MODX, OpenCart: скорая помощь для ваших сайтов",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "wturm",
+      "reviews": 7383,
+      "rating": 5,
+      "classifier_id": 35558,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/40898/wordpress-bitriks-modx-opencart-skoraya-pomoshch-dlya-vashikh-saytov",
+      "api_card": {
+        "id": 40898,
+        "category_id": 38,
+        "title": "WordPress, Битрикс, MODX, OpenCart: скорая помощь для ваших сайтов",
+        "url": "/website-repair/40898/wordpress-bitriks-modx-opencart-skoraya-pomoshch-dlya-vashikh-saytov",
+        "share_url": "https://kwork.ru/website-repair/40898/wordpress-bitriks-modx-opencart-skoraya-pomoshch-dlya-vashikh-saytov",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/70/40898-698accad19d84.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/70/40898-698accad19d84.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/70/40898-698accad19d84.jpg"
+        },
+        "price": 1500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 6517,
+          "username": "wturm",
+          "fullname": "Артем",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/38/6517-10.jpg",
+          "rating": 5,
+          "reviews_count": 7383,
+          "rating_count": 7383,
+          "is_online": true,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 35558,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 32329017,
+      "title": "Исправление ошибок WordPress, восстановление работоспособности",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "XeqtR",
+      "reviews": 442,
+      "rating": 5,
+      "classifier_id": 9137,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/32329017/ispravlenie-oshibok-wordpress-vosstanovlenie-rabotosposobnosti",
+      "api_card": {
+        "id": 32329017,
+        "category_id": 38,
+        "title": "Исправление ошибок WordPress, восстановление работоспособности",
+        "url": "/website-repair/32329017/ispravlenie-oshibok-wordpress-vosstanovlenie-rabotosposobnosti",
+        "share_url": "https://kwork.ru/website-repair/32329017/ispravlenie-oshibok-wordpress-vosstanovlenie-rabotosposobnosti",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/09/32329017-65fd1c75581ac.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/09/32329017-65fd1c75581ac.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/09/32329017-65fd1c75581ac.jpg"
+        },
+        "price": 1500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 5747,
+          "username": "XeqtR",
+          "fullname": "Сергей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/54/5747-8.jpg",
+          "rating": 5,
+          "reviews_count": 442,
+          "rating_count": 437,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9137,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 45791027,
+      "title": "Помощь с сайтом на WordPress",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "webbypro",
+      "reviews": 366,
+      "rating": 5,
+      "classifier_id": 9119,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/45791027/pomoshch-s-saytom-na-wordpress",
+      "api_card": {
+        "id": 45791027,
+        "category_id": 38,
+        "title": "Помощь с сайтом на WordPress",
+        "url": "/website-repair/45791027/pomoshch-s-saytom-na-wordpress",
+        "share_url": "https://kwork.ru/website-repair/45791027/pomoshch-s-saytom-na-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/89/45791027-68f09cf947167.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/89/45791027-68f09cf947167.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/89/45791027-68f09cf947167.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 14849700,
+          "username": "webbypro",
+          "fullname": "Тим",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/27/14849700-1.jpg",
+          "rating": 5,
+          "reviews_count": 366,
+          "rating_count": 362,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9119,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 1039540,
+      "title": "Помощь с CMS WordPress",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "files",
+      "reviews": 4159,
+      "rating": 5,
+      "classifier_id": 9342,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/1039540/pomoshch-s-cms-wordpress",
+      "api_card": {
+        "id": 1039540,
+        "category_id": 38,
+        "title": "Помощь с CMS WordPress",
+        "url": "/website-repair/1039540/pomoshch-s-cms-wordpress",
+        "share_url": "https://kwork.ru/website-repair/1039540/pomoshch-s-cms-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/1039540-1634651741.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/41/1039540-1634651741.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/41/1039540-1634651741.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1421,
+          "username": "files",
+          "fullname": "Вячеслав Скоблей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/48/1421-5.jpg",
+          "rating": 5,
+          "reviews_count": 4159,
+          "rating_count": 4082,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9342,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 37008458,
+      "title": "Решение технических проблем с WordPress",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "LEOnidUKG",
+      "reviews": 1720,
+      "rating": 5,
+      "classifier_id": 9542,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/37008458/reshenie-tekhnicheskikh-problem-s-wordpress",
+      "api_card": {
+        "id": 37008458,
+        "category_id": 38,
+        "title": "Решение технических проблем с WordPress",
+        "url": "/website-repair/37008458/reshenie-tekhnicheskikh-problem-s-wordpress",
+        "share_url": "https://kwork.ru/website-repair/37008458/reshenie-tekhnicheskikh-problem-s-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/40/37008458-687677f396556.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/40/37008458-687677f396556.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/40/37008458-687677f396556.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 210594,
+          "username": "LEOnidUKG",
+          "fullname": "Леонид",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/41/210594-6.jpg",
+          "rating": 5,
+          "reviews_count": 1720,
+          "rating_count": 1720,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9542,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 174489,
+      "title": "Исправлю работоспособность сайта на ВордПресс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Arseniy84",
+      "reviews": 891,
+      "rating": 4.9,
+      "classifier_id": 9119,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/174489/ispravlyu-rabotosposobnost-sayta-na-vordpress",
+      "api_card": {
+        "id": 174489,
+        "category_id": 38,
+        "title": "Исправлю работоспособность сайта на ВордПресс",
+        "url": "/website-repair/174489/ispravlyu-rabotosposobnost-sayta-na-vordpress",
+        "share_url": "https://kwork.ru/website-repair/174489/ispravlyu-rabotosposobnost-sayta-na-vordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/24/174489-1.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/24/174489-1.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/24/174489-1.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 145408,
+          "username": "Arseniy84",
+          "fullname": "Арсений",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/28/145408-5.jpg",
+          "rating": 4.9,
+          "reviews_count": 891,
+          "rating_count": 879,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9119,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 38364000,
+      "title": "Правка вашего сайта",
+      "description": "",
+      "price": 2500,
+      "currency": "RUB",
+      "seller": "Rostislav76",
+      "reviews": 106,
+      "rating": 4.9,
+      "classifier_id": 9119,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/38364000/pravka-vashego-sayta",
+      "api_card": {
+        "id": 38364000,
+        "category_id": 38,
+        "title": "Правка вашего сайта",
+        "url": "/website-repair/38364000/pravka-vashego-sayta",
+        "share_url": "https://kwork.ru/website-repair/38364000/pravka-vashego-sayta",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/69/38364000-67910321eca77.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/69/38364000-67910321eca77.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/69/38364000-67910321eca77.jpg"
+        },
+        "price": 2500,
+        "is_price_from": false,
+        "is_best": false,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 10546649,
+          "username": "Rostislav76",
+          "fullname": "Ростислав",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/38/10546649-4.jpg",
+          "rating": 4.9,
+          "reviews_count": 106,
+          "rating_count": 106,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9119,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 444744,
+      "title": "Внесу правки по сайту, исправлю ошибки на CMS Битрикс",
+      "description": "",
+      "price": 500,
+      "currency": "RUB",
+      "seller": "ash404",
+      "reviews": 160,
+      "rating": 4.9,
+      "classifier_id": 9119,
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/444744/vnesu-pravki-po-saytu-ispravlyu-oshibki-na-cms-bitriks",
+      "api_card": {
+        "id": 444744,
+        "category_id": 38,
+        "title": "Внесу правки по сайту, исправлю ошибки на CMS Битрикс",
+        "url": "/website-repair/444744/vnesu-pravki-po-saytu-ispravlyu-oshibki-na-cms-bitriks",
+        "share_url": "https://kwork.ru/website-repair/444744/vnesu-pravki-po-saytu-ispravlyu-oshibki-na-cms-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/01/444744-1536520401.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/01/444744-1536520401.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/01/444744-1536520401.jpg"
+        },
+        "price": 500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 658468,
+          "username": "ash404",
+          "fullname": "Влад",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/noprofilepicture.gif",
+          "rating": 4.9,
+          "reviews_count": 160,
+          "rating_count": 160,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9119,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 35126208,
+      "title": "Настройка и доработка сайта на Wordpress",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "OlegTixomirov",
+      "reviews": 584,
+      "rating": 5,
+      "classifier_id": 8976,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/35126208/nastroyka-i-dorabotka-sayta-na-wordpress",
+      "api_card": {
+        "id": 35126208,
+        "category_id": 38,
+        "title": "Настройка и доработка сайта на Wordpress",
+        "url": "/website-repair/35126208/nastroyka-i-dorabotka-sayta-na-wordpress",
+        "share_url": "https://kwork.ru/website-repair/35126208/nastroyka-i-dorabotka-sayta-na-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/61/35126208-66bd7ac1d564a.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/61/35126208-66bd7ac1d564a.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/61/35126208-66bd7ac1d564a.jpg"
+        },
+        "price": 1500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 8426320,
+          "username": "OlegTixomirov",
+          "fullname": "Олег",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/57/8426320-6.jpg",
+          "rating": 5,
+          "reviews_count": 584,
+          "rating_count": 582,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8976,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 161594,
+      "title": "Настройка и доработка WordPress",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "artemrav",
+      "reviews": 2288,
+      "rating": 5,
+      "classifier_id": 8976,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/161594/nastroyka-i-dorabotka-wordpress",
+      "api_card": {
+        "id": 161594,
+        "category_id": 38,
+        "title": "Настройка и доработка WordPress",
+        "url": "/website-repair/161594/nastroyka-i-dorabotka-wordpress",
+        "share_url": "https://kwork.ru/website-repair/161594/nastroyka-i-dorabotka-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/40/161594-1544817854.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/40/161594-1544817854.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/40/161594-1544817854.jpg"
+        },
+        "price": 1500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 7773,
+          "username": "artemrav",
+          "fullname": "Артем",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/07/7773-2.jpg",
+          "rating": 5,
+          "reviews_count": 2288,
+          "rating_count": 2283,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 8976,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 1544362,
+      "title": "Восстановление сайта из вебархива на Вордпресс - web. archive.org",
+      "description": "",
+      "price": 1500,
+      "currency": "RUB",
+      "seller": "KseniaMayak",
+      "reviews": 193,
+      "rating": 5,
+      "classifier_id": 9186,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/1544362/vosstanovlenie-sayta-iz-vebarkhiva-na-vordpress-web-archive-org",
+      "api_card": {
+        "id": 1544362,
+        "category_id": 38,
+        "title": "Восстановление сайта из вебархива на Вордпресс - web. archive.org",
+        "url": "/website-repair/1544362/vosstanovlenie-sayta-iz-vebarkhiva-na-vordpress-web-archive-org",
+        "share_url": "https://kwork.ru/website-repair/1544362/vosstanovlenie-sayta-iz-vebarkhiva-na-vordpress-web-archive-org",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/69/1544362-1588947628.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/69/1544362-1588947628.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/69/1544362-1588947628.jpg"
+        },
+        "price": 1500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 887920,
+          "username": "KseniaMayak",
+          "fullname": "Оксана",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/26/887920-1.jpg",
+          "rating": 5,
+          "reviews_count": 193,
+          "rating_count": 189,
+          "is_online": true,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9186,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 23287883,
+      "title": "Корректировка, правка сайта на CMS Wordpress",
+      "description": "",
+      "price": 2000,
+      "currency": "RUB",
+      "seller": "JOID",
+      "reviews": 226,
+      "rating": 5,
+      "classifier_id": 8976,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/23287883/korrektirovka-pravka-sayta-na-cms-wordpress",
+      "api_card": {
+        "id": 23287883,
+        "category_id": 38,
+        "title": "Корректировка, правка сайта на CMS Wordpress",
+        "url": "/website-repair/23287883/korrektirovka-pravka-sayta-na-cms-wordpress",
+        "share_url": "https://kwork.ru/website-repair/23287883/korrektirovka-pravka-sayta-na-cms-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/84/23287883-1666898684.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/84/23287883-1666898684.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/84/23287883-1666898684.jpg"
+        },
+        "price": 2000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 170177,
+          "username": "JOID",
+          "fullname": "Сергей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/33/170177-6.jpg",
+          "rating": 5,
+          "reviews_count": 226,
+          "rating_count": 226,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8976,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 26291883,
+      "title": "Установка настройка opencart wordpress",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Evgen260509",
+      "reviews": 554,
+      "rating": 5,
+      "classifier_id": 8976,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/26291883/ustanovka-nastroyka-opencart-wordpress",
+      "api_card": {
+        "id": 26291883,
+        "category_id": 38,
+        "title": "Установка настройка opencart wordpress",
+        "url": "/website-repair/26291883/ustanovka-nastroyka-opencart-wordpress",
+        "share_url": "https://kwork.ru/website-repair/26291883/ustanovka-nastroyka-opencart-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/60/26291883-652b9fc72fab9.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/60/26291883-652b9fc72fab9.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/60/26291883-652b9fc72fab9.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 936722,
+          "username": "Evgen260509",
+          "fullname": "Евгений",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/06/936722-1.jpg",
+          "rating": 5,
+          "reviews_count": 554,
+          "rating_count": 540,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 8976,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 23246291,
+      "title": "Настройка сайта на 1С Битрикс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Vaskevich_Dev",
+      "reviews": 892,
+      "rating": 5,
+      "classifier_id": 9414,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/23246291/nastroyka-sayta-na-1s-bitriks",
+      "api_card": {
+        "id": 23246291,
+        "category_id": 38,
+        "title": "Настройка сайта на 1С Битрикс",
+        "url": "/website-repair/23246291/nastroyka-sayta-na-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/23246291/nastroyka-sayta-na-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/52/23246291-1670960889.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/52/23246291-1670960889.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/52/23246291-1670960889.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1371112,
+          "username": "Vaskevich_Dev",
+          "fullname": "Роман Васькевич",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/02/1371112-10.jpg",
+          "rating": 5,
+          "reviews_count": 892,
+          "rating_count": 881,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9414,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 45587756,
+      "title": "Помогу настроить веб-сайт на WordPress",
+      "description": "",
+      "price": 2000,
+      "currency": "RUB",
+      "seller": "webbypro",
+      "reviews": 366,
+      "rating": 5,
+      "classifier_id": 8976,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/45587756/pomogu-nastroit-veb-sayt-na-wordpress",
+      "api_card": {
+        "id": 45587756,
+        "category_id": 38,
+        "title": "Помогу настроить веб-сайт на WordPress",
+        "url": "/website-repair/45587756/pomogu-nastroit-veb-sayt-na-wordpress",
+        "share_url": "https://kwork.ru/website-repair/45587756/pomogu-nastroit-veb-sayt-na-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/64/45587756-68e660f4b7a4b.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/64/45587756-68e660f4b7a4b.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/64/45587756-68e660f4b7a4b.jpg"
+        },
+        "price": 2000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 14849700,
+          "username": "webbypro",
+          "fullname": "Тим",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/27/14849700-1.jpg",
+          "rating": 5,
+          "reviews_count": 366,
+          "rating_count": 362,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 8976,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 26456573,
+      "title": "Обновление CMS Bitrix Битрикс на PHP 8",
+      "description": "",
+      "price": 4000,
+      "currency": "RUB",
+      "seller": "freax",
+      "reviews": 716,
+      "rating": 5,
+      "classifier_id": 8976,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/26456573/obnovlenie-cms-bitrix-bitriks-na-php-8",
+      "api_card": {
+        "id": 26456573,
+        "category_id": 38,
+        "title": "Обновление CMS Bitrix Битрикс на PHP 8",
+        "url": "/website-repair/26456573/obnovlenie-cms-bitrix-bitriks-na-php-8",
+        "share_url": "https://kwork.ru/website-repair/26456573/obnovlenie-cms-bitrix-bitriks-na-php-8",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/65/26456573-65d32faac6877.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/65/26456573-65d32faac6877.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/65/26456573-65d32faac6877.jpg"
+        },
+        "price": 4000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1026731,
+          "username": "freax",
+          "fullname": "Сергей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/33/1026731-3.jpg",
+          "rating": 5,
+          "reviews_count": 716,
+          "rating_count": 716,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 8976,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 31158330,
+      "title": "WordPress - настройка, установка, правки CSS и JS",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Red_dev",
+      "reviews": 407,
+      "rating": 5,
+      "classifier_id": 8976,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/31158330/wordpress-nastroyka-ustanovka-pravki-css-i-js",
+      "api_card": {
+        "id": 31158330,
+        "category_id": 38,
+        "title": "WordPress - настройка, установка, правки CSS и JS",
+        "url": "/website-repair/31158330/wordpress-nastroyka-ustanovka-pravki-css-i-js",
+        "share_url": "https://kwork.ru/website-repair/31158330/wordpress-nastroyka-ustanovka-pravki-css-i-js",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/99/31158330-695badfc8f9fe.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/99/31158330-695badfc8f9fe.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/99/31158330-695badfc8f9fe.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 988897,
+          "username": "Red_dev",
+          "fullname": "Андрей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/20/988897-9.jpg",
+          "rating": 5,
+          "reviews_count": 407,
+          "rating_count": 405,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 8976,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 161461,
+      "title": "Настройка форм Landing Page для отправки почты с сайта",
+      "description": "",
+      "price": 500,
+      "currency": "RUB",
+      "seller": "copylend",
+      "reviews": 3189,
+      "rating": 5,
+      "classifier_id": 35585,
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/161461/nastroyka-form-landing-page-dlya-otpravki-pochty-s-sayta",
+      "api_card": {
+        "id": 161461,
+        "category_id": 38,
+        "title": "Настройка форм Landing Page для отправки почты с сайта",
+        "url": "/website-repair/161461/nastroyka-form-landing-page-dlya-otpravki-pochty-s-sayta",
+        "share_url": "https://kwork.ru/website-repair/161461/nastroyka-form-landing-page-dlya-otpravki-pochty-s-sayta",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/93/161461-1.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/93/161461-1.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/93/161461-1.jpg"
+        },
+        "price": 500,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 12771,
+          "username": "copylend",
+          "fullname": "Сергей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/29/12771-7.jpg",
+          "rating": 5,
+          "reviews_count": 3189,
+          "rating_count": 2471,
+          "is_online": false,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 35585,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 10381346,
+      "title": "Wordpress - доработаю сайт",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "wordpress_wizard",
+      "reviews": 1290,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/10381346/wordpress-dorabotayu-sayt",
+      "api_card": {
+        "id": 10381346,
+        "category_id": 38,
+        "title": "Wordpress - доработаю сайт",
+        "url": "/website-repair/10381346/wordpress-dorabotayu-sayt",
+        "share_url": "https://kwork.ru/website-repair/10381346/wordpress-dorabotayu-sayt",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/06/10381346-1614677615.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/06/10381346-1614677615.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/06/10381346-1614677615.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1987646,
+          "username": "wordpress_wizard",
+          "fullname": "Дима",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/59/1987646-13.jpg",
+          "rating": 5,
+          "reviews_count": 1290,
+          "rating_count": 1271,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 21929453,
+      "title": "Доработка сайта",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Shahzod_webdev",
+      "reviews": 126,
+      "rating": 4.9,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/21929453/dorabotka-sayta",
+      "api_card": {
+        "id": 21929453,
+        "category_id": 38,
+        "title": "Доработка сайта",
+        "url": "/website-repair/21929453/dorabotka-sayta",
+        "share_url": "https://kwork.ru/website-repair/21929453/dorabotka-sayta",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/41/21929453-6a34f2dd36af9.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/41/21929453-6a34f2dd36af9.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/41/21929453-6a34f2dd36af9.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 9423129,
+          "username": "Shahzod_webdev",
+          "fullname": "Шахзод",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/46/9423129-4.jpg",
+          "rating": 4.9,
+          "reviews_count": 126,
+          "rating_count": 125,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 9922862,
+      "title": "Доработка сайта MODX",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "modx_master",
+      "reviews": 1146,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/9922862/dorabotka-sayta-modx",
+      "api_card": {
+        "id": 9922862,
+        "category_id": 38,
+        "title": "Доработка сайта MODX",
+        "url": "/website-repair/9922862/dorabotka-sayta-modx",
+        "share_url": "https://kwork.ru/website-repair/9922862/dorabotka-sayta-modx",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/24/9922862-1601801424.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/24/9922862-1601801424.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/24/9922862-1601801424.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 5792778,
+          "username": "modx_master",
+          "fullname": "Игорь",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/03/5792778-1.jpg",
+          "rating": 5,
+          "reviews_count": 1146,
+          "rating_count": 1142,
+          "is_online": true,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 18028913,
+      "title": "Доработка сайта на 1С Битрикс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "ilkarkarakurt",
+      "reviews": 1064,
+      "rating": 5,
+      "classifier_id": 1281,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/18028913/dorabotka-sayta-na-1s-bitriks",
+      "api_card": {
+        "id": 18028913,
+        "category_id": 38,
+        "title": "Доработка сайта на 1С Битрикс",
+        "url": "/website-repair/18028913/dorabotka-sayta-na-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/18028913/dorabotka-sayta-na-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/15/18028913-1639235613.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/15/18028913-1639235613.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/15/18028913-1639235613.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 10196022,
+          "username": "ilkarkarakurt",
+          "fullname": "Илкэр",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/12/10196022-5.jpg",
+          "rating": 5,
+          "reviews_count": 1064,
+          "rating_count": 1063,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 1281,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 12870511,
+      "title": "Доработка сайта на WordPress",
+      "description": "",
+      "price": 2000,
+      "currency": "RUB",
+      "seller": "OlegTixomirov",
+      "reviews": 584,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/12870511/dorabotka-sayta-na-wordpress",
+      "api_card": {
+        "id": 12870511,
+        "category_id": 38,
+        "title": "Доработка сайта на WordPress",
+        "url": "/website-repair/12870511/dorabotka-sayta-na-wordpress",
+        "share_url": "https://kwork.ru/website-repair/12870511/dorabotka-sayta-na-wordpress",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/76/12870511-1664783942.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/76/12870511-1664783942.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/76/12870511-1664783942.jpg"
+        },
+        "price": 2000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 8426320,
+          "username": "OlegTixomirov",
+          "fullname": "Олег",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/57/8426320-6.jpg",
+          "rating": 5,
+          "reviews_count": 584,
+          "rating_count": 582,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 9491608,
+      "title": "Профессиональные доработки и исправление ошибок на CMS 1С-Битрикс",
+      "description": "",
+      "price": 2000,
+      "currency": "RUB",
+      "seller": "Vaskevich_Dev",
+      "reviews": 892,
+      "rating": 5,
+      "classifier_id": 9387,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/9491608/professionalnie-dorabotki-i-ispravlenie-oshibok-na-cms-1s-bitriks",
+      "api_card": {
+        "id": 9491608,
+        "category_id": 38,
+        "title": "Профессиональные доработки и исправление ошибок на CMS 1С-Битрикс",
+        "url": "/website-repair/9491608/professionalnie-dorabotki-i-ispravlenie-oshibok-na-cms-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/9491608/professionalnie-dorabotki-i-ispravlenie-oshibok-na-cms-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/48/9491608-1670961138.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/48/9491608-1670961138.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/48/9491608-1670961138.jpg"
+        },
+        "price": 2000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1371112,
+          "username": "Vaskevich_Dev",
+          "fullname": "Роман Васькевич",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/02/1371112-10.jpg",
+          "rating": 5,
+          "reviews_count": 892,
+          "rating_count": 881,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9387,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 22632498,
+      "title": "Недорогая доработка сайта на 1С Битрикс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "Edea",
+      "reviews": 425,
+      "rating": 5,
+      "classifier_id": 9162,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/22632498/nedorogaya-dorabotka-sayta-na-1s-bitriks",
+      "api_card": {
+        "id": 22632498,
+        "category_id": 38,
+        "title": "Недорогая доработка сайта на 1С Битрикс",
+        "url": "/website-repair/22632498/nedorogaya-dorabotka-sayta-na-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/22632498/nedorogaya-dorabotka-sayta-na-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/01/22632498-1663832251.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/01/22632498-1663832251.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/01/22632498-1663832251.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 12300706,
+          "username": "Edea",
+          "fullname": "Иван Прокопович",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/25/12300706-3.jpg",
+          "rating": 5,
+          "reviews_count": 425,
+          "rating_count": 425,
+          "is_online": true,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": true,
+        "classifier_id": 9162,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 6334,
+      "title": "Доработка сайтов на 1С-Битрикс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "devyanin",
+      "reviews": 406,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/6334/dorabotka-saytov-na-1s-bitriks",
+      "api_card": {
+        "id": 6334,
+        "category_id": 38,
+        "title": "Доработка сайтов на 1С-Битрикс",
+        "url": "/website-repair/6334/dorabotka-saytov-na-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/6334/dorabotka-saytov-na-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/46/6334-2.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/46/6334-2.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/46/6334-2.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 3853,
+          "username": "devyanin",
+          "fullname": "Артур Девянин",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/45/3853-6.jpg",
+          "rating": 5,
+          "reviews_count": 406,
+          "rating_count": 406,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 160439,
+      "title": "Помогу с переносом товаров, заказов, клиентов Opencart на новую версию",
+      "description": "",
+      "price": 65000,
+      "currency": "RUB",
+      "seller": "IQ-Biz",
+      "reviews": 93,
+      "rating": 5,
+      "classifier_id": 9159,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/160439/pomogu-s-perenosom-tovarov-zakazov-klientov-opencart-na-novuyu-versiyu",
+      "api_card": {
+        "id": 160439,
+        "category_id": 38,
+        "title": "Помогу с переносом товаров, заказов, клиентов Opencart на новую версию",
+        "url": "/website-repair/160439/pomogu-s-perenosom-tovarov-zakazov-klientov-opencart-na-novuyu-versiyu",
+        "share_url": "https://kwork.ru/website-repair/160439/pomogu-s-perenosom-tovarov-zakazov-klientov-opencart-na-novuyu-versiyu",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/48/160439-1.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/48/160439-1.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/48/160439-1.jpg"
+        },
+        "price": 65000,
+        "is_price_from": false,
+        "is_best": false,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 227809,
+          "username": "IQ-Biz",
+          "fullname": "Алексей",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/35/227809-2.jpg",
+          "rating": 5,
+          "reviews_count": 93,
+          "rating_count": 91,
+          "is_online": true,
+          "level_description": "Высший рейтинг"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 9159,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": []
+      }
+    },
+    {
+      "id": 5137308,
+      "title": "Доработка сайта на 1С Битрикс",
+      "description": "",
+      "price": 1000,
+      "currency": "RUB",
+      "seller": "molodsom",
+      "reviews": 791,
+      "rating": 5,
+      "classifier_id": 8955,
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "share_url": "https://kwork.ru/website-repair/5137308/dorabotka-sayta-na-1s-bitriks",
+      "api_card": {
+        "id": 5137308,
+        "category_id": 38,
+        "title": "Доработка сайта на 1С Битрикс",
+        "url": "/website-repair/5137308/dorabotka-sayta-na-1s-bitriks",
+        "share_url": "https://kwork.ru/website-repair/5137308/dorabotka-sayta-na-1s-bitriks",
+        "image_url": "https://cdn-edge.kwork.ru/pics/t3/09/5137308-1583654752.jpg",
+        "cover": {
+          "phone": "https://cdn-edge.kwork.ru/pics/t1/09/5137308-1583654752.jpg",
+          "tablet": "https://cdn-edge.kwork.ru/pics/t3/09/5137308-1583654752.jpg"
+        },
+        "price": 1000,
+        "is_price_from": false,
+        "is_best": true,
+        "is_hidden": false,
+        "is_favorite": false,
+        "lang": "ru",
+        "worker": {
+          "id": 1704856,
+          "username": "molodsom",
+          "fullname": "Булат",
+          "profilepicture": "https://cdn-edge.kwork.ru/files/avatar/small/22/1704856-1.jpg",
+          "rating": 5,
+          "reviews_count": 791,
+          "rating_count": 790,
+          "is_online": false,
+          "level_description": "Высший рейтинг плюс"
+        },
+        "not_available_for_company": false,
+        "classifier_id": 8955,
+        "is_viewed": false,
+        "isSubscription": false,
+        "badges": [
+          {
+            "name": "ВЫБОР KWORK",
+            "backgroundColor": "#13244b",
+            "textColor": "#ffffff",
+            "composite_text_colors": {
+              "ВЫБОР ": "#ffffff",
+              "KWORK": "#f1a004"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "requests": [
+    {
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 1,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 1,
+      "declared_count": 787,
+      "card_count": 10,
+      "timing_ms": 2467,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 1,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 2,
+      "declared_count": 970,
+      "card_count": 10,
+      "timing_ms": 757,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 1,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 3,
+      "declared_count": 1193,
+      "card_count": 10,
+      "timing_ms": 379,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 1,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 4,
+      "declared_count": 1344,
+      "card_count": 10,
+      "timing_ms": 602,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 1,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 5,
+      "declared_count": 1625,
+      "card_count": 10,
+      "timing_ms": 621,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 1,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 6,
+      "declared_count": 7116,
+      "card_count": 10,
+      "timing_ms": 732,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 2,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 7,
+      "declared_count": 787,
+      "card_count": 10,
+      "timing_ms": 587,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 2,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 8,
+      "declared_count": 970,
+      "card_count": 10,
+      "timing_ms": 633,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 2,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 9,
+      "declared_count": 1193,
+      "card_count": 10,
+      "timing_ms": 712,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 2,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 0,
+      "declared_count": 1344,
+      "card_count": 10,
+      "timing_ms": 873,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 2,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 1,
+      "declared_count": 1625,
+      "card_count": 10,
+      "timing_ms": 821,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 2,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 2,
+      "declared_count": 7116,
+      "card_count": 10,
+      "timing_ms": 307,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 3,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 3,
+      "declared_count": 787,
+      "card_count": 10,
+      "timing_ms": 259,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 3,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 4,
+      "declared_count": 970,
+      "card_count": 10,
+      "timing_ms": 301,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 3,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 5,
+      "declared_count": 1193,
+      "card_count": 10,
+      "timing_ms": 438,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 3,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 6,
+      "declared_count": 1344,
+      "card_count": 10,
+      "timing_ms": 437,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 3,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 7,
+      "declared_count": 1625,
+      "card_count": 10,
+      "timing_ms": 284,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 3,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 8,
+      "declared_count": 7116,
+      "card_count": 10,
+      "timing_ms": 358,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 4,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 9,
+      "declared_count": 787,
+      "card_count": 10,
+      "timing_ms": 378,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 4,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 0,
+      "declared_count": 970,
+      "card_count": 10,
+      "timing_ms": 887,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 4,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 1,
+      "declared_count": 1193,
+      "card_count": 10,
+      "timing_ms": 295,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 4,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 2,
+      "declared_count": 1344,
+      "card_count": 10,
+      "timing_ms": 314,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 4,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 3,
+      "declared_count": 1625,
+      "card_count": 10,
+      "timing_ms": 315,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 4,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 4,
+      "declared_count": 7116,
+      "card_count": 10,
+      "timing_ms": 361,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 5,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 5,
+      "declared_count": 787,
+      "card_count": 10,
+      "timing_ms": 259,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 5,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 6,
+      "declared_count": 970,
+      "card_count": 10,
+      "timing_ms": 288,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 5,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 7,
+      "declared_count": 1193,
+      "card_count": 10,
+      "timing_ms": 419,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 5,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 8,
+      "declared_count": 1344,
+      "card_count": 10,
+      "timing_ms": 415,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 5,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 9,
+      "declared_count": 1625,
+      "card_count": 10,
+      "timing_ms": 420,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 5,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 0,
+      "declared_count": 7116,
+      "card_count": 10,
+      "timing_ms": 885,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 6,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 1,
+      "declared_count": 787,
+      "card_count": 10,
+      "timing_ms": 349,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 6,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 2,
+      "declared_count": 970,
+      "card_count": 10,
+      "timing_ms": 261,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 6,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 3,
+      "declared_count": 1193,
+      "card_count": 10,
+      "timing_ms": 497,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 6,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 4,
+      "declared_count": 1344,
+      "card_count": 10,
+      "timing_ms": 495,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 6,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 5,
+      "declared_count": 1625,
+      "card_count": 10,
+      "timing_ms": 320,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 6,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 6,
+      "declared_count": 7116,
+      "card_count": 10,
+      "timing_ms": 330,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 7,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 7,
+      "declared_count": 787,
+      "card_count": 10,
+      "timing_ms": 259,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 7,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 8,
+      "declared_count": 970,
+      "card_count": 10,
+      "timing_ms": 366,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 7,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 9,
+      "declared_count": 1193,
+      "card_count": 10,
+      "timing_ms": 293,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 7,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 0,
+      "declared_count": 1344,
+      "card_count": 10,
+      "timing_ms": 865,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 7,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 1,
+      "declared_count": 1625,
+      "card_count": 10,
+      "timing_ms": 305,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 7,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 2,
+      "declared_count": 7116,
+      "card_count": 10,
+      "timing_ms": 298,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 8,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 3,
+      "declared_count": 787,
+      "card_count": 10,
+      "timing_ms": 267,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 8,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 4,
+      "declared_count": 970,
+      "card_count": 10,
+      "timing_ms": 335,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 8,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 5,
+      "declared_count": 1193,
+      "card_count": 10,
+      "timing_ms": 297,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 8,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 6,
+      "declared_count": 1344,
+      "card_count": 10,
+      "timing_ms": 312,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 8,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 7,
+      "declared_count": 1625,
+      "card_count": 10,
+      "timing_ms": 322,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 8,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 8,
+      "declared_count": 7116,
+      "card_count": 10,
+      "timing_ms": 399,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1587,
+      "slice_name": "Ускорение сайта",
+      "page": 9,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 9,
+      "declared_count": 787,
+      "card_count": 10,
+      "timing_ms": 353,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1273,
+      "slice_name": "Защита и лечение сайта",
+      "page": 9,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 0,
+      "declared_count": 970,
+      "card_count": 10,
+      "timing_ms": 866,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1276,
+      "slice_name": "Плагины и темы",
+      "page": 9,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 1,
+      "declared_count": 1193,
+      "card_count": 10,
+      "timing_ms": 311,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1272,
+      "slice_name": "Исправление ошибок",
+      "page": 9,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 2,
+      "declared_count": 1344,
+      "card_count": 10,
+      "timing_ms": 331,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1275,
+      "slice_name": "Настройка сайта",
+      "page": 9,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 3,
+      "declared_count": 1625,
+      "card_count": 10,
+      "timing_ms": 369,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    },
+    {
+      "slice_id": 1271,
+      "slice_name": "Доработка сайта",
+      "page": 9,
+      "status": "ok",
+      "cached": false,
+      "transport_slot": 4,
+      "declared_count": 7116,
+      "card_count": 10,
+      "timing_ms": 284,
+      "detail": null,
+      "failure_kind": null,
+      "retry_after_seconds": null
+    }
+  ],
+  "timings_ms": {
+    "total": 39160
+  },
+  "analysis": {
+    "status": "ok",
+    "provider_output": {
+      "summary": "Анализ рубрики «Доработка и настройка сайта» (ID 38) на Kwork. Всего в рубрике 13 034 предложения, выборка покрывает 12 618 из них (96.8% отсканированных срезов). Проанализировано 60 карточек из 6 подрубрик. Медианная цена — 1 250 руб. Рынок высококонкурентный, с доминированием WordPress и 1С-Битрикс. Наблюдается высокая повторяемость продавцов (46.7% карточек), что указывает на концентрацию предложения у опытных фрилансеров. Уверенность выводов средняя, так как выборка составляет 0.5% от охваченного объема.",
+      "supply_shape": {
+        "price_range": {
+          "min": 500,
+          "median": 1250,
+          "max": 65000
+        },
+        "dominant_cms": [
+          "WordPress",
+          "1С-Битрикс",
+          "OpenCart",
+          "MODX"
+        ],
+        "seller_concentration": "Высокая. 46.7% карточек в выборке принадлежат 11 продавцам из 43 уникальных. Лидеры (EmOne, LEOnidUKG, itolimp) имеют по 3-4 карточки в разных подрубриках.",
+        "service_complexity": "Преобладают стандартизированные услуги с фиксированной ценой за базовую единицу работы. Сложные проекты (например, миграция данных) встречаются редко и имеют значительно более высокую цену."
+      },
+      "niches": [
+        {
+          "name": "Ускорение WordPress по стандартам Google PageSpeed",
+          "evidence": "Карточки: 10160085, 1507072, 28571147, 16558346, 52864, 35493, 13017584. Все они в подрубрике «Ускорение сайта» и явно упоминают WordPress и Google PageSpeed Insights.",
+          "why": "Это самая четко очерченная ниша с высокой частотой запросов. Покупателю важно получить измеримый результат (баллы в PageSpeed), что упрощает продажу услуги.",
+          "confidence": "high"
+        },
+        {
+          "name": "Лечение и защита сайтов на 1С-Битрикс от вирусов",
+          "evidence": "Карточки: 48414899, 26079711, 30885025. Все явно специализируются на 1С-Битрикс в подрубрике «Защита и лечение сайта».",
+          "why": "Четкая специализация на конкретной CMS в критической для бизнеса области (безопасность). Это позволяет брать более высокую цену (2 500 - 3 500 руб.) по сравнению с общей защитой.",
+          "confidence": "high"
+        },
+        {
+          "name": "Установка и настройка модулей/шаблонов для OpenCart",
+          "evidence": "Карточки: 393878, 139640, 24573900, 2480560. Все в подрубрике «Плагины и темы» и касаются исключительно OpenCart.",
+          "why": "OpenCart — популярная CMS для интернет-магазинов, требующая постоянной донастройки. Ниша узкая, но с понятным и платежеспособным клиентом.",
+          "confidence": "high"
+        },
+        {
+          "name": "Комплексная «скорая помощь» для сайтов на разных CMS",
+          "evidence": "Карточки: 40898 (WordPress, Битрикс, MODX, OpenCart), 38364000 («Правка вашего сайта»). Находятся в подрубриках «Исправление ошибок» и «Доработка сайта».",
+          "why": "Предложения, ориентированные на решение любых проблем «здесь и сейчас», привлекают наименее технически подкованных клиентов, готовых платить за универсальность и скорость.",
+          "confidence": "medium"
+        },
+        {
+          "name": "Доработка сайтов на MODX",
+          "evidence": "Карточки: 9922862, 29772879. Один продавец (modx_master) предлагает услуги в подрубриках «Доработка сайта» и «Исправление ошибок».",
+          "why": "Нишевая CMS с лояльной аудиторией. Конкуренция ниже, чем в сегменте WordPress, что позволяет эксперту в MODX занимать сильную позицию.",
+          "confidence": "medium"
+        }
+      ],
+      "listing_directions": [
+        {
+          "direction": "Специализация на одной CMS и проблеме",
+          "evidence": "Карточки: 48414899 («Сканирование сайта на 1С-Битрикс на вирусы»), 26079711 («Лечение сайта на 1С Битрикс»), 139640 («Установлю и настрою любой шаблон Opencart»).",
+          "why": "Максимально узкое позиционирование снимает возражения «а вы точно разбираетесь в моей системе?» и позволяет назначать цену выше рынка за экспертность.",
+          "confidence": "high"
+        },
+        {
+          "direction": "Привязка к измеримому результату (Performance Marketing)",
+          "evidence": "Карточки: 10160085, 28571147, 16558346, 16959115. Все обещают повышение баллов в Google PageSpeed Insights.",
+          "why": "Переводит абстрактную услугу «ускорение» в конкретный KPI, понятный заказчику. Снижает барьер для принятия решения о покупке.",
+          "confidence": "high"
+        },
+        {
+          "direction": "Пакетирование услуг вокруг одной платформы",
+          "evidence": "Продавец EmOne (карточки 28571147, 13017584, 28578406, 26234498) предлагает ускорение, установку плагинов для скорости и установку Elementor Pro. Продавец modx_master (9922862, 29772879, 9473629) — доработку, помощь и защиту для MODX.",
+          "why": "Создает эффект «одного окна» для клиента на выбранной CMS, повышая LTV и средний чек за счет кросс-продаж внутри магазина.",
+          "confidence": "high"
+        },
+        {
+          "direction": "Демпинг на входе с четко ограниченным объемом",
+          "evidence": "Карточки: 266322, 28578406, 1013375, 24573900, 2480560. Цена 500 руб. за установку одного плагина или настройку формы.",
+          "why": "Привлекает поток клиентов, которые затем могут быть переведены на более дорогие услуги. Работает как лид-магнит в высококонкурентной среде.",
+          "confidence": "medium"
+        }
+      ],
+      "risks": [
+        "Высокая фрагментация и повторяемость продавцов: 11 из 43 продавцов занимают почти половину выборки. Новичку будет сложно конкурировать с их рейтингом и количеством отзывов.",
+        "Ценовая война в базовых услугах: медианная цена 1250 руб. при большом количестве предложений от 500 руб. указывает на демпинг в простых задачах (установка плагинов, мелкие правки).",
+        "Размытость категории «Доработка сайта»: самая большая подрубрика (6905 предложений) включает в себя всё, от мелких правок до сложной разработки, что затрудняет поиск для клиента и позиционирование для продавца."
+      ],
+      "questions_to_validate": [
+        "Какую долю рынка занимают услуги, не привязанные к конкретной CMS (универсальные предложения), и какова их конверсия по сравнению с нишевыми?",
+        "Какова реальная маржинальность услуг с ценой 500 руб. с учетом времени на коммуникацию и возможные доработки?",
+        "Какие CMS, кроме WordPress и 1С-Битрикс, показывают наибольший рост спроса, но имеют наименьшее покрытие в текущих предложениях?",
+        "Какова доля заказов, приходящих через поиск по ключевым словам (например, «ускорение PageSpeed»), а не через выбор подрубрики?"
+      ]
+    },
+    "evidence_window": {
+      "raw_listing_count": 60,
+      "included_listing_count": 60,
+      "listing_limit": 5000,
+      "evidence_char_limit": 3500000,
+      "included_chars": 83167,
+      "truncated": false
+    }
+  },
+  "assistant_context_id": "f094f9bcf98d4395a7e3a14ebd770efb"
+}

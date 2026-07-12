@@ -390,6 +390,12 @@ async def test_kwork_market_buyer_scout_route_passes_payload(monkeypatch):
     result = await kwork.kwork_market_buyer_scout(
         kwork.KworkBuyerScoutRequest(
             probes=[{"name": "telegram", "categories": "all", "query": "telegram", "kworks_filter_to": 5}],
+            category_id=41,
+            classifier_id=100,
+            category_name="Доработка и настройка сайта",
+            classifier_name="Доработка сайта",
+            attribute_selection={"attribute[1]": "2"},
+            attribute_controls=[{"name": "attribute[1]", "type": "radio"}],
             max_probes=1,
             page=1,
             project_page_limit=2,
@@ -409,6 +415,12 @@ async def test_kwork_market_buyer_scout_route_passes_payload(monkeypatch):
     assert captured["probes"] == [
         {"name": "telegram", "categories": "all", "query": "telegram", "kworks_filter_to": 5}
     ]
+    assert captured["category_id"] == 41
+    assert captured["classifier_id"] == 100
+    assert captured["category_name"] == "Доработка и настройка сайта"
+    assert captured["classifier_name"] == "Доработка сайта"
+    assert captured["attribute_selection"] == {"attribute[1]": "2"}
+    assert captured["attribute_controls"] == [{"name": "attribute[1]", "type": "radio"}]
     assert captured["max_probes"] == 1
     assert captured["project_page_limit"] == 2
     assert captured["per_probe_limit"] == 7
@@ -473,3 +485,81 @@ async def test_kwork_market_categories_reports_missing_proxy_dependency(monkeypa
     assert exc.value.status_code == 503
     assert "aiohttp-socks" in str(exc.value.detail)
     assert closed["value"] is True
+
+
+@pytest.mark.asyncio
+async def test_kwork_market_catalog_aliases_filters_to_selected_category():
+    result = await kwork.kwork_market_catalog_aliases(category_id=38)
+
+    assert result["schema_version"] == 1
+    assert result["total"] >= 2
+    assert result["items"][0] == {
+        "category_id": 38,
+        "category_name": "Доработка и настройка сайта",
+        "label": "Доработка и настройка сайта",
+        "alias": "website-repair",
+        "recommended": True,
+    }
+    assert {item["alias"] for item in result["items"]} >= {
+        "website-repair",
+        "website-repair/dorabotka-sayta",
+    }
+
+
+@pytest.mark.asyncio
+async def test_kwork_market_supply_scan_route_passes_rubric_scope(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class Scanner:
+        async def scan(self, **kwargs):
+            captured.update(kwargs)
+            return {"source": "psr.kwork_supply_scan", "scope": kwargs}
+
+        async def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setattr(kwork, "KworkSupplyScanner", Scanner)
+
+    result = await kwork.kwork_market_supply_scan(
+        kwork.KworkSupplyScanRequest(
+            category_id=38,
+            category_name="Site work",
+            classifier_id=10,
+            classifier_name="Slice A",
+            coverage="deep",
+            include_llm=False,
+            write_file=False,
+        )
+    )
+
+    assert result["source"] == "psr.kwork_supply_scan"
+    assert result["deprecation"]["replacement"] == "/api/kwork/market/jobs"
+    assert captured == {
+        "category_id": 38,
+        "category_name": "Site work",
+        "classifier_id": 10,
+        "classifier_name": "Slice A",
+        "coverage": "deep",
+        "include_llm": False,
+        "write_file": False,
+        "closed": True,
+    }
+
+
+@pytest.mark.asyncio
+async def test_kwork_market_assistant_route_passes_saved_context(monkeypatch):
+    captured: dict[str, str] = {}
+
+    class Assistant:
+        async def ask(self, context_id: str, message: str):
+            captured.update({"context_id": context_id, "message": message})
+            return {"context_id": context_id, "answer": "Evidence-backed answer.", "refresh": None}
+
+    monkeypatch.setattr(kwork, "MarketAssistant", Assistant)
+
+    result = await kwork.kwork_market_assistant(
+        kwork.KworkMarketAssistantRequest(context_id="context-1234", message="What is sparse?")
+    )
+
+    assert result["answer"] == "Evidence-backed answer."
+    assert captured == {"context_id": "context-1234", "message": "What is sparse?"}

@@ -57,7 +57,7 @@ interface KworkVerificationNotice {
 }
 
 const NAV = [
-  { to: '/kwork-market',  icon: Store,           label: 'Kwork Market' },
+  { to: '/kwork-market',  icon: Store,           label: 'Рынок Kwork' },
   { to: '/dashboard',     icon: LayoutDashboard, label: 'Панель' },
   { to: '/queue',         icon: ListChecks,      label: 'Очередь' },
   { to: '/skipped',       icon: Ban,             label: 'Пропуски' },

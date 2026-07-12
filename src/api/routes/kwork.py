@@ -17,15 +17,18 @@ from kwork.exceptions import KworkRetryExceeded
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from src.paths import PROPOSAL_ASSETS_DIR
+from src.paths import PROPOSAL_ASSETS_DIR, REFERENCE_DIR
 from src.platforms.kwork import KWORK_BASE_URL, KworkStateDataParser, get_kwork_service
 from src.platforms.kwork_autopublish import KworkAutopublishService
 from src.platforms.kwork_ext import KworkExtensions
 from src.platforms.kwork_listing import KworkWebListingClient, manual_verification_evidence
 from src.platforms.kwork_market import KworkMarketClient
+from src.platforms.kwork_market_supply import KworkSupplyScanner, MarketAssistant
 from src.utils.vpnte_proxy import kwork_http_proxy_url
 
 router = APIRouter(prefix="/api/kwork", tags=["kwork"])
+
+CATALOG_ALIASES_REFERENCE_FILE = REFERENCE_DIR / "kwork_catalog_aliases.json"
 
 
 def _raise_kwork_market_error(exc: Exception, *, context: str) -> None:
@@ -49,6 +52,47 @@ def _raise_kwork_market_error(exc: Exception, *, context: str) -> None:
         ) from exc
     logger.exception(f"Kwork market {context} failed")
     raise HTTPException(status_code=502, detail=detail) from exc
+
+
+def _catalog_aliases_from_reference() -> tuple[int, list[dict[str, Any]]]:
+    """Load the packaged category-to-catalog-path mapping without probing Kwork."""
+
+    try:
+        payload = json.loads(CATALOG_ALIASES_REFERENCE_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.exception("Unable to load Kwork catalog alias reference")
+        raise HTTPException(status_code=500, detail="Kwork catalog alias reference is unavailable") from exc
+
+    raw_items = payload.get("aliases") if isinstance(payload, dict) else None
+    if not isinstance(raw_items, list):
+        raise HTTPException(status_code=500, detail="Kwork catalog alias reference has an invalid format")
+
+    items: list[dict[str, Any]] = []
+    for item in raw_items:
+        if not isinstance(item, dict):
+            continue
+        try:
+            category_id = int(item.get("category_id") or 0)
+        except (TypeError, ValueError):
+            continue
+        alias = str(item.get("alias") or "").strip().strip("/")
+        if not category_id or not re.fullmatch(r"[a-z0-9][a-z0-9_-]*(?:/[a-z0-9][a-z0-9_-]*)*", alias):
+            continue
+        category_name = str(item.get("category_name") or "").strip()
+        label = str(item.get("label") or category_name or alias).strip()
+        items.append(
+            {
+                "category_id": category_id,
+                "category_name": category_name,
+                "label": label,
+                "alias": alias,
+                "recommended": bool(item.get("recommended")),
+            }
+        )
+
+    items.sort(key=lambda item: (item["category_id"], not item["recommended"], item["label"], item["alias"]))
+    schema_version = payload.get("schema_version") if isinstance(payload, dict) else None
+    return int(schema_version or 1), items
 
 
 class KworkDraftRequest(BaseModel):
@@ -115,6 +159,21 @@ class KworkMarketMetricsRequest(BaseModel):
     attribute_controls: list[dict[str, Any]] = Field(default_factory=list)
 
 
+class KworkSupplyScanRequest(BaseModel):
+    category_id: int = Field(..., ge=1)
+    category_name: str = ""
+    classifier_id: int | None = Field(default=None, ge=1)
+    classifier_name: str = ""
+    coverage: str = "balanced"
+    include_llm: bool = True
+    write_file: bool = True
+
+
+class KworkMarketAssistantRequest(BaseModel):
+    context_id: str = Field(..., min_length=8, max_length=128)
+    message: str = Field(..., min_length=1, max_length=8000)
+
+
 class KworkMarketIntelligenceRequest(BaseModel):
     seeds: list[dict[str, Any]] | None = None
     max_seeds: int = Field(default=8, ge=1, le=30)
@@ -134,6 +193,12 @@ class KworkMarketIntelligenceRequest(BaseModel):
 
 class KworkBuyerScoutRequest(BaseModel):
     probes: list[dict[str, Any]] | None = None
+    category_id: int | None = Field(default=None, ge=1)
+    classifier_id: int | None = Field(default=None, ge=1)
+    category_name: str = ""
+    classifier_name: str = ""
+    attribute_selection: dict[str, Any] = Field(default_factory=dict)
+    attribute_controls: list[dict[str, Any]] = Field(default_factory=list)
     max_probes: int = Field(default=10, ge=1, le=30)
     page: int = Field(default=1, ge=1, le=5)
     project_page_limit: int = Field(default=2, ge=1, le=3)
@@ -147,6 +212,8 @@ class KworkBuyerScoutRequest(BaseModel):
     budget_max: int = Field(default=5000, ge=0, le=150000)
     include_query_suggestions: bool = True
     query_suggestion_limit: int = Field(default=5, ge=0, le=20)
+    include_control_windows: bool = False
+    control_window_limit: int = Field(default=6, ge=0, le=20)
     write_file: bool = False
 
 
@@ -502,6 +569,16 @@ async def kwork_market_categories():
         await client.close()
 
 
+@router.get("/market/catalog-aliases")
+async def kwork_market_catalog_aliases(category_id: int | None = Query(default=None, ge=1)) -> dict[str, Any]:
+    """Return packaged canonical catalog paths for the category picker."""
+
+    schema_version, items = _catalog_aliases_from_reference()
+    if category_id is not None:
+        items = [item for item in items if item["category_id"] == category_id]
+    return {"schema_version": schema_version, "items": items, "total": len(items)}
+
+
 @router.get("/market/category/{category_id}/attributes")
 async def kwork_market_category_attributes(category_id: int):
     client = KworkMarketClient()
@@ -741,6 +818,43 @@ async def kwork_market_metrics_post(payload: KworkMarketMetricsRequest) -> dict[
         await client.close()
 
 
+@router.post("/market/supply-scan", deprecated=True)
+async def kwork_market_supply_scan(payload: KworkSupplyScanRequest) -> dict[str, Any]:
+    scanner = KworkSupplyScanner()
+    try:
+        result = await scanner.scan(
+            category_id=payload.category_id,
+            category_name=payload.category_name,
+            classifier_id=payload.classifier_id,
+            classifier_name=payload.classifier_name,
+            coverage=payload.coverage,
+            include_llm=payload.include_llm,
+            write_file=payload.write_file,
+        )
+        return {
+            **result,
+            "deprecation": {
+                "code": "legacy_sync_supply_scan",
+                "replacement": "/api/kwork/market/jobs",
+                "message": "Use durable market jobs for new collection runs.",
+            },
+        }
+    except Exception as exc:
+        _raise_kwork_market_error(exc, context="supply scan")
+    finally:
+        await scanner.close()
+
+
+@router.post("/market/assistant")
+async def kwork_market_assistant(payload: KworkMarketAssistantRequest) -> dict[str, Any]:
+    try:
+        return await MarketAssistant().ask(payload.context_id, payload.message)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
 @router.post("/market/intelligence-snapshot")
 async def kwork_market_intelligence_snapshot(payload: KworkMarketIntelligenceRequest) -> dict[str, Any]:
     client = KworkMarketClient()
@@ -773,6 +887,12 @@ async def kwork_market_buyer_scout(payload: KworkBuyerScoutRequest) -> dict[str,
     try:
         return await client.get_buyer_scout(
             probes=payload.probes,
+            category_id=payload.category_id,
+            classifier_id=payload.classifier_id,
+            category_name=payload.category_name,
+            classifier_name=payload.classifier_name,
+            attribute_selection=payload.attribute_selection,
+            attribute_controls=payload.attribute_controls,
             max_probes=payload.max_probes,
             page=payload.page,
             project_page_limit=payload.project_page_limit,
@@ -786,6 +906,8 @@ async def kwork_market_buyer_scout(payload: KworkBuyerScoutRequest) -> dict[str,
             budget_max=payload.budget_max,
             include_query_suggestions=payload.include_query_suggestions,
             query_suggestion_limit=payload.query_suggestion_limit,
+            include_control_windows=payload.include_control_windows,
+            control_window_limit=payload.control_window_limit,
             write_file=payload.write_file,
         )
     except Exception as exc:

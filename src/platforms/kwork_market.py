@@ -28,7 +28,7 @@ KWORK_WEB_BASE_URL = "https://kwork.ru"
 KWORK_CDN_BASE_URL = "https://cdn-edge.kwork.ru"
 STATE_MARKER = "window.stateData="
 ATTRIBUTE_FILTER_RE = re.compile(r"^(attribute\[\d+\](?:\[\])?)$")
-CATALOG_ALIAS_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{1,120}$")
+CATALOG_ALIAS_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*(?:/[a-z0-9][a-z0-9_-]*)*$")
 MARKET_METRICS_CACHE_TTL = 120.0
 COMPETITOR_DETAIL_CACHE_TTL = 900.0
 SELLER_DETAIL_CACHE_TTL = 900.0
@@ -39,83 +39,6 @@ _COMPETITOR_DETAIL_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 _SELLER_DETAIL_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 BUYER_REASONABLE_BUDGET_MAX = 150000
 BUYER_DEFAULT_PRICE_TO = 5000
-
-DEFAULT_MARKET_INTELLIGENCE_SEEDS: list[dict[str, Any]] = [
-    {"name": "Marketplace design", "category_id": 286, "classifier_id": 1433413},
-    {"name": "Links", "category_id": 59},
-    {"name": "Ready databases", "category_id": 113, "classifier_id": 1117},
-    {"name": "Logos", "category_id": 25, "classifier_id": 401928},
-    {"name": "Marketplaces", "category_id": 112, "classifier_id": 1357},
-    {"name": "Telegram", "category_id": 46, "classifier_id": 281},
-    {"name": "AI logos/infographics", "category_id": 306, "classifier_id": 4200156},
-    {"name": "Programming broad", "category_id": 41},
-]
-DEFAULT_MARKET_INTELLIGENCE_QUERIES = ["telegram", "ai", "seo", "python", "bot", "logo"]
-DEFAULT_BUYER_SCOUT_PROBES: list[dict[str, Any]] = [
-    {"name": "telegram_bot_low_offer", "categories": "all", "query": "С‚РµР»РµРіСЂР°Рј Р±РѕС‚", "kworks_filter_to": 5},
-    {"name": "telegram_low_offer", "categories": "all", "query": "telegram", "kworks_filter_to": 5},
-    {
-        "name": "telegram_budget30_low_offer",
-        "categories": "all",
-        "query": "telegram",
-        "price_from": 30000,
-        "kworks_filter_to": 5,
-    },
-    {"name": "automation_low_offer", "categories": "all", "query": "Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ", "kworks_filter_to": 5},
-    {"name": "wordpress_low_offer", "categories": "all", "query": "wordpress", "kworks_filter_to": 5},
-    {"name": "programming_low_offer", "categories": "41", "query": "", "kworks_filter_to": 5},
-    {"name": "website_maintenance_low_offer", "categories": "all", "query": "РґРѕСЂР°Р±РѕС‚РєР° СЃР°Р№С‚Р°", "kworks_filter_to": 10},
-    {"name": "telegram_bot_zero_offer", "categories": "all", "query": "С‚РµР»РµРіСЂР°Рј Р±РѕС‚", "kworks_filter_to": 0},
-    {"name": "site_zero_offer", "categories": "all", "query": "СЃР°Р№С‚", "kworks_filter_to": 0},
-]
-DEFAULT_BUYER_SCOUT_PROBES = [
-    {"name": "telegram_low_offer", "categories": "all", "query": "telegram", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "telegram_zero_offer", "categories": "all", "query": "telegram", "kworks_filter_to": 0, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "site_zero_offer", "categories": "all", "query": "site", "kworks_filter_to": 0, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "python_low_offer", "categories": "all", "query": "python", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "ai_low_offer", "categories": "all", "query": "ai", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "chatgpt_low_offer", "categories": "all", "query": "chatgpt", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "wordpress_low_offer", "categories": "all", "query": "wordpress", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "seo_low_offer", "categories": "all", "query": "seo", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "design_low_offer", "categories": "all", "query": "design", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "landing_low_offer", "categories": "all", "query": "landing", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "automation_low_offer", "categories": "all", "query": "automation", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "programming_low_offer", "categories": "41", "query": "", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-]
-
-DEFAULT_BUYER_SCOUT_PROBES = [
-    {"name": "programming_low_offer", "categories": "41", "query": "", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "broad_low_offer", "categories": "85", "query": "", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "video_low_offer", "categories": "78", "query": "", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "category80_low_offer", "categories": "80", "query": "", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {
-        "name": "telegram_bot_ru_low_offer",
-        "categories": "all",
-        "query": "\u0442\u0435\u043b\u0435\u0433\u0440\u0430\u043c \u0431\u043e\u0442",
-        "kworks_filter_to": 5,
-        "price_to": BUYER_DEFAULT_PRICE_TO,
-    },
-    {"name": "telegram_low_offer", "categories": "all", "query": "telegram", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "python_low_offer", "categories": "all", "query": "python", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "ai_low_offer", "categories": "all", "query": "ai", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {
-        "name": "automation_ru_low_offer",
-        "categories": "all",
-        "query": "\u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0437\u0430\u0446\u0438\u044f",
-        "kworks_filter_to": 5,
-        "price_to": BUYER_DEFAULT_PRICE_TO,
-    },
-    {
-        "name": "parser_ru_low_offer",
-        "categories": "all",
-        "query": "\u043f\u0430\u0440\u0441\u0435\u0440",
-        "kworks_filter_to": 5,
-        "price_to": BUYER_DEFAULT_PRICE_TO,
-    },
-    {"name": "wordpress_low_offer", "categories": "all", "query": "wordpress", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "landing_low_offer", "categories": "all", "query": "landing", "kworks_filter_to": 5, "price_to": BUYER_DEFAULT_PRICE_TO},
-    {"name": "telegram_zero_offer", "categories": "all", "query": "telegram", "kworks_filter_to": 0, "price_to": BUYER_DEFAULT_PRICE_TO},
-]
 
 DEFAULT_WEB_CATALOG_ALIASES = [
     "programming",
@@ -133,34 +56,34 @@ DEFAULT_WEB_CATALOG_ALIASES = [
 ]
 
 MARKET_TERM_STOPWORDS = {
-    "РґР»СЏ",
-    "РёР»Рё",
-    "РїРѕРґ",
-    "РїСЂРё",
-    "РІР°С€",
-    "РІР°С€Р°",
-    "РІР°С€Рµ",
-    "РІР°С€РµРіРѕ",
-    "РІР°С€РµР№",
-    "РІР°С€Рё",
-    "СЃР°Р№С‚",
-    "СЃР°Р№С‚Р°",
-    "СЃР°Р№С‚РѕРІ",
-    "СЃРґРµР»Р°СЋ",
-    "СЃРѕР·РґР°Рј",
-    "СЂР°Р·СЂР°Р±РѕС‚Р°СЋ",
-    "РґРѕСЂР°Р±РѕС‚РєР°",
-    "РЅР°СЃС‚СЂРѕР№РєР°",
-    "РєРІРѕСЂРє",
+    "для",
+    "или",
+    "под",
+    "при",
+    "ваш",
+    "ваша",
+    "ваше",
+    "вашего",
+    "вашей",
+    "ваши",
+    "сайт",
+    "сайта",
+    "сайтов",
+    "сделаю",
+    "создам",
+    "разработаю",
+    "доработка",
+    "настройка",
+    "кворк",
     "kwork",
-    "СЌС‚Рѕ",
-    "РјРѕР№",
-    "РІР°Рј",
-    "РІР°СЃ",
-    "С‡С‚Рѕ",
-    "РєР°Рє",
-    "Р±СѓРґРµС‚",
-    "РјРѕР¶РЅРѕ",
+    "это",
+    "мой",
+    "вам",
+    "вас",
+    "что",
+    "как",
+    "будет",
+    "можно",
 }
 
 
@@ -183,6 +106,27 @@ def _market_api_timeout() -> float:
         return max(2.0, float(os.getenv("KWORK_MARKET_API_TIMEOUT", "8") or "8"))
     except (TypeError, ValueError):
         return 8.0
+
+
+def _market_api_retry_attempts() -> int:
+    try:
+        return max(1, int(os.getenv("KWORK_MARKET_API_RETRY_ATTEMPTS", "2") or "2"))
+    except (TypeError, ValueError):
+        return 2
+
+
+def _is_market_timeout_error(exc: BaseException) -> bool:
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if isinstance(current, (TimeoutError, asyncio.TimeoutError)):
+            return True
+        detail = f"{type(current).__name__}: {current}".lower()
+        if "timeouterror" in detail or "timed out" in detail or "timeout" in detail:
+            return True
+        current = current.__cause__ or current.__context__
+    return False
 
 
 def _market_http_proxy_url(*, rotate: bool = False) -> str | None:
@@ -227,9 +171,9 @@ def _as_bool(value: Any) -> bool:
     if isinstance(value, (int, float)):
         return value != 0
     text = str(value).strip().lower()
-    if text in {"", "0", "false", "no", "none", "null", "off", "РЅРµС‚"}:
+    if text in {"", "0", "false", "no", "none", "null", "off", "нет"}:
         return False
-    if text in {"1", "true", "yes", "on", "РґР°"}:
+    if text in {"1", "true", "yes", "on", "да"}:
         return True
     return bool(text)
 
@@ -534,7 +478,7 @@ def _market_terms(*values: Any, limit: int = 12) -> list[dict[str, Any]]:
     counter: Counter[str] = Counter()
     for value in values:
         text = _clean_text(value, 2000).lower()
-        text = re.sub(r"[^a-zР°-СЏС‘0-9\s-]+", " ", text)
+        text = re.sub(r"[^a-zа-яё0-9\s-]+", " ", text)
         for token in text.split():
             if len(token) < 3 or token in MARKET_TERM_STOPWORDS:
                 continue
@@ -575,6 +519,55 @@ def build_market_insights(
         for item in (classifiers or [])[:8]
         if isinstance(item, dict)
     ]
+    search_queries: list[dict[str, Any]] = []
+    search_candidates: list[dict[str, Any]] = []
+    for item in top_classifiers:
+        if item.get("name"):
+            search_candidates.append(
+                {
+                    "query": item.get("name"),
+                    "count": item.get("kworks_count"),
+                    "why": "Крупный под-срез текущей рубрики.",
+                    "source": "classifier",
+                }
+            )
+    for item in title_terms:
+        search_candidates.append(
+            {
+                "query": item.get("term"),
+                "count": item.get("count"),
+                "why": "Часто встречается в заголовках карточек.",
+                "source": "title_terms",
+            }
+        )
+    for item in body_terms:
+        search_candidates.append(
+            {
+                "query": item.get("term"),
+                "count": item.get("count"),
+                "why": "Часто встречается в описаниях карточек.",
+                "source": "description_terms",
+            }
+        )
+    seen_queries: set[str] = set()
+    for item in search_candidates:
+        query = _clean_text(item.get("query"), 120)
+        if not query:
+            continue
+        key = query.casefold()
+        if key in seen_queries:
+            continue
+        seen_queries.add(key)
+        search_queries.append(
+            {
+                "query": query,
+                "count": _as_int(item.get("count")),
+                "why": _clean_text(item.get("why"), 220),
+                "source": _clean_text(item.get("source"), 40),
+            }
+        )
+        if len(search_queries) >= 8:
+            break
     price_summary = {
         "min": min(prices) if prices else None,
         "median": _median_int(prices),
@@ -582,13 +575,13 @@ def build_market_insights(
         "sample_size": len(prices),
     }
     reviews_100_plus = sum(1 for item in reviews if item >= 100)
-    trust_summary = {
+    seller_review_strength = {
         "reviews_100_plus": reviews_100_plus,
         "sample_size": len(reviews),
         "threshold": 100,
     }
     repeated_cards = sum(item["cards"] for item in repeated_sellers)
-    concentration = {
+    seller_repetition_in_sample = {
         "repeated_sellers": repeated_sellers,
         "repeated_cards": repeated_cards,
         "sample_size": len(sample),
@@ -596,46 +589,46 @@ def build_market_insights(
     }
     bullets: list[str] = []
     if kworks_count is not None:
-        bullets.append(f"Р’ РІС‹Р±СЂР°РЅРЅРѕРј СЃСЂРµР·Рµ РЅР°Р№РґРµРЅРѕ {kworks_count} РєРІРѕСЂРєРѕРІ.")
+        bullets.append(f"В выбранном срезе найдено {kworks_count} кворков.")
     if prices:
         bullets.append(
-            f"Р¦РµРЅР° РІ С‚РѕРїРµ: РѕС‚ {min(prices)} в‚Ѕ РґРѕ {max(prices)} в‚Ѕ, РјРµРґРёР°РЅР° {price_summary['median']} в‚Ѕ."
+            f"Цена в топе: от {min(prices)} ₽ до {max(prices)} ₽, медиана {price_summary['median']} ₽."
         )
     if reviews:
         bullets.append(
-            f"РџРѕСЂРѕРі РґРѕРІРµСЂРёСЏ РІС‹СЃРѕРєРёР№: {reviews_100_plus}/{len(reviews)} РєР°СЂС‚РѕС‡РµРє РІ РІС‹Р±РѕСЂРєРµ РёРјРµСЋС‚ 100+ РѕС‚Р·С‹РІРѕРІ."
+            f"В выборке {reviews_100_plus}/{len(reviews)} карточек имеют 100+ отзывов; это индикатор силы продавцов, а не качества ниши."
         )
     if repeated_sellers:
         sellers_text = ", ".join(f"{item['seller']} ({item['cards']})" for item in repeated_sellers[:4])
-        bullets.append(f"Р•СЃС‚СЊ РєРѕРЅС†РµРЅС‚СЂР°С†РёСЏ РІС‹РґР°С‡Рё: РїРѕРІС‚РѕСЂСЏСЋС‚СЃСЏ РїСЂРѕРґР°РІС†С‹ {sellers_text}.")
+        bullets.append(f"В этой выборке повторяются продавцы {sellers_text}; это повтор карточек, а не концентрация рынка.")
     if title_terms:
-        bullets.append("Р§Р°СЃС‚С‹Рµ С‚РµРјС‹ РІ Р·Р°РіРѕР»РѕРІРєР°С…: " + ", ".join(item["term"] for item in title_terms[:6]) + ".")
+        bullets.append("Частые темы в заголовках: " + ", ".join(item["term"] for item in title_terms[:6]) + ".")
     if body_terms:
-        bullets.append("Р§Р°СЃС‚С‹Рµ С‚РµРјС‹ РІ РѕРїРёСЃР°РЅРёСЏС…: " + ", ".join(item["term"] for item in body_terms[:6]) + ".")
+        bullets.append("Частые темы в описаниях: " + ", ".join(item["term"] for item in body_terms[:6]) + ".")
     if demand and demand.get("status") not in (None, "skipped"):
         if demand.get("status") == "ok":
             bullets.append(
-                f"РЎРїСЂРѕСЃ РїРѕ Р·Р°РєР°Р·Р°Рј: {demand.get('wants_count', 0)} Р·Р°РєР°Р·РѕРІ, РїСЂРёРјРµСЂРѕРІ {demand.get('sample_count', 0)}."
+                f"Спрос по заказам: {demand.get('wants_count', 0)} заказов, примеров {demand.get('sample_count', 0)}."
             )
         elif demand.get("status") == "timeout":
-            bullets.append("РЎРїСЂРѕСЃ РїРѕ Р·Р°РєР°Р·Р°Рј РЅРµ СѓСЃРїРµР» РѕС‚РІРµС‚РёС‚СЊ Р±С‹СЃС‚СЂРѕ; СЌРєСЂР°РЅ РїРѕРєР°Р·Р°Р» РєРѕРЅРєСѓСЂРµРЅС‚РѕРІ Р±РµР· РѕР¶РёРґР°РЅРёСЏ Р±РёСЂР¶Рё.")
+            bullets.append("Спрос по заказам не успел ответить быстро; экран показал конкурентов без ожидания биржи.")
 
     recommendations: list[str] = []
     if reviews and reviews_100_plus >= max(1, len(reviews) // 2):
-        recommendations.append("РЈРїР°РєСѓР№ РґРѕРІРµСЂРёРµ: РєРµР№СЃС‹, РіР°СЂР°РЅС‚РёСЏ, РїРѕРЅСЏС‚РЅС‹Р№ РѕР±СЉС‘Рј СЂР°Р±РѕС‚ Рё СЃРёР»СЊРЅР°СЏ РѕР±Р»РѕР¶РєР° РІР°Р¶РЅРµРµ РѕР±С‰РµР№ С„СЂР°Р·С‹.")
+        recommendations.append("Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.")
     if price_summary["median"]:
-        recommendations.append(f"Р‘Р°Р·РѕРІСѓСЋ С†РµРЅСѓ Р»СѓС‡С€Рµ РґРµСЂР¶Р°С‚СЊ РѕРєРѕР»Рѕ РјРµРґРёР°РЅС‹ СЃСЂРµР·Р°: РїСЂРёРјРµСЂРЅРѕ {price_summary['median']} в‚Ѕ.")
+        recommendations.append(f"Базовую цену лучше держать около медианы среза: примерно {price_summary['median']} ₽.")
     if title_terms:
         recommendations.append(
-            "Р’ Р·Р°РіРѕР»РѕРІРєРµ СЃС‚РѕРёС‚ СЏРІРЅРѕ РЅР°Р·РІР°С‚СЊ С‚РµС…РЅРѕР»РѕРіРёСЋ/С‚РёРї СѓСЃР»СѓРіРё: " + ", ".join(item["term"] for item in title_terms[:4]) + "."
+            "В заголовке стоит явно назвать технологию или тип услуги: " + ", ".join(item["term"] for item in title_terms[:4]) + "."
         )
     if repeated_sellers:
-        recommendations.append("РќРµ РєРѕРїРёСЂСѓР№ С‚РѕРї С†РµР»РёРєРѕРј: РїРѕРІС‚РѕСЂСЏСЋС‰РёРµСЃСЏ РїСЂРѕРґР°РІС†С‹ Р·Р°РЅРёРјР°СЋС‚ РјРµСЃС‚Р° Р·Р° СЃС‡С‘С‚ РґРѕРІРµСЂРёСЏ, РёС‰Рё Р±РѕР»РµРµ СѓР·РєРёР№ СЃСЂРµР·.")
+        recommendations.append("Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез.")
     if top_classifiers:
         narrow = [item for item in top_classifiers if item.get("kworks_count") and item["kworks_count"] < (kworks_count or 0)]
         if narrow:
             recommendations.append(
-                "РџСЂРѕРІРµСЂСЊ Р±РѕР»РµРµ СѓР·РєРёРµ СЃСЂРµР·С‹: "
+                "Проверь более узкие срезы: "
                 + ", ".join(f"{item['name']} ({item['kworks_count']})" for item in narrow[:3])
                 + "."
             )
@@ -644,11 +637,12 @@ def build_market_insights(
         "sample_size": len(sample),
         "kworks_count": kworks_count,
         "price": price_summary,
-        "trust": trust_summary,
-        "concentration": concentration,
+        "seller_review_strength": seller_review_strength,
+        "seller_repetition_in_sample": seller_repetition_in_sample,
         "title_terms": title_terms,
         "description_terms": body_terms,
         "top_classifiers": top_classifiers,
+        "search_queries": search_queries,
         "bullets": bullets,
         "recommendations": recommendations,
     }
@@ -782,7 +776,7 @@ def _extract_kwork_id(value: Any) -> int:
 def _clean_catalog_alias(value: Any) -> str:
     alias = str(value or "").strip().strip("/")
     alias = alias.split("?", 1)[0].split("#", 1)[0]
-    if not CATALOG_ALIAS_RE.match(alias):
+    if len(alias) > 240 or not CATALOG_ALIAS_RE.match(alias):
         raise ValueError("invalid Kwork catalog alias")
     return alias
 
@@ -863,9 +857,22 @@ def _meta_content(html: str, key: str) -> str:
 class KworkMarketClient:
     """Read Kwork category, classifier and competition data through API calls."""
 
-    def __init__(self, api: Any | None = None) -> None:
+    def __init__(
+        self,
+        api: Any | None = None,
+        *,
+        proxy_url: str | None = None,
+        use_environment_proxy: bool = True,
+    ) -> None:
         self._api = api
         self._owns_api = api is None
+        self._proxy_url = proxy_url
+        self._use_environment_proxy = use_environment_proxy
+
+    def _configured_proxy(self) -> str | None:
+        if self._proxy_url is not None:
+            return self._proxy_url
+        return _market_http_proxy_url(rotate=False) if self._use_environment_proxy else None
 
     async def _get_api(self) -> Any:
         if self._api is None:
@@ -875,8 +882,8 @@ class KworkMarketClient:
                 login="",
                 password="",
                 timeout=_market_api_timeout(),
-                retry_max_attempts=1,
-                proxy=_market_http_proxy_url(rotate=False),
+                retry_max_attempts=_market_api_retry_attempts(),
+                proxy=self._configured_proxy(),
             )
         return self._api
 
@@ -928,6 +935,19 @@ class KworkMarketClient:
         attributes = _safe_list(response)
         flat = self.flatten_attributes(attributes)
         return {"category_id": category_id, "attributes": attributes, "flat": flat, "raw": data}
+
+    async def get_catalog_filters(self, category_id: int) -> dict[str, Any]:
+        """Read aggregate catalog filters without treating them as card coverage."""
+
+        if category_id <= 0:
+            raise ValueError("category_id must be positive")
+        data = await self.request("catalogFilters", categoryId=category_id)
+        response = data.get("response")
+        return {
+            "category_id": category_id,
+            "filters": response if isinstance(response, dict) else {},
+            "raw": data,
+        }
 
     @classmethod
     def flatten_attributes(
@@ -981,7 +1001,7 @@ class KworkMarketClient:
             },
             timeout=_market_api_timeout(),
             follow_redirects=True,
-            proxy=_market_http_proxy_url(rotate=False),
+            proxy=self._configured_proxy(),
             trust_env=False,
         ) as client:
             response = await client.get(f"/{endpoint}", params=params)
@@ -1099,7 +1119,7 @@ class KworkMarketClient:
             timeout=_market_api_timeout(),
             follow_redirects=True,
             cookies=cookies or None,
-            proxy=_market_http_proxy_url(rotate=False),
+            proxy=self._configured_proxy(),
             trust_env=False,
         ) as client:
             response = await client.post(endpoint, data=params)
@@ -1114,6 +1134,7 @@ class KworkMarketClient:
             "content_type": content_type,
             "bytes": len(response.content),
             "protection_status": "blocked" if response.status_code == 403 else "ok",
+            "retry_after": response.headers.get("retry-after"),
         }
         if response.status_code != 200:
             result["success"] = False
@@ -1262,6 +1283,13 @@ class KworkMarketClient:
             data = await self.request("kworks", **params)
             response = data.get("response")
             if isinstance(response, dict):
+                response = dict(response)
+                # The mobile API can place paging metadata next to `response`.
+                # Preserve it so callers can validate the server-reported cursor.
+                for metadata_key in ("paging", "pagination", "meta"):
+                    metadata = data.get(metadata_key)
+                    if metadata_key not in response and isinstance(metadata, dict):
+                        response[metadata_key] = metadata
                 response["_request_params"] = params
                 catalogs.append(response)
             elif isinstance(response, list):
@@ -1795,11 +1823,11 @@ class KworkMarketClient:
 
         practice_parts = [
             title,
-            f"Р¦РµРЅР°: {price} в‚Ѕ" if price else "",
-            f"РџСЂРѕРґР°РІРµС†: {worker}" if worker else "",
-            f"РћР±СЉРµРј: {service_size}" if service_size else "",
-            f"РћРїРёСЃР°РЅРёРµ: {description}" if description else "",
-            f"Р§С‚Рѕ РїСЂРѕСЃРёС‚ Сѓ РєР»РёРµРЅС‚Р°: {instruction}" if instruction else "",
+            f"Цена: {price} ₽" if price else "",
+            f"Продавец: {worker}" if worker else "",
+            f"Объём: {service_size}" if service_size else "",
+            f"Описание: {description}" if description else "",
+            f"Что просит у клиента: {instruction}" if instruction else "",
         ]
         return {
             "title": title or competitor.get("title"),
@@ -1922,9 +1950,8 @@ class KworkMarketClient:
                 if _MARKET_METRICS_INFLIGHT.get(cache_key) is task and task.done():
                     _MARKET_METRICS_INFLIGHT.pop(cache_key, None)
 
-        if not task.cancelled() and task.exception() is None:
-            result["cache_status"] = "miss"
-            _cache_set(_MARKET_METRICS_CACHE, cache_key, result)
+        result["cache_status"] = "miss"
+        _cache_set(_MARKET_METRICS_CACHE, cache_key, result)
         return result
 
     async def _get_market_metrics_uncached(
@@ -1962,7 +1989,7 @@ class KworkMarketClient:
             timings_ms["kworks"] = int((time.monotonic() - kworks_started) * 1000)
             timings_ms["total"] = int((time.monotonic() - started) * 1000)
             detail = f"{type(exc).__name__}: {exc}"
-            if isinstance(exc, TimeoutError) or "TimeoutError" in detail or "timed out" in detail.lower():
+            if _is_market_timeout_error(exc):
                 logger.warning(
                     "KworkMarket: metrics kworks timeout category={} classifier={} page={} detail={}",
                     category_id,
@@ -2085,10 +2112,10 @@ class KworkMarketClient:
                 }
             return {
                 "status": "needs_cookies",
-                "label": "РЅСѓР¶РЅС‹ РєСѓРєРё",
+                "label": "нужны куки",
                 "wants_count": 0,
                 "sample_count": 0,
-                "detail": "Kwork РЅРµ РІРµСЂРЅСѓР» Р·Р°РєР°Р·С‹ Р±РµР· Р°РІС‚РѕСЂРёР·РѕРІР°РЅРЅС‹С… cookies Session Hub.",
+                "detail": "Kwork не вернул заказы без авторизованных cookies Session Hub.",
                 "scope": scope or describe_attribute_filter_scope(filters),
                 "filter_params": request_filters,
             }
@@ -2316,6 +2343,19 @@ class KworkMarketClient:
             "entry_count": len(entries),
             "exists": latest_path.exists() or index_path.exists(),
         }
+
+    @staticmethod
+    def _project_matches_rubric(item: dict[str, Any], category_id: int) -> bool:
+        """Reject explicitly mismatched projects returned by a filtered Kwork page."""
+        platform_data = item.get("platform_data") if isinstance(item.get("platform_data"), dict) else {}
+        project_categories = {
+            _as_int(item.get("category_id") or item.get("categoryId")),
+            _as_int(item.get("parent_category_id") or item.get("parentCategoryId")),
+            _as_int(platform_data.get("category_id")),
+            _as_int(platform_data.get("parent_category_id")),
+        }
+        project_categories.discard(0)
+        return not project_categories or category_id in project_categories
 
     @staticmethod
     def _summarize_project(item: dict[str, Any]) -> dict[str, Any]:
@@ -2589,30 +2629,14 @@ class KworkMarketClient:
             key=lambda project: (_as_int(project.get("user_hired_percent")), project.get("score") or 0),
             reverse=True,
         )
-        probe_leaders = sorted(
-            [
-                {
-                    "name": _clean_text(probe.get("name") or probe.get("query") or "probe", 120),
-                    "query": _clean_text(probe.get("query"), 120),
-                    "count": _as_int(probe.get("count")),
-                    "sample_count": _as_int(probe.get("sample_count")),
-                    "filters": probe.get("filters") if isinstance(probe.get("filters"), dict) else {},
-                }
-                for probe in probes
-                if probe.get("status") == "ok"
-            ],
-            key=lambda probe: (probe["count"], probe["sample_count"]),
-            reverse=True,
-        )
-
         signals: list[dict[str, Any]] = []
         if zero_offer:
             signals.append(
                 {
                     "kind": "zero_offer",
-                    "label": "Р›РѕС‚С‹ Р±РµР· РѕС‚РєР»РёРєРѕРІ",
+                    "label": "Лоты без откликов",
                     "value": len(zero_offer),
-                    "detail": "РџРµСЂРІС‹Рµ С†РµР»Рё РґР»СЏ Р±С‹СЃС‚СЂРѕРіРѕ РѕС‚РІРµС‚Р°: РєРѕРЅРєСѓСЂРµРЅС†РёСЏ РµС‰С‘ РЅРµ РЅР°Р±РµР¶Р°Р»Р°.",
+                    "detail": "Первые цели для быстрого ответа: конкуренция ещё не набежала.",
                     "projects": [compact_project(project) for project in zero_offer[:4]],
                 }
             )
@@ -2620,9 +2644,9 @@ class KworkMarketClient:
             signals.append(
                 {
                     "kind": "high_budget_low_offer",
-                    "label": "Р”РµРЅСЊРіРё Рё РјР°Р»Рѕ РѕС‚РєР»РёРєРѕРІ",
+                    "label": "Деньги и мало откликов",
                     "value": len(high_budget),
-                    "detail": "Р‘СЋРґР¶РµС‚ РѕС‚ 10 000 в‚Ѕ Рё РЅРµ Р±РѕР»СЊС€Рµ 5 РѕС‚РєР»РёРєРѕРІ.",
+                    "detail": "Бюджет от 10 000 ₽ и не больше 5 откликов.",
                     "projects": [compact_project(project) for project in high_budget[:4]],
                 }
             )
@@ -2630,9 +2654,9 @@ class KworkMarketClient:
             signals.append(
                 {
                     "kind": "budget_fit_low_offer",
-                    "label": "Р РµР°Р»РёСЃС‚РёС‡РЅС‹Р№ Р±СЋРґР¶РµС‚",
+                    "label": "Реалистичный бюджет",
                     "value": len(budget_fit),
-                    "detail": f"Р›РѕС‚С‹ РІ Р»РёРјРёС‚Рµ РґРѕ {budget_max} в‚Ѕ Рё СЃ РјР°Р»С‹Рј С‡РёСЃР»РѕРј РѕС‚РєР»РёРєРѕРІ.",
+                    "detail": f"Лоты в лимите до {budget_max} ₽ и с малым числом откликов.",
                     "projects": [compact_project(project) for project in budget_fit[:4]],
                 }
             )
@@ -2640,9 +2664,9 @@ class KworkMarketClient:
             signals.append(
                 {
                     "kind": "repeat_buyers",
-                    "label": "РџРѕРєСѓРїР°С‚РµР»Рё СЃ РёСЃС‚РѕСЂРёРµР№",
+                    "label": "Покупатели с историей",
                     "value": len(repeat_buyers),
-                    "detail": "РЈ РїРѕРєСѓРїР°С‚РµР»СЏ СѓР¶Рµ РµСЃС‚СЊ РЅРµСЃРєРѕР»СЊРєРѕ Р»РѕС‚РѕРІ, СЌС‚Рѕ Р»СѓС‡С€Рµ СЂР°Р·РѕРІРѕРіРѕ СЃР»СѓС‡Р°Р№РЅРѕРіРѕ Р·Р°РїСЂРѕСЃР°.",
+                    "detail": "У покупателя уже есть несколько лотов, это лучше разового случайного запроса.",
                     "projects": [compact_project(project) for project in repeat_buyers[:4]],
                 }
             )
@@ -2650,20 +2674,10 @@ class KworkMarketClient:
             signals.append(
                 {
                     "kind": "proven_buyers",
-                    "label": "РџРѕРєСѓРїР°С‚РµР»Рё РЅР°РЅРёРјР°СЋС‚",
+                    "label": "Покупатели нанимают",
                     "value": len(proven_buyers),
-                    "detail": "Р’ РєР°СЂС‚РѕС‡РєРµ РїРѕРєСѓРїР°С‚РµР»СЏ РµСЃС‚СЊ Р·Р°РјРµС‚РЅС‹Р№ РїСЂРѕС†РµРЅС‚ РЅР°Р№РјР°.",
+                    "detail": "В карточке покупателя есть заметный процент найма.",
                     "projects": [compact_project(project) for project in proven_buyers[:4]],
-                }
-            )
-        if probe_leaders:
-            signals.append(
-                {
-                    "kind": "probe_leaders",
-                    "label": "Р Р°Р±РѕС‡РёРµ РїРѕРёСЃРєРѕРІС‹Рµ РѕРєРЅР°",
-                    "value": len(probe_leaders),
-                    "detail": "Р—Р°РїСЂРѕСЃС‹ Рё С„РёР»СЊС‚СЂС‹, РіРґРµ СЃРµР№С‡Р°СЃ РЅР°С…РѕРґРёС‚СЃСЏ Р±РѕР»СЊС€Рµ РІСЃРµРіРѕ Р¶РёРІС‹С… Р»РѕС‚РѕРІ.",
-                    "probes": probe_leaders[:5],
                 }
             )
         for signal in signals:
@@ -2723,17 +2737,17 @@ class KworkMarketClient:
         ]
         next_actions: list[str] = []
         if zero_offer:
-            next_actions.append(f"Reply first to {len(zero_offer)} zero-offer lots before they become crowded.")
+            next_actions.append(f"Сначала ответь на {len(zero_offer)} лотов без откликов, пока туда не набежали конкуренты.")
         if budget_fit:
-            next_actions.append(f"Keep budget cap at {budget_cap} RUB for this account and use {len(budget_fit)} low-offer fits.")
+            next_actions.append(f"Держи потолок бюджета {budget_cap} ₽ для этого аккаунта: найдено {len(budget_fit)} подходящих лотов с малой конкуренцией.")
         if best_windows:
-            next_actions.append(f"Reuse the strongest window: {best_windows[0]['name']} ({best_windows[0]['count']} lots).")
+            next_actions.append(f"Повтори самый сильный поисковый срез: {best_windows[0]['name']} ({best_windows[0]['count']} лотов).")
         if proven:
-            next_actions.append(f"Prioritize {len(proven)} buyers with visible hiring history.")
+            next_actions.append(f"Выше ставь {len(proven)} покупателей с видимой историей найма.")
         if query_suggestions:
-            next_actions.append("Use keyword hints to add more probes when current windows dry up.")
+            next_actions.append("Используй подсказки запросов, когда текущие поисковые срезы начнут иссякать.")
         if not next_actions:
-            next_actions.append("No strong buyer window was found; widen category probes before enabling heavy details.")
+            next_actions.append("Сильный срез покупателей не найден; расширь рубрики перед включением тяжёлых деталей.")
 
         return {
             "budget_max": budget_cap,
@@ -2746,6 +2760,221 @@ class KworkMarketClient:
             "best_projects": best_projects,
             "next_actions": next_actions[:5],
         }
+
+    @staticmethod
+    def build_buyer_rubric_context(
+        projects: list[dict[str, Any]],
+        *,
+        category_id: int | None = None,
+        category_name: str = "",
+        classifier_id: int | None = None,
+        classifier_name: str = "",
+        attribute_scope: dict[str, Any] | None = None,
+        budget_max: int = BUYER_DEFAULT_PRICE_TO,
+    ) -> dict[str, Any]:
+        def project_budget(project: dict[str, Any]) -> int:
+            direct = _as_int(project.get("price"))
+            possible = _as_int(project.get("possible_price_limit"))
+            return max(direct, possible if project.get("allow_higher_price") else 0)
+
+        budget_cap = max(0, _as_int(budget_max, default=BUYER_DEFAULT_PRICE_TO))
+        low_offer = [item for item in projects if 0 <= _as_int(item.get("offers"), default=999) <= 5]
+        zero_offer = [item for item in projects if _as_int(item.get("offers"), default=999) == 0]
+        budget_fit = [item for item in low_offer if not budget_cap or project_budget(item) <= budget_cap]
+        proven = [item for item in projects if _as_int(item.get("user_hired_percent")) >= 30]
+        repeat_buyers = [
+            {"buyer": buyer, "cards": count}
+            for buyer, count in Counter(
+                _clean_text(item.get("username") or item.get("buyer_username") or item.get("worker"), 80) or "unknown"
+                for item in projects
+            ).most_common(8)
+            if buyer != "unknown" and count > 1
+        ]
+        titles = [item.get("title") for item in projects]
+        descriptions = [item.get("description") for item in projects]
+        terms = _market_terms(*titles, *descriptions, limit=20)
+        budget_values = [project_budget(item) for item in projects if project_budget(item) > 0]
+        examples = [
+            {
+                "id": project.get("id"),
+                "title": _clean_text(project.get("title"), 160),
+                "description": _clean_text(project.get("description"), 220),
+                "price": project.get("price"),
+                "possible_price_limit": project.get("possible_price_limit"),
+                "offers": _as_int(project.get("offers")),
+                "user_hired_percent": _as_int(project.get("user_hired_percent")),
+                "username": _clean_text(project.get("username"), 80),
+            }
+            for project in projects[:10]
+        ]
+        return {
+            "category_id": category_id,
+            "category_name": _clean_text(category_name, 120),
+            "classifier_id": classifier_id,
+            "classifier_name": _clean_text(classifier_name, 120),
+            "attribute_scope": attribute_scope or {},
+            "budget_max": budget_cap,
+            "unique_projects": len(projects),
+            "zero_offer_count": len(zero_offer),
+            "low_offer_count": len(low_offer),
+            "budget_fit_count": len(budget_fit),
+            "proven_buyer_count": len(proven),
+            "budget_min": min(budget_values) if budget_values else None,
+            "budget_median": _median_int(budget_values),
+            "budget_max_seen": max(budget_values) if budget_values else None,
+            "repeat_buyers": repeat_buyers,
+            "terms": terms,
+            "examples": examples,
+        }
+
+    @staticmethod
+    def _normalize_buyer_recommendations(raw_items: Any, *, limit: int = 5) -> list[dict[str, Any]]:
+        if isinstance(raw_items, dict):
+            for key in ("recommendations", "items", "queries", "results"):
+                if isinstance(raw_items.get(key), list):
+                    raw_items = raw_items.get(key)
+                    break
+        if not isinstance(raw_items, list):
+            return []
+        normalized: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for item in raw_items:
+            if not isinstance(item, dict):
+                continue
+            query = _clean_text(item.get("query") or item.get("name") or item.get("text"), 120)
+            if not query:
+                continue
+            key = query.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            priority = _as_int(item.get("priority") or item.get("rank") or item.get("score"), default=0)
+            normalized.append(
+                {
+                    "query": query,
+                    "priority": max(0, priority),
+                    "why": _clean_text(item.get("why") or item.get("reason") or item.get("explanation"), 220),
+                    "budget": _clean_text(item.get("budget"), 120) or item.get("budget"),
+                    "competition": _clean_text(item.get("competition"), 120) or item.get("competition"),
+                    "examples": [
+                        _clean_text(example, 120)
+                        for example in _safe_list(item.get("examples"))
+                        if _clean_text(example, 120)
+                    ][:3],
+                }
+            )
+            if len(normalized) >= limit:
+                break
+        normalized.sort(key=lambda item: (item.get("priority", 0), item.get("query", "")), reverse=True)
+        return normalized[:limit]
+
+    async def build_buyer_rubric_recommendations(
+        self,
+        *,
+        projects: list[dict[str, Any]],
+        category_id: int | None = None,
+        category_name: str = "",
+        classifier_id: int | None = None,
+        classifier_name: str = "",
+        attribute_scope: dict[str, Any] | None = None,
+        budget_max: int = BUYER_DEFAULT_PRICE_TO,
+        max_recommendations: int = 5,
+    ) -> list[dict[str, Any]]:
+        context = self.build_buyer_rubric_context(
+            projects,
+            category_id=category_id,
+            category_name=category_name,
+            classifier_id=classifier_id,
+            classifier_name=classifier_name,
+            attribute_scope=attribute_scope,
+            budget_max=budget_max,
+        )
+        prompt_payload = {
+            "task": "buyer_search_recommendations",
+            "goal": "Return rubric-specific search queries for a freelancer.",
+            "rules": [
+                "Use only the current rubric and its raw projects.",
+                "Do not output internal window names like broad_low_offer or telegram_low_offer.",
+                "Return Russian queries when the rubric data is Russian; keep real English product terms only if they are present in the data.",
+                "Rank by demand, competition, budget and offers.",
+                "Each recommendation must explain why it matters for this rubric.",
+                "Return a compact JSON array only.",
+            ],
+            "rubric_context": context,
+        }
+        system_prompt = (
+            "You analyze Kwork buyer projects inside one rubric and propose search queries for a freelancer. "
+            "Return only JSON. Do not invent unrelated markets. "
+            "Prefer rubric-specific phrases from the supplied titles, descriptions, prices, offers and buyer history. "
+            "Never mention internal control-window names."
+        )
+        prompt = (
+            "Suggest the best search queries for the current Kwork rubric.\n\n"
+            f"{json.dumps(prompt_payload, ensure_ascii=False, indent=2)}\n\n"
+            'Return JSON like [{"query":"доработка сайта","priority":5,"why":"...","budget":"1000-7000 ₽","competition":"умеренная","examples":["..."]}].'
+        )
+        try:
+            from src.brain.llm_router import get_llm_router
+
+            text = await get_llm_router().generate(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                temperature=0.2,
+                max_tokens=900,
+                task="query_generation",
+            )
+            raw_text = str(text or "").strip()
+            parsed: Any = None
+            if raw_text:
+                try:
+                    parsed = json.loads(raw_text)
+                except json.JSONDecodeError:
+                    match = re.search(r"\[[\s\S]*\]", raw_text)
+                    if match:
+                        try:
+                            parsed = json.loads(match.group(0))
+                        except json.JSONDecodeError:
+                            parsed = None
+                if parsed is None:
+                    try:
+                        parsed = json.loads(raw_text[raw_text.find("{") : raw_text.rfind("}") + 1]) if "{" in raw_text and "}" in raw_text else None
+                    except Exception:
+                        parsed = None
+            recommendations = self._normalize_buyer_recommendations(parsed or [], limit=max_recommendations)
+            if recommendations:
+                return recommendations
+        except Exception as exc:
+            logger.debug(f"KworkMarket: buyer rubric recommendation LLM fallback: {exc}")
+
+        fallback_terms = [item for item in context.get("terms", []) if isinstance(item, dict)]
+        fallback: list[dict[str, Any]] = []
+        for index, term in enumerate(fallback_terms[:max_recommendations]):
+            name = _clean_text(term.get("term"), 120)
+            if not name:
+                continue
+            fallback.append(
+                {
+                    "query": name,
+                    "priority": max(1, 5 - index),
+                    "why": "Самый частый термин в текущих лотах рубрики.",
+                    "budget": f"{context.get('budget_min') or 0}–{context.get('budget_max_seen') or context.get('budget_max') or 0} ₽",
+                    "competition": "по частоте в выборке",
+                    "examples": [example.get("title") for example in context.get("examples", [])[:3] if example.get("title")],
+                }
+            )
+        if not fallback:
+            base_name = _clean_text(classifier_name or category_name or "рубрика", 120)
+            fallback = [
+                {
+                    "query": base_name,
+                    "priority": 5,
+                    "why": "Базовый запрос из выбранной рубрики.",
+                    "budget": f"до {context.get('budget_max') or BUYER_DEFAULT_PRICE_TO} ₽",
+                    "competition": "неизвестно",
+                    "examples": [example.get("title") for example in context.get("examples", [])[:3] if example.get("title")],
+                }
+            ]
+        return self._normalize_buyer_recommendations(fallback, limit=max_recommendations)
 
     @staticmethod
     def _buyer_probe_filters(probe: dict[str, Any]) -> dict[str, Any]:
@@ -2973,6 +3202,12 @@ class KworkMarketClient:
         self,
         *,
         probes: list[dict[str, Any]] | None = None,
+        category_id: int | None = None,
+        classifier_id: int | None = None,
+        category_name: str = "",
+        classifier_name: str = "",
+        attribute_selection: dict[str, Any] | None = None,
+        attribute_controls: list[dict[str, Any]] | None = None,
         max_probes: int = 10,
         page: int = 1,
         project_page_limit: int = 1,
@@ -2986,13 +3221,13 @@ class KworkMarketClient:
         budget_max: int | None = BUYER_DEFAULT_PRICE_TO,
         include_query_suggestions: bool = True,
         query_suggestion_limit: int = 5,
+        include_control_windows: bool = False,
+        control_window_limit: int = 6,
         write_file: bool = False,
         output_dir: str | Path | None = None,
     ) -> dict[str, Any]:
         """Collect ranked buyer lots from the Kwork exchange APIs."""
         started = time.monotonic()
-        selected_probes = probes if probes is not None else DEFAULT_BUYER_SCOUT_PROBES
-        selected_probes = [dict(item) for item in selected_probes if isinstance(item, dict)][: max(1, min(max_probes, 30))]
         page = max(1, min(page, 5))
         project_page_limit = max(1, min(_as_int(project_page_limit, default=1), 3))
         per_probe_limit = max(1, min(per_probe_limit, 50))
@@ -3001,9 +3236,7 @@ class KworkMarketClient:
         buyer_history_limit = max(0, min(buyer_history_limit, top_limit, 20))
         budget_cap = max(0, min(_as_int(budget_max, default=BUYER_DEFAULT_PRICE_TO), BUYER_REASONABLE_BUDGET_MAX))
         query_suggestion_limit = max(0, min(_as_int(query_suggestion_limit, default=5), 20))
-        if budget_cap:
-            for probe in selected_probes:
-                probe.setdefault("price_to", budget_cap)
+        control_window_limit = max(0, min(_as_int(control_window_limit, default=6), 20))
 
         try:
             from src.platforms.kwork import get_kwork_service
@@ -3018,6 +3251,334 @@ class KworkMarketClient:
                 "probes": [],
                 "top": [],
             }
+
+        if category_id is not None:
+            clean_attribute_selection = attribute_selection or {}
+            attribute_scope = describe_attribute_filter_scope(clean_attribute_selection, controls=attribute_controls)
+            rubric_filters = dict(attribute_scope.get("params") or {})
+            if classifier_id:
+                rubric_filters["classifierId"] = classifier_id
+                rubric_filters["attr"] = classifier_id
+
+            rubric_request_cache: dict[str, tuple[list[dict[str, Any]], dict[str, Any]]] = {}
+            rubric_project_cache_key_base = {
+                "categories": str(category_id),
+                "filters": rubric_filters,
+            }
+            rubric_sample_projects: list[dict[str, Any]] = []
+            rubric_sample_rows: list[dict[str, Any]] = []
+            rubric_total = 0
+            for sample_offset in range(project_page_limit):
+                current_page = page + sample_offset
+                cache_key = _stable_json({**rubric_project_cache_key_base, "page": current_page, "query": ""})
+                cache_hit = cache_key in rubric_request_cache
+                if cache_hit:
+                    page_projects, page_meta = rubric_request_cache[cache_key]
+                    page_meta = copy.deepcopy(page_meta)
+                    page_meta["cache_hit"] = True
+                else:
+                    page_projects, page_meta = await service.get_raw_projects(
+                        categories=str(category_id),
+                        page=current_page,
+                        query="",
+                        **rubric_filters,
+                    )
+                    rubric_request_cache[cache_key] = (list(page_projects), copy.deepcopy(page_meta))
+                page_projects = [
+                    item
+                    for item in page_projects
+                    if isinstance(item, dict) and self._project_matches_rubric(item, category_id)
+                ]
+                rubric_sample_projects.extend(page_projects)
+                page_paging = (
+                    page_meta.get("paging") if isinstance(page_meta, dict) and isinstance(page_meta.get("paging"), dict) else {}
+                )
+                current_total = _as_int(page_paging.get("total") or page_meta.get("total") or len(page_projects), default=len(page_projects))
+                rubric_total = max(rubric_total, current_total)
+                rubric_sample_rows.append(
+                    {
+                        "page": current_page,
+                        "count": current_total,
+                        "sample_count": len(page_projects),
+                        "cache_hit": cache_hit,
+                        "source": page_meta.get("source") if isinstance(page_meta, dict) else None,
+                    }
+                )
+                if not page_projects:
+                    break
+                if current_total and len(rubric_sample_projects) >= current_total:
+                    break
+
+            rubric_summaries = [self._summarize_project(item) for item in rubric_sample_projects if isinstance(item, dict)]
+            query_recommendations = await self.build_buyer_rubric_recommendations(
+                projects=rubric_summaries,
+                category_id=category_id,
+                category_name=category_name,
+                classifier_id=classifier_id,
+                classifier_name=classifier_name,
+                attribute_scope=attribute_scope,
+                budget_max=budget_cap,
+                max_recommendations=max(1, min(max_probes, query_suggestion_limit or 5)),
+            )
+
+            probe_results: list[dict[str, Any]] = []
+            seen: dict[str, dict[str, Any]] = {}
+            endpoint_errors: list[dict[str, Any]] = []
+            project_request_cache: dict[str, tuple[list[dict[str, Any]], dict[str, Any]]] = {}
+
+            async def scan_query_window(
+                window: dict[str, Any],
+                *,
+                mode: str = "ai",
+                include_in_ranking: bool = True,
+            ) -> dict[str, Any]:
+                window_started = time.monotonic()
+                query = _clean_text(window.get("query"), 120)
+                row: dict[str, Any] = {
+                    "name": _clean_text(window.get("name") or query or "window", 120),
+                    "categories": str(category_id),
+                    "query": query,
+                    "filters": rubric_filters,
+                    "mode": mode,
+                    "recommendation": window if mode == "ai" else {},
+                }
+                try:
+                    projects: list[dict[str, Any]] = []
+                    first_meta: dict[str, Any] = {}
+                    page_rows: list[dict[str, Any]] = []
+                    max_window_items = per_probe_limit * project_page_limit
+                    for page_offset in range(project_page_limit):
+                        current_page = page + page_offset
+                        cache_key = _stable_json(
+                            {
+                                "categories": str(category_id),
+                                "page": current_page,
+                                "query": query,
+                                "filters": rubric_filters,
+                            }
+                        )
+                        cache_hit = cache_key in project_request_cache
+                        if cache_hit:
+                            page_projects, page_meta = project_request_cache[cache_key]
+                            page_meta = copy.deepcopy(page_meta)
+                            page_meta["cache_hit"] = True
+                        else:
+                            page_projects, page_meta = await service.get_raw_projects(
+                                categories=str(category_id),
+                                page=current_page,
+                                query=query,
+                                **rubric_filters,
+                            )
+                            project_request_cache[cache_key] = (list(page_projects), copy.deepcopy(page_meta))
+                        if not first_meta:
+                            first_meta = page_meta if isinstance(page_meta, dict) else {}
+                        page_paging = (
+                            page_meta.get("paging")
+                            if isinstance(page_meta, dict) and isinstance(page_meta.get("paging"), dict)
+                            else {}
+                        )
+                        page_rows.append(
+                            {
+                                "page": current_page,
+                                "count": _as_int(page_paging.get("total") or page_meta.get("total") or len(page_projects), default=len(page_projects))
+                                if isinstance(page_meta, dict)
+                                else len(page_projects),
+                                "sample_count": len(page_projects),
+                                "cache_hit": cache_hit,
+                                "source": page_meta.get("source") if isinstance(page_meta, dict) else None,
+                            }
+                        )
+                        projects.extend(
+                            item
+                            for item in page_projects
+                            if isinstance(item, dict) and self._project_matches_rubric(item, category_id)
+                        )
+                        if isinstance(page_meta, dict) and page_meta.get("token_required"):
+                            row["status"] = "skipped"
+                            row["meta"] = page_meta
+                            row["pages"] = page_rows
+                            row["timings_ms"] = {"total": int((time.monotonic() - window_started) * 1000)}
+                            return row
+                        total_available = _as_int(page_paging.get("total") or page_meta.get("total"), default=0) if isinstance(page_meta, dict) else 0
+                        if not page_projects or (total_available and len(projects) >= total_available) or len(projects) >= max_window_items:
+                            break
+                    projects = projects[:max_window_items]
+                    meta = first_meta
+                    paging = meta.get("paging") if isinstance(meta, dict) and isinstance(meta.get("paging"), dict) else {}
+                    count = _as_int(
+                        paging.get("total")
+                        or paging.get("count")
+                        or meta.get("total")
+                        or meta.get("count")
+                        or len(projects),
+                        default=len(projects),
+                    )
+                    summarized_projects = [self._summarize_project(item) for item in projects if isinstance(item, dict)]
+                    sample = summarized_projects[:per_probe_limit]
+                    if include_in_ranking:
+                        for project in summarized_projects:
+                            project_id = str(project.get("id") or "").strip()
+                            if not project_id:
+                                continue
+                            scored = {
+                                **project,
+                                **self.score_buyer_project(project, budget_max=budget_cap),
+                                "matched_probe": row["name"],
+                            }
+                            existing = seen.get(project_id)
+                            if existing is None or scored.get("score", 0) > existing.get("score", 0):
+                                seen[project_id] = scored
+                    row.update(
+                        {
+                            "status": "ok" if count or projects else "empty",
+                            "count": count,
+                            "sample_count": len(projects),
+                            "sample": sample,
+                            "meta": meta,
+                            "pages": page_rows,
+                        }
+                    )
+                except Exception as exc:
+                    error = {"probe": row["name"], "detail": f"{type(exc).__name__}: {exc}"}
+                    endpoint_errors.append(error)
+                    row.update({"status": "error", **error})
+                row["timings_ms"] = {"total": int((time.monotonic() - window_started) * 1000)}
+                return row
+
+            for recommendation in query_recommendations:
+                probe_results.append(await scan_query_window(recommendation, mode="ai"))
+
+            control_windows: list[dict[str, Any]] = []
+            if include_control_windows:
+                selected_control_windows = probes or []
+                selected_control_windows = [dict(item) for item in selected_control_windows if isinstance(item, dict)][
+                    : max(1, min(max_probes, 30))
+                ]
+                if budget_cap:
+                    for probe in selected_control_windows:
+                        probe.setdefault("price_to", budget_cap)
+                for probe in selected_control_windows[:control_window_limit]:
+                    control_row = await scan_query_window(probe, mode="control", include_in_ranking=False)
+                    control_row["control_window"] = True
+                    control_windows.append(control_row)
+
+            query_suggestions = (
+                await self.build_buyer_query_suggestions(
+                    [{"query": item.get("query")} for item in query_recommendations if item.get("query")],
+                    max_queries=5,
+                    suggestion_limit=query_suggestion_limit,
+                )
+                if include_query_suggestions and query_suggestion_limit > 0
+                else []
+            )
+
+            ranked = sorted(seen.values(), key=lambda item: item.get("score", 0), reverse=True)[:top_limit]
+            for project in ranked[:detail_limit]:
+                if include_project_details:
+                    project["project_detail"] = await self.fetch_project_detail(project.get("id"))
+                if include_want_details:
+                    project["want_detail"] = await self.fetch_want_detail(project.get("id"))
+            buyer_history_cache: dict[str, dict[str, Any]] = {}
+            if include_buyer_history and buyer_history_limit > 0:
+                for project in ranked[:buyer_history_limit]:
+                    username = _clean_text(
+                        project.get("username")
+                        or (project.get("project_detail") or {}).get("username")
+                        or (project.get("want_detail") or {}).get("username"),
+                        80,
+                    )
+                    if not username:
+                        continue
+                    if username not in buyer_history_cache:
+                        buyer_history_cache[username] = await self.fetch_buyer_history(username, limit=6)
+                    project["buyer_history"] = buyer_history_cache[username]
+
+            summary = {
+                "budget_max": budget_cap,
+                "unique_projects": len(seen),
+                "zero_offer_count": sum(1 for item in seen.values() if item.get("offers") == 0),
+                "low_offer_count": sum(1 for item in seen.values() if 0 <= (item.get("offers") or 999) <= 5),
+                "budget_fit_count": sum(1 for item in seen.values() if 0 <= (item.get("offers") or 999) <= 5 and (not budget_cap or _as_int(item.get("price")) <= budget_cap)),
+                "proven_buyer_count": sum(1 for item in seen.values() if _as_int(item.get("user_hired_percent")) >= 30),
+                "recommendations": [
+                    {**item, "count": _as_int(next((probe.get("count") for probe in probe_results if probe.get("query") == item.get("query")), 0))}
+                    for item in query_recommendations
+                ],
+                "control_windows": control_windows,
+            }
+            if summary["recommendations"]:
+                summary["recommendations"] = sorted(
+                    summary["recommendations"],
+                    key=lambda item: (item.get("priority", 0), item.get("count", 0)),
+                    reverse=True,
+                )
+
+            snapshot: dict[str, Any] = {
+                "generated_at": _utc_timestamp(),
+                "source": "psr.kwork_buyer_scout",
+                "status": "ok" if probe_results and any(item.get("status") == "ok" for item in probe_results) else "empty",
+                "config": {
+                    "max_probes": max_probes,
+                    "page": page,
+                    "project_page_limit": project_page_limit,
+                    "per_probe_limit": per_probe_limit,
+                    "top_limit": top_limit,
+                    "include_project_details": include_project_details,
+                    "include_want_details": include_want_details,
+                    "include_buyer_history": include_buyer_history,
+                    "detail_limit": detail_limit,
+                    "buyer_history_limit": buyer_history_limit,
+                    "budget_max": budget_cap,
+                    "include_query_suggestions": include_query_suggestions,
+                    "query_suggestion_limit": query_suggestion_limit,
+                    "include_control_windows": include_control_windows,
+                    "control_window_limit": control_window_limit,
+                    "category_id": category_id,
+                    "classifier_id": classifier_id,
+                    "category_name": category_name,
+                    "classifier_name": classifier_name,
+                    "attribute_selection": clean_attribute_selection,
+                    "attribute_scope": attribute_scope,
+                },
+                "probes": probe_results,
+                "top": ranked,
+                "aggregate": {
+                    "probe_count": len(probe_results),
+                    "unique_projects": len(seen),
+                    "zero_offer_count": sum(1 for item in seen.values() if item.get("offers") == 0),
+                    "low_offer_count": sum(1 for item in seen.values() if 0 <= (item.get("offers") or 999) <= 5),
+                    "top_score": ranked[0].get("score") if ranked else None,
+                    "market_signals": self.build_buyer_market_signals(ranked, probe_results, budget_max=budget_cap),
+                    "query_suggestions": query_suggestions if include_query_suggestions else [],
+                    "buyer_summary": summary,
+                    "search_recommendations": summary["recommendations"],
+                    "control_windows": control_windows,
+                    "rubric_context": {
+                        "category_id": category_id,
+                        "classifier_id": classifier_id,
+                        "category_name": category_name,
+                        "classifier_name": classifier_name,
+                        "attribute_scope": attribute_scope,
+                        "sample_pages": rubric_sample_rows,
+                        "sample_total": rubric_total,
+                    },
+                },
+                "endpoint_errors": endpoint_errors,
+                "timings_ms": {"total": int((time.monotonic() - started) * 1000)},
+            }
+            if write_file:
+                root = Path(output_dir) if output_dir else Path("docs")
+                root.mkdir(parents=True, exist_ok=True)
+                path = root / f"kwork_buyer_scout_{_snapshot_filename_timestamp()}.json"
+                path.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+                snapshot["file_path"] = str(path)
+            return snapshot
+
+        selected_probes = probes or []
+        selected_probes = [dict(item) for item in selected_probes if isinstance(item, dict)][: max(1, min(max_probes, 30))]
+        if budget_cap:
+            for probe in selected_probes:
+                probe.setdefault("price_to", budget_cap)
 
         probe_results: list[dict[str, Any]] = []
         seen: dict[str, dict[str, Any]] = {}
@@ -3347,20 +3908,7 @@ class KworkMarketClient:
         pages = max(1, min(pages, 3))
 
         resolved_seeds: list[dict[str, Any]]
-        if seeds:
-            resolved_seeds = [item for item in (_normalize_market_seed(seed) for seed in seeds) if item]
-        else:
-            try:
-                resolved_seeds = await asyncio.wait_for(
-                    self.get_catalog_market_seeds(limit=max_seeds, include_taxonomy=False),
-                    timeout=_seed_discovery_timeout(),
-                )
-            except (TimeoutError, asyncio.TimeoutError) as exc:
-                logger.debug(f"KworkMarket: catalog seed discovery timed out: {exc}")
-                resolved_seeds = [copy.deepcopy(item) for item in DEFAULT_MARKET_INTELLIGENCE_SEEDS]
-            except Exception as exc:
-                logger.debug(f"KworkMarket: catalog seed discovery failed: {exc}")
-                resolved_seeds = [copy.deepcopy(item) for item in DEFAULT_MARKET_INTELLIGENCE_SEEDS]
+        resolved_seeds = [item for item in (_normalize_market_seed(seed) for seed in (seeds or [])) if item]
         resolved_seeds = resolved_seeds[:max_seeds]
 
         supply: list[dict[str, Any]] = []
@@ -3428,18 +3976,56 @@ class KworkMarketClient:
             )
 
         query_demand: dict[str, Any] = {}
-        if include_demand:
-            for query in (demand_queries if demand_queries is not None else DEFAULT_MARKET_INTELLIGENCE_QUERIES):
+        demand_category_ids = list(
+            dict.fromkeys(
+                _as_int(seed.get("category_id"))
+                for seed in resolved_seeds
+                if _as_int(seed.get("category_id"))
+            )
+        )
+        if include_demand and demand_category_ids:
+            derived_queries = [str(seed.get("name") or "").strip() for seed in resolved_seeds if isinstance(seed, dict)]
+            query_source = demand_queries if demand_queries is not None else derived_queries
+            for query in query_source:
                 query = str(query or "").strip()
                 if not query:
                     continue
-                query_demand[query] = await self._get_projects_snapshot(
-                    categories="all",
-                    query=query,
-                    limit=5,
-                    include_want_details=include_want_details,
-                    want_detail_limit=want_detail_limit,
-                )
+                scoped_rows = []
+                for category_id in demand_category_ids:
+                    row = await self._get_projects_snapshot(
+                        categories=str(category_id),
+                        query=query,
+                        limit=5,
+                        include_want_details=include_want_details,
+                        want_detail_limit=want_detail_limit,
+                    )
+                    scoped_rows.append({**row, "category_id": category_id})
+                if len(scoped_rows) == 1:
+                    query_demand[query] = scoped_rows[0]
+                    continue
+
+                sample: list[dict[str, Any]] = []
+                seen_project_ids: set[str] = set()
+                for row in scoped_rows:
+                    for project in _safe_list(row.get("sample")):
+                        if not isinstance(project, dict):
+                            continue
+                        project_id = str(project.get("id") or project.get("title") or "").strip()
+                        if not project_id or project_id in seen_project_ids:
+                            continue
+                        seen_project_ids.add(project_id)
+                        sample.append(project)
+                        if len(sample) >= 5:
+                            break
+                    if len(sample) >= 5:
+                        break
+                query_demand[query] = {
+                    "status": "ok" if any(row.get("status") == "ok" for row in scoped_rows) else "empty",
+                    "wants_count": sum(_as_int(row.get("wants_count")) for row in scoped_rows),
+                    "sample_count": sum(_as_int(row.get("sample_count")) for row in scoped_rows),
+                    "sample": sample,
+                    "category_ids": demand_category_ids,
+                }
 
         seller_intelligence: list[dict[str, Any]] = []
         if include_seller_details and seller_detail_limit > 0:

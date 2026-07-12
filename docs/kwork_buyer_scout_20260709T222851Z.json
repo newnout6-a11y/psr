@@ -1,0 +1,424 @@
+{
+  "generated_at": "2026-07-09T22:28:51Z",
+  "source": "psr.kwork_buyer_scout",
+  "status": "empty",
+  "config": {
+    "max_probes": 10,
+    "page": 1,
+    "project_page_limit": 2,
+    "per_probe_limit": 12,
+    "top_limit": 24,
+    "include_project_details": true,
+    "include_want_details": true,
+    "include_buyer_history": true,
+    "detail_limit": 8,
+    "buyer_history_limit": 6,
+    "budget_max": 5000,
+    "include_query_suggestions": true,
+    "query_suggestion_limit": 5
+  },
+  "probes": [
+    {
+      "name": "programming_low_offer",
+      "categories": "41",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2051
+      }
+    },
+    {
+      "name": "broad_low_offer",
+      "categories": "85",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2044
+      }
+    },
+    {
+      "name": "video_low_offer",
+      "categories": "78",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2044
+      }
+    },
+    {
+      "name": "category80_low_offer",
+      "categories": "80",
+      "query": "",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2038
+      }
+    },
+    {
+      "name": "telegram_bot_ru_low_offer",
+      "categories": "all",
+      "query": "телеграм бот",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2052
+      }
+    },
+    {
+      "name": "telegram_low_offer",
+      "categories": "all",
+      "query": "telegram",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2051
+      }
+    },
+    {
+      "name": "python_low_offer",
+      "categories": "all",
+      "query": "python",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2053
+      }
+    },
+    {
+      "name": "ai_low_offer",
+      "categories": "all",
+      "query": "ai",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2045
+      }
+    },
+    {
+      "name": "automation_ru_low_offer",
+      "categories": "all",
+      "query": "автоматизация",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2051
+      }
+    },
+    {
+      "name": "parser_ru_low_offer",
+      "categories": "all",
+      "query": "парсер",
+      "filters": {
+        "kworks_filter_to": 5,
+        "price_to": 5000
+      },
+      "status": "empty",
+      "count": 0,
+      "sample_count": 0,
+      "sample": [],
+      "meta": {},
+      "pages": [
+        {
+          "page": 1,
+          "count": 0,
+          "sample_count": 0,
+          "cache_hit": false,
+          "source": null
+        }
+      ],
+      "timings_ms": {
+        "total": 2052
+      }
+    }
+  ],
+  "top": [],
+  "aggregate": {
+    "probe_count": 10,
+    "unique_projects": 0,
+    "zero_offer_count": 0,
+    "low_offer_count": 0,
+    "top_score": null,
+    "market_signals": [],
+    "query_suggestions": [
+      {
+        "status": "ok",
+        "query": "телеграм бот",
+        "status_code": 200,
+        "suggestions": []
+      },
+      {
+        "status": "ok",
+        "query": "telegram",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "telegram",
+            "excerpt": "telegram"
+          },
+          {
+            "suggestion": "telegram ???",
+            "excerpt": "telegram ???"
+          },
+          {
+            "suggestion": "телеграм бот ии",
+            "excerpt": "телеграм бот ии"
+          },
+          {
+            "suggestion": "Создать телеграм бота",
+            "excerpt": "Создать телеграм бота"
+          },
+          {
+            "suggestion": "бот для телеграм",
+            "excerpt": "бот для телеграм"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "query": "python",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "python",
+            "excerpt": "python"
+          },
+          {
+            "suggestion": "бот на python",
+            "excerpt": "бот на python"
+          },
+          {
+            "suggestion": "telegram bot python",
+            "excerpt": "telegram bot python"
+          },
+          {
+            "suggestion": "питон python",
+            "excerpt": "питон python"
+          },
+          {
+            "suggestion": "т python",
+            "excerpt": "т python"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "query": "ai",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "ai",
+            "excerpt": "ai"
+          },
+          {
+            "suggestion": "ai о",
+            "excerpt": "ai о"
+          },
+          {
+            "suggestion": "AI агент автоматизация",
+            "excerpt": "AI агент автоматизация"
+          },
+          {
+            "suggestion": "AI ИИ",
+            "excerpt": "AI ИИ"
+          },
+          {
+            "suggestion": "Ai копирайтер",
+            "excerpt": "Ai копирайтер"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "query": "автоматизация",
+        "status_code": 200,
+        "suggestions": [
+          {
+            "suggestion": "автоматизация",
+            "excerpt": "автоматизация"
+          },
+          {
+            "suggestion": "автоматизация telegram",
+            "excerpt": "автоматизация telegram"
+          },
+          {
+            "suggestion": "автоматизация exce",
+            "excerpt": "автоматизация exce"
+          },
+          {
+            "suggestion": "автоматизация заявок",
+            "excerpt": "автоматизация заявок"
+          },
+          {
+            "suggestion": "автоматизация бизнеса",
+            "excerpt": "автоматизация бизнеса"
+          }
+        ]
+      }
+    ],
+    "buyer_summary": {
+      "budget_max": 5000,
+      "unique_projects": 0,
+      "zero_offer_count": 0,
+      "low_offer_count": 0,
+      "budget_fit_count": 0,
+      "proven_buyer_count": 0,
+      "best_windows": [],
+      "best_projects": [],
+      "next_actions": [
+        "Use keyword hints to add more probes when current windows dry up."
+      ]
+    }
+  },
+  "endpoint_errors": [],
+  "timings_ms": {
+    "total": 23581
+  }
+}

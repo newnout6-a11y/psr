@@ -10,6 +10,7 @@ const BACKEND_PORT = 7788
 const REQUIRED_BACKEND_ROUTES = [
   '/api/kwork/market/categories',
   '/api/kwork/market/intelligence-snapshot',
+  '/api/kwork/market/buyer-scout',
 ]
 
 function hasBackendRoot(root) {
@@ -195,22 +196,11 @@ function killBackendProcess(pid, reason) {
 }
 
 async function ensureBackendPortFresh() {
-  let hasRoutes = false
-  try {
-    hasRoutes = await hasRequiredBackendRoutes()
-  } catch (_) {
-    return
-  }
-  if (hasRoutes) {
-    console.log('[Electron] Existing backend has required routes')
-    return
-  }
-
   const pids = backendPidsOnPort()
   if (!pids.length) return
   let killed = false
   for (const pid of pids) {
-    killed = killBackendProcess(pid, `missing routes: ${REQUIRED_BACKEND_ROUTES.join(', ')}`) || killed
+    killed = killBackendProcess(pid, 'restart backend from the current PSR version') || killed
   }
   if (killed) await sleep(1200)
 }

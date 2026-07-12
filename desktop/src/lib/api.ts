@@ -140,6 +140,9 @@ export const api = {
   getKworkMarketCategories: () =>
     request<{ categories: KworkCategoryNode[]; raw?: Record<string, unknown> }>('/api/kwork/market/categories'),
 
+  getKworkCatalogAliases: () =>
+    request<{ schema_version: number; items: KworkCatalogAlias[]; total: number }>('/api/kwork/market/catalog-aliases'),
+
   getKworkCategoryAttributes: (categoryId: number) =>
     request<KworkCategoryAttributes>(`/api/kwork/market/category/${categoryId}/attributes`),
 
@@ -173,6 +176,18 @@ export const api = {
     request<KworkMarketMetrics>('/api/kwork/market/metrics', {
       method: 'POST',
       body: JSON.stringify(params),
+    }),
+
+  getKworkSupplyScan: (payload: KworkSupplyScanRequest) =>
+    request<KworkSupplyScan>('/api/kwork/market/supply-scan', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  askKworkMarketAssistant: (payload: KworkMarketAssistantRequest) =>
+    request<KworkMarketAssistantResponse>('/api/kwork/market/assistant', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     }),
 
   getKworkWebCatalog: (alias: string, options?: { page?: number; page_size?: number; include_raw?: boolean }) => {
@@ -402,6 +417,14 @@ export interface KworkCategoryNode {
   children?: KworkCategoryNode[]
 }
 
+export interface KworkCatalogAlias {
+  category_id: number
+  category_name: string
+  label: string
+  alias: string
+  recommended: boolean
+}
+
 export interface KworkCategoryAttributes {
   category_id: number
   attributes: KworkAttributeRaw[]
@@ -484,12 +507,12 @@ export interface KworkMarketInsights {
     max?: number | null
     sample_size?: number
   }
-  trust?: {
+  seller_review_strength?: {
     reviews_100_plus?: number
     sample_size?: number
     threshold?: number
   }
-  concentration?: {
+  seller_repetition_in_sample?: {
     repeated_sellers?: Array<{ seller: string; cards: number }>
     repeated_cards?: number
     sample_size?: number
@@ -498,6 +521,7 @@ export interface KworkMarketInsights {
   title_terms?: Array<{ term: string; count: number }>
   description_terms?: Array<{ term: string; count: number }>
   top_classifiers?: Array<{ id?: number | string; name?: string; kworks_count?: number }>
+  search_queries?: Array<{ query?: string; count?: number; why?: string; source?: string }>
   bullets?: string[]
   recommendations?: string[]
 }
@@ -520,6 +544,134 @@ export interface KworkMarketMetrics {
   filter_requests?: Array<Record<string, unknown>>
   demand: KworkDemandSnapshot
   market_insights?: KworkMarketInsights
+}
+
+export interface KworkSupplyScanRequest {
+  category_id: number
+  category_name?: string
+  classifier_id?: number
+  classifier_name?: string
+  coverage?: 'quick' | 'balanced' | 'deep'
+  include_llm?: boolean
+  write_file?: boolean
+}
+
+export interface KworkSupplyRequestDiagnostic {
+  slice_id?: number | string | null
+  slice_name?: string
+  source?: string
+  page?: number | string | null
+  requested_page?: number | string | null
+  requested_cursor?: { kind?: string; page?: number | null } | number | string | null
+  reported_page?: number | string | null
+  response_page?: number | string | null
+  reported_cursor?: { kind?: string; page?: number | null } | number | string | null
+  cursor?: number | string | null
+  status?: string
+  cached?: boolean
+  transport_slot?: number | string | null
+  declared_count?: number | null
+  card_count?: number | null
+  received?: number | null
+  received_count?: number | null
+  new_unique?: number | null
+  new?: number | null
+  new_count?: number | null
+  duplicates?: number | null
+  duplicate?: number | null
+  duplicate_count?: number | null
+  fingerprint?: string
+  page_fingerprint?: string
+  response_fingerprint?: string
+  contract_violation?: boolean | string
+  contract_state?: string
+  contract_reason_codes?: string[]
+  source_new_unique?: number | null
+  source_duplicates?: number | null
+  duplicate_rate?: number | null
+  failure_kind?: string
+  detail?: string
+  retry_after_seconds?: number | null
+}
+
+export interface KworkSupplyScan {
+  source: string
+  generated_at: string
+  transport?: {
+    client_pool_size?: number
+    source?: string
+    uses_configured_proxy_pool?: boolean
+  }
+  scope: {
+    category_id?: number
+    category_name?: string
+    classifier_id?: number | null
+    classifier_name?: string
+    reported_category_total?: number | null
+    reported_selected_slices_total?: number | null
+  }
+  coverage: {
+    profile?: { name?: string; label?: string }
+    minimum_cards_target?: number
+    minimum_cards_target_met?: boolean
+    estimated_requests_for_minimum_cards?: number
+    request_budget_can_reach_minimum_target?: boolean
+    observed_listing_count?: number
+    requests_planned?: number
+    requests_started?: number
+    requests_completed?: number
+    request_errors?: number
+    slice_count_available?: number
+    slice_count_scanned?: number
+    confidence?: string
+    scanned_slices_share_of_category_percent?: number | null
+    stopped_after_protection_signal?: boolean
+    aborted_after_upstream_errors?: boolean
+  }
+  sample: {
+    observed_listings?: number
+    unique_sellers?: number
+    reported_selected_scope_total?: number | null
+    observed_share_of_scanned_scope_percent?: number | null
+    price_sample?: { count?: number; min?: number | null; median?: number | null; max?: number | null }
+    seller_repetition_in_observed_cards?: {
+      repeated_cards?: number
+      repeat_share_percent?: number | null
+      sellers?: Array<{ seller?: string; cards?: number }>
+    }
+  }
+  slices: Array<Record<string, unknown>>
+  raw_listings: Array<Record<string, unknown>>
+  requests?: KworkSupplyRequestDiagnostic[]
+  analysis?: {
+    status?: string
+    provider_output?: Record<string, unknown>
+    evidence_window?: {
+      raw_listing_count?: number
+      included_listing_count?: number
+      listing_limit?: number
+      evidence_char_limit?: number
+      included_chars?: number
+      truncated?: boolean
+    }
+    detail?: string
+  }
+  assistant_context_id?: string
+  file_path?: string
+  timings_ms?: Record<string, number>
+}
+
+export interface KworkMarketAssistantRequest {
+  context_id: string
+  message: string
+}
+
+export interface KworkMarketAssistantResponse {
+  context_id: string
+  answer: string
+  refresh?: null | Record<string, unknown>
+  refresh_rejected?: string
+  error?: string
 }
 
 export interface KworkWebCatalogSummary {
@@ -610,6 +762,12 @@ export interface KworkMarketIntelligenceSnapshot {
 
 export interface KworkBuyerScoutRequest {
   probes?: Array<Record<string, unknown>>
+  category_id?: number
+  classifier_id?: number
+  category_name?: string
+  classifier_name?: string
+  attribute_selection?: Record<string, unknown>
+  attribute_controls?: Array<Record<string, unknown>>
   max_probes?: number
   page?: number
   project_page_limit?: number
@@ -623,6 +781,8 @@ export interface KworkBuyerScoutRequest {
   budget_max?: number
   include_query_suggestions?: boolean
   query_suggestion_limit?: number
+  include_control_windows?: boolean
+  control_window_limit?: number
   write_file?: boolean
 }
 
@@ -642,6 +802,9 @@ export interface KworkBuyerScout {
     market_signals?: Array<Record<string, unknown>>
     query_suggestions?: Array<Record<string, unknown>>
     buyer_summary?: Record<string, unknown>
+    search_recommendations?: Array<Record<string, unknown>>
+    control_windows?: Array<Record<string, unknown>>
+    rubric_context?: Record<string, unknown>
   }
   endpoint_errors?: Array<Record<string, unknown>>
   timings_ms?: Record<string, number>

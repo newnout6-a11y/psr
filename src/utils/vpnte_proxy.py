@@ -20,6 +20,8 @@ from loguru import logger
 
 DEFAULT_CONTROL_URL = "http://127.0.0.1:17873"
 DEFAULT_PROXY_URL = "http://127.0.0.1:17990"
+MIN_PROXY_SLOT = 1
+MAX_PROXY_SLOTS = 10
 TRUE_VALUES = {"1", "true", "yes", "on"}
 FALSE_VALUES = {"0", "false", "no", "off"}
 _PROXY_CACHE_LOCK = RLock()
@@ -151,6 +153,61 @@ def vpnte_config_snapshot() -> dict[str, Any]:
     }
 
 
+def _normalize_slot(slot: int | str | None) -> int | None:
+    if slot is None:
+        return None
+    if isinstance(slot, bool):
+        raise ValueError(f"VPNTE slot must be between {MIN_PROXY_SLOT} and {MAX_PROXY_SLOTS}")
+    try:
+        normalized = int(slot)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"VPNTE slot must be between {MIN_PROXY_SLOT} and {MAX_PROXY_SLOTS}") from exc
+    if not MIN_PROXY_SLOT <= normalized <= MAX_PROXY_SLOTS:
+        raise ValueError(f"VPNTE slot must be between {MIN_PROXY_SLOT} and {MAX_PROXY_SLOTS}")
+    return normalized
+
+
+def _optional_int(value: Any) -> int | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _normalize_instance(payload: dict[str, Any], *, fallback_slot: int | None = None) -> dict[str, Any]:
+    normalized = dict(payload)
+    slot = _optional_int(payload.get("slot")) or fallback_slot
+    if slot is not None:
+        normalized["slot"] = slot
+
+    for canonical, aliases in {
+        "proxyUrl": ("proxyUrl", "proxy_url"),
+        "profileId": ("profileId", "profile_id"),
+        "profileName": ("profileName", "profile_name"),
+        "startedAt": ("startedAt", "started_at"),
+    }.items():
+        for name in aliases:
+            if name in payload:
+                normalized[canonical] = payload[name]
+                break
+
+    for numeric in ("port", "pid"):
+        if numeric in payload:
+            value = _optional_int(payload[numeric])
+            if value is not None:
+                normalized[numeric] = value
+
+    running = payload.get("running")
+    if isinstance(running, str):
+        normalized["running"] = running.strip().lower() in TRUE_VALUES
+
+    if not normalized.get("proxyUrl") and normalized.get("host") and normalized.get("port"):
+        normalized["proxyUrl"] = f"http://{normalized['host']}:{normalized['port']}"
+    return normalized
+
+
 class VpnteProxyClient:
     def __init__(self) -> None:
         self.timeout = float(os.getenv("VPNTE_PROXY_TIMEOUT", "10") or "10")
@@ -213,37 +270,88 @@ class VpnteProxyClient:
             return {"text": raw}
         return parsed if isinstance(parsed, dict) else {"value": parsed}
 
-    def status(self) -> dict[str, Any]:
-        return self._request("/status")
+    def instances(self) -> list[dict[str, Any]]:
+        payload = self._request("/instances")
+        rows = payload.get("instances")
+        if not isinstance(rows, list):
+            rows = payload.get("value")
+        if not isinstance(rows, list):
+            return []
+        return [
+            _normalize_instance(row, fallback_slot=index)
+            for index, row in enumerate(rows, start=MIN_PROXY_SLOT)
+            if isinstance(row, dict)
+        ]
+
+    def status(self, slot: int | str | None = None) -> dict[str, Any]:
+        normalized_slot = _normalize_slot(slot)
+        payload = self._request("/status", params={"slot": normalized_slot})
+        return _normalize_instance(payload, fallback_slot=normalized_slot)
 
     def list(self, country: str | None = None) -> list[dict[str, Any]]:
         payload = self._request("/list", params={"country": country})
         rows = payload.get("profiles", [])
         return rows if isinstance(rows, list) else []
 
-    def start(self) -> dict[str, Any]:
-        return self._request(
+    def start(
+        self,
+        slot: int | str | None = None,
+        *,
+        country: str | None = None,
+        profile_id: str | None = None,
+        port: int | str | None = None,
+    ) -> dict[str, Any]:
+        normalized_slot = _normalize_slot(slot)
+        params = {
+            "slot": normalized_slot,
+            "country": country if normalized_slot is not None else (country or os.getenv("VPNTE_PROXY_COUNTRY")),
+            "profileId": profile_id
+            if normalized_slot is not None
+            else (profile_id or os.getenv("VPNTE_PROXY_PROFILE_ID")),
+            "port": port if normalized_slot is not None else (port or os.getenv("VPNTE_PROXY_PORT")),
+        }
+        payload = self._request(
             "/start",
             method="POST",
             auth=True,
-            params={
-                "country": os.getenv("VPNTE_PROXY_COUNTRY"),
-                "profileId": os.getenv("VPNTE_PROXY_PROFILE_ID"),
-                "port": os.getenv("VPNTE_PROXY_PORT"),
-            },
+            params=params,
         )
+        return _normalize_instance(payload, fallback_slot=normalized_slot)
 
-    def rotate(self) -> dict[str, Any]:
-        return self._request(
+    def rotate(
+        self,
+        slot: int | str | None = None,
+        *,
+        country: str | None = None,
+        profile_id: str | None = None,
+        port: int | str | None = None,
+    ) -> dict[str, Any]:
+        normalized_slot = _normalize_slot(slot)
+        params = {
+            "slot": normalized_slot,
+            "country": country if normalized_slot is not None else (country or os.getenv("VPNTE_PROXY_COUNTRY")),
+            "profileId": profile_id
+            if normalized_slot is not None
+            else (profile_id or os.getenv("VPNTE_PROXY_PROFILE_ID")),
+            "port": port if normalized_slot is not None else (port or os.getenv("VPNTE_PROXY_PORT")),
+        }
+        payload = self._request(
             "/rotate",
             method="POST",
             auth=True,
-            params={
-                "country": os.getenv("VPNTE_PROXY_COUNTRY"),
-                "profileId": os.getenv("VPNTE_PROXY_PROFILE_ID"),
-                "port": os.getenv("VPNTE_PROXY_PORT"),
-            },
+            params=params,
         )
+        return _normalize_instance(payload, fallback_slot=normalized_slot)
+
+    def stop(self, slot: int | str) -> dict[str, Any]:
+        normalized_slot = _normalize_slot(slot)
+        payload = self._request(
+            "/stop",
+            method="POST",
+            auth=True,
+            params={"slot": normalized_slot},
+        )
+        return _normalize_instance(payload, fallback_slot=normalized_slot)
 
     def ensure_started(self) -> dict[str, Any]:
         status = self.status()

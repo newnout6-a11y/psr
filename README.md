@@ -1,469 +1,327 @@
 # PSR
 
-Единый актуальный README проекта.
+PSR is a Windows-focused control center for finding freelance work, qualifying
+opportunities, preparing proposals, and operating a Kwork account. It combines
+a Python workflow engine, a FastAPI backend, and a React/Electron desktop app.
 
-Актуально на: `2026-04-21`
+The project is designed around a human-reviewed workflow. By default the CLI
+runs in dry-run mode, and the desktop app exposes the queue, account health,
+logs, Kwork tools, and operational settings.
 
-Этот файл теперь является единственным источником истины по проекту. Старые `README`, usage-документы и текстовые аудиты удалены.
+## What PSR Does
 
-## Что это
+### Opportunity workflow
 
-PSR это Python-проект для автоматизации цикла поиска и обработки заказов на фриланс-биржах:
+- collects projects from Kwork, Freelance.ru, and HH.ru;
+- generates search queries from a natural-language brief;
+- filters projects by keywords, budget, age, client signals, and AI score;
+- enriches suitable candidates with portfolio/RAG context and optional OSINT;
+- drafts proposals and prices, then stores candidates and actions in SQLite;
+- sends candidates to Telegram for review and supports approval, skip, snooze,
+  editing, and lifecycle tracking;
+- can submit Kwork offers through the API/web flow when live sending is enabled.
 
-- парсинг заказов с поддерживаемых площадок;
-- keyword/NLP/AI-фильтрация;
-- веттинг заказчика;
-- OSINT-обогащение;
-- генерация отклика;
-- ручное подтверждение через Telegram;
-- авто-отправка там, где она реализована;
-- логирование в SQLite и просмотр метрик в Streamlit.
+### Kwork Operations
 
-## Что сейчас реально работает
+- Kwork web session support through Session Hub, saved manual cookies, or
+  configured fallback credentials;
+- account, inbox, conversations, orders, reviews, connects, and account-health
+  helpers;
+- rate pacing, browser fallback, and optional VPN Tunnel Enforcer (VPNTE)
+  proxy integration;
+- Kwork Market: category supply, competitor cards, price ranges, buyer-project
+  signals, seller summaries, buyer history, and rubric-scoped recommendations;
+- Kwork service-draft and publishing helpers, including form manifests,
+  generated cover assets, dry-run payloads, and explicit publishing actions.
 
-- `kwork`:
-  поиск через API, fallback на браузер, генерация отклика, ручное подтверждение цены, авто-отправка;
-- `freelance_ru`:
-  HTML-поиск, генерация отклика, ручное подтверждение цены, browser-flow для отправки;
-- `hh_ru`:
-  поиск через публичное API, используется как источник вакансий/заказов для мониторинга, без авто-отправки;
-- `Groq`:
-  основной и фактически рабочий LLM-провайдер в текущем коде;
+### Desktop App
 
-## Структура проекта
+The desktop app provides Dashboard, Queue, Skipped, Conversations, Orders,
+Kwork Market, Earnings, Health, Chat, Settings, Logs, and OSINT views. It starts
+and checks the local backend, and detects a stale PSR backend before opening the
+interface.
 
-```text
-psr/
-├── config/
-│   ├── filters.yaml      # Рабочие фильтры рантайма
-│   └── platforms.yaml    # Справочное описание платформ
-├── data/
-│   ├── reference/        # Портфолио, кейсы, поисковые reference-данные
-│   ├── runtime/          # БД, логи, browser profiles, parsing results
-│   └── debug/            # HTML-дампы, скриншоты и ручной дебаг
-├── scripts/
-│   ├── analyze/          # Диагностические и проверочные скрипты
-│   ├── debug/            # Ручной дебаг платформ и страниц
-│   ├── session_hub/      # Локальные Session Hub серверы
-│   └── check_client.py   # Ручной OSINT/пробив клиента
-├── src/
-│   ├── action/          # Генерация и отправка откликов
-│   ├── brain/           # LLM router, RAG, NLP, search strategy
-│   ├── browser/         # BrowserManager, fingerprint, auth/cookies
-│   ├── dashboard/       # Streamlit-дашборд
-│   ├── evolution/       # TLS client и вспомогательные сетевые модули
-│   ├── filter/          # Keyword filter, AI scorer, vetting
-│   ├── osint/           # OSINT и probiv-агрегатор
-│   ├── parsers/         # Парсеры платформ
-│   ├── paths.py         # Единая карта путей проекта
-│   ├── utils/           # Telegram, логи, валюты, circuit breaker, время
-│   └── orchestrator.py  # Главный цикл
-├── tests/
-│   ├── smoke/           # Быстрые автономные проверки
-│   ├── integration/     # Сквозные проверки модулей
-│   └── manual/          # Ручные инженерные тесты
-├── scratch/             # Локальные черновики, в git не идут
-├── main.py              # Точка входа
-├── py.ps1               # Обёртка для правильного Python на этой машине
-├── requirements.txt
-└── .env.example
-```
+## Supported Platforms
 
-Логика по папкам простая:
+| Platform | Current role |
+| --- | --- |
+| Kwork | Search, qualification, proposal workflow, account operations, market analysis, and supported offer/service flows. |
+| Freelance.ru | HTML discovery and browser-assisted reply workflow. |
+| HH.ru | Public API discovery and monitoring; it is not an automatic response channel. |
 
-- `data/reference` хранит входные данные, которые нужны проекту постоянно;
-- `data/runtime` хранит всё, что появляется во время работы;
-- `data/debug` собирает только отладочные артефакты, чтобы они не смешивались с рантаймом и исходниками.
-
-## Окружение на этой машине
-
-На этой машине корректный Python расположен здесь:
+## Architecture
 
 ```text
-C:\Users\Redmi\AppData\Local\Python\pythoncore-3.14-64\python.exe
+main.py                         CLI cycle runner
+src/orchestrator.py             Discovery -> filtering -> scoring -> proposal -> action workflow
+src/api/server.py               FastAPI backend on 127.0.0.1:7788
+src/api/routes/                 Backend routes used by the desktop UI
+src/platforms/                  Kwork, market analysis, listing, and platform integrations
+src/action/                     Proposal generation, sending, SQLite persistence
+src/brain/                      LLM router, query strategy, RAG, scoring
+src/browser/                    Browser management, fingerprinting, session handling
+src/utils/                      Telegram, logs, VPNTE, scheduling, safety helpers
+desktop/                        React, Vite, Electron desktop client
+config/                         Runtime filters and platform descriptions
+data/reference/                 Portfolio, cases, and other durable reference data
+data/runtime/                   SQLite DBs, browser profiles, logs, assets, runtime state
+data/debug/                     Debug HTML, screenshots, and diagnostics
+docs/                           Design notes, implementation journals, and research snapshots
+tests/                          Unit, smoke, integration, and manual checks
 ```
 
-Для удобства в репозитории есть `py.ps1`:
+The API backend owns the runtime state. The desktop frontend calls the local API
+and receives log events through a WebSocket sink.
 
-```powershell
-.\py.ps1 main.py --dry-run --limit 3
-.\py.ps1 scripts\check_client.py torvalds
-.\py.ps1 -m pip install -r requirements.txt
-```
+## Requirements
 
-Если понадобится `node`/`npm`, путь на этой машине:
+- Windows 10 or later;
+- Python 3.11+; the local development environment currently uses Python 3.14;
+- Node.js and npm for the desktop app;
+- a Kwork account/session only for Kwork features that require authentication;
+- optionally, a local Session Hub and VPN Tunnel Enforcer installation.
 
-```text
-C:\Program Files\nodejs
-```
+## Setup
 
-Сам проект при обычной работе остаётся Python-first; обязательного Node toolchain для основного цикла нет.
-
-## Зависимости
-
-Основные зависимости берутся из [requirements.txt](/C:/psr/requirements.txt):
-
-- сетевой слой: `requests`, `curl_cffi`, `httpx`, `aiohttp`;
-- браузер: `nodriver`, `playwright`;
-- парсинг: `lxml`, `parsel`, `beautifulsoup4`, `pydantic`;
-- LLM/NLP: `groq`, `sentence-transformers`, `faiss-cpu`;
-- Telegram и утилиты: `aiogram`, `telethon`, `python-dotenv`, `pyyaml`, `loguru`, `tenacity`, `rich`;
-- наблюдаемость: `streamlit`, `pandas`.
-
-Установка:
-
-```powershell
-.\py.ps1 -m pip install -r requirements.txt
-```
-
-## Конфигурация
-
-1. Создай `.env` из шаблона:
+1. Create local configuration from the template:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-1. Заполни минимум:
+2. Install Python dependencies:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+3. Install a browser engine if browser-based Kwork or Freelance.ru flows are
+needed:
+
+```powershell
+python -m playwright install chromium
+```
+
+4. Install the desktop dependencies:
+
+```powershell
+Set-Location desktop
+npm ci
+Set-Location ..
+```
+
+5. Configure the minimum required values in `.env`:
 
 ```env
-GROQ_API_KEY=
-PLATFORMS=kwork,freelance_ru,hh_ru
-SEARCH_BRIEF=мелкие заказы на автоматизацию, ботов, парсеры, скрипты, небольшие сайты. бюджет до 10к. не на постоянку, не крупные проекты
-QUERY_COUNT=3
-PAGES_TO_PARSE=1
+LLM_PROVIDER=openai
+OPENAI_API_KEY=
 TELEGRAM_TOKEN=
 ADMIN_CHAT_ID=
-TELEGRAM_TRANSPORT=auto
+PLATFORMS=kwork,freelance_ru,hh_ru
+SEARCH_BRIEF=
 ```
 
-1. Ключевые переменные:
+`GROQ_API_KEY` and DeepSeek/OpenAI-compatible provider settings are supported as
+alternatives. See `.env.example` for the complete provider, scoring, browser,
+Telegram, OSINT, proxy, and Kwork configuration.
 
-- `GROQ_API_KEY`: основной рабочий LLM;
-- `AI_SCORE_THRESHOLD`: порог AI-скоринга;
-- `PLATFORMS`: активные платформы;
-- `SEARCH_BRIEF`: описание поиска своими словами;
-- `SEARCH_QUERY`: fallback-запросы через `|`, если AI генерация недоступна;
-- `QUERY_COUNT`: сколько AI-запросов генерировать на платформу;
-- `PAGES_TO_PARSE`: сколько страниц парсить по каждому запросу;
-- `TOP_PROJECTS`: сколько лучших проектов обрабатывать в цикле;
-- `CONTINUOUS_MODE` и `CYCLE_INTERVAL`: непрерывный режим;
-- `TELEGRAM_TOKEN`, `ADMIN_CHAT_ID`, `APPROVAL_TIMEOUT`: approval и уведомления;
-- `TELEGRAM_TRANSPORT`: `auto`, `bot_api` или `mtproto`;
-- `TELEGRAM_BOT_API_BASE`: Bot API endpoint, по умолчанию `https://api.telegram.org`;
-- `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`: опциональный MTProto fallback без `api.telegram.org`;
-- `BROWSER_HEADLESS`: headless браузер;
-- `SESSION_HUB_URL`, `SESSION_HUB_REQUIRED`: источник кук;
-- `KWORK_SESSION_HUB_COOKIE_TTL`: кэш кук Session Hub в PSR; запрос к Hub идёт локально без proxy/env.
-- `OSINT_ENABLED` и `OSINT_*`: OSINT и probiv;
-- `PROXY_URL`: прокси для API и сетевых вызовов.
-- `VPNTE_PROXY_ENABLED=1`: использовать внешний прокси VPN Tunnel Enforcer как источник прокси для PSR. PSR держит один локальный proxy URL, а VPNTE ротирует VPN-профиль за ним.
-- `VPNTE_PROXY_ROTATE_ON_NEXT`: ротировать VPNTE external proxy на каждом `ProxyRotator.next()`; по умолчанию `true`.
-- `VPNTE_PROXY_TIMEOUT`, `VPNTE_PROXY_CACHE_TTL`: timeout control API и кэш active proxy URL, чтобы PSR не дёргал VPNTE control endpoint на каждый Kwork request.
-- `VPNTE_PROXY_COUNTRY`, `VPNTE_PROXY_PROFILE_ID`, `VPNTE_PROXY_PORT`: опциональный выбор страны, конкретного профиля и порта во внешнем proxy VPNTE.
-- `VPNTE_CONTROL_URL`, `VPNTE_CONTROL_TOKEN`: ручные override; обычно PSR сам читает endpoint/token из `%APPDATA%\VPN Tunnel Enforcer`.
+## Running PSR
 
-Дополнительные фильтры проекта живут в [config/filters.yaml](/C:/psr/config/filters.yaml). В рантайме реально применяются:
+### CLI workflow
 
-- `required_skills`;
-- `stop_words`;
-- `min_budget`;
-- `max_budget`;
-- `per_page`;
-- `max_age_hours`;
-- `max_proposals`;
-- `min_client_score`.
-
-## Session Hub и куки
-
-В текущем коде Session Hub это основной источник кук для браузерной авторизации.
-
-Приоритет такой:
-
-1. `SESSION_HUB_URL`
-2. куки из `.env` как fallback, если `SESSION_HUB_REQUIRED=false`
-
-### Реальные скрипты в репозитории
-
-- `scripts/session_hub/session_hub_manual.py`
-  простой локальный сервер, который хранит куки в `session_hub_cookies.json`;
-- `scripts/session_hub/session_hub_example.py`
-  пример сервера, читающего куки из Chrome через `browser-cookie3`.
-
-### Важно
-
-Эти скрипты требуют дополнительные зависимости, которых нет в `requirements.txt` основного проекта:
+Run one safe cycle. `main.py` defaults to dry-run mode:
 
 ```powershell
-.\py.ps1 -m pip install flask
+python main.py --dry-run --limit 3
 ```
 
-Для `session_hub_example.py` дополнительно:
+Useful options:
 
 ```powershell
-.\py.ps1 -m pip install browser-cookie3
+# Use a one-off search brief.
+python main.py --dry-run --search "Telegram bots and small automation tasks" --top 5
+
+# Keep running on the configured cycle interval.
+python main.py --continuous --dry-run
+
+# Allow live offer sending. Use only after sessions and settings are verified.
+python main.py --live --limit 1
 ```
 
-### Запуск manual Session Hub
+### Backend API
+
+Start the API separately when working with the web/desktop control plane:
 
 ```powershell
-.\py.ps1 scripts\session_hub\session_hub_manual.py
+python -m src.api.server
 ```
 
-После этого сервер слушает `http://127.0.0.1:8669`.
-
-Поддерживаемые endpoint'ы:
-
-- `GET /cookies?domain=kwork.ru`
-- `POST /update`
-- `GET /list`
-- `GET /health`
-
-### Fallback через `.env`
-
-Для `kwork`:
-
-```env
-KWORK_EMAIL=
-KWORK_PASSWORD=
-KWORK_COOKIE_REMEMBERME=
-KWORK_COOKIE_USERID=
-KWORK_COOKIE_PHPSESSID=
-KWORK_COOKIE_CSRF=
-```
-
-Для `freelance_ru`:
-
-```env
-FREELANCE_RU_COOKIES_JSON=
-FREELANCE_RU_COOKIE_SESSION=
-FREELANCE_RU_COOKIE_DUID=
-FREELANCE_RU_COOKIE_REMEMBER=
-```
-
-## Запуск проекта
-
-### Один цикл
+It listens on `http://127.0.0.1:7788`. Confirm that it is running:
 
 ```powershell
-.\py.ps1 main.py
+Invoke-RestMethod http://127.0.0.1:7788/api/health
 ```
 
-### Без реальной отправки
+### Desktop development
+
+From the `desktop` directory:
 
 ```powershell
-.\py.ps1 main.py --dry-run --limit 3
-```
-
-### С произвольным поисковым описанием
-
-```powershell
-.\py.ps1 main.py --dry-run --search "парсеры, telegram-боты, автоматизация, мелкие backend-заказы" --top 5
-```
-
-### Непрерывный режим
-
-```powershell
-.\py.ps1 main.py --continuous --limit 5
-```
-
-Аргументы `main.py`:
-
-- `--continuous`: бесконечный цикл;
-- `--dry-run`: без реальной отправки;
-- `--limit`: лимит откликов на платформу за цикл;
-- `--search`: описание поиска своими словами;
-- `--top`: сколько top-проектов брать в обработку.
-
-## Как проходит один цикл
-
-1. Загрузка `.env`
-2. Инициализация `FreelanceOrchestrator`
-3. Проверка входящих сообщений
-4. Генерация поисковых запросов
-5. Парсинг платформ
-6. Keyword-фильтрация
-7. NLP-фильтрация
-8. AI-скоринг
-9. Веттинг заказчика
-10. OSINT-обогащение
-11. Генерация отклика
-12. Telegram approval по цене и тексту
-13. Авто-отправка или сохранение как draft
-14. Логирование в SQLite
-
-## Telegram-flow
-
-Telegram используется для двух задач:
-
-- approval по цене и тексту отклика;
-- уведомления о входящих ответах от заказчика.
-
-В текущей версии:
-
-- approval идёт через inline-кнопки;
-- можно approve/skip, отложить кандидата, править текст и цену, помечать похожий запрос как полезный;
-- можно отправить новый текст отклика;
-- уведомления отправляются в plain text без markdown-экранирования, чтобы не ломаться на пользовательских строках.
-- доставка уведомлений идёт через прямой Bot API без системных proxy; если задан `TELEGRAM_API_ID`/`TELEGRAM_API_HASH`, включается MTProto fallback через Telegram DC.
-
-## OSINT и probiv
-
-OSINT включается через:
-
-```env
-OSINT_ENABLED=true
-OSINT_PROVIDERS=github,habr,duckduckgo,kwork_profile
-OSINT_PROBIV_PROVIDERS=emailrep,whatsmyname
-```
-
-Поддерживаются:
-
-- публичные провайдеры: GitHub, Habr, DuckDuckGo, профиль Kwork;
-- probiv-провайдеры: EmailRep, WhatsMyName (бесплатные, **включены по умолчанию**), HIBP, LeakCheck, IntelX (платные, добавляй явным списком — без API-ключа всё равно отключатся);
-- EmailRep троттлится глобально 1 RPS, чтобы не ловить 429 при множестве email из одного описания;
-- профиль Kwork парсится из `window.stateData` JSON (структурированно, без хрупких регулярок); если страница вернула пустой SPA-каркас, провайдер ничего не возвращает (раньше эмитил мусорные «отзывы» с произвольной тональностью);
-- извлечение email, телефонов, Telegram и username из текста проекта;
-- кэширование результатов.
-
-Ручной запуск проверки клиента:
-
-```powershell
-.\py.ps1 scripts\check_client.py torvalds
-.\py.ps1 scripts\check_client.py suspicious_user -d "Пишите на test@example.com или @tg_nick"
-```
-
-## Dashboard
-
-Запуск:
-
-```powershell
-streamlit run src\dashboard\app.py
-```
-
-Разделы:
-
-- `Обзор`
-- `Парсинг`
-- `Генерация`
-- `Отклики`
-- `Ошибки`
-- `Устойчивость`
-
-Dashboard читает данные из:
-
-- `data/logs.db`
-- `data/proposals.db`
-
-## Desktop / API
-
-В проекте есть локальный FastAPI backend и Electron/React UI:
-
-```powershell
-# API
-.\py.ps1 -m uvicorn src.api.server:app --host 127.0.0.1 --port 7788
-
-# Desktop dev
-cd desktop
-npm ci
 npm run dev
 ```
 
-Desktop сам поднимает Python backend при запуске Electron. Кнопка запуска цикла в UI по умолчанию работает в `dry-run`; реальную отправку нужно включать явно.
-Для обычного запуска больше не нужно править `.env`: левая панель Desktop передаёт в backend платформы, описание поиска, `QUERY_COUNT`, `PAGES_TO_PARSE`, `TOP_PROJECTS`, лимит отправок, режим Chrome, Telegram, OSINT, probiv и строгий Session Hub на конкретный цикл.
-
-Важные детали:
-
-- настройки UI читают и пишут проектные `.env` и `config/filters.yaml`;
-- runtime-переключатели в левой панели применяются процессно на время запуска и не перетирают секреты в `.env`;
-- секретные значения в Settings API маскируются и не отдаются в UI открытым текстом;
-- `desktop/node_modules`, `desktop/dist` и `desktop/dist-electron` являются локальными артефактами и не коммитятся.
-
-## Базы и рабочие файлы
-
-Основные runtime-файлы в `data/`:
-
-- `logs.db`: структурированные логи;
-- `proposals.db`: отправленные и сохранённые отклики;
-- `generated_proposals.txt`: последний накопленный дамп сгенерированных откликов;
-- `last_llm_prompt.txt`
-- `last_llm_response.txt`
-- `browser_profiles/`: постоянный браузерный профиль;
-- `osint_cache.db`: если OSINT кэш уже был создан во время работы.
-
-Часть файлов в `data/` являются временными/служебными и не считаются документацией.
-
-## Важные модули
-
-- [main.py](/C:/psr/main.py): точка входа
-- [src/orchestrator.py](/C:/psr/src/orchestrator.py): главный workflow
-- [src/action/proposal_generator.py](/C:/psr/src/action/proposal_generator.py): генерация откликов
-- [src/action/proposal_sender.py](/C:/psr/src/action/proposal_sender.py): отправка откликов
-- [src/browser/browser_manager.py](/C:/psr/src/browser/browser_manager.py): браузер, авторизация, куки
-- [src/filter/project_filter.py](/C:/psr/src/filter/project_filter.py): runtime-фильтрация
-- [src/filter/client_vetter.py](/C:/psr/src/filter/client_vetter.py): веттинг клиента
-- [src/brain/llm_router.py](/C:/psr/src/brain/llm_router.py): роутинг LLM
-- [src/osint/aggregator.py](/C:/psr/src/osint/aggregator.py): OSINT aggregation
-- [src/dashboard/app.py](/C:/psr/src/dashboard/app.py): дашборд
-
-## Тесты и проверки
-
-Локально можно запускать:
+Electron starts the local backend and opens the desktop app. In development the
+app prefers the live repository, so it uses the repository `.env` and runtime
+data. To create a Windows installer:
 
 ```powershell
-.\py.ps1 tests\smoke\test_antifragile.py
-.\py.ps1 tests\smoke\test_probiv.py
-.\py.ps1 tests\integration\test_osint_integration.py
+npm run build
 ```
 
-Синтаксическая проверка:
+The packaged output is written to `desktop/dist-electron/`.
+
+## Kwork Session Hub
+
+Session Hub is the preferred source of Kwork browser cookies. PSR expects a
+local compatible endpoint:
+
+```text
+GET http://127.0.0.1:8669/cookies?domain=kwork.ru
+```
+
+Set the endpoint with `SESSION_HUB_URL`. Cookie data is kept local. When
+`SESSION_HUB_REQUIRED=true`, PSR refuses to use `.env` cookie fallbacks if the
+hub is unavailable.
+
+The repository includes two optional helper scripts under
+`scripts/session_hub/`:
+
+- `session_hub_manual.py` stores manually supplied cookies locally;
+- `session_hub_example.py` demonstrates a browser-cookie reader.
+
+They are not part of `requirements.txt`. The manual helper needs Flask; the
+example also needs `browser-cookie3`:
 
 ```powershell
-.\py.ps1 -m compileall -q main.py src tests
+python -m pip install flask browser-cookie3
+python scripts\session_hub\session_hub_manual.py
 ```
 
-Если на интерпретаторе установлен `pytest`, можно запускать и так:
+For the normal desktop workflow, use the installed Session Hub service rather
+than copying cookie values into project files.
+
+## VPN Tunnel Enforcer (VPNTE)
+
+PSR can send Kwork traffic through VPNTE's stable local proxy while VPNTE rotates
+the underlying profile. The current local endpoints are:
+
+```text
+Control API: http://127.0.0.1:17873
+Application proxy: http://127.0.0.1:17990
+```
+
+Typical configuration:
+
+```env
+VPNTE_PROXY_ENABLED=true
+VPNTE_PROXY_STRICT=true
+VPNTE_CONTROL_URL=http://127.0.0.1:17873
+VPNTE_PROXY_PORT=17990
+VPNTE_PROXY_CACHE_TTL=60
+```
+
+With `VPNTE_PROXY_STRICT=true`, Kwork traffic stops if the VPNTE control API is
+unavailable instead of falling back to a direct connection. This is the expected
+setting when Kwork requests must use VPNTE. The Kwork Market screen is a
+read-only analytics path and uses a direct connection by default; opt into the
+market proxy separately with `KWORK_MARKET_USE_PROXY=true`.
+
+## Runtime Data and Configuration
+
+- `config/filters.yaml` defines the default skills, exclusions, budget range,
+  project age, proposal cap, and client-score threshold.
+- `config/platforms.yaml` records supported platform endpoints and integration
+  styles.
+- `data/reference/` holds durable portfolio and case data used for matching and
+  proposal context.
+- `data/runtime/` is generated at runtime and contains SQLite databases, logs,
+  browser profiles, parsing results, generated proposal assets, and saved
+  manual Kwork cookies.
+- `data/debug/` contains disposable diagnostics such as screenshots and HTML
+  dumps.
+
+Use `PSR_ROOT`, `PSR_DATA_DIR`, and `PSR_REFERENCE_DIR` only when the default
+repository-relative layout is unsuitable.
+
+## Kwork Market and Service Publishing
+
+Kwork Market is not a generic market crawler. It works with selected Kwork
+rubrics and uses bounded, cached calls to build a practical decision view:
+
+- supply and competitor samples for a category/classifier;
+- price ranges and optional category price rules;
+- buyer project signals, offer counts, budgets, and buyer history;
+- seller concentration, portfolio/review summaries, and optional account
+  context;
+- Russian recommendations derived from the selected rubric's own data.
+
+Heavy options such as buyer details, seller details, price rules, and account
+context are explicit UI controls because they increase upstream latency.
+
+Service publishing is intentionally separate from the market scan. The desktop
+app can build a form manifest, create drafts, validate payloads, and run a
+dry-run before a real publishing action. A valid authenticated Kwork web session
+is required for live publishing.
+
+## Tests and Checks
+
+Run the offline unit suite:
 
 ```powershell
-.\py.ps1 -m pytest -q
+python -m pytest tests\unit -q
 ```
 
-## Ограничения и текущее состояние
+Tests are deliberately separated by execution requirements:
 
-- основные LLM сейчас: `DeepSeek`, `OpenAI-compatible` и резервно `Groq`;
-- `hh_ru` не отправляет отклики автоматически;
-- `platforms.yaml` не является главным runtime-конфигом; рабочие настройки берутся из `.env` и `config/filters.yaml`;
-- browser automation зависит от актуальных кук;
-- `session_hub_*` скрипты являются локальной инфраструктурой и требуют отдельных пакетов;
-- часть `scripts/analyze` и `scripts/debug` это инженерные вспомогательные инструменты, не обязательные для основного запуска.
+| Suite | Purpose |
+| --- | --- |
+| `tests/unit/` | Fast mocked checks of core logic, Kwork modules, routes, market analysis, and VPNTE helpers. |
+| `tests/smoke/` | Broader feature checks that may need local runtime state. |
+| `tests/integration/` | Integration coverage for external-facing components. |
+| `tests/manual/` | Manual/live checks that can require credentials, browser state, or network access. |
 
-## Быстрые команды
+Run lint before shipping Python changes:
 
 ```powershell
-# Установка зависимостей
-.\py.ps1 -m pip install -r requirements.txt
-
-# Dry-run
-.\py.ps1 main.py --dry-run --limit 3
-
-# Continuous
-.\py.ps1 main.py --continuous
-
-# OSINT-check
-.\py.ps1 scripts\check_client.py torvalds
-
-# Dashboard
-streamlit run src\dashboard\app.py
+python -m ruff check src main.py
 ```
 
-## История документации
+Do not treat a plain `pytest` run as a quick local check: it also collects
+manual and integration tests that can depend on external services.
 
-На `2026-04-21` из репозитория удалены разрозненные и устаревшие документы:
+## Documentation
 
-- старый `README.md` заменён этим файлом;
-- `docs/USAGE.md`;
-- `docs/SESSION_HUB.md`;
-- текстовые research/audit-файлы в `docs/research/`;
-- текстовый audit-report в `data/parsing_results/`.
+`docs/` contains both durable technical notes and time-stamped research output.
+Start with these documents:
 
-Дальше поддерживается только этот `README.md`.
+- `docs/kwork_market_api_integration_backlog.md` for implemented market API
+  coverage and remaining work;
+- `docs/kwork_market_runtime_fix_journal.md` for desktop/backend, performance,
+  and proxy behavior;
+- `docs/kwork_autopublish_progress.md` for service-publishing progress;
+- `docs/kwork_hidden_api_facts.md` for confirmed Kwork integration facts;
+- `docs/follow_up_automation_design.md` for the planned follow-up system.
+
+The many JSON files in `docs/` and `docs/kwork_market_snapshots/` are evidence
+snapshots from probes and market runs. They are useful for reproducing findings,
+but they are not required to install or run PSR.
+
+## Operational Notes
+
+- Keep `.env`, Session Hub cookies, VPNTE control tokens, and runtime databases
+  local. Do not commit them.
+- Verify the Kwork session and VPNTE status before enabling live Kwork actions.
+- Use dry-run for changes to filters, LLM prompts, proxy settings, or Kwork
+  workflows before enabling `--live`.
+- Restart the backend after backend or configuration changes; the Electron app
+  also checks for a stale PSR backend on port `7788`.

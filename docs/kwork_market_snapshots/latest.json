@@ -1,284 +1,68 @@
 {
-  "generated_at": "2026-07-09T07:43:05Z",
-  "file_path": "C:\\psr\\docs\\kwork_market_snapshots\\kwork_market_intelligence_20260709T074305Z.json",
+  "generated_at": "2026-07-10T13:28:54Z",
+  "file_path": "docs\\kwork_market_snapshots\\kwork_market_intelligence_20260710T132854Z.json",
   "source": "psr.kwork_market_intelligence_snapshot",
   "config": {
-    "max_seeds": 5,
+    "max_seeds": 1,
     "pages": 1,
     "include_demand": true,
-    "include_seller_details": false
+    "include_seller_details": true
   },
   "aggregate": {
-    "seed_count": 5,
-    "cards_seen": 50,
-    "unique_sellers_seen": 40,
-    "seller_profiles_collected": 0
+    "seed_count": 1,
+    "cards_seen": 10,
+    "unique_sellers_seen": 9,
+    "seller_profiles_collected": 4
   },
   "top_opportunities": [
     {
-      "seed_name": "Telegram classifier",
-      "category_id": 46,
-      "classifier_id": 281,
-      "supply_kworks_count": 8772,
-      "demand_wants_count": 41,
-      "demand_status": "ok",
-      "demand_per_1000_kworks": 4.674,
-      "opportunity_score": 370.82,
-      "sample_cards": 10,
-      "sample_unique_sellers": 10,
-      "seller_concentration": 0.1,
-      "sample_price_min": 500,
-      "sample_price_max": 25000,
-      "sample_price_avg": 4150.0,
-      "price_rule_min": 500,
-      "price_rule_max": 20616,
-      "price_rule_typical": null,
-      "demand_sample_offers_min": 2,
-      "demand_sample_low_offer_count": 1,
-      "demand_sample_budget_avg": 6500.0,
-      "demand_sample_portfolio_required_count": 0,
-      "demand_sample_kwork_required_count": 0,
-      "demand_sample_higher_price_allowed_count": 2,
-      "top_sellers": [
-        [
-          "RuPartner",
-          1
-        ],
-        [
-          "bioatwork",
-          1
-        ],
-        [
-          "ads_maker",
-          1
-        ],
-        [
-          "Kaizen",
-          1
-        ],
-        [
-          "DragonSMM",
-          1
-        ]
-      ],
-      "signals": {
-        "demand_level": "medium",
-        "supply_level": "moderate",
-        "low_offer_demand": false,
-        "portfolio_heavy_demand": false,
-        "higher_price_allowed": true
-      }
-    },
-    {
-      "seed_name": "Site support",
-      "category_id": 41,
-      "classifier_id": 3587,
-      "supply_kworks_count": 18261,
-      "demand_wants_count": 49,
-      "demand_status": "ok",
-      "demand_per_1000_kworks": 2.683,
-      "opportunity_score": 361.8,
-      "sample_cards": 10,
-      "sample_unique_sellers": 10,
-      "seller_concentration": 0.1,
-      "sample_price_min": 500,
-      "sample_price_max": 12000,
-      "sample_price_avg": 3150.0,
-      "price_rule_min": 500,
-      "price_rule_max": 71649,
-      "price_rule_typical": null,
-      "demand_sample_offers_min": 2,
-      "demand_sample_low_offer_count": 1,
-      "demand_sample_budget_avg": 5100.0,
-      "demand_sample_portfolio_required_count": 0,
-      "demand_sample_kwork_required_count": 0,
-      "demand_sample_higher_price_allowed_count": 5,
-      "top_sellers": [
-        [
-          "sh3vajkeee",
-          1
-        ],
-        [
-          "ivan_chernikov",
-          1
-        ],
-        [
-          "devyan",
-          1
-        ],
-        [
-          "TrixiS_",
-          1
-        ],
-        [
-          "PavloSG",
-          1
-        ]
-      ],
-      "signals": {
-        "demand_level": "medium",
-        "supply_level": "competitive",
-        "low_offer_demand": false,
-        "portfolio_heavy_demand": false,
-        "higher_price_allowed": true
-      }
-    },
-    {
-      "seed_name": "Programming broad",
-      "category_id": 41,
+      "seed_name": "Доработка и настройка сайта",
+      "category_id": 38,
       "classifier_id": null,
-      "supply_kworks_count": 38165,
-      "demand_wants_count": 49,
+      "supply_kworks_count": 13700,
+      "demand_wants_count": 25,
       "demand_status": "ok",
-      "demand_per_1000_kworks": 1.284,
-      "opportunity_score": 338.71,
-      "sample_cards": 10,
-      "sample_unique_sellers": 8,
-      "seller_concentration": 0.2,
-      "sample_price_min": 1000,
-      "sample_price_max": 50000,
-      "sample_price_avg": 8650.0,
-      "price_rule_min": 500,
-      "price_rule_max": 71649,
-      "price_rule_typical": null,
-      "demand_sample_offers_min": 2,
-      "demand_sample_low_offer_count": 1,
-      "demand_sample_budget_avg": 5100.0,
-      "demand_sample_portfolio_required_count": 0,
-      "demand_sample_kwork_required_count": 0,
-      "demand_sample_higher_price_allowed_count": 5,
-      "top_sellers": [
-        [
-          "PerfectCode",
-          2
-        ],
-        [
-          "ameganix",
-          2
-        ],
-        [
-          "Egor_procod",
-          1
-        ],
-        [
-          "like-clik",
-          1
-        ],
-        [
-          "PavloSG",
-          1
-        ]
-      ],
-      "signals": {
-        "demand_level": "medium",
-        "supply_level": "competitive",
-        "low_offer_demand": false,
-        "portfolio_heavy_demand": false,
-        "higher_price_allowed": true
-      }
-    },
-    {
-      "seed_name": "Marketplaces",
-      "category_id": 112,
-      "classifier_id": 1357,
-      "supply_kworks_count": 109387,
-      "demand_wants_count": 22,
-      "demand_status": "ok",
-      "demand_per_1000_kworks": 0.201,
-      "opportunity_score": 248.8,
+      "demand_per_1000_kworks": 1.825,
+      "opportunity_score": 309.55,
       "sample_cards": 10,
       "sample_unique_sellers": 9,
       "seller_concentration": 0.2,
-      "sample_price_min": 500,
-      "sample_price_max": 4500,
-      "sample_price_avg": 1300.0,
+      "sample_price_min": 1000,
+      "sample_price_max": 7000,
+      "sample_price_avg": 2100.0,
       "price_rule_min": 500,
-      "price_rule_max": 25349,
+      "price_rule_max": 48910,
       "price_rule_typical": null,
-      "demand_sample_offers_min": 0,
-      "demand_sample_low_offer_count": 3,
-      "demand_sample_budget_avg": 1200.0,
+      "demand_sample_offers_min": 5,
+      "demand_sample_low_offer_count": 0,
+      "demand_sample_budget_avg": 6200.0,
       "demand_sample_portfolio_required_count": 0,
       "demand_sample_kwork_required_count": 0,
       "demand_sample_higher_price_allowed_count": 5,
       "top_sellers": [
         [
-          "TopClick",
+          "OlegTixomirov",
           2
         ],
         [
-          "IG_designed",
+          "molodsom",
           1
         ],
         [
-          "seo-master-pro",
+          "quattrovod",
           1
         ],
         [
-          "VladSMMVip",
+          "freax",
           1
         ],
         [
-          "Booggy",
+          "victes",
           1
         ]
       ],
       "signals": {
         "demand_level": "medium",
-        "supply_level": "saturated",
-        "low_offer_demand": true,
-        "portfolio_heavy_demand": false,
-        "higher_price_allowed": true
-      }
-    },
-    {
-      "seed_name": "Ready databases",
-      "category_id": 113,
-      "classifier_id": 1117,
-      "supply_kworks_count": 34244,
-      "demand_wants_count": 3,
-      "demand_status": "ok",
-      "demand_per_1000_kworks": 0.088,
-      "opportunity_score": 121.17,
-      "sample_cards": 10,
-      "sample_unique_sellers": 7,
-      "seller_concentration": 0.2,
-      "sample_price_min": 500,
-      "sample_price_max": 18000,
-      "sample_price_avg": 3750.0,
-      "price_rule_min": 500,
-      "price_rule_max": 19995,
-      "price_rule_typical": null,
-      "demand_sample_offers_min": 3,
-      "demand_sample_low_offer_count": 0,
-      "demand_sample_budget_avg": 2166.67,
-      "demand_sample_portfolio_required_count": 0,
-      "demand_sample_kwork_required_count": 0,
-      "demand_sample_higher_price_allowed_count": 3,
-      "top_sellers": [
-        [
-          "LittleSani",
-          2
-        ],
-        [
-          "sbor_kontaktov",
-          2
-        ],
-        [
-          "Kristi86",
-          2
-        ],
-        [
-          "imnotes",
-          1
-        ],
-        [
-          "WebSlesar",
-          1
-        ]
-      ],
-      "signals": {
-        "demand_level": "low",
         "supply_level": "competitive",
         "low_offer_demand": false,
         "portfolio_heavy_demand": false,
@@ -288,97 +72,50 @@
   ],
   "top_sellers": [
     [
-      "imnotes",
+      "OlegTixomirov",
       2
     ],
     [
-      "PavloSG",
-      2
-    ],
-    [
-      "PerfectCode",
-      2
-    ],
-    [
-      "degen_digital",
-      2
-    ],
-    [
-      "yaroslavkulikov",
-      2
-    ],
-    [
-      "ameganix",
-      2
-    ],
-    [
-      "LittleSani",
-      2
-    ],
-    [
-      "sbor_kontaktov",
-      2
-    ],
-    [
-      "Kristi86",
-      2
-    ],
-    [
-      "TopClick",
-      2
-    ],
-    [
-      "RuPartner",
+      "molodsom",
       1
     ],
     [
-      "bioatwork",
+      "quattrovod",
       1
     ],
     [
-      "ads_maker",
+      "freax",
       1
     ],
     [
-      "Kaizen",
+      "victes",
       1
     ],
     [
-      "DragonSMM",
+      "alexwebdev_pro",
       1
     ],
     [
-      "Nikita__Pavlov",
+      "wordpress_wizard",
       1
     ],
     [
-      "gkrvSA",
+      "do_kova",
       1
     ],
     [
-      "Crazy-man",
-      1
-    ],
-    [
-      "prizpak",
-      1
-    ],
-    [
-      "Egor_procod",
+      "wturm",
       1
     ]
   ],
   "query_demand_counts": {
-    "telegram": 34,
-    "телеграм бот": 55,
-    "python бот": 32,
-    "бот": 27,
-    "automation": 0,
-    "доработка сайта": 100,
-    "wordpress": 21,
-    "bitrix": 3
+    "доработка сайта": 21,
+    "правки на сайте": 14,
+    "доработка WordPress": 9,
+    "доработка OpenCart": 7,
+    "обновить Joomla": 3
   },
   "timings_ms": {
-    "total": 25237
+    "total": 23383
   }
 }

@@ -409,6 +409,76 @@ class TestOpenAICompatibleClient:
         assert client._headers()["Authorization"] == "Bearer k1"
 
     @pytest.mark.asyncio
+    async def test_responses_tool_loop_replays_calls_locally(self, monkeypatch):
+        payloads = []
+        responses = [
+            {
+                "output": [
+                    {
+                        "type": "function_call",
+                        "call_id": "call-1",
+                        "name": "market_count",
+                        "arguments": "{}",
+                    }
+                ]
+            },
+            {"output": [{"type": "message", "content": [{"type": "output_text", "text": "250"}]}]},
+        ]
+
+        class FakeResponse:
+            def __init__(self, payload):
+                self.payload = payload
+
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return self.payload
+
+        class FakeClient:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def post(self, url, **kwargs):
+                payloads.append(kwargs["json"])
+                return FakeResponse(responses[len(payloads) - 1])
+
+        async def handle_tool(name, arguments):
+            assert name == "market_count"
+            assert arguments == {}
+            return {"listing_count": 250}
+
+        monkeypatch.setattr("httpx.AsyncClient", FakeClient)
+        client = OpenAICompatibleClient(
+            api_key="k",
+            base_url="https://api.example.com",
+            wire_api="responses",
+        )
+
+        result = await client.generate_with_tools(
+            prompt="Count listings",
+            model="model",
+            tools=[{"type": "function", "name": "market_count", "parameters": {"type": "object"}}],
+            tool_handler=handle_tool,
+            temperature=0.1,
+            max_tokens=100,
+        )
+
+        assert result == "250"
+        assert len(payloads) == 2
+        assert payloads[1]["input"][-1] == {
+            "type": "function_call_output",
+            "call_id": "call-1",
+            "output": '{"listing_count":250}',
+        }
+
+    @pytest.mark.asyncio
     async def test_generate_with_images_posts_multimodal_payload(self, monkeypatch):
         captured = {}
 
