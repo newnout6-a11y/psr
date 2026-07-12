@@ -547,11 +547,13 @@ class MarketScanCoordinator:
         return await self._require_job(job_id)
 
     async def ensure_enrichment_operations(self, job_id: str) -> JsonDict | None:
-        """Price-gate and queue durable local enrichment after collection drains.
+        """Price-gate and queue durable local enrichment as collection progresses.
 
         Re-entering this method is intentional: the repository keeps pending
-        operations and cache generations stable, so resume never starts the
-        market pass from scratch or duplicates an active listing request.
+        operations and cache generations stable, so collection workers can
+        enqueue enrichment immediately after a committed batch without causing
+        duplicate detail requests. The job switches to the enrichment phase
+        only after collection operations have drained.
         """
 
         job = await self._require_job(job_id)
@@ -565,17 +567,6 @@ class MarketScanCoordinator:
         if phase == JobPhase.COLLECT.value:
             if job["state"] not in {JobState.RUNNING.value, JobState.COMPLETING.value}:
                 return None
-            active = await self.repository.list_operations(job_id, state=active_states, limit=1)
-            if active:
-                return None
-            transitioned = await self.repository.update_job_state(
-                job_id,
-                JobState.ENRICHING,
-                phase=JobPhase.ENRICH,
-                expected_revision=job["revision"],
-            )
-            await self.emit_state_changed(transitioned)
-            job = transitioned
         elif phase == JobPhase.ENRICH.value:
             if job["state"] not in {
                 JobState.ENRICHING.value,
@@ -587,10 +578,29 @@ class MarketScanCoordinator:
             return None
 
         summary = await self.repository.prepare_listing_enrichment(job_id)
+        active = await self.repository.list_operations(job_id, state=active_states, limit=1_000)
+        collection_kinds = {
+            OperationKind.MAP_SCOPE.value,
+            OperationKind.RESOLVE_ALIAS.value,
+            OperationKind.FETCH_BATCH.value,
+        }
+        if phase == JobPhase.COLLECT.value and not any(item["kind"] in collection_kinds for item in active):
+            transitioned = await self.repository.update_job_state(
+                job_id,
+                JobState.ENRICHING,
+                phase=JobPhase.ENRICH,
+                expected_revision=job["revision"],
+            )
+            await self.emit_state_changed(transitioned)
+            job = transitioned
         queued = await self.repository.list_operations(
             job_id,
             state=OperationState.QUEUED,
-            limit=1,
+            limit=1_000,
+        )
+        enrichment_queued = next(
+            (operation for operation in queued if operation["kind"] == OperationKind.ENRICH_LISTING.value),
+            None,
         )
         if summary["queued"]:
             await self.emit(
@@ -598,9 +608,9 @@ class MarketScanCoordinator:
                 "enrichment.queued",
                 summary,
                 revision=job["revision"],
-                operation_id=queued[0]["operation_id"] if queued else None,
+                operation_id=enrichment_queued["operation_id"] if enrichment_queued else None,
             )
-        return queued[0] if queued else None
+        return enrichment_queued
 
     async def ensure_analysis_operation(self, job_id: str) -> JsonDict | None:
         """Queue deterministic analysis only after local enrichment is drained."""

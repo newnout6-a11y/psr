@@ -261,6 +261,50 @@ class MarketRecommendationHandoffService:
         )
         return {"handoff": stored, "draft": stored["draft"], "image": generated.get("image")}
 
+    async def publish_draft(
+        self,
+        handoff_id: str,
+        *,
+        dry_run: bool = True,
+        confirm_token: str = "",
+        confirmation: str = "",
+    ) -> dict[str, Any]:
+        """Publish only an explicit, freshly revalidated durable draft."""
+
+        handoff = await self._require_handoff(handoff_id)
+        if handoff["state"] != "draft_generated":
+            raise MarketJobRepositoryError("generate a durable draft before publication")
+        manifest = await self.manifest_loader(
+            int(handoff["category_id"]),
+            handoff.get("classifier_id"),
+            dict(handoff.get("attribute_selection") or {}),
+            "ru",
+        )
+        if not manifest.get("success", True):
+            detail = _as_text(manifest.get("detail")) or _as_text(manifest.get("code")) or "Kwork form manifest failed"
+            raise MarketJobRepositoryError(detail)
+        normalized = normalize_attribute_selection(manifest, handoff.get("attribute_selection") or {})
+        if (
+            normalized["manifest_hash"] != handoff.get("attribute_manifest_hash")
+            or normalized["selection"] != handoff.get("attribute_selection")
+            or not normalized["valid"]
+        ):
+            raise MarketJobRepositoryError("Kwork form manifest changed; refresh and reconfirm fields before publishing")
+        result = await self.autopublish_service.publish_draft(
+            dict(handoff.get("draft") or {}),
+            dry_run=dry_run,
+            confirm_token=confirm_token,
+            confirmation=confirmation,
+        )
+        if dry_run or not result.get("ok"):
+            return {"handoff": handoff, "publish": result, "published_listing": None}
+        published = await self.repository.record_published_listing(
+            handoff_id,
+            publish_result=result,
+            kwork_id=self._published_kwork_id(result),
+        )
+        return {"handoff": handoff, "publish": result, "published_listing": published}
+
     async def _validate_evidence(
         self,
         job_id: str,
@@ -291,6 +335,22 @@ class MarketRecommendationHandoffService:
         invalid = sorted(set(evidence_ids).difference(allowed))
         if invalid:
             raise ValueError(f"Terra evidence_ids are not in the durable dossier: {', '.join(invalid)}")
+
+    @staticmethod
+    def _published_kwork_id(result: Mapping[str, Any]) -> str | None:
+        for key in ("kwork_id", "listing_id"):
+            value = _as_text(result.get(key))
+            if value:
+                return value
+        for nested_key in ("verify_result", "save_result"):
+            nested = result.get(nested_key)
+            if not isinstance(nested, Mapping):
+                continue
+            for key in ("kwork_id", "listing_id", "id"):
+                value = _as_text(nested.get(key))
+                if value:
+                    return value
+        return None
 
     async def _require_handoff(self, handoff_id: str) -> dict[str, Any]:
         handoff = await self.repository.get_draft_handoff(handoff_id)

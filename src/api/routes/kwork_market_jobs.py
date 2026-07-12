@@ -234,6 +234,14 @@ class MarketHandoffDraftRequest(BaseModel):
     generation_options: dict[str, Any] = Field(default_factory=dict)
 
 
+class MarketHandoffPublishRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    dry_run: bool = True
+    confirm_token: str = ""
+    confirmation: str = ""
+
+
 class MarketPageResponse(BaseModel):
     """Uniform pagination envelope for durable operational views."""
 
@@ -778,6 +786,36 @@ async def generate_market_draft_handoff_draft(
             generation_options=payload.generation_options if payload else {},
         )
     )
+
+
+@router.post("/api/kwork/market/jobs/{job_id}/draft-handoffs/{handoff_id}/publish")
+async def publish_market_draft_handoff(
+    request: Request,
+    job_id: str,
+    handoff_id: str,
+    payload: MarketHandoffPublishRequest,
+) -> dict[str, Any]:
+    coordinator = _coordinator(request)
+    await _require_handoff(coordinator, job_id, handoff_id)
+    return await _call(
+        _handoff_service(request).publish_draft(
+            handoff_id,
+            dry_run=payload.dry_run,
+            confirm_token=payload.confirm_token,
+            confirmation=payload.confirmation,
+        )
+    )
+
+
+@router.get("/api/kwork/market/jobs/{job_id}/published-listings")
+async def list_market_published_listings(
+    request: Request,
+    job_id: str,
+    limit: int = Query(default=100, ge=1, le=1_000),
+) -> dict[str, Any]:
+    coordinator = _coordinator(request)
+    await _require_job(coordinator, job_id)
+    return {"job_id": job_id, "items": await _call(coordinator.repository.list_published_listings(job_id, limit=limit))}
 
 
 @router.post("/api/kwork/market/jobs/{job_id}/assistant")

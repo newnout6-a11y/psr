@@ -82,6 +82,7 @@ async def _job_with_dossier(repository: MarketJobRepository) -> int:
 class _DraftService:
     def __init__(self) -> None:
         self.requests: list[dict[str, Any]] = []
+        self.publish_requests: list[dict[str, Any]] = []
 
     async def generate_draft(self, request: dict[str, Any]) -> dict[str, Any]:
         self.requests.append(request)
@@ -100,6 +101,10 @@ class _DraftService:
     @staticmethod
     def draft_hash(_draft: dict[str, Any]) -> str:
         return "test-draft-hash"
+
+    async def publish_draft(self, draft: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
+        self.publish_requests.append({"draft": draft, **kwargs})
+        return {"ok": True, "code": "verified", "verify_result": {"kwork_id": "9001"}}
 
 
 @pytest.mark.asyncio
@@ -204,6 +209,18 @@ async def test_recommendation_handoff_requires_confirmed_fields_and_keeps_server
     assert generated["handoff"]["state"] == "draft_generated"
     assert generated["draft"]["attribute_selection"] == confirmed_fields["attribute_selection"]
     assert draft_service.requests[0]["attribute_selection"] == confirmed_fields["attribute_selection"]
+
+    published = await service.publish_draft(
+        confirmed_fields["handoff_id"],
+        dry_run=False,
+        confirm_token="fresh-token",
+        confirmation="PUBLISH",
+    )
+    assert published["publish"]["ok"] is True
+    assert published["published_listing"]["kwork_id"] == "9001"
+    assert published["published_listing"]["source_cluster_id"] == "cluster_bot"
+    assert draft_service.publish_requests[0]["draft"]["handoff_id"] == confirmed_fields["handoff_id"]
+    assert (await repository.list_published_listings("job_handoff"))[0]["published_listing_id"] == published["published_listing"]["published_listing_id"]
 
     with pytest.raises(MarketJobRepositoryError):
         await service.update_selection(

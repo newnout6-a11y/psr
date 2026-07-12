@@ -580,6 +580,8 @@ class MarketOperationExecutor:
                 shard_state="active" if next_operation is not None else "exhausted",
             )
             await self.coordinator.publish_committed_events(worker.job_id, result["event_sequences"])
+            if result["new_listings"]:
+                await self.coordinator.ensure_enrichment_operations(worker.job_id)
             if result["next_operation_id"] is None:
                 await self._complete_job_if_finished(worker.job_id)
         finally:
@@ -771,6 +773,8 @@ class MarketOperationExecutor:
                 shard_state="exhausted",
             )
             await self.coordinator.publish_committed_events(worker.job_id, result["event_sequences"])
+            if result["new_listings"]:
+                await self.coordinator.ensure_enrichment_operations(worker.job_id)
             await self._complete_job_if_finished(worker.job_id)
         finally:
             await self._close_client(client)

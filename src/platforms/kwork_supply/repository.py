@@ -428,6 +428,23 @@ CREATE TABLE IF NOT EXISTS market_draft_handoffs (
 CREATE INDEX IF NOT EXISTS idx_market_draft_handoffs_job
     ON market_draft_handoffs(job_id, updated_at DESC, handoff_id);
 
+CREATE TABLE IF NOT EXISTS market_published_listings (
+    published_listing_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    recommendation_id TEXT NOT NULL REFERENCES market_recommendations(recommendation_id) ON DELETE CASCADE,
+    handoff_id TEXT NOT NULL REFERENCES market_draft_handoffs(handoff_id) ON DELETE CASCADE,
+    source_cluster_id TEXT,
+    kwork_id TEXT,
+    draft_hash TEXT NOT NULL,
+    publish_result_json TEXT NOT NULL DEFAULT '{}',
+    feedback_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(handoff_id, draft_hash)
+);
+CREATE INDEX IF NOT EXISTS idx_market_published_listings_cluster
+    ON market_published_listings(job_id, source_cluster_id, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS market_events (
     job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
     sequence INTEGER NOT NULL,
@@ -1302,6 +1319,31 @@ class MarketJobRepository:
             draft_hash,
             _timestamp(now),
         )
+
+    async def record_published_listing(
+        self,
+        handoff_id: str,
+        *,
+        publish_result: Mapping[str, Any],
+        kwork_id: str | int | None = None,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Link a verified live listing back to the recommendation cluster."""
+
+        if not isinstance(publish_result, Mapping):
+            raise TypeError("publish_result must be a mapping")
+        return await asyncio.to_thread(
+            self._record_published_listing_sync,
+            handoff_id,
+            dict(publish_result),
+            _optional_text(kwork_id),
+            _timestamp(now),
+        )
+
+    async def list_published_listings(self, job_id: str, *, limit: int = 100) -> list[JsonDict]:
+        """Return durable feedback links grouped by the original market job."""
+
+        return await asyncio.to_thread(self._list_published_listings_sync, job_id, limit)
 
     async def list_listing_metrics_inputs(self, job_id: str) -> list[JsonDict]:
         """Return all normalized listing inputs needed for server-side metrics.
@@ -3741,6 +3783,86 @@ class MarketJobRepository:
                 raise
         return self._draft_handoff_record(updated)
 
+    def _record_published_listing_sync(
+        self,
+        handoff_id: str,
+        publish_result: JsonDict,
+        kwork_id: str | None,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                handoff = connection.execute(
+                    "SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)
+                ).fetchone()
+                if handoff is None:
+                    raise MarketJobNotFoundError(f"market draft handoff {handoff_id!r} was not found")
+                if handoff["state"] != "draft_generated" or not handoff["draft_hash"]:
+                    raise MarketJobRepositoryError(
+                        f"market draft handoff {handoff_id!r} requires a generated draft before publication"
+                    )
+                recommendation = connection.execute(
+                    "SELECT * FROM market_recommendations WHERE recommendation_id = ?",
+                    (handoff["recommendation_id"],),
+                ).fetchone()
+                if recommendation is None:
+                    raise MarketJobRepositoryError(f"market recommendation for handoff {handoff_id!r} is missing")
+                existing = connection.execute(
+                    """
+                    SELECT * FROM market_published_listings
+                    WHERE handoff_id = ? AND draft_hash = ?
+                    """,
+                    (handoff_id, handoff["draft_hash"]),
+                ).fetchone()
+                if existing is None:
+                    published_id = _new_identifier("published")
+                    connection.execute(
+                        """
+                        INSERT INTO market_published_listings (
+                            published_listing_id, job_id, recommendation_id, handoff_id, source_cluster_id,
+                            kwork_id, draft_hash, publish_result_json, created_at, updated_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            published_id,
+                            handoff["job_id"],
+                            handoff["recommendation_id"],
+                            handoff_id,
+                            recommendation["source_cluster_id"],
+                            kwork_id,
+                            handoff["draft_hash"],
+                            _dump_json(publish_result),
+                            now,
+                            now,
+                        ),
+                    )
+                    existing = connection.execute(
+                        "SELECT * FROM market_published_listings WHERE published_listing_id = ?", (published_id,)
+                    ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._published_listing_record(existing)
+
+    def _list_published_listings_sync(self, job_id: str, limit: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        bounded_limit = max(1, min(int(limit), 1_000))
+        with self._connect() as connection:
+            self._require_job_row(connection, job_id)
+            rows = connection.execute(
+                """
+                SELECT * FROM market_published_listings
+                WHERE job_id = ?
+                ORDER BY created_at DESC, published_listing_id ASC
+                LIMIT ?
+                """,
+                (job_id, bounded_limit),
+            ).fetchall()
+        return [self._published_listing_record(row) for row in rows]
+
     def _list_listing_metrics_inputs_sync(self, job_id: str) -> list[JsonDict]:
         self._ensure_initialized()
         with self._connect() as connection:
@@ -4489,6 +4611,22 @@ class MarketJobRepository:
             "draft": _load_json(row["draft_json"], {}),
             "draft_hash": row["draft_hash"],
             "revision": int(row["revision"]),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _published_listing_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "published_listing_id": row["published_listing_id"],
+            "job_id": row["job_id"],
+            "recommendation_id": row["recommendation_id"],
+            "handoff_id": row["handoff_id"],
+            "source_cluster_id": row["source_cluster_id"],
+            "kwork_id": row["kwork_id"],
+            "draft_hash": row["draft_hash"],
+            "publish_result": _load_json(row["publish_result_json"], {}),
+            "feedback": _load_json(row["feedback_json"], {}),
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
         }

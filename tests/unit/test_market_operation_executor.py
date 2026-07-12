@@ -211,11 +211,14 @@ async def test_executor_maps_validated_scope_then_commits_web_batch_with_raw_art
 
     listings = await repository.list_listings(worker.job_id)
     accepted = await repository.get_operation(fetch["operation_id"])
+    job = await repository.get_job(worker.job_id)
     next_operations = await repository.list_operations(worker.job_id, state=OperationState.QUEUED)
     raw_files = list((tmp_path / "artifacts" / worker.job_id / "raw").glob("*.json.gz"))
     assert [listing["listing_key"] for listing in listings] == ["1", "2"]
     assert accepted is not None and accepted["state"] == OperationState.SUCCEEDED.value
-    assert len(next_operations) == 1
+    assert job is not None and job["phase"] == "collect"
+    assert [operation["kind"] for operation in next_operations].count(OperationKind.FETCH_BATCH.value) == 1
+    assert [operation["kind"] for operation in next_operations].count(OperationKind.ENRICH_LISTING.value) == 2
     assert raw_files
     assert all(client.closed for client in factory.created)
 

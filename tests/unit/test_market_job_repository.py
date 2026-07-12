@@ -127,6 +127,7 @@ async def test_schema_uses_separate_wal_database_and_alias_registry(repository: 
         "market_semantic_cluster_members",
         "market_recommendations",
         "market_draft_handoffs",
+        "market_published_listings",
         "market_events",
         "market_checkpoints",
         "market_worker_commands",
