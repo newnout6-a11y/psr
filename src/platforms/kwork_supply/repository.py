@@ -796,6 +796,16 @@ class MarketJobRepository:
 
         return await asyncio.to_thread(self._list_operations_sync, job_id, state, cursor, limit)
 
+    async def list_unresolved_terminal_enrichment_operations(
+        self,
+        job_id: str,
+        *,
+        limit: int = 100,
+    ) -> list[JsonDict]:
+        """Return terminal enrichment operations that have no explicit retry descendant."""
+
+        return await asyncio.to_thread(self._list_unresolved_terminal_enrichment_operations_sync, job_id, limit)
+
     async def lease_operation(
         self,
         worker_id: str,
@@ -1970,6 +1980,35 @@ class MarketJobRepository:
         parameters.append(limit)
         with self._connect() as connection:
             rows = connection.execute(query, parameters).fetchall()
+        return [self._operation_record(row) for row in rows]
+
+    def _list_unresolved_terminal_enrichment_operations_sync(self, job_id: str, limit: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, 0)
+        terminal_states = (
+            OperationState.FAILED.value,
+            OperationState.CONTRACT_VIOLATION.value,
+            OperationState.BLOCKED.value,
+        )
+        with self._connect() as connection:
+            rows = connection.execute(
+                f"""
+                SELECT operations.*
+                FROM market_operations AS operations
+                WHERE operations.job_id = ?
+                  AND operations.kind = ?
+                  AND operations.state IN ({','.join('?' for _ in terminal_states)})
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM market_operations AS retries
+                      WHERE retries.job_id = operations.job_id
+                        AND json_extract(retries.payload_json, '$.retry_of') = operations.operation_id
+                  )
+                ORDER BY operations.operation_id ASC
+                LIMIT ?
+                """,
+                (job_id, OperationKind.ENRICH_LISTING.value, *terminal_states, limit),
+            ).fetchall()
         return [self._operation_record(row) for row in rows]
 
     def _lease_operation_sync(

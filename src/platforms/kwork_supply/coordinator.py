@@ -623,34 +623,7 @@ class MarketScanCoordinator:
             job = await self._require_job(job_id)
             if job["phase"] != JobPhase.ENRICH.value:
                 return None
-        existing = await self.repository.list_operations(job_id, limit=500)
-        for operation in existing:
-            if operation["kind"] == OperationKind.ANALYZE_SNAPSHOT.value and operation["state"] in {
-                OperationState.QUEUED.value,
-                OperationState.LEASED.value,
-                OperationState.RUNNING.value,
-                OperationState.RETRY_WAIT.value,
-            }:
-                return operation
-        retried_operation_ids = {
-            str(payload["retry_of"])
-            for item in existing
-            if isinstance((payload := item.get("payload")), Mapping)
-            and isinstance(payload.get("retry_of"), str)
-            and payload["retry_of"].strip()
-        }
-        terminal_enrichment = [
-            operation
-            for operation in existing
-            if operation["kind"] == OperationKind.ENRICH_LISTING.value
-            and operation["operation_id"] not in retried_operation_ids
-            and operation["state"]
-            in {
-                OperationState.FAILED.value,
-                OperationState.CONTRACT_VIOLATION.value,
-                OperationState.BLOCKED.value,
-            }
-        ]
+        terminal_enrichment = await self.repository.list_unresolved_terminal_enrichment_operations(job_id)
         if terminal_enrichment:
             if job["state"] != JobState.BLOCKED.value:
                 blocked = await self.repository.update_job_state(
@@ -680,7 +653,7 @@ class MarketScanCoordinator:
             limit=1,
         )
         if active:
-            return None
+            return active[0]
         analyzing = await self.repository.update_job_state(
             job_id,
             JobState.ANALYZING,
