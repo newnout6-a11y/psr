@@ -8,6 +8,7 @@ and an explicit ``proxyUrl``.
 from __future__ import annotations
 
 from dataclasses import replace
+from datetime import UTC, datetime
 from typing import Any, Mapping, Protocol, runtime_checkable
 
 from src.utils.vpnte_proxy import VpnteProxyClient
@@ -89,6 +90,20 @@ def _value(instance: Mapping[str, object], camel_name: str, snake_name: str) -> 
 
 def _transport_id(slot: int) -> str:
     return f"{VPNTE_TRANSPORT_PREFIX}{slot}"
+
+
+def _quarantine_is_active(until: str | None) -> bool:
+    """Keep indefinite/invalid quarantines, but release valid expired ones."""
+
+    if until is None:
+        return True
+    try:
+        expires_at = datetime.fromisoformat(until.replace("Z", "+00:00"))
+    except ValueError:
+        return True
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+    return expires_at > datetime.now(UTC)
 
 
 class VpnteTransportManager:
@@ -307,7 +322,10 @@ class VpnteTransportManager:
         proxy_url = _optional_text(_value(instance, "proxyUrl", "proxy_url"))
         running = _optional_bool(instance.get("running"))
         health = self._health_for(proxy_url, running=running)
+        quarantine_expired = False
         if preserve_quarantine and prior is not None and prior.health is TransportHealth.QUARANTINED:
+            quarantine_expired = not _quarantine_is_active(prior.quarantine_until)
+        if preserve_quarantine and prior is not None and prior.health is TransportHealth.QUARANTINED and not quarantine_expired:
             health = TransportHealth.QUARANTINED
 
         return TransportSnapshot(
@@ -326,8 +344,8 @@ class VpnteTransportManager:
             else (prior.pid if prior else None),
             generation=prior.generation if prior is not None else 1,
             lease_owner=prior.lease_owner if prior is not None else None,
-            quarantine_until=prior.quarantine_until if prior is not None else None,
-            last_rotate_reason=prior.last_rotate_reason if prior is not None else None,
+            quarantine_until=prior.quarantine_until if prior is not None and not quarantine_expired else None,
+            last_rotate_reason=prior.last_rotate_reason if prior is not None and not quarantine_expired else None,
         )
 
     @staticmethod

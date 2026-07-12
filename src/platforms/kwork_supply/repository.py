@@ -796,6 +796,16 @@ class MarketJobRepository:
 
         return await asyncio.to_thread(self._list_operations_sync, job_id, state, cursor, limit)
 
+    async def find_active_operation(
+        self,
+        job_id: str,
+        *,
+        kinds: Iterable[OperationKind | str],
+    ) -> JsonDict | None:
+        """Return one queued/running operation for the requested kinds."""
+
+        return await asyncio.to_thread(self._find_active_operation_sync, job_id, tuple(kinds))
+
     async def list_unresolved_terminal_enrichment_operations(
         self,
         job_id: str,
@@ -1981,6 +1991,35 @@ class MarketJobRepository:
         with self._connect() as connection:
             rows = connection.execute(query, parameters).fetchall()
         return [self._operation_record(row) for row in rows]
+
+    def _find_active_operation_sync(
+        self,
+        job_id: str,
+        kinds: tuple[OperationKind | str, ...],
+    ) -> JsonDict | None:
+        self._ensure_initialized()
+        normalized_kinds = tuple(dict.fromkeys(_enum_value(kind) for kind in kinds))
+        if not normalized_kinds:
+            return None
+        states = (
+            OperationState.QUEUED.value,
+            OperationState.LEASED.value,
+            OperationState.RUNNING.value,
+            OperationState.RETRY_WAIT.value,
+        )
+        with self._connect() as connection:
+            row = connection.execute(
+                f"""
+                SELECT * FROM market_operations
+                WHERE job_id = ?
+                  AND kind IN ({','.join('?' for _ in normalized_kinds)})
+                  AND state IN ({','.join('?' for _ in states)})
+                ORDER BY priority DESC, created_at ASC, operation_id ASC
+                LIMIT 1
+                """,
+                (job_id, *normalized_kinds, *states),
+            ).fetchone()
+        return self._operation_record(row) if row is not None else None
 
     def _list_unresolved_terminal_enrichment_operations_sync(self, job_id: str, limit: int) -> list[JsonDict]:
         self._ensure_initialized()

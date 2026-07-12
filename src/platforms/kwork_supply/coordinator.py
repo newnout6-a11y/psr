@@ -558,14 +558,18 @@ class MarketScanCoordinator:
 
         job = await self._require_job(job_id)
         phase = str(job["phase"])
-        active_states = (
-            OperationState.QUEUED,
-            OperationState.LEASED,
-            OperationState.RUNNING,
-            OperationState.RETRY_WAIT,
-        )
         if phase == JobPhase.COLLECT.value:
             if job["state"] not in {JobState.RUNNING.value, JobState.COMPLETING.value}:
+                return None
+            collection_active = await self.repository.find_active_operation(
+                job_id,
+                kinds=(
+                    OperationKind.MAP_SCOPE,
+                    OperationKind.RESOLVE_ALIAS,
+                    OperationKind.FETCH_BATCH,
+                ),
+            )
+            if collection_active is not None:
                 return None
         elif phase == JobPhase.ENRICH.value:
             if job["state"] not in {
@@ -574,17 +578,17 @@ class MarketScanCoordinator:
                 JobState.COMPLETING.value,
             }:
                 return None
+            enrichment_active = await self.repository.find_active_operation(
+                job_id,
+                kinds=(OperationKind.ENRICH_LISTING,),
+            )
+            if enrichment_active is not None:
+                return enrichment_active
         else:
             return None
 
         summary = await self.repository.prepare_listing_enrichment(job_id)
-        active = await self.repository.list_operations(job_id, state=active_states, limit=1_000)
-        collection_kinds = {
-            OperationKind.MAP_SCOPE.value,
-            OperationKind.RESOLVE_ALIAS.value,
-            OperationKind.FETCH_BATCH.value,
-        }
-        if phase == JobPhase.COLLECT.value and not any(item["kind"] in collection_kinds for item in active):
+        if phase == JobPhase.COLLECT.value:
             transitioned = await self.repository.update_job_state(
                 job_id,
                 JobState.ENRICHING,
@@ -593,14 +597,9 @@ class MarketScanCoordinator:
             )
             await self.emit_state_changed(transitioned)
             job = transitioned
-        queued = await self.repository.list_operations(
+        enrichment_queued = await self.repository.find_active_operation(
             job_id,
-            state=OperationState.QUEUED,
-            limit=1_000,
-        )
-        enrichment_queued = next(
-            (operation for operation in queued if operation["kind"] == OperationKind.ENRICH_LISTING.value),
-            None,
+            kinds=(OperationKind.ENRICH_LISTING,),
         )
         if summary["queued"]:
             await self.emit(
@@ -616,6 +615,20 @@ class MarketScanCoordinator:
         """Queue deterministic analysis only after local enrichment is drained."""
 
         job = await self._require_job(job_id)
+        if job["state"] == JobState.ANALYZING.value and job["phase"] == JobPhase.ANALYZE.value:
+            active_analysis = await self.repository.list_operations(
+                job_id,
+                state=(OperationState.QUEUED, OperationState.LEASED, OperationState.RUNNING, OperationState.RETRY_WAIT),
+                limit=10,
+            )
+            return next(
+                (
+                    operation
+                    for operation in active_analysis
+                    if operation["kind"] == OperationKind.ANALYZE_SNAPSHOT.value
+                ),
+                None,
+            )
         if job["phase"] in {JobPhase.COLLECT.value, JobPhase.ENRICH.value}:
             enrichment = await self.ensure_enrichment_operations(job_id)
             if enrichment is not None:

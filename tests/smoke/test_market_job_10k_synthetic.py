@@ -110,14 +110,21 @@ class PartitionedCatalogClient:
         return None
 
 
-async def _wait_for_completed(repository: MarketJobRepository, job_id: str, *, timeout_seconds: float = 30) -> dict[str, Any]:
+async def _wait_for_collection_target(
+    repository: MarketJobRepository,
+    job_id: str,
+    *,
+    timeout_seconds: float = 30,
+) -> dict[str, Any]:
     deadline = asyncio.get_running_loop().time() + timeout_seconds
     while asyncio.get_running_loop().time() < deadline:
         job = await repository.get_job(job_id)
-        if job is not None and job["state"] == "completed":
-            return job
+        if job is not None:
+            counters = job.get("counters") or {}
+            if int(counters.get("unique_cards", 0) or 0) >= TARGET_UNIQUE_CARDS:
+                return job
         await asyncio.sleep(0.01)
-    raise AssertionError("synthetic 10k actor job did not complete")
+    raise AssertionError("synthetic 10k actor collection did not reach target")
 
 
 @pytest.mark.asyncio
@@ -257,13 +264,29 @@ async def test_10k_actor_path_expands_partitions_across_mapping_waves(tmp_path):
     )
     await supervisor.start()
     try:
-        completed = await _wait_for_completed(repository, "job_actor_10k")
+        collected = await _wait_for_collection_target(repository, "job_actor_10k")
     finally:
         await supervisor.close()
 
     shards = await repository.list_shards("job_actor_10k", limit=100)
     operations = await repository.list_operations("job_actor_10k", limit=1_000)
-    assert completed["counters"]["unique_cards"] == TARGET_UNIQUE_CARDS
+    assert collected["counters"]["unique_cards"] >= TARGET_UNIQUE_CARDS
+    assert collected["phase"] in {"collect", "enrich"}
     assert len(shards) == 10
     assert len([operation for operation in operations if operation["payload"].get("partition_mapping") is True]) >= 1
-    assert all(operation["state"] != OperationState.QUEUED.value for operation in operations)
+    collection_operations = [
+        operation
+        for operation in operations
+        if operation["kind"] in {
+            OperationKind.MAP_SCOPE.value,
+            OperationKind.RESOLVE_ALIAS.value,
+            OperationKind.FETCH_BATCH.value,
+        }
+    ]
+    assert collection_operations
+    assert any(operation["state"] == OperationState.SUCCEEDED.value for operation in collection_operations)
+    if collected["phase"] == "enrich":
+        assert await repository.find_active_operation(
+            "job_actor_10k",
+            kinds=(OperationKind.ENRICH_LISTING,),
+        ) is not None

@@ -161,3 +161,20 @@ def test_rotate_changes_only_leased_slot_and_advances_generation():
     assert untouched.generation == 1
     assert untouched.country == "France"
     assert untouched.lease_owner is None
+
+
+def test_refresh_releases_an_expired_quarantine():
+    provider = FakeVpnteProvider([healthy_instance(3)])
+    manager = VpnteTransportManager(provider)
+    manager.refresh()
+    manager.quarantine(
+        "vpnte-slot-3",
+        reason="http_403",
+        until="2000-01-01T00:00:00Z",
+    )
+
+    [snapshot] = manager.refresh()
+
+    assert snapshot.health is TransportHealth.HEALTHY
+    assert snapshot.quarantine_until is None
+    assert snapshot.last_rotate_reason is None

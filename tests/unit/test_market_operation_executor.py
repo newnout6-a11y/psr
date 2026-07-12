@@ -10,6 +10,7 @@ from src.platforms.kwork_supply.artifacts import LocalArtifactStore
 from src.platforms.kwork_supply.coordinator import MarketScanCoordinator
 from src.platforms.kwork_supply.executor import MarketOperationExecutor
 from src.platforms.kwork_supply.models import MarketJobCreate, MarketScope, OperationKind, OperationState, SourcePolicy
+from src.platforms.kwork_supply.rate_control import RateControlPolicy, TokenBucketPolicy
 from src.platforms.kwork_supply.repository import MarketJobRepository
 from src.platforms.kwork_supply.worker import RetryableOperationError
 
@@ -168,6 +169,44 @@ class FakeWorker:
 
 
 @pytest.mark.asyncio
+async def test_executor_waits_locally_and_isolates_rate_limits_by_transport(tmp_path: Path):
+    repository = MarketJobRepository(tmp_path / "market-jobs.sqlite3")
+    coordinator = MarketScanCoordinator(repository)
+    now = [0.0]
+    sleeps: list[float] = []
+
+    def clock() -> float:
+        return now[0]
+
+    async def sleeper(delay: float) -> None:
+        sleeps.append(delay)
+        now[0] += delay
+
+    policy = RateControlPolicy(
+        global_policy=TokenBucketPolicy(capacity=1, refill_per_second=1),
+        default_source_policy=TokenBucketPolicy(capacity=1, refill_per_second=1),
+    )
+    executor = MarketOperationExecutor(
+        coordinator,
+        rate_control_policy=policy,
+        rate_clock=clock,
+        rate_sleeper=sleeper,
+    )
+    first_route = FakeWorker()
+    first_route.transport_id = "vpnte-slot-1"
+    second_route = FakeWorker()
+    second_route.transport_id = "vpnte-slot-2"
+
+    await executor._acquire_source_permit(first_route, "mobile_kworks")
+    await executor._acquire_source_permit(first_route, "mobile_kworks")
+    assert sleeps == [pytest.approx(1.0)]
+
+    await executor._acquire_source_permit(second_route, "mobile_kworks")
+    assert sleeps == [pytest.approx(1.0)]
+    assert set(executor._rate_control_states) == {"vpnte-slot-1", "vpnte-slot-2"}
+
+
+@pytest.mark.asyncio
 async def test_executor_maps_validated_scope_then_commits_web_batch_with_raw_artifact(tmp_path: Path):
     repository = MarketJobRepository(tmp_path / "market-jobs.sqlite3")
     coordinator = MarketScanCoordinator(repository)
@@ -218,7 +257,7 @@ async def test_executor_maps_validated_scope_then_commits_web_batch_with_raw_art
     assert accepted is not None and accepted["state"] == OperationState.SUCCEEDED.value
     assert job is not None and job["phase"] == "collect"
     assert [operation["kind"] for operation in next_operations].count(OperationKind.FETCH_BATCH.value) == 1
-    assert [operation["kind"] for operation in next_operations].count(OperationKind.ENRICH_LISTING.value) == 2
+    assert [operation["kind"] for operation in next_operations].count(OperationKind.ENRICH_LISTING.value) == 0
     assert raw_files
     assert all(client.closed for client in factory.created)
 

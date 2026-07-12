@@ -53,6 +53,7 @@ from .worker import MarketWorker, RetryableOperationError
 JsonDict = dict[str, Any]
 ClientFactory = Callable[[str | None], Any]
 WebCookieProvider = Callable[[], Awaitable[Mapping[str, str]]]
+RateSleeper = Callable[[float], Awaitable[None]]
 
 
 DEFAULT_RATE_CONTROL_POLICY = RateControlPolicy(
@@ -277,6 +278,8 @@ class MarketOperationExecutor:
         exporter: MarketSnapshotExporter | None = None,
         rate_control_policy: RateControlPolicy | None = None,
         web_cookie_provider: WebCookieProvider | None = None,
+        rate_clock: Callable[[], float] | None = None,
+        rate_sleeper: RateSleeper | None = None,
     ) -> None:
         self.coordinator = coordinator
         self.client_factory = client_factory or (
@@ -289,10 +292,9 @@ class MarketOperationExecutor:
         self.exporter = exporter or MarketSnapshotExporter(self.artifact_store)
         self.rate_control_policy = rate_control_policy or DEFAULT_RATE_CONTROL_POLICY
         self._web_cookie_provider = web_cookie_provider
-        self._rate_control_state: RateControlState = initial_rate_control_state(
-            self.rate_control_policy,
-            now=time.monotonic(),
-        )
+        self._rate_clock = rate_clock or time.monotonic
+        self._rate_sleeper = rate_sleeper or asyncio.sleep
+        self._rate_control_states: dict[str, RateControlState] = {}
         self._rate_control_lock = asyncio.Lock()
         self._seller_enrichment_locks: dict[str, asyncio.Lock] = {}
 
@@ -343,7 +345,7 @@ class MarketOperationExecutor:
                     ",".join(scope_map.alias_validation.reason_codes) or "alias was not validated",
                     failure_kind="contract_violation",
                 )
-            mapping_evidence = await self._read_scope_mapping_evidence(client, job)
+            mapping_evidence = await self._read_scope_mapping_evidence(worker, client, job)
             partition_probes: list[JsonDict] = []
             if self._needs_partition_probes(job, batch):
                 partitions, partition_probes = await self._validate_mapping_partitions(
@@ -711,7 +713,7 @@ class MarketOperationExecutor:
                 classifier_id=scope.classifier_id,
                 cursor=cursor,
             )
-            batch = await self._fetch_mobile_batch(adapter, request)
+            batch = await self._fetch_mobile_batch(worker, adapter, request)
             raw_ref = self._write_raw(batch, job_id=worker.job_id, operation=operation)
             verdict = adapter.validate_batch(request, batch, previous=None)
             if batch.next_cursor is not None:
@@ -825,8 +827,8 @@ class MarketOperationExecutor:
             listing_key = _optional_text(listing.get("listing_key"))
             if listing_key is None:
                 raise RetryableOperationError("enrichment listing has no source key", failure_kind="scope_invalid")
-            details = _response_mapping(await self._enrichment_request(client, "getKworkDetails", id=listing_key))
-            extra = _response_mapping(await self._enrichment_request(client, "getKworkDetailsExtra", id=listing_key))
+            details = _response_mapping(await self._enrichment_request(worker, client, "getKworkDetails", id=listing_key))
+            extra = _response_mapping(await self._enrichment_request(worker, client, "getKworkDetailsExtra", id=listing_key))
             short_user = details.get("short_user_info") if isinstance(details.get("short_user_info"), Mapping) else {}
             canonical = listing.get("canonical") if isinstance(listing.get("canonical"), Mapping) else {}
             seller_username = _optional_text(
@@ -913,8 +915,8 @@ class MarketOperationExecutor:
         finally:
             await self._close_client(client)
 
-    async def _enrichment_request(self, client: Any, endpoint: str, **params: Any) -> JsonDict:
-        await self._acquire_source_permit("mobile_kworks")
+    async def _enrichment_request(self, worker: MarketWorker, client: Any, endpoint: str, **params: Any) -> JsonDict:
+        await self._acquire_source_permit(worker, "mobile_kworks")
         request = getattr(client, "request", None)
         if not callable(request):
             raise RetryableOperationError(
@@ -951,7 +953,7 @@ class MarketOperationExecutor:
                 and cached["expires_at"] > now
             ):
                 return None
-            profile = _response_mapping(await self._enrichment_request(client, "userByUsername", username=username))
+            profile = _response_mapping(await self._enrichment_request(worker, client, "userByUsername", username=username))
             return _seller_snapshot(username, profile, expires_at=expires_at)
 
     async def handle_analyze_snapshot(self, worker: MarketWorker, operation: Mapping[str, Any]) -> None:
@@ -1130,7 +1132,7 @@ class MarketOperationExecutor:
             isinstance(stream_limit, int) and stream_limit > 0 and job.target_unique_cards > stream_limit
         )
 
-    async def _read_scope_mapping_evidence(self, client: Any, job: MarketJob) -> JsonDict:
+    async def _read_scope_mapping_evidence(self, worker: MarketWorker, client: Any, job: MarketJob) -> JsonDict:
         """Read bounded aggregate and classification evidence when the client supports it."""
 
         evidence: JsonDict = {"errors": {}}
@@ -1142,7 +1144,7 @@ class MarketOperationExecutor:
             if not callable(method):
                 continue
             try:
-                await self._acquire_source_permit("scope_mapping")
+                await self._acquire_source_permit(worker, "scope_mapping")
                 result = await method(job.scope.category_id)
             except RetryableOperationError:
                 raise
@@ -1310,28 +1312,42 @@ class MarketOperationExecutor:
         }
 
     async def _fetch_web_batch(self, worker: MarketWorker, adapter: KworkWebCatalogAdapter, request) -> Any:
-        await self._acquire_source_permit(adapter.name)
+        await self._acquire_source_permit(worker, adapter.name)
         return await adapter.fetch_batch(request)
 
-    async def _fetch_mobile_batch(self, adapter: KworkMobileKworksAdapter, request) -> Any:
-        await self._acquire_source_permit(adapter.name)
+    async def _fetch_mobile_batch(self, worker: MarketWorker, adapter: KworkMobileKworksAdapter, request) -> Any:
+        await self._acquire_source_permit(worker, adapter.name)
         return await adapter.fetch_batch(request)
 
-    async def _acquire_source_permit(self, source: str) -> None:
-        async with self._rate_control_lock:
-            result = acquire_request(
-                self.rate_control_policy,
-                self._rate_control_state,
-                source=source,
-                now=time.monotonic(),
-            )
-            self._rate_control_state = result.next_state
-        if not result.allowed:
-            raise RetryableOperationError(
-                f"rate limit delayed request for {source}",
-                retry_at=self._retry_at(result.wait_seconds),
-                failure_kind="rate_limited",
-            )
+    @staticmethod
+    def _rate_scope_key(worker: MarketWorker) -> str:
+        transport_id = getattr(worker, "transport_id", None)
+        if isinstance(transport_id, str) and transport_id.strip():
+            return transport_id
+        proxy_url = getattr(worker, "transport_proxy_url", None)
+        if isinstance(proxy_url, str) and proxy_url.strip():
+            return proxy_url
+        return "direct"
+
+    async def _acquire_source_permit(self, worker: MarketWorker, source: str) -> None:
+        """Wait locally for this route's permit instead of creating retry storms."""
+
+        scope_key = self._rate_scope_key(worker)
+        while True:
+            async with self._rate_control_lock:
+                state = self._rate_control_states.get(scope_key)
+                if state is None:
+                    state = initial_rate_control_state(self.rate_control_policy, now=self._rate_clock())
+                result = acquire_request(
+                    self.rate_control_policy,
+                    state,
+                    source=source,
+                    now=self._rate_clock(),
+                )
+                self._rate_control_states[scope_key] = result.next_state
+            if result.allowed:
+                return
+            await self._rate_sleeper(max(float(result.wait_seconds), 0.001))
 
     async def _protection_retry(self, worker: MarketWorker, batch: Any) -> RetryableOperationError:
         adapter_metadata = batch.metadata.get("adapter") if isinstance(batch.metadata, Mapping) else None
@@ -1361,16 +1377,20 @@ class MarketOperationExecutor:
 
         if status_code not in {403, 429}:
             raise ValueError("protection retry requires HTTP 403 or 429")
+        scope_key = self._rate_scope_key(worker)
         async with self._rate_control_lock:
+            state = self._rate_control_states.get(scope_key)
+            if state is None:
+                state = initial_rate_control_state(self.rate_control_policy, now=self._rate_clock())
             result = record_protection_response(
                 self.rate_control_policy,
-                self._rate_control_state,
+                state,
                 source=source,
                 status_code=status_code,
                 retry_after=retry_after,
-                now=time.monotonic(),
+                now=self._rate_clock(),
             )
-            self._rate_control_state = result.next_state
+            self._rate_control_states[scope_key] = result.next_state
         retry_at = self._retry_at(result.delay_seconds)
         if result.source_quarantine_recommended:
             await worker.quarantine_current_transport(reason="http_403", until=retry_at)
