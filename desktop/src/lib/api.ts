@@ -328,6 +328,21 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload ?? {}),
     }),
+  connectVpnteProxy: (payload: VpnteActionPayload) =>
+    request<VpnteActionResult>('/api/settings/network/vpnte/connect', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  triggerVpnteProxy: (payload: VpnteActionPayload) =>
+    request<VpnteActionResult>('/api/settings/network/vpnte/trigger', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  stopVpnteProxy: (payload: Pick<VpnteActionPayload, 'slot'>) =>
+    request<VpnteActionResult>('/api/settings/network/vpnte/stop', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   getFilters: () => request<{ data: FiltersData }>('/api/settings/filters'),
   updateFilters: (data: FiltersData) =>
     request<{ ok: boolean }>('/api/settings/filters', {
@@ -1008,6 +1023,7 @@ export interface VpnteStatus {
   ok: boolean
   enabled: boolean
   running: boolean
+  instances?: Array<Record<string, unknown>>
   proxy_url?: string
   cached_proxy?: string
   fallback_proxy?: string
@@ -1016,6 +1032,7 @@ export interface VpnteStatus {
   strict?: boolean
   country?: string
   profile_id?: string
+  slot?: string
   port?: string
   control_url?: string
   control_url_source?: string
@@ -1043,9 +1060,11 @@ export interface NetworkStatus {
 }
 
 export interface VpnteActionPayload {
+  slot?: number
   country?: string
   profile_id?: string
   port?: number
+  id?: string
 }
 
 export interface VpnteActionResult {

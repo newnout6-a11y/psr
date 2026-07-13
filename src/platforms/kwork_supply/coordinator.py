@@ -474,8 +474,8 @@ class MarketScanCoordinator:
     ) -> JsonDict:
         """Update desired actor count independently of execution profile."""
 
-        if desired_workers < 0 or desired_workers > 10:
-            raise ValueError("desired_workers must be between 0 and 10")
+        if isinstance(desired_workers, bool) or not isinstance(desired_workers, int) or desired_workers < 0:
+            raise ValueError("desired_workers must be a non-negative integer")
         return await self.update_job(
             job_id,
             desired_workers=desired_workers,

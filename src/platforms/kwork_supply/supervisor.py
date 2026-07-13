@@ -139,14 +139,25 @@ class MarketWorkerSupervisor:
         """Apply only temporary safety caps; never overwrite user configuration."""
 
         job_id = str(job["job_id"])
-        configured = min(max(int(job["desired_workers"]), 0), 10)
+        configured = max(int(job["desired_workers"]), 0)
         policy = NetworkPolicy(str(job["network_policy"]))
         healthy_transport_count: int | None = None
         if policy in {NetworkPolicy.VPNTE_ONLY, NetworkPolicy.EXPLICIT_POOL}:
-            transports = await self.coordinator.repository.list_transports(limit=100)
-            healthy_transport_count = sum(
-                transport["health"] == TransportHealth.HEALTHY.value for transport in transports
-            )
+            # Consume the durable pool page-by-page so the worker cap follows
+            # the discovered VPNTE pool instead of a repository page size.
+            healthy_transport_count = 0
+            cursor: str | None = None
+            while True:
+                transports = await self.coordinator.repository.list_transports(cursor=cursor, limit=1_000)
+                healthy_transport_count += sum(
+                    transport["health"] == TransportHealth.HEALTHY.value for transport in transports
+                )
+                if len(transports) < 1_000:
+                    break
+                next_cursor = str(transports[-1]["transport_id"])
+                if next_cursor == cursor:
+                    break
+                cursor = next_cursor
         signal_record = await self.coordinator.repository.get_job_concurrency_signals(
             job_id,
             window=self.concurrency_window_attempts,

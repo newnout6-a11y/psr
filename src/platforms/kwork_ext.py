@@ -1380,6 +1380,113 @@ def _patch_request_pacing() -> None:
     logger.debug("KworkExt: rate pacing применён к api.request() + request_with_body + request_multipart")
 
 
+def _is_transport_failure(error: BaseException) -> bool:
+    """Return True for failures caused by a dead local proxy/transport.
+
+    The kwork package wraps aiohttp errors in ``KworkRetryExceeded``.  Keep
+    this check deliberately narrow so HTTP/auth responses are handled by the
+    library's normal retry and relogin logic instead of rebuilding sessions.
+    """
+
+    import asyncio
+
+    current: BaseException | None = error
+    seen: set[int] = set()
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if isinstance(current, (OSError, asyncio.TimeoutError)):
+            return True
+        try:
+            import aiohttp
+
+            if isinstance(current, aiohttp.ClientError):
+                return True
+        except ImportError:
+            pass
+        current = getattr(current, "last_error", None) or current.__cause__ or current.__context__
+    return False
+
+
+def _patch_transport_recovery() -> None:
+    """Retry one failed request after the owning service refreshes VPNTE.
+
+    Kwork's token flow calls ``signIn`` from inside ``request(use_token=True)``.
+    Recovery therefore wraps the public request methods, not only the low-level
+    HTTP call: a replacement client must replay the whole operation so its
+    token is created on the new live proxy.
+    """
+
+    try:
+        from kwork.api import KworkAPI
+    except ImportError:
+        return
+
+    if getattr(KworkAPI, "_psr_transport_recovery_patched", False):
+        return
+
+    original_request = KworkAPI.request
+
+    async def _recover_request(self, method, endpoint, use_token=False, **kwargs):
+        try:
+            return await original_request(self, method, endpoint, use_token=use_token, **kwargs)
+        except Exception as exc:
+            recover = getattr(self, "_psr_recover_transport", None)
+            if not callable(recover) or not _is_transport_failure(exc):
+                raise
+            replacement = await recover(self, exc)
+            if replacement is None or replacement is self:
+                raise
+            logger.warning(
+                f"KworkExt: повторяю {method.upper()} /{endpoint} через новый VPNTE proxy "
+                f"{getattr(replacement, '_proxy', None)}"
+            )
+            return await original_request(replacement, method, endpoint, use_token=use_token, **kwargs)
+
+    KworkAPI.request = _recover_request
+
+    if hasattr(KworkAPI, "request_with_body"):
+        original_request_with_body = KworkAPI.request_with_body
+
+        async def _recover_request_with_body(self, *args, **kwargs):
+            try:
+                return await original_request_with_body(self, *args, **kwargs)
+            except Exception as exc:
+                recover = getattr(self, "_psr_recover_transport", None)
+                if not callable(recover) or not _is_transport_failure(exc):
+                    raise
+                replacement = await recover(self, exc)
+                if replacement is None or replacement is self:
+                    raise
+                endpoint = args[0] if args else kwargs.get("endpoint", "unknown")
+                logger.warning(
+                    f"KworkExt: повторяю POST /{endpoint} через новый VPNTE proxy "
+                    f"{getattr(replacement, '_proxy', None)}"
+                )
+                return await original_request_with_body(replacement, *args, **kwargs)
+
+        KworkAPI.request_with_body = _recover_request_with_body
+
+    if hasattr(KworkAPI, "request_multipart"):
+        original_request_multipart = KworkAPI.request_multipart
+
+        async def _recover_request_multipart(self, *args, **kwargs):
+            try:
+                return await original_request_multipart(self, *args, **kwargs)
+            except Exception as exc:
+                recover = getattr(self, "_psr_recover_transport", None)
+                if not callable(recover) or not _is_transport_failure(exc):
+                    raise
+                replacement = await recover(self, exc)
+                if replacement is None or replacement is self:
+                    raise
+                return await original_request_multipart(replacement, *args, **kwargs)
+
+        KworkAPI.request_multipart = _recover_request_multipart
+
+    KworkAPI._psr_transport_recovery_patched = True
+    logger.debug("KworkExt: transport recovery применён к request/request_with_body/request_multipart")
+
+
 def apply_kwork_patches() -> None:
     """Применить monkey-patches к библиотеке kwork при импорте.
 
@@ -1401,6 +1508,7 @@ def apply_kwork_patches() -> None:
     """
     _patch_tls_session()
     _patch_request_pacing()
+    _patch_transport_recovery()
 
     try:
         from kwork.client import KworkClient

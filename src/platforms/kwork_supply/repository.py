@@ -1704,9 +1704,9 @@ class MarketJobRepository:
         ):
             raise ValueError("at least one job configuration value is required")
         if desired_workers is not None and (
-            isinstance(desired_workers, bool) or not isinstance(desired_workers, int) or not 1 <= desired_workers <= 10
+            isinstance(desired_workers, bool) or not isinstance(desired_workers, int) or desired_workers < 1
         ):
-            raise ValueError("desired_workers must be between 1 and 10")
+            raise ValueError("desired_workers must be a positive integer")
         if target_unique_cards is not None and (
             isinstance(target_unique_cards, bool)
             or not isinstance(target_unique_cards, int)

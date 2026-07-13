@@ -86,6 +86,56 @@ class TestGetApiSessionHubPriority:
         assert "phone" not in kwork_cls.call_args.kwargs
 
     @pytest.mark.asyncio
+    async def test_transport_recovery_rebuilds_cached_email_client_on_live_proxy(self, service, monkeypatch):
+        """A dead cached proxy must be replaced from the current VPNTE instance."""
+        monkeypatch.setenv("KWORK_EMAIL", "test@test.com")
+        monkeypatch.setenv("KWORK_PASSWORD", "pass123")
+
+        failed_api = MagicMock()
+        failed_api.close = AsyncMock()
+        failed_api._psr_auth_mode = "email+password"
+        replacement_api = MagicMock()
+
+        rotator = MagicMock()
+        rotator.next.return_value = "http://127.0.0.1:18100"
+        monkeypatch.setattr("src.platforms.kwork_ext.get_proxy_rotator", lambda: rotator)
+
+        with patch("kwork.Kwork", return_value=replacement_api) as kwork_cls:
+            service._api = failed_api
+            recovered = await service._recover_transport(failed_api, OSError("[WinError 64] dead proxy"))
+
+        assert recovered is replacement_api
+        assert service._api is replacement_api
+        assert kwork_cls.call_args.kwargs["proxy"] == "http://127.0.0.1:18100"
+        failed_api.close.assert_awaited_once()
+        assert replacement_api._psr_proxy_url == "http://127.0.0.1:18100"
+
+    @pytest.mark.asyncio
+    async def test_transport_recovery_preserves_session_hub_cookies(self, service, monkeypatch):
+        """Cookie-only recovery keeps the live Session Hub cookie jar."""
+        monkeypatch.delenv("KWORK_EMAIL", raising=False)
+        monkeypatch.delenv("KWORK_PASSWORD", raising=False)
+        failed_api = MagicMock()
+        failed_api._psr_auth_mode = "cookie-only"
+        replacement_api = MagicMock()
+        service._api = failed_api
+        service._session_hub_cookies = {"PHPSESSID": "cached"}
+        service._session_hub_cookies_at = time.monotonic()
+
+        rotator = MagicMock()
+        rotator.next.return_value = "http://127.0.0.1:18101"
+        monkeypatch.setattr("src.platforms.kwork_ext.get_proxy_rotator", lambda: rotator)
+        monkeypatch.setattr(service, "_apply_cookies_to_api", MagicMock(return_value=True))
+        monkeypatch.setattr(service, "_fetch_session_hub_cookies", AsyncMock(return_value={"PHPSESSID": "fresh"}))
+
+        with patch("kwork.Kwork", return_value=replacement_api):
+            recovered = await service._recover_transport(failed_api)
+
+        assert recovered is replacement_api
+        service._apply_cookies_to_api.assert_called_once_with(replacement_api, {"PHPSESSID": "fresh"})
+        assert replacement_api._psr_auth_mode == "cookie-only"
+
+    @pytest.mark.asyncio
     async def test_session_hub_cookie_only_success(self, service, monkeypatch):
         """Session Hub cookies are enough even when email/password are absent."""
         monkeypatch.setenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies")
@@ -635,6 +685,45 @@ class TestCachedClient:
 
         api = await service.get_api()
         assert api is mock_api
+
+    @pytest.mark.asyncio
+    async def test_rebuilds_cached_client_when_vpnte_proxy_disappears(self, service, monkeypatch):
+        """A stale local proxy must not be reused after it disappears from /instances."""
+        monkeypatch.setenv("VPNTE_PROXY_ENABLED", "true")
+        stale_api = MagicMock()
+        stale_api._psr_proxy_url = "http://127.0.0.1:17991"
+        replacement_api = MagicMock()
+        service._api = stale_api
+
+        vpnte_client = MagicMock()
+        vpnte_client.next_proxy.return_value = "http://127.0.0.1:17992"
+        monkeypatch.setattr("src.utils.vpnte_proxy.get_vpnte_proxy_client", lambda: vpnte_client)
+        service._try_session_hub = AsyncMock(return_value=replacement_api)
+
+        api = await service.get_api()
+
+        assert api is replacement_api
+        stale_api.close.assert_called_once()
+        service._try_session_hub.assert_awaited_once()
+        vpnte_client.next_proxy.assert_called_once_with(rotate=False)
+
+    @pytest.mark.asyncio
+    async def test_keeps_cached_client_when_vpnte_proxy_is_live(self, service, monkeypatch):
+        """A cached client remains reusable when its authoritative proxy is still live."""
+        monkeypatch.setenv("VPNTE_PROXY_ENABLED", "true")
+        cached_api = MagicMock()
+        cached_api._psr_proxy_url = "http://127.0.0.1:17992"
+        service._api = cached_api
+        vpnte_client = MagicMock()
+        vpnte_client.next_proxy.return_value = "http://127.0.0.1:17992"
+        monkeypatch.setattr("src.utils.vpnte_proxy.get_vpnte_proxy_client", lambda: vpnte_client)
+        service._try_session_hub = AsyncMock()
+
+        api = await service.get_api()
+
+        assert api is cached_api
+        service._try_session_hub.assert_not_awaited()
+        vpnte_client.next_proxy.assert_called_once_with(rotate=False)
 
 
 class TestEnvWebCookies:

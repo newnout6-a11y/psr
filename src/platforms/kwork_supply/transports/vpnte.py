@@ -18,7 +18,8 @@ from .base import TransportLeaseError, TransportUnavailableError
 
 
 MIN_VPNTE_SLOT = 1
-MAX_VPNTE_SLOT = 10
+# Slots are discovered from VPNTE /instances; no artificial upper bound.
+MAX_VPNTE_SLOT: int | None = None
 VPNTE_TRANSPORT_PREFIX = "vpnte-slot-"
 
 
@@ -125,11 +126,20 @@ class VpnteTransportManager:
             if snapshot is not None:
                 refreshed[snapshot.transport_id] = snapshot
 
-        # A disappeared leased slot must never be silently reallocated.  Keep
-        # the route visible as degraded until its owner releases the lease.
+        # Keep disappeared slots as stopped records so durable state cannot
+        # overcount a stale healthy route. Probe each transition once for
+        # diagnostics; a later refresh of an already-stopped slot is cheap.
         for transport_id, snapshot in previous.items():
-            if transport_id not in refreshed and snapshot.lease_owner is not None:
-                refreshed[transport_id] = replace(snapshot, health=TransportHealth.DEGRADED, proxy_url=None)
+            if transport_id not in refreshed:
+                if snapshot.health is TransportHealth.STOPPED:
+                    refreshed[transport_id] = snapshot
+                    continue
+                try:
+                    if snapshot.slot is not None:
+                        self._provider.status(snapshot.slot)
+                except Exception:
+                    pass
+                refreshed[transport_id] = replace(snapshot, health=TransportHealth.STOPPED, proxy_url=None)
 
         self._snapshots = refreshed
         return self._ordered_snapshots()
@@ -202,7 +212,17 @@ class VpnteTransportManager:
         if snapshot.slot is None:
             raise TransportUnavailableError(f"transport {transport_id!r} has no VPNTE slot")
 
-        instance = self._provider.rotate(snapshot.slot, country=country)
+        self._provider.rotate(snapshot.slot, country=country)
+        instance = next(
+            (
+                item
+                for item in self._provider.instances()
+                if isinstance(item, Mapping) and _optional_int(item.get("slot")) == snapshot.slot
+            ),
+            None,
+        )
+        if instance is None:
+            raise TransportUnavailableError(f"VPNTE slot {snapshot.slot} disappeared after rotate")
         rotated = self._snapshot_from_instance(
             instance,
             previous=self._snapshots,
@@ -286,8 +306,16 @@ class VpnteTransportManager:
     def _start_slot(self, slot: int | None) -> TransportSnapshot:
         if slot is None:
             raise TransportUnavailableError("VPNTE slot is required")
-        instance = self._provider.start(slot)
-        started = self._snapshot_from_instance(instance, previous=self._snapshots, fallback_slot=slot)
+        self._provider.start(slot)
+        instance = next(
+            (
+                item
+                for item in self._provider.instances()
+                if isinstance(item, Mapping) and _optional_int(item.get("slot")) == slot
+            ),
+            None,
+        )
+        started = self._snapshot_from_instance(instance, previous=self._snapshots) if instance is not None else None
         if started is None or started.slot != slot:
             raise TransportUnavailableError(f"VPNTE start response omitted slot {slot}")
         self._snapshots[started.transport_id] = started
@@ -314,7 +342,7 @@ class VpnteTransportManager:
         slot = _optional_int(instance.get("slot"))
         if slot is None:
             slot = fallback_slot
-        if slot is None or not MIN_VPNTE_SLOT <= slot <= MAX_VPNTE_SLOT:
+        if slot is None or slot < MIN_VPNTE_SLOT:
             return None
 
         transport_id = _transport_id(slot)
@@ -359,8 +387,8 @@ class VpnteTransportManager:
     @staticmethod
     def _normalize_slot(slot: int) -> int:
         normalized_slot = _optional_int(slot)
-        if normalized_slot is None or not MIN_VPNTE_SLOT <= normalized_slot <= MAX_VPNTE_SLOT:
-            raise ValueError(f"VPNTE slot must be between {MIN_VPNTE_SLOT} and {MAX_VPNTE_SLOT}")
+        if normalized_slot is None or normalized_slot < MIN_VPNTE_SLOT:
+            raise ValueError(f"VPNTE slot must be an integer >= {MIN_VPNTE_SLOT}")
         return normalized_slot
 
     @staticmethod

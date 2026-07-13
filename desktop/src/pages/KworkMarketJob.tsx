@@ -29,10 +29,11 @@ import type {
   UpdateMarketJobPayload,
 } from '../features/kwork-market/types'
 
-function parseBoundedInteger(value: string, label: string, minimum: number, maximum: number): number {
+function parseBoundedInteger(value: string, label: string, minimum: number, maximum?: number): number {
   const parsed = Number(value.trim())
-  if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum) {
-    throw new Error(`${label}: целое число от ${minimum} до ${maximum}.`)
+  if (!Number.isInteger(parsed) || parsed < minimum || (maximum !== undefined && parsed > maximum)) {
+    const bounds = maximum === undefined ? `не меньше ${minimum}` : `от ${minimum} до ${maximum}`
+    throw new Error(`${label}: целое число ${bounds}.`)
   }
   return parsed
 }
@@ -193,7 +194,7 @@ export default function KworkMarketJob() {
     if (!jobId || !job || !configDraft || configBusy) return
     try {
       const targetUniqueCards = parseBoundedInteger(configDraft.targetUniqueCards, 'Цель', 1, 10_000)
-      const desiredWorkers = parseBoundedInteger(configDraft.desiredWorkers, 'Исполнители', 1, 10)
+      const desiredWorkers = parseBoundedInteger(configDraft.desiredWorkers, 'Исполнители', 1)
       const profile = configDraft.profile.trim()
       if (!profile) throw new Error('Профиль не может быть пустым.')
       const requestBudget = parseOptionalPositiveInteger(configDraft.requestBudget, 'Лимит запросов')

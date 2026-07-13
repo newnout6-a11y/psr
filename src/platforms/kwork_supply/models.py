@@ -158,8 +158,8 @@ class MarketJobCreate:
     def __post_init__(self) -> None:
         if self.target_unique_cards <= 0 or self.target_unique_cards > 10_000:
             raise ValueError("target_unique_cards must be between 1 and 10000")
-        if self.desired_workers <= 0 or self.desired_workers > 10:
-            raise ValueError("desired_workers must be between 1 and 10")
+        if isinstance(self.desired_workers, bool) or not isinstance(self.desired_workers, int) or self.desired_workers <= 0:
+            raise ValueError("desired_workers must be a positive integer")
         if self.request_budget is not None and self.request_budget <= 0:
             raise ValueError("request_budget must be positive")
         if self.time_budget_seconds is not None and self.time_budget_seconds <= 0:

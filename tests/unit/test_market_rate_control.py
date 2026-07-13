@@ -198,8 +198,7 @@ def test_concurrency_recommendation_reacts_to_success_protection_timeout_novelty
 
 
 def test_policies_are_bounded_and_time_never_moves_backwards(policy: RateControlPolicy):
-    with pytest.raises(RateControlError, match="max_workers"):
-        ConcurrencyPolicy(max_workers=11)
+    assert ConcurrencyPolicy(max_workers=1000).max_workers == 1000
     with pytest.raises(RateControlError, match="max_retry_after_seconds"):
         RateControlPolicy(
             global_policy=TokenBucketPolicy(1, 1),

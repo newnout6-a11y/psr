@@ -132,6 +132,7 @@ _ENV_KEYS = [
     "VPNTE_PROXY_STRICT",
     "VPNTE_PROXY_COUNTRY",
     "VPNTE_PROXY_PROFILE_ID",
+    "VPNTE_PROXY_SLOT",
     "VPNTE_PROXY_PORT",
     "VPNTE_PROXY_TIMEOUT",
     "VPNTE_PROXY_CACHE_TTL",
@@ -233,9 +234,11 @@ class FiltersUpdateRequest(BaseModel):
 
 
 class VpnteActionRequest(BaseModel):
+    slot: int | None = None
     country: str | None = None
     profile_id: str | None = None
     port: int | None = None
+    id: str | None = None
 
 
 @router.get("/env")
@@ -360,17 +363,24 @@ def _vpnte_status(*, probe: bool = True) -> dict[str, Any]:
     try:
         client = VpnteProxyClient()
         client.timeout = min(client.timeout, 3.0)
-        status = client.status()
+        instances = client.instances()
+        configured_slot = os.getenv("VPNTE_PROXY_SLOT", "").strip()
+        selected = client._select_instance(
+            instances,
+            slot=int(configured_slot) if configured_slot.isdigit() else None,
+        )
+        diagnostic_status: dict[str, Any] = selected or {}
+        if selected is None and configured_slot.isdigit():
+            diagnostic_status = client.status(int(configured_slot))
         result.update(
             {
                 "ok": True,
-                "running": bool(status.get("running")),
-                "proxy_url": str(status.get("proxyUrl") or status.get("proxy_url") or ""),
-                "raw": status,
+                "running": bool(selected and selected.get("running") and selected.get("proxyUrl")),
+                "proxy_url": str(selected.get("proxyUrl") or "") if selected else "",
+                "instances": instances,
+                "raw": diagnostic_status,
             }
         )
-        if not result["proxy_url"] and status.get("host") and status.get("port"):
-            result["proxy_url"] = f"http://{status['host']}:{status['port']}"
     except Exception as exc:
         result["detail"] = f"{type(exc).__name__}: {exc}"
     return result
@@ -402,7 +412,12 @@ def start_vpnte_proxy(req: VpnteActionRequest | None = None):
             os.environ[key] = value
     clear_vpnte_proxy_cache()
     try:
-        payload = VpnteProxyClient().start()
+        payload = VpnteProxyClient().start(
+            slot=req.slot if req else None,
+            country=req.country if req else None,
+            profile_id=req.profile_id if req else None,
+            port=req.port if req else None,
+        )
         clear_vpnte_proxy_cache()
         return {"ok": True, "status": payload, "network": get_network_status(probe=True)}
     except Exception as exc:
@@ -427,8 +442,52 @@ def rotate_vpnte_proxy(req: VpnteActionRequest | None = None):
             os.environ[key] = value
     clear_vpnte_proxy_cache()
     try:
-        payload = VpnteProxyClient().rotate()
+        payload = VpnteProxyClient().rotate(
+            slot=req.slot if req else None,
+            country=req.country if req else None,
+            profile_id=req.profile_id if req else None,
+            port=req.port if req else None,
+        )
         clear_vpnte_proxy_cache()
+        return {"ok": True, "status": payload, "network": get_network_status(probe=True)}
+    except Exception as exc:
+        return {"ok": False, "detail": f"{type(exc).__name__}: {exc}", "network": get_network_status(probe=False)}
+
+
+@router.post("/network/vpnte/connect")
+def connect_vpnte_proxy(req: VpnteActionRequest):
+    from src.utils.vpnte_proxy import VpnteProxyClient
+
+    if req.slot is None or not (req.id or req.profile_id):
+        raise HTTPException(status_code=422, detail="slot and id are required")
+    try:
+        payload = VpnteProxyClient().connect(req.slot, req.id or req.profile_id or "")
+        return {"ok": True, "status": payload, "network": get_network_status(probe=True)}
+    except Exception as exc:
+        return {"ok": False, "detail": f"{type(exc).__name__}: {exc}", "network": get_network_status(probe=False)}
+
+
+@router.post("/network/vpnte/trigger")
+def trigger_vpnte_proxy(req: VpnteActionRequest):
+    from src.utils.vpnte_proxy import VpnteProxyClient
+
+    if req.slot is None:
+        raise HTTPException(status_code=422, detail="slot is required")
+    try:
+        payload = VpnteProxyClient().trigger(req.slot, req.id or req.profile_id)
+        return {"ok": True, "status": payload, "network": get_network_status(probe=True)}
+    except Exception as exc:
+        return {"ok": False, "detail": f"{type(exc).__name__}: {exc}", "network": get_network_status(probe=False)}
+
+
+@router.post("/network/vpnte/stop")
+def stop_vpnte_proxy(req: VpnteActionRequest):
+    from src.utils.vpnte_proxy import VpnteProxyClient
+
+    if req.slot is None:
+        raise HTTPException(status_code=422, detail="slot is required")
+    try:
+        payload = VpnteProxyClient().stop(req.slot)
         return {"ok": True, "status": payload, "network": get_network_status(probe=True)}
     except Exception as exc:
         return {"ok": False, "detail": f"{type(exc).__name__}: {exc}", "network": get_network_status(probe=False)}

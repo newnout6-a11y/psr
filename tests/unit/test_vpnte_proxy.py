@@ -62,14 +62,26 @@ def test_rotate_reads_vpnte_endpoint_and_token(monkeypatch, tmp_path):
     )
     (vpnte_dir / "external-proxy-control-token").write_text("secret-token\n", encoding="utf-8")
 
-    seen = {}
+    seen: list[dict[str, object]] = []
 
     def fake_urlopen(request, timeout):
-        seen["url"] = request.full_url
-        seen["method"] = request.get_method()
-        seen["token"] = request.headers.get("X-vpnte-control-token")
-        seen["timeout"] = timeout
-        return FakeResponse({"running": True, "proxyUrl": "http://127.0.0.1:17990"})
+        seen.append(
+            {
+                "url": request.full_url,
+                "method": request.get_method(),
+                "token": request.headers.get("X-vpnte-control-token"),
+                "timeout": timeout,
+            }
+        )
+        return FakeResponse(
+            {
+                "instances": [
+                    {"slot": 1, "running": True, "proxyUrl": "http://127.0.0.1:17990"},
+                ]
+            }
+            if request.get_method() == "GET"
+            else {"ok": True}
+        )
 
     monkeypatch.setenv("APPDATA", str(appdata))
     monkeypatch.setenv("VPNTE_PROXY_COUNTRY", "Netherlands")
@@ -81,10 +93,41 @@ def test_rotate_reads_vpnte_endpoint_and_token(monkeypatch, tmp_path):
     status = VpnteProxyClient().rotate()
 
     assert status["proxyUrl"] == "http://127.0.0.1:17990"
-    assert seen["method"] == "POST"
-    assert seen["url"] == "http://127.0.0.1:19001/rotate?country=Netherlands"
-    assert seen["token"] == "secret-token"
-    assert seen["timeout"] == 10.0
+    assert seen[0]["method"] == "POST"
+    assert seen[0]["url"] == "http://127.0.0.1:19001/rotate?country=Netherlands"
+    assert seen[0]["token"] == "secret-token"
+    assert seen[0]["timeout"] == 10.0
+    assert seen[1]["url"] == "http://127.0.0.1:19001/instances"
+
+
+def test_endpoint_file_supports_lowercase_registration_and_token_file(monkeypatch, tmp_path, fake_vpnte_control):
+    calls, responses = fake_vpnte_control
+    appdata = tmp_path / "AppData" / "Roaming"
+    vpnte_dir = appdata / "vpn-tunnel-enforcer"
+    vpnte_dir.mkdir(parents=True)
+    token_file = tmp_path / "control" / "external-proxy-control-token"
+    token_file.parent.mkdir(parents=True)
+    token_file.write_text("endpoint-token\n", encoding="utf-8")
+    (vpnte_dir / "external-proxy-control-endpoint.json").write_text(
+        json.dumps({"url": "http://127.0.0.1:19006", "tokenFile": str(token_file)}),
+        encoding="utf-8",
+    )
+    responses.extend(
+        [
+            {"ok": True},
+            {"instances": [{"running": True, "proxyUrl": "http://127.0.0.1:18100", "slot": 111}]},
+        ]
+    )
+
+    monkeypatch.setenv("APPDATA", str(appdata))
+    monkeypatch.delenv("VPNTE_CONTROL_URL", raising=False)
+    monkeypatch.delenv("VPNTE_CONTROL_TOKEN", raising=False)
+
+    status = VpnteProxyClient().rotate(slot=111)
+
+    assert status["slot"] == 111
+    assert calls[0]["url"] == "http://127.0.0.1:19006/rotate?slot=111"
+    assert calls[0]["token"] == "endpoint-token"
 
 
 def test_effective_proxy_url_caches_started_proxy(monkeypatch):
@@ -97,13 +140,19 @@ def test_effective_proxy_url_caches_started_proxy(monkeypatch):
 
     def fake_urlopen(request, timeout):
         seen["calls"] += 1
-        return FakeResponse({"running": True, "proxyUrl": "http://127.0.0.1:17990"})
+        return FakeResponse(
+            {
+                "instances": [
+                    {"slot": 1, "running": True, "proxyUrl": "http://127.0.0.1:17990"},
+                ]
+            }
+        )
 
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
 
     assert effective_proxy_url(rotate=False, fallback=None) == "http://127.0.0.1:17990"
     assert effective_proxy_url(rotate=False, fallback=None) == "http://127.0.0.1:17990"
-    assert seen["calls"] == 1
+    assert seen["calls"] == 2
 
 
 def test_effective_proxy_url_non_strict_falls_back(monkeypatch):
@@ -165,6 +214,45 @@ def test_instances_normalizes_envelope(monkeypatch, fake_vpnte_control):
     ]
 
 
+def test_instances_preserves_dynamic_slots_and_authoritative_proxy_urls(monkeypatch, fake_vpnte_control):
+    calls, responses = fake_vpnte_control
+    monkeypatch.setenv("VPNTE_CONTROL_URL", "http://127.0.0.1:19007")
+    responses.append(
+        {
+            "instances": [
+                {"slot": 111, "running": True, "proxyUrl": "http://127.0.0.1:18100"},
+                {"slot": 300, "running": True, "proxyUrl": "http://127.0.0.1:18289"},
+            ]
+        }
+    )
+
+    instances = VpnteProxyClient().instances()
+
+    assert [(item["slot"], item["proxyUrl"]) for item in instances] == [
+        (111, "http://127.0.0.1:18100"),
+        (300, "http://127.0.0.1:18289"),
+    ]
+    assert calls[0]["url"] == "http://127.0.0.1:19007/instances"
+
+
+def test_instances_discards_rows_without_real_slot_or_proxy_url(monkeypatch, fake_vpnte_control):
+    calls, responses = fake_vpnte_control
+    monkeypatch.setenv("VPNTE_CONTROL_URL", "http://127.0.0.1:19008")
+    responses.append(
+        {
+            "instances": [
+                {"running": True, "host": "127.0.0.1", "port": 17990},
+                {"slot": 111, "running": True, "host": "127.0.0.1", "port": 18100},
+            ]
+        }
+    )
+
+    instances = VpnteProxyClient().instances()
+
+    assert instances == [{"slot": 111, "running": True, "host": "127.0.0.1", "port": 18100}]
+    assert calls[0]["url"] == "http://127.0.0.1:19008/instances"
+
+
 def test_slot_aware_actions_send_explicit_slot_queries(monkeypatch, fake_vpnte_control):
     calls, responses = fake_vpnte_control
     monkeypatch.setenv("VPNTE_CONTROL_URL", "http://127.0.0.1:19005")
@@ -175,8 +263,12 @@ def test_slot_aware_actions_send_explicit_slot_queries(monkeypatch, fake_vpnte_c
     responses.extend(
         [
             {"running": True, "proxyUrl": "http://127.0.0.1:17992"},
-            {"running": True, "proxyUrl": "http://127.0.0.1:17992"},
-            {"running": True, "proxyUrl": "http://127.0.0.1:17992"},
+            {"ok": True},
+            {"instances": [{"slot": 3, "running": True, "proxyUrl": "http://127.0.0.1:17992"}]},
+            {"ok": True},
+            {"instances": [{"slot": 3, "running": True, "proxyUrl": "http://127.0.0.1:17992"}]},
+            {"ok": True},
+            {"instances": []},
             {"running": False, "proxyUrl": None},
         ]
     )
@@ -190,8 +282,39 @@ def test_slot_aware_actions_send_explicit_slot_queries(monkeypatch, fake_vpnte_c
     assert [call["url"] for call in calls] == [
         "http://127.0.0.1:19005/status?slot=3",
         "http://127.0.0.1:19005/start?slot=3&country=Netherlands&profileId=nl-vless-2",
+        "http://127.0.0.1:19005/instances",
         "http://127.0.0.1:19005/rotate?slot=3&country=Germany",
+        "http://127.0.0.1:19005/instances",
         "http://127.0.0.1:19005/stop?slot=3",
+        "http://127.0.0.1:19005/instances",
+        "http://127.0.0.1:19005/status?slot=3",
     ]
-    assert [call["method"] for call in calls] == ["GET", "POST", "POST", "POST"]
-    assert [call["token"] for call in calls] == [None, "fixture-token", "fixture-token", "fixture-token"]
+    assert [call["method"] for call in calls] == ["GET", "POST", "GET", "POST", "GET", "POST", "GET", "GET"]
+    assert [call["token"] for call in calls] == [None, "fixture-token", None, "fixture-token", None, "fixture-token", None, None]
+
+
+def test_connect_and_trigger_use_explicit_slot_and_profile(monkeypatch, fake_vpnte_control):
+    calls, responses = fake_vpnte_control
+    monkeypatch.setenv("VPNTE_CONTROL_URL", "http://127.0.0.1:19009")
+    monkeypatch.setenv("VPNTE_CONTROL_TOKEN", "fixture-token")
+    responses.extend(
+        [
+            {"ok": True},
+            {"instances": [{"slot": 111, "running": True, "proxyUrl": "http://127.0.0.1:18100"}]},
+            {"ok": True},
+            {"instances": [{"slot": 111, "running": True, "proxyUrl": "http://127.0.0.1:18100"}]},
+        ]
+    )
+
+    client = VpnteProxyClient()
+    assert client.connect(111, "pl-vless-1")["proxyUrl"] == "http://127.0.0.1:18100"
+    assert client.trigger(111, "pl-vless-2")["proxyUrl"] == "http://127.0.0.1:18100"
+
+    assert [call["url"] for call in calls] == [
+        "http://127.0.0.1:19009/connect?slot=111&id=pl-vless-1",
+        "http://127.0.0.1:19009/instances",
+        "http://127.0.0.1:19009/trigger?slot=111&id=pl-vless-2",
+        "http://127.0.0.1:19009/instances",
+    ]
+    assert [call["method"] for call in calls] == ["POST", "GET", "POST", "GET"]
+    assert [call["token"] for call in calls] == ["fixture-token", None, "fixture-token", None]

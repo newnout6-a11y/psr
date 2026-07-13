@@ -27,7 +27,7 @@ _MAX_BUCKET_CAPACITY = Decimal("10000")
 _MAX_REFILL_PER_SECOND = Decimal("10000")
 _MAX_RETRY_SECONDS = Decimal("3600")
 _MAX_SOURCE_POLICIES = 64
-_MAX_WORKERS = 10
+_MAX_WORKERS = 1_000_000
 _DEFAULT_SOURCE_BUCKET_KEY = "__default_source__"
 
 
@@ -206,8 +206,8 @@ class ConcurrencyPolicy:
                 raise RateControlError(f"{field_name} must be an integer")
         if self.min_workers < 0:
             raise RateControlError("min_workers cannot be negative")
-        if self.max_workers < self.min_workers or self.max_workers > _MAX_WORKERS:
-            raise RateControlError(f"max_workers must be between min_workers and {_MAX_WORKERS}")
+        if self.max_workers < self.min_workers:
+            raise RateControlError("max_workers must be at least min_workers")
         if self.scale_up_step <= 0 or self.scale_down_step <= 0 or self.min_sample_size <= 0:
             raise RateControlError("scale steps and min_sample_size must be positive")
         for field_name in ("min_success_rate", "max_timeout_rate", "min_novelty_rate"):

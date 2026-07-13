@@ -43,7 +43,10 @@ class FakeVpnteProvider:
     ) -> dict[str, Any]:
         del profile_id, port
         self.start_calls.append((slot, country))
-        return deepcopy(self._starts[slot])
+        started = deepcopy(self._starts[slot])
+        self._instances = [item for item in self._instances if item.get("slot") != slot]
+        self._instances.append(deepcopy(started))
+        return started
 
     def rotate(
         self,
@@ -55,7 +58,10 @@ class FakeVpnteProvider:
     ) -> dict[str, Any]:
         del profile_id, port
         self.rotate_calls.append((slot, country))
-        return deepcopy(self._rotations[slot])
+        rotated = deepcopy(self._rotations[slot])
+        self._instances = [item for item in self._instances if item.get("slot") != slot]
+        self._instances.append(deepcopy(rotated))
+        return rotated
 
     def stop(self, slot: int) -> dict[str, Any]:
         raise AssertionError(f"unexpected stop for slot {slot}")
@@ -93,6 +99,23 @@ def test_refresh_maps_vpnte_instances_into_transport_snapshots():
     assert manager.get("vpnte-slot-3") == snapshot
 
 
+def test_refresh_accepts_dynamic_vpnte_slots_without_deriving_proxy_ports():
+    provider = FakeVpnteProvider(
+        [
+            {"slot": 111, "running": True, "proxyUrl": "http://127.0.0.1:18100"},
+            {"slot": 300, "running": True, "proxyUrl": "http://127.0.0.1:18289"},
+        ]
+    )
+    manager = VpnteTransportManager(provider)
+
+    snapshots = manager.refresh()
+
+    assert [(snapshot.slot, snapshot.proxy_url) for snapshot in snapshots] == [
+        (111, "http://127.0.0.1:18100"),
+        (300, "http://127.0.0.1:18289"),
+    ]
+
+
 def test_acquire_starts_a_stopped_slot_and_keeps_lease_exclusive():
     provider = FakeVpnteProvider(
         [{"slot": 3, "running": False, "proxyUrl": None}],
@@ -102,7 +125,7 @@ def test_acquire_starts_a_stopped_slot_and_keeps_lease_exclusive():
 
     lease = manager.acquire("worker-01")
 
-    assert provider.instance_calls == 1
+    assert provider.instance_calls == 2
     assert provider.start_calls == [(3, None)]
     assert lease is not None
     assert lease.transport_id == "vpnte-slot-3"

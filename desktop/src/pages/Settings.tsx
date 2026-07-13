@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Save, RefreshCw, Eye, EyeOff, Plus, Trash2, Send, Search, ExternalLink, Power, RotateCcw, ShieldCheck, Wifi } from 'lucide-react'
+import { Save, RefreshCw, Eye, EyeOff, Plus, Trash2, Send, Search, ExternalLink, Power, PowerOff, PlugZap, RotateCcw, ShieldCheck, Wifi } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { api, FiltersData, KworkInspectProject, NetworkStatus } from '../lib/api'
 import { cn } from '../lib/utils'
@@ -89,7 +89,7 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
     label: 'Сеть / VPNTE',
     keys: ['PROXY_URL',
            'VPNTE_PROXY_ENABLED', 'VPNTE_PROXY_ROTATE_ON_NEXT', 'VPNTE_PROXY_STRICT',
-           'VPNTE_PROXY_COUNTRY', 'VPNTE_PROXY_PROFILE_ID', 'VPNTE_PROXY_PORT',
+           'VPNTE_PROXY_COUNTRY', 'VPNTE_PROXY_PROFILE_ID', 'VPNTE_PROXY_SLOT', 'VPNTE_PROXY_PORT',
            'VPNTE_PROXY_TIMEOUT', 'VPNTE_PROXY_CACHE_TTL',
            'VPNTE_CONTROL_URL', 'VPNTE_CONTROL_TOKEN',
            'SESSION_HUB_URL', 'SESSION_HUB_REQUIRED', 'KWORK_SESSION_HUB_COOKIE_TTL',
@@ -675,6 +675,7 @@ function NetworkTab({
       VPNTE_PROXY_ENABLED: 'true',
       VPNTE_PROXY_ROTATE_ON_NEXT: 'true',
       VPNTE_PROXY_STRICT: 'true',
+      VPNTE_PROXY_SLOT: values.VPNTE_PROXY_SLOT || '',
       VPNTE_PROXY_PORT: values.VPNTE_PROXY_PORT || '17990',
       VPNTE_PROXY_CACHE_TTL: values.VPNTE_PROXY_CACHE_TTL || '60',
       VPNTE_PROXY_TIMEOUT: values.VPNTE_PROXY_TIMEOUT || '10',
@@ -691,24 +692,47 @@ function NetworkTab({
 
   function actionPayload() {
     const rawPort = Number(values.VPNTE_PROXY_PORT || 0)
+    const rawSlot = Number(values.VPNTE_PROXY_SLOT || 0)
+    const profileId = values.VPNTE_PROXY_PROFILE_ID || undefined
     return {
+      slot: rawSlot > 0 ? rawSlot : undefined,
       country: values.VPNTE_PROXY_COUNTRY || undefined,
-      profile_id: values.VPNTE_PROXY_PROFILE_ID || undefined,
+      profile_id: profileId,
+      id: profileId,
       port: rawPort > 0 ? rawPort : undefined,
     }
   }
 
-  async function runVpnteAction(kind: 'start' | 'rotate') {
+  type VpnteActionKind = 'start' | 'rotate' | 'connect' | 'trigger' | 'stop'
+
+  async function runVpnteAction(kind: VpnteActionKind) {
     setAction(kind)
     try {
       if (dirty) {
         await onSave()
       }
+      const payload = actionPayload()
+      if (kind === 'stop' && !payload.slot) {
+        throw new Error('Укажи слот VPNTE перед остановкой.')
+      }
       const result = kind === 'start'
-        ? await api.startVpnteProxy(actionPayload())
-        : await api.rotateVpnteProxy(actionPayload())
+        ? await api.startVpnteProxy(payload)
+        : kind === 'rotate'
+          ? await api.rotateVpnteProxy(payload)
+          : kind === 'connect'
+            ? await api.connectVpnteProxy(payload)
+            : kind === 'trigger'
+              ? await api.triggerVpnteProxy(payload)
+              : await api.stopVpnteProxy({ slot: payload.slot! })
       setStatus(result.network)
-      setMsg(result.ok ? (kind === 'start' ? 'VPNTE запущен' : 'VPNTE профиль обновлён') : result.detail || 'VPNTE action failed')
+      const successMessage: Record<VpnteActionKind, string> = {
+        start: 'VPNTE запущен',
+        rotate: 'VPNTE профиль обновлён',
+        connect: 'VPNTE подключил выбранный профиль',
+        trigger: 'VPNTE профиль перезапущен',
+        stop: 'VPNTE слот остановлен',
+      }
+      setMsg(result.ok ? successMessage[kind] : result.detail || 'VPNTE action failed')
     } catch (e) {
       setMsg(e instanceof Error ? e.message : 'VPNTE action error')
     } finally {
@@ -718,11 +742,25 @@ function NetworkTab({
 
   const vpnte = status?.vpnte
   const hub = status?.session_hub
-  const currentProxy = vpnte?.proxy_url || vpnte?.cached_proxy || vpnte?.fallback_proxy || ''
+  const currentProxy = vpnte?.proxy_url || ''
+  const liveInstanceCount = vpnte?.instances?.length ?? 0
+  const liveInstances = vpnte?.instances ?? []
+  const rawSlot = Number(values.VPNTE_PROXY_SLOT || 0)
+  const hasProfileTarget = rawSlot > 0 && Boolean(values.VPNTE_PROXY_PROFILE_ID?.trim())
+
+  function selectInstance(instance: Record<string, unknown>) {
+    const slot = Number(instance.slot ?? 0)
+    if (Number.isInteger(slot) && slot > 0) onChange('VPNTE_PROXY_SLOT', String(slot))
+    const profileId = String(instance.profileId ?? '').trim()
+    if (profileId) onChange('VPNTE_PROXY_PROFILE_ID', profileId)
+    const country = String(instance.country ?? '').trim()
+    if (country) onChange('VPNTE_PROXY_COUNTRY', country)
+    setMsg(`Выбран слот ${slot || '—'}${profileId ? ` · профиль ${profileId}` : ''}`)
+  }
 
   const networkKeys = [
     'VPNTE_PROXY_ENABLED', 'VPNTE_PROXY_ROTATE_ON_NEXT', 'VPNTE_PROXY_STRICT',
-    'VPNTE_PROXY_COUNTRY', 'VPNTE_PROXY_PROFILE_ID', 'VPNTE_PROXY_PORT',
+    'VPNTE_PROXY_COUNTRY', 'VPNTE_PROXY_PROFILE_ID', 'VPNTE_PROXY_SLOT', 'VPNTE_PROXY_PORT',
     'VPNTE_PROXY_TIMEOUT', 'VPNTE_PROXY_CACHE_TTL',
     'VPNTE_CONTROL_URL', 'VPNTE_CONTROL_TOKEN', 'PROXY_URL',
   ]
@@ -768,6 +806,18 @@ function NetworkTab({
               {action === 'rotate' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
               Ротация
             </button>
+            <button onClick={() => runVpnteAction('connect')} disabled={!!action || !hasProfileTarget} className="btn btn-ghost">
+              {action === 'connect' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <PlugZap className="h-4 w-4" />}
+              Подключить профиль
+            </button>
+            <button onClick={() => runVpnteAction('trigger')} disabled={!!action || !hasProfileTarget} className="btn btn-ghost">
+              {action === 'trigger' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+              Перезапустить
+            </button>
+            <button onClick={() => runVpnteAction('stop')} disabled={!!action || rawSlot <= 0} className="btn btn-ghost">
+              {action === 'stop' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <PowerOff className="h-4 w-4" />}
+              Остановить
+            </button>
           </div>
         </div>
 
@@ -776,7 +826,7 @@ function NetworkTab({
             title="VPNTE"
             ok={!vpnte?.enabled || Boolean(vpnte?.ok && vpnte.running)}
             detail={vpnte?.enabled ? (vpnte.running ? 'работает' : 'включён, но не запущен') : 'выключен'}
-            meta={currentProxy || vpnte?.detail || vpnte?.control_url}
+            meta={currentProxy || vpnte?.detail || `live /instances: ${liveInstanceCount}`}
           />
           <NetworkStatusCard
             title="Session Hub"
@@ -790,6 +840,54 @@ function NetworkTab({
             detail={values.VPNTE_PROXY_ENABLED === 'true' || values.VPNTE_PROXY_ENABLED === '1' ? 'через VPNTE proxy' : 'без VPNTE'}
             meta={`pace ${values.KWORK_PACE_MIN || '—'}-${values.KWORK_PACE_MAX || '—'}s · burst ${values.KWORK_BURST_LIMIT || '—'}/${values.KWORK_BURST_WINDOW || '—'}s`}
           />
+        </div>
+
+        <div className="mt-4 overflow-hidden rounded-md border border-white/10 bg-black/20">
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2">
+            <div className="mono-label">live instances</div>
+            <span className="text-xs text-zinc-500">{liveInstanceCount} запущено</span>
+          </div>
+          <div className="max-h-72 overflow-auto">
+            {liveInstances.length ? (
+              <table className="w-full min-w-[680px] text-left text-xs">
+                <thead className="sticky top-0 bg-[#171717] text-zinc-500">
+                  <tr>
+                    <th className="px-3 py-2 font-medium">Слот</th>
+                    <th className="px-3 py-2 font-medium">Профиль</th>
+                    <th className="px-3 py-2 font-medium">Страна</th>
+                    <th className="px-3 py-2 font-medium">proxyUrl</th>
+                    <th className="px-3 py-2 font-medium">PID</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {liveInstances.map((instance, index) => {
+                    const slot = Number(instance.slot ?? 0)
+                    const profileId = String(instance.profileId ?? '')
+                    const profileName = String(instance.profileName ?? '')
+                    const proxyUrl = String(instance.proxyUrl ?? '')
+                    return (
+                      <tr key={`${slot || 'instance'}-${profileId || index}`} className="text-zinc-300 hover:bg-white/5">
+                        <td className="px-3 py-2 align-top">
+                          <button type="button" className="font-mono text-brand-300 hover:text-brand-200" onClick={() => selectInstance(instance)}>
+                            {slot || '—'}
+                          </button>
+                        </td>
+                        <td className="max-w-56 px-3 py-2 align-top">
+                          <div className="truncate text-zinc-200">{profileName || '—'}</div>
+                          <div className="truncate font-mono text-[11px] text-zinc-500">{profileId || '—'}</div>
+                        </td>
+                        <td className="px-3 py-2 align-top">{String(instance.country ?? '—')}</td>
+                        <td className="max-w-64 px-3 py-2 align-top font-mono text-zinc-400">{proxyUrl || '—'}</td>
+                        <td className="px-3 py-2 align-top font-mono text-zinc-500">{String(instance.pid ?? '—')}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <div className="px-3 py-4 text-xs text-zinc-500">Нет подтверждённых live-инстансов в /instances.</div>
+            )}
+          </div>
         </div>
 
         {msg && <div className="mt-3 text-sm text-zinc-300">{msg}</div>}

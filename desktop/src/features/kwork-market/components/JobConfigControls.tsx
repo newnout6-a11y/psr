@@ -63,7 +63,7 @@ export function JobConfigControls({
         </label>
         <label className="grid min-w-24 gap-1 text-xs text-zinc-500">
           Исполнители
-          <input className="input h-8 min-w-0 px-2 text-xs" type="number" min="1" max="10" value={draft.desiredWorkers} disabled={busy} onChange={(event) => onChange('desiredWorkers', event.target.value)} />
+          <input className="input h-8 min-w-0 px-2 text-xs" type="number" min="1" value={draft.desiredWorkers} disabled={busy} onChange={(event) => onChange('desiredWorkers', event.target.value)} />
         </label>
         <label className="grid min-w-40 flex-1 gap-1 text-xs text-zinc-500">
           Профиль

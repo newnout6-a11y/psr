@@ -92,7 +92,7 @@ class MarketJobCreateRequest(BaseModel):
     scope: MarketScopeRequest
     profile: str = Field(default="working", min_length=1, max_length=100)
     target_unique_cards: int = Field(default=60, ge=1, le=10_000)
-    desired_workers: int = Field(default=2, ge=1, le=10)
+    desired_workers: int = Field(default=2, ge=1)
     network_policy: NetworkPolicy = NetworkPolicy.PREFER_VPNTE
     source_policy: SourcePolicy = SourcePolicy.VALIDATED_ONLY
     include_ai: bool = True
@@ -138,7 +138,7 @@ class MarketJobPatchRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    desired_workers: int | None = Field(default=None, ge=1, le=10)
+    desired_workers: int | None = Field(default=None, ge=1)
     target_unique_cards: int | None = Field(default=None, ge=1, le=10_000)
     profile: str | None = Field(default=None, min_length=1, max_length=100)
     request_budget: int | None = Field(default=None, ge=1)
@@ -167,7 +167,7 @@ class StopJobRequest(JobRevisionRequest):
 
 
 class WorkerPoolRequest(JobRevisionRequest):
-    desired_workers: int = Field(..., ge=0, le=10)
+    desired_workers: int = Field(..., ge=0)
 
 
 class WorkerCommandRequest(BaseModel):

@@ -9,6 +9,7 @@ dates, category ids, price limits and raw user metadata.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import os
 import re
@@ -429,6 +430,7 @@ class KworkService:
         self._session_hub_cookies: dict[str, str] = {}
         self._session_hub_cookies_at: float = 0.0
         self._session_hub_fetch_task: asyncio.Task[dict[str, str]] | None = None
+        self._transport_recovery_lock = asyncio.Lock()
 
     def reset_cycle(self) -> None:
         """Reset per-cycle counters. Call at the start of each parsing cycle."""
@@ -445,7 +447,9 @@ class KworkService:
         5. Return None without raising on final failure
         """
         if self._api is not None:
-            return self._api
+            if await self._cached_api_proxy_is_live(self._api):
+                return self._api
+            await self._invalidate_cached_api(self._api)
 
         # --- Step 1: Try Session Hub ---
         api = await self._try_session_hub()
@@ -524,22 +528,25 @@ class KworkService:
             from src.utils.vpnte_proxy import vpnte_proxy_enabled
 
             phone = os.getenv("KWORK_PHONE", "")
+            proxy = (
+                get_proxy_rotator().next()
+                if os.getenv("KWORK_PROXY_LIST") or vpnte_proxy_enabled()
+                else (os.getenv("PROXY_URL") or None)
+            )
             api = Kwork(
                 login=email or "",
                 password=password or "",
                 phone_last=phone if phone else None,
                 timeout=self.timeout,
                 retry_max_attempts=max(1, self.retry_max_attempts),
-                proxy=(
-                    get_proxy_rotator().next()
-                    if os.getenv("KWORK_PROXY_LIST") or vpnte_proxy_enabled()
-                    else (os.getenv("PROXY_URL") or None)
-                ),
+                proxy=proxy,
             )
+            api._psr_proxy_url = proxy
             # Force-create the underlying HTTP session before injecting cookies.
             self._apply_cookies_to_api(api, cookie_dict)
             auth_mode = "email+cookies" if email and password else "cookie-only"
             api._psr_auth_mode = auth_mode
+            api._psr_recover_transport = self._recover_transport
 
             logger.info(f"KworkService: API-клиент инициализирован через Session Hub ({len(cookie_dict)} кук)")
             logger.debug(f"KworkService: Session Hub auth mode: {auth_mode}")
@@ -932,7 +939,9 @@ class KworkService:
                 proxy=proxy,
                 relogin_on_auth_error=True,
             )
+            api._psr_proxy_url = proxy
             api._psr_auth_mode = "email+password"
+            api._psr_recover_transport = self._recover_transport
             logger.info(
                 f"KworkService: API-клиент инициализирован через email/password (proxy={'yes' if proxy else 'no'})"
             )
@@ -941,14 +950,98 @@ class KworkService:
             logger.warning(f"KworkService: ошибка авторизации email/password: {e}")
             return None
 
+    async def _recover_transport(self, failed_api: Any, error: BaseException | None = None) -> Any | None:
+        """Rebuild a cached Kwork client after its local VPNTE proxy dies."""
+
+        async with self._transport_recovery_lock:
+            if self._api is not failed_api and self._token_api is not failed_api:
+                return self._api or self._token_api
+
+            try:
+                from src.platforms.kwork_ext import get_proxy_rotator
+
+                proxy = get_proxy_rotator().next()
+            except Exception as exc:
+                logger.warning(f"KworkService: VPNTE proxy recovery failed to discover live proxy: {exc}")
+                return None
+            if not proxy:
+                logger.warning("KworkService: VPNTE proxy recovery found no live proxy")
+                return None
+
+            auth_mode = str(getattr(failed_api, "_psr_auth_mode", "") or "")
+            replacement: Any | None = None
+            try:
+                from kwork import Kwork
+
+                if auth_mode in {"cookie-only", "email+cookies"}:
+                    cookie_dict = await self._fetch_session_hub_cookies()
+                    if not cookie_dict:
+                        cookie_dict = dict(self._session_hub_cookies)
+                    if not cookie_dict:
+                        logger.warning("KworkService: VPNTE recovery cannot rebuild cookie client without Session Hub cookies")
+                        return None
+                    email = os.getenv("KWORK_EMAIL", "")
+                    password = os.getenv("KWORK_PASSWORD", "")
+                    phone = os.getenv("KWORK_PHONE", "")
+                    replacement = Kwork(
+                        login=email or "",
+                        password=password or "",
+                        phone_last=phone if phone else None,
+                        timeout=self.timeout,
+                        retry_max_attempts=max(1, self.retry_max_attempts),
+                        proxy=proxy,
+                    )
+                    replacement._psr_proxy_url = proxy
+                    self._apply_cookies_to_api(replacement, cookie_dict)
+                    replacement._psr_auth_mode = auth_mode
+                elif auth_mode == "email+password" or (os.getenv("KWORK_EMAIL") and os.getenv("KWORK_PASSWORD")):
+                    replacement = Kwork(
+                        login=os.getenv("KWORK_EMAIL", ""),
+                        password=os.getenv("KWORK_PASSWORD", ""),
+                        timeout=self.timeout,
+                        retry_max_attempts=max(1, self.retry_max_attempts),
+                        proxy=proxy,
+                        relogin_on_auth_error=True,
+                    )
+                    replacement._psr_proxy_url = proxy
+                    replacement._psr_auth_mode = "email+password"
+                else:
+                    logger.warning(f"KworkService: unsupported auth mode for VPNTE recovery: {auth_mode or 'unknown'}")
+                    return None
+
+                replacement._psr_recover_transport = self._recover_transport
+                if self._api is failed_api:
+                    self._api = replacement
+                if self._token_api is failed_api:
+                    self._token_api = replacement
+                try:
+                    await failed_api.close()
+                except Exception:
+                    pass
+                logger.info(f"KworkService: cached API client rebuilt through live VPNTE proxy {proxy}")
+                return replacement
+            except Exception as exc:
+                if replacement is not None:
+                    try:
+                        await replacement.close()
+                    except Exception:
+                        pass
+                logger.warning(f"KworkService: VPNTE transport recovery failed: {exc}")
+                return None
+
     async def get_token_api(self) -> Any | None:
         """Return an API client suitable for token-required mobile endpoints."""
         if self._token_api is not None:
-            return self._token_api
-        if self._api is not None and getattr(self._api, "_psr_auth_mode", "") != "cookie-only":
-            return self._api
-        if self._api is not None and not (os.getenv("KWORK_EMAIL") and os.getenv("KWORK_PASSWORD")):
-            return self._api
+            if await self._cached_api_proxy_is_live(self._token_api):
+                return self._token_api
+            await self._invalidate_cached_api(self._token_api)
+        if self._api is not None:
+            if not await self._cached_api_proxy_is_live(self._api):
+                await self._invalidate_cached_api(self._api)
+            elif getattr(self._api, "_psr_auth_mode", "") != "cookie-only":
+                return self._api
+            elif not (os.getenv("KWORK_EMAIL") and os.getenv("KWORK_PASSWORD")):
+                return self._api
 
         api = await self._try_email_password()
         if api is not None:
@@ -1226,6 +1319,57 @@ class KworkService:
         if kworks_filter_from is not None and kworks_filter_from >= 20 and kworks_filter_to is None:
             return "4"
         return None
+
+    @staticmethod
+    def _api_proxy_url(api: Any) -> str | None:
+        """Return the proxy URL captured when a Kwork client was created."""
+
+        for name in ("_psr_proxy_url", "_proxy"):
+            value = getattr(api, name, None)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return None
+
+    async def _cached_api_proxy_is_live(self, api: Any) -> bool:
+        """Avoid reusing a Kwork session after its local VPNTE proxy disappeared."""
+
+        from src.utils.vpnte_proxy import get_vpnte_proxy_client, vpnte_proxy_enabled
+
+        if not vpnte_proxy_enabled():
+            return True
+        proxy_url = self._api_proxy_url(api)
+        if not proxy_url:
+            # Clients created without a proxy cannot be validated through VPNTE.
+            return True
+        try:
+            live_proxy = get_vpnte_proxy_client().next_proxy(rotate=False)
+        except Exception as exc:
+            logger.debug(f"KworkService: VPNTE live-proxy check failed: {exc}")
+            # A temporary control API failure should not destroy a usable cache.
+            return True
+        if live_proxy == proxy_url:
+            return True
+        logger.warning(
+            f"KworkService: cached proxy is stale ({proxy_url}); "
+            f"current VPNTE proxy is {live_proxy or 'unavailable'}"
+        )
+        return False
+
+    async def _invalidate_cached_api(self, api: Any) -> None:
+        """Close a stale client before rebuilding it with a live VPNTE proxy."""
+
+        if self._api is api:
+            self._api = None
+        if self._token_api is api:
+            self._token_api = None
+        try:
+            close = getattr(api, "close", None)
+            if close is not None:
+                result = close()
+                if inspect.isawaitable(result):
+                    await result
+        except Exception as exc:
+            logger.debug(f"KworkService: stale Kwork client close failed: {exc}")
 
     @staticmethod
     def _project_item_to_raw_dict(project: ProjectItem) -> dict[str, Any]:
