@@ -14,6 +14,9 @@ from src.dashboard import queries as q
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
+_kwork_dialog_sync_task: asyncio.Task[None] | None = None
+_kwork_dialog_read_tasks: dict[str, asyncio.Task[None]] = {}
+
 
 class ConversationMessageRequest(BaseModel):
     text: str
@@ -229,9 +232,70 @@ async def _sync_kwork_dialogs_safe(limit: int, timeout: float = 8.0) -> None:
         logger.debug(f"Dashboard: Kwork dialog sync timed out after {timeout}s")
 
 
+def _schedule_kwork_dialog_sync(limit: int) -> None:
+    """Refresh the local dialog cache without delaying a desktop request."""
+
+    global _kwork_dialog_sync_task
+    if _kwork_dialog_sync_task is not None and not _kwork_dialog_sync_task.done():
+        return
+    _kwork_dialog_sync_task = asyncio.create_task(
+        _sync_kwork_dialogs_safe(limit),
+        name="psr-kwork-dialog-sync",
+    )
+
+
+async def _mark_kwork_dialog_read(project_id: str) -> dict[str, Any]:
+    """Best-effort read-state update kept outside the response path."""
+
+    try:
+        from src.platforms.kwork import get_kwork_service
+
+        service = get_kwork_service()
+        read_state = await service.mark_web_dialog_read(project_id)
+        if read_state.get("ok"):
+            return read_state
+
+        from src.action.proposal_db import ProposalDB
+
+        conv = ProposalDB().get_conversation(project_id, "kwork") or {}
+        title = str(conv.get("project_title") or "").strip()
+        if title and title != project_id:
+            fallback_state = await service.mark_web_dialog_read(title)
+            return {
+                **read_state,
+                "fallback": fallback_state,
+                "ok": bool(fallback_state.get("ok")),
+            }
+        return read_state
+    except Exception:
+        return {"ok": False}
+
+
+def _schedule_kwork_dialog_read(project_id: str) -> None:
+    """Open the web dialog in the background once per local conversation."""
+
+    key = project_id.strip()
+    if not key:
+        return
+    pending = _kwork_dialog_read_tasks.get(key)
+    if pending is not None and not pending.done():
+        return
+
+    async def run() -> None:
+        try:
+            await _mark_kwork_dialog_read(key)
+        finally:
+            _kwork_dialog_read_tasks.pop(key, None)
+
+    _kwork_dialog_read_tasks[key] = asyncio.create_task(
+        run(),
+        name=f"psr-kwork-dialog-read:{key}",
+    )
+
+
 @router.get("/conversations")
 async def conversations(limit: int = Query(20, ge=1, le=100)):
-    await _sync_kwork_dialogs_safe(limit)
+    _schedule_kwork_dialog_sync(limit)
     return q.active_conversations(limit)
 
 
@@ -239,26 +303,9 @@ async def conversations(limit: int = Query(20, ge=1, le=100)):
 async def conversation_history_route(project_id: str, platform: str):
     read_state: dict[str, Any] | None = None
     if platform == "kwork":
-        await _sync_kwork_dialogs_safe(100)
-        try:
-            from src.platforms.kwork import get_kwork_service
-
-            service = get_kwork_service()
-            read_state = await service.mark_web_dialog_read(project_id)
-            if not read_state.get("ok"):
-                from src.action.proposal_db import ProposalDB
-
-                conv = ProposalDB().get_conversation(project_id, platform) or {}
-                title = str(conv.get("project_title") or "").strip()
-                if title and title != project_id:
-                    fallback_state = await service.mark_web_dialog_read(title)
-                    read_state = {
-                        **read_state,
-                        "fallback": fallback_state,
-                        "ok": bool(fallback_state.get("ok")),
-                    }
-        except Exception:
-            read_state = {"ok": False}
+        _schedule_kwork_dialog_sync(100)
+        _schedule_kwork_dialog_read(project_id)
+        read_state = {"ok": None, "pending": True}
     return {"messages": q.conversation_history(project_id, platform), "username": "", "read_state": read_state}
 
 

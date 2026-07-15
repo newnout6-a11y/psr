@@ -149,6 +149,7 @@ class VpnteTransportManager:
         worker_id: str,
         *,
         policy: NetworkPolicy | str = NetworkPolicy.VPNTE_ONLY,
+        preferred_slot: int | None = None,
     ) -> TransportSnapshot | None:
         """Lease one healthy VPNTE slot to ``worker_id``.
 
@@ -165,9 +166,13 @@ class VpnteTransportManager:
             return None
 
         self.refresh()
-        candidate = self._first_available(TransportHealth.HEALTHY)
+        candidate = self._available_slot(preferred_slot, health=TransportHealth.HEALTHY)
         if candidate is None:
-            stopped = self._first_available(TransportHealth.STOPPED)
+            candidate = self._first_available(TransportHealth.HEALTHY)
+        if candidate is None:
+            stopped = self._available_slot(preferred_slot, health=TransportHealth.STOPPED)
+            if stopped is None:
+                stopped = self._first_available(TransportHealth.STOPPED)
             if stopped is not None:
                 candidate = self._start_slot(stopped.slot)
 
@@ -175,6 +180,39 @@ class VpnteTransportManager:
             return None
 
         leased = replace(candidate, lease_owner=normalized_worker_id)
+        self._snapshots[leased.transport_id] = leased
+        return leased
+
+    def acquire_slot(
+        self,
+        worker_id: str,
+        slot: int,
+        *,
+        policy: NetworkPolicy | str = NetworkPolicy.VPNTE_ONLY,
+        refresh: bool = True,
+    ) -> TransportSnapshot | None:
+        """Lease one exact VPNTE slot when it is healthy and currently free."""
+
+        normalized_worker_id = _optional_text(worker_id)
+        if normalized_worker_id is None:
+            raise ValueError("worker_id is required")
+        normalized_policy = self._normalize_policy(policy)
+        if normalized_policy is NetworkPolicy.DIRECT_ONLY:
+            return None
+        normalized_slot = self._normalize_slot(slot)
+        if refresh:
+            self.refresh()
+        snapshot = self.get(_transport_id(normalized_slot))
+        if snapshot is None:
+            return None
+        if snapshot.health is TransportHealth.STOPPED:
+            snapshot = self._start_slot(normalized_slot)
+        if (
+            snapshot.health is not TransportHealth.HEALTHY
+            or (snapshot.lease_owner is not None and snapshot.lease_owner != normalized_worker_id)
+        ):
+            return None
+        leased = replace(snapshot, lease_owner=normalized_worker_id)
         self._snapshots[leased.transport_id] = leased
         return leased
 
@@ -188,6 +226,21 @@ class VpnteTransportManager:
         if snapshot.lease_owner != normalized_worker_id:
             raise TransportLeaseError(f"transport {transport_id!r} is not leased by {worker_id!r}")
         self._snapshots[snapshot.transport_id] = replace(snapshot, lease_owner=None)
+
+    def release_all(self, worker_id: str) -> list[TransportSnapshot]:
+        """Release every local slot owned by one worker, including stale duplicates."""
+
+        normalized_worker_id = _optional_text(worker_id)
+        if normalized_worker_id is None:
+            raise ValueError("worker_id is required")
+        released: list[TransportSnapshot] = []
+        for transport_id, snapshot in tuple(self._snapshots.items()):
+            if snapshot.lease_owner != normalized_worker_id:
+                continue
+            cleared = replace(snapshot, lease_owner=None)
+            self._snapshots[transport_id] = cleared
+            released.append(cleared)
+        return released
 
     def rotate(
         self,
@@ -240,6 +293,8 @@ class VpnteTransportManager:
             lease_owner=snapshot.lease_owner,
             quarantine_until=None if rotated.health is TransportHealth.HEALTHY else rotated.quarantine_until,
             last_rotate_reason=reason,
+            egress_ip=None,
+            egress_checked_at=None,
         )
         self._snapshots[rotated.transport_id] = rotated
         return rotated
@@ -254,6 +309,18 @@ class VpnteTransportManager:
 
         snapshot = self.get(transport_id)
         return snapshot.health if snapshot is not None else TransportHealth.UNKNOWN
+
+    def record_egress(self, transport_id: str, egress_ip: str | None, *, checked_at: str | None = None) -> TransportSnapshot:
+        """Attach a verified external IP observation to a local slot snapshot."""
+
+        snapshot = self._require_snapshot(transport_id)
+        updated = replace(
+            snapshot,
+            egress_ip=_optional_text(egress_ip),
+            egress_checked_at=_optional_text(checked_at),
+        )
+        self._snapshots[transport_id] = updated
+        return updated
 
     def quarantine(
         self,
@@ -331,6 +398,17 @@ class VpnteTransportManager:
             None,
         )
 
+    def _available_slot(self, slot: int | None, *, health: TransportHealth) -> TransportSnapshot | None:
+        if slot is None:
+            return None
+        try:
+            snapshot = self.get(_transport_id(self._normalize_slot(slot)))
+        except ValueError:
+            return None
+        if snapshot is None or snapshot.health is not health or snapshot.lease_owner is not None:
+            return None
+        return snapshot
+
     def _snapshot_from_instance(
         self,
         instance: Mapping[str, object],
@@ -374,6 +452,8 @@ class VpnteTransportManager:
             lease_owner=prior.lease_owner if prior is not None else None,
             quarantine_until=prior.quarantine_until if prior is not None and not quarantine_expired else None,
             last_rotate_reason=prior.last_rotate_reason if prior is not None and not quarantine_expired else None,
+            egress_ip=prior.egress_ip if prior is not None else None,
+            egress_checked_at=prior.egress_checked_at if prior is not None else None,
         )
 
     @staticmethod

@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from src.api.routes import dashboard
@@ -7,41 +9,62 @@ from src.api.routes import dashboard
 async def test_conversation_history_route_wraps_messages(monkeypatch):
     rows = [{"message_id": 1, "sender": "customer", "message_text": "hello", "created_at": "2026-01-01 10:00:00"}]
     monkeypatch.setattr(dashboard.q, "conversation_history", lambda project_id, platform: rows)
-    monkeypatch.setattr(dashboard, "_sync_kwork_dialogs", lambda limit: _noop_async())
-
-    class FakeService:
-        async def mark_web_dialog_read(self, project_id):
-            return {"ok": False}
-
-    monkeypatch.setattr("src.platforms.kwork.get_kwork_service", lambda: FakeService())
+    calls: list[tuple[str, str | int]] = []
+    monkeypatch.setattr(dashboard, "_schedule_kwork_dialog_sync", lambda limit: calls.append(("sync", limit)))
+    monkeypatch.setattr(dashboard, "_schedule_kwork_dialog_read", lambda project_id: calls.append(("read", project_id)))
 
     result = await dashboard.conversation_history_route("project-1", "kwork")
 
-    assert result == {"messages": rows, "username": "", "read_state": {"ok": False}}
+    assert result == {"messages": rows, "username": "", "read_state": {"ok": None, "pending": True}}
+    assert calls == [("sync", 100), ("read", "project-1")]
 
 
 @pytest.mark.asyncio
-async def test_conversation_history_marks_kwork_read(monkeypatch):
-    rows = [{"message_id": 1, "sender": "customer", "message_text": "hello", "created_at": "2026-01-01 10:00:00"}]
+async def test_conversations_return_cached_rows_without_waiting_for_slow_kwork_sync(monkeypatch):
+    started = asyncio.Event()
+    release = asyncio.Event()
+    previous_task = dashboard._kwork_dialog_sync_task
+    dashboard._kwork_dialog_sync_task = None
+
+    async def slow_sync(_limit: int, timeout: float = 8.0) -> None:
+        del timeout
+        started.set()
+        await release.wait()
+
+    monkeypatch.setattr(dashboard, "_sync_kwork_dialogs_safe", slow_sync)
+    monkeypatch.setattr(dashboard.q, "active_conversations", lambda limit: [{"project_id": "cached", "limit": limit}])
+
+    try:
+        result = await dashboard.conversations(20)
+        task = dashboard._kwork_dialog_sync_task
+        assert result == [{"project_id": "cached", "limit": 20}]
+        assert task is not None
+        await asyncio.wait_for(started.wait(), timeout=0.1)
+        assert not task.done()
+    finally:
+        release.set()
+        if dashboard._kwork_dialog_sync_task is not None:
+            await dashboard._kwork_dialog_sync_task
+        dashboard._kwork_dialog_sync_task = previous_task
+
+
+@pytest.mark.asyncio
+async def test_mark_kwork_dialog_read_uses_web_read_state(monkeypatch):
 
     class FakeService:
         async def mark_web_dialog_read(self, project_id):
             return {"ok": True, "web_opened": True, "project_id": project_id}
 
-    monkeypatch.setattr(dashboard.q, "conversation_history", lambda project_id, platform: rows)
-    monkeypatch.setattr(dashboard, "_sync_kwork_dialogs", lambda limit: _noop_async())
     monkeypatch.setattr("src.platforms.kwork.get_kwork_service", lambda: FakeService())
 
-    result = await dashboard.conversation_history_route("12345", "kwork")
+    result = await dashboard._mark_kwork_dialog_read("12345")
 
-    assert result["messages"] == rows
-    assert result["read_state"]["ok"] is True
-    assert result["read_state"]["web_opened"] is True
+    assert result["ok"] is True
+    assert result["web_opened"] is True
 
 
 @pytest.mark.asyncio
-async def test_conversation_history_marks_kwork_read_by_project_title_fallback(monkeypatch):
-    rows = [{"message_id": 1, "sender": "customer", "message_text": "hello", "created_at": "2026-01-01 10:00:00"}]
+async def test_mark_kwork_dialog_read_uses_project_title_fallback(monkeypatch):
     calls = []
 
     class FakeService:
@@ -55,16 +78,14 @@ async def test_conversation_history_marks_kwork_read_by_project_title_fallback(m
         def get_conversation(self, project_id, platform):
             return {"project_title": "client_name"}
 
-    monkeypatch.setattr(dashboard.q, "conversation_history", lambda project_id, platform: rows)
-    monkeypatch.setattr(dashboard, "_sync_kwork_dialogs", lambda limit: _noop_async())
     monkeypatch.setattr("src.platforms.kwork.get_kwork_service", lambda: FakeService())
     monkeypatch.setattr("src.action.proposal_db.ProposalDB", lambda: FakeDB())
 
-    result = await dashboard.conversation_history_route("12345", "kwork")
+    result = await dashboard._mark_kwork_dialog_read("12345")
 
     assert calls == ["12345", "client_name"]
-    assert result["read_state"]["ok"] is True
-    assert result["read_state"]["fallback"]["username"] == "client_name"
+    assert result["ok"] is True
+    assert result["fallback"]["username"] == "client_name"
 
 
 async def _noop_async():

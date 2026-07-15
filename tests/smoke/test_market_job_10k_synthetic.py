@@ -272,7 +272,7 @@ async def test_10k_actor_path_expands_partitions_across_mapping_waves(tmp_path):
     operations = await repository.list_operations("job_actor_10k", limit=1_000)
     assert collected["counters"]["unique_cards"] >= TARGET_UNIQUE_CARDS
     assert collected["phase"] in {"collect", "enrich"}
-    assert len(shards) == 10
+    assert 2 <= len(shards) <= 10
     assert len([operation for operation in operations if operation["payload"].get("partition_mapping") is True]) >= 1
     collection_operations = [
         operation

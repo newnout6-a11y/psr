@@ -89,6 +89,23 @@ async def test_create_get_list_and_transition_job_with_revision(repository: Mark
 
 
 @pytest.mark.asyncio
+async def test_job_persists_a_normalized_manual_account_team(repository: MarketJobRepository):
+    created = await repository.create_job(
+        MarketJobCreate(
+            scope=MarketScope(category_id=38, category_name="Website work"),
+            account_registration_ids=(" account-a ", "account-b", "account-a"),
+        ),
+        job_id="job_account_team",
+    )
+
+    restored = await repository.get_job("job_account_team")
+
+    assert created["account_registration_ids"] == ["account-a", "account-b"]
+    assert restored is not None
+    assert restored["account_registration_ids"] == ["account-a", "account-b"]
+
+
+@pytest.mark.asyncio
 async def test_schema_uses_separate_wal_database_and_alias_registry(repository: MarketJobRepository):
     await repository.initialize()
     alias = await repository.upsert_category_alias(
@@ -348,6 +365,14 @@ async def test_events_replay_monotonically_and_accepted_commit_is_idempotent(rep
     assert attempts[0]["requested_cursor"] == {"exclude_ids": []}
     assert attempts[0]["reported_cursor"] == {"exclude_ids": []}
     assert attempts[0]["page_fingerprint"] == "fixture-fingerprint"
+
+    await repository.append_event("job_test", "request.started", {"peak_requests": 4})
+    recent = await repository.list_recent_events("job_test", limit=2)
+    assert [event["sequence"] for event in recent] == [3, 4]
+    concurrency = await repository.get_request_concurrency_summary("job_test")
+    assert concurrency["fetch_attempt_count"] == 1
+    assert concurrency["peak_parallel_requests"] == 4
+    assert concurrency["distinct_workers"] == 1
 
     with sqlite3.connect(repository.db_path) as connection:
         listing_count = connection.execute("SELECT COUNT(*) FROM market_listings").fetchone()[0]

@@ -364,7 +364,7 @@ class KworkWebCatalogAdapter:
 
     client: WebCatalogClient
     cookies: Mapping[str, str] | None = None
-    default_page_size: int = 10
+    default_page_size: int = 24
     source: WebCatalogSource = field(default_factory=WebCatalogSource)
 
     def __post_init__(self) -> None:

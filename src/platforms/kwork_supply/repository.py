@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS market_jobs (
     profile TEXT NOT NULL,
     target_unique_cards INTEGER NOT NULL,
     desired_workers INTEGER NOT NULL,
+    account_registration_ids_json TEXT NOT NULL DEFAULT '[]',
     network_policy TEXT NOT NULL,
     source_policy TEXT NOT NULL,
     include_ai INTEGER NOT NULL,
@@ -231,11 +232,59 @@ CREATE TABLE IF NOT EXISTS market_transports (
     lease_owner TEXT,
     quarantine_until TEXT,
     last_rotate_reason TEXT,
+    egress_ip TEXT,
+    egress_checked_at TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_market_transports_slot
     ON market_transports(slot) WHERE slot IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS market_account_inventory (
+    registration_id TEXT PRIMARY KEY,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL,
+    status TEXT NOT NULL,
+    market_enabled INTEGER NOT NULL DEFAULT 1,
+    session_cookie_count INTEGER NOT NULL DEFAULT 0,
+    signup_ip TEXT,
+    preferred_slot INTEGER,
+    preferred_transport_id TEXT,
+    persona_id TEXT,
+    last_used_at TEXT,
+    last_error TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_market_account_inventory_available
+    ON market_account_inventory(market_enabled, status, last_used_at, registration_id);
+
+CREATE TABLE IF NOT EXISTS market_worker_identity_bindings (
+    worker_id TEXT PRIMARY KEY REFERENCES market_workers(worker_id) ON DELETE CASCADE,
+    job_id TEXT NOT NULL REFERENCES market_jobs(job_id) ON DELETE CASCADE,
+    registration_id TEXT NOT NULL REFERENCES market_account_inventory(registration_id) ON DELETE RESTRICT,
+    transport_id TEXT REFERENCES market_transports(transport_id) ON DELETE SET NULL,
+    current_egress_ip TEXT,
+    binding_mode TEXT NOT NULL,
+    state TEXT NOT NULL,
+    lease_token TEXT NOT NULL,
+    lease_deadline TEXT,
+    assigned_at TEXT NOT NULL,
+    released_at TEXT,
+    last_error TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_market_identity_active_account
+    ON market_worker_identity_bindings(registration_id)
+    WHERE state = 'active';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_market_identity_active_transport
+    ON market_worker_identity_bindings(transport_id)
+    WHERE state = 'active' AND transport_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_market_identity_active_egress
+    ON market_worker_identity_bindings(current_egress_ip)
+    WHERE state = 'active' AND current_egress_ip IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_market_identity_job
+    ON market_worker_identity_bindings(job_id, state, worker_id);
 
 CREATE TABLE IF NOT EXISTS market_listings (
     listing_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -963,6 +1012,16 @@ class MarketJobRepository:
             after_sequence = after_seq
         return await asyncio.to_thread(self._replay_events_sync, job_id, after_sequence, limit)
 
+    async def list_recent_events(self, job_id: str, *, limit: int = 500) -> list[JsonDict]:
+        """Return the latest durable events in chronological order."""
+
+        return await asyncio.to_thread(self._list_recent_events_sync, job_id, limit)
+
+    async def get_request_concurrency_summary(self, job_id: str) -> JsonDict:
+        """Summarize actual overlapping catalog attempts and identity routes."""
+
+        return await asyncio.to_thread(self._get_request_concurrency_summary_sync, job_id)
+
     async def get_event_sequence_bounds(self, job_id: str) -> JsonDict:
         """Return the first and last durable event sequence for one job."""
 
@@ -1071,6 +1130,114 @@ class MarketJobRepository:
         """List transports, optionally constrained to active job workers."""
 
         return await asyncio.to_thread(self._list_transports_sync, job_id, cursor, limit)
+
+    async def sync_market_account_inventory(self, accounts: Sequence[Mapping[str, Any]]) -> list[JsonDict]:
+        """Mirror safe registration metadata used by the Market identity pool."""
+
+        return await asyncio.to_thread(self._sync_market_account_inventory_sync, tuple(dict(item) for item in accounts))
+
+    async def list_market_account_inventory(self, *, enabled_only: bool = False) -> list[JsonDict]:
+        """List the safe Market-facing account inventory without credentials."""
+
+        return await asyncio.to_thread(self._list_market_account_inventory_sync, enabled_only)
+
+    async def set_market_account_enabled(self, registration_id: str, enabled: bool) -> JsonDict:
+        """Enable or disable one locally registered account for Market leases."""
+
+        return await asyncio.to_thread(self._set_market_account_enabled_sync, registration_id, enabled)
+
+    async def get_market_identity_binding(self, worker_id: str) -> JsonDict | None:
+        """Return the durable identity assignment owned by one worker."""
+
+        return await asyncio.to_thread(self._get_market_identity_binding_sync, worker_id)
+
+    async def list_market_identity_bindings(
+        self,
+        *,
+        job_id: str | None = None,
+        active_only: bool = False,
+    ) -> list[JsonDict]:
+        """List worker/account/IP assignments, optionally scoped to one job."""
+
+        return await asyncio.to_thread(self._list_market_identity_bindings_sync, job_id, active_only)
+
+    async def claim_market_identity_binding(
+        self,
+        *,
+        worker_id: str,
+        job_id: str,
+        registration_id: str,
+        transport_id: str,
+        current_egress_ip: str,
+        binding_mode: str,
+        lease_token: str,
+        lease_deadline: str | None,
+        now: str | datetime | None = None,
+    ) -> JsonDict:
+        """Atomically reserve one account and one unique egress route for a worker."""
+
+        return await asyncio.to_thread(
+            self._claim_market_identity_binding_sync,
+            worker_id,
+            job_id,
+            registration_id,
+            transport_id,
+            current_egress_ip,
+            binding_mode,
+            lease_token,
+            lease_deadline,
+            _timestamp(now),
+        )
+
+    async def renew_market_identity_binding(
+        self,
+        worker_id: str,
+        *,
+        lease_token: str,
+        lease_deadline: str | None,
+        now: str | datetime | None = None,
+    ) -> JsonDict | None:
+        """Extend a running worker's durable account/IP lease."""
+
+        return await asyncio.to_thread(
+            self._renew_market_identity_binding_sync,
+            worker_id,
+            lease_token,
+            lease_deadline,
+            _timestamp(now),
+        )
+
+    async def release_market_identity_binding(
+        self,
+        worker_id: str,
+        *,
+        reason: str | None = None,
+        now: str | datetime | None = None,
+    ) -> JsonDict | None:
+        """Release a worker's account/IP reservation without deleting history."""
+
+        return await asyncio.to_thread(
+            self._release_market_identity_binding_sync,
+            worker_id,
+            reason,
+            _timestamp(now),
+        )
+
+    async def clear_market_identity_route(
+        self,
+        worker_id: str,
+        *,
+        reason: str | None = None,
+        now: str | datetime | None = None,
+    ) -> JsonDict | None:
+        """Keep an account lease but return its current route for a later rebind."""
+
+        return await asyncio.to_thread(
+            self._clear_market_identity_route_sync,
+            worker_id,
+            reason,
+            _timestamp(now),
+        )
 
     async def get_listing(self, job_id: str, listing_id: int | str) -> JsonDict | None:
         """Return a normalized listing by its durable integer identifier."""
@@ -1346,6 +1513,7 @@ class MarketJobRepository:
         *,
         publish_result: Mapping[str, Any],
         kwork_id: str | int | None = None,
+        draft_hash: str | None = None,
         now: str | datetime | None = None,
     ) -> JsonDict:
         """Link a verified live listing back to the recommendation cluster."""
@@ -1357,6 +1525,7 @@ class MarketJobRepository:
             handoff_id,
             dict(publish_result),
             _optional_text(kwork_id),
+            _optional_text(draft_hash),
             _timestamp(now),
         )
 
@@ -1510,18 +1679,30 @@ class MarketJobRepository:
     def _migrate_schema(connection: sqlite3.Connection) -> None:
         """Apply additive migrations for local databases created by earlier builds."""
 
+        job_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_jobs)")}
+        if "account_registration_ids_json" not in job_columns:
+            connection.execute(
+                "ALTER TABLE market_jobs ADD COLUMN account_registration_ids_json TEXT NOT NULL DEFAULT '[]'"
+            )
         worker_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_workers)")}
         if "job_id" not in worker_columns:
             connection.execute(
                 "ALTER TABLE market_workers ADD COLUMN job_id TEXT REFERENCES market_jobs(job_id) ON DELETE SET NULL"
             )
         connection.execute("CREATE INDEX IF NOT EXISTS idx_market_workers_job ON market_workers(job_id, worker_id)")
+        transport_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_transports)")}
+        if "egress_ip" not in transport_columns:
+            connection.execute("ALTER TABLE market_transports ADD COLUMN egress_ip TEXT")
+        if "egress_checked_at" not in transport_columns:
+            connection.execute("ALTER TABLE market_transports ADD COLUMN egress_checked_at TEXT")
         handoff_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_draft_handoffs)")}
         if "generator_request_json" not in handoff_columns:
             connection.execute(
                 "ALTER TABLE market_draft_handoffs ADD COLUMN generator_request_json TEXT NOT NULL DEFAULT '{}'"
             )
-        listing_feature_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_listing_features)")}
+        listing_feature_columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(market_listing_features)")
+        }
         if "resolved_seller_key" not in listing_feature_columns:
             connection.execute("ALTER TABLE market_listing_features ADD COLUMN resolved_seller_key TEXT")
         MarketJobRepository._backfill_listing_projection(connection)
@@ -1576,10 +1757,10 @@ class MarketJobRepository:
                     INSERT INTO market_jobs (
                         job_id, category_id, category_name, classifier_id, classifier_name, canonical_alias,
                         scope_filters_json, profile, target_unique_cards, desired_workers, network_policy,
-                        source_policy, include_ai, state, phase, revision, request_budget, time_budget_seconds,
+                        account_registration_ids_json, source_policy, include_ai, state, phase, revision, request_budget, time_budget_seconds,
                         counters_json, created_at, started_at, finished_at, latest_checkpoint_id, last_error,
                         last_warning, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, '{}', ?, NULL, NULL, NULL, NULL, NULL, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, '{}', ?, NULL, NULL, NULL, NULL, NULL, ?)
                     """,
                     (
                         identifier,
@@ -1593,6 +1774,7 @@ class MarketJobRepository:
                         create.target_unique_cards,
                         create.desired_workers,
                         _enum_value(create.network_policy),
+                        _dump_json(list(create.account_registration_ids)),
                         _enum_value(create.source_policy),
                         int(create.include_ai),
                         JobState.PREPARING.value,
@@ -1900,7 +2082,9 @@ class MarketJobRepository:
     def _get_operation_sync(self, operation_id: str) -> JsonDict | None:
         self._ensure_initialized()
         with self._connect() as connection:
-            row = connection.execute("SELECT * FROM market_operations WHERE operation_id = ?", (operation_id,)).fetchone()
+            row = connection.execute(
+                "SELECT * FROM market_operations WHERE operation_id = ?", (operation_id,)
+            ).fetchone()
         return self._operation_record(row) if row else None
 
     def _list_operation_attempts_sync(self, operation_id: str, limit: int) -> list[JsonDict]:
@@ -2012,8 +2196,8 @@ class MarketJobRepository:
                 f"""
                 SELECT * FROM market_operations
                 WHERE job_id = ?
-                  AND kind IN ({','.join('?' for _ in normalized_kinds)})
-                  AND state IN ({','.join('?' for _ in states)})
+                  AND kind IN ({",".join("?" for _ in normalized_kinds)})
+                  AND state IN ({",".join("?" for _ in states)})
                 ORDER BY priority DESC, created_at ASC, operation_id ASC
                 LIMIT 1
                 """,
@@ -2036,7 +2220,7 @@ class MarketJobRepository:
                 FROM market_operations AS operations
                 WHERE operations.job_id = ?
                   AND operations.kind = ?
-                  AND operations.state IN ({','.join('?' for _ in terminal_states)})
+                  AND operations.state IN ({",".join("?" for _ in terminal_states)})
                   AND NOT EXISTS (
                       SELECT 1
                       FROM market_operations AS retries
@@ -2071,7 +2255,7 @@ class MarketJobRepository:
                     JOIN market_jobs AS jobs ON jobs.job_id = operations.job_id
                     WHERE operations.state IN (?, ?)
                       AND (operations.not_before IS NULL OR operations.not_before <= ?)
-                      AND jobs.state NOT IN ({','.join('?' for _ in _NON_LEASABLE_JOB_STATES)})
+                      AND jobs.state NOT IN ({",".join("?" for _ in _NON_LEASABLE_JOB_STATES)})
                 """
                 parameters: list[Any] = [
                     OperationState.QUEUED.value,
@@ -2297,7 +2481,7 @@ class MarketJobRepository:
                     UPDATE market_operations
                     SET state = ?, completed_at = ?, updated_at = ?, last_error = ?
                     WHERE job_id = ?
-                      AND kind IN ({','.join('?' for _ in collection_kinds)})
+                      AND kind IN ({",".join("?" for _ in collection_kinds)})
                       AND state IN (?, ?)
                     """,
                     (
@@ -2366,6 +2550,102 @@ class MarketJobRepository:
                 (job_id, after_sequence, limit),
             ).fetchall()
         return [self._event_record(row) for row in rows]
+
+    def _list_recent_events_sync(self, job_id: str, limit: int) -> list[JsonDict]:
+        self._ensure_initialized()
+        self._validate_pagination(limit, 0)
+        with self._connect() as connection:
+            self._require_job_row(connection, job_id)
+            rows = connection.execute(
+                """
+                SELECT * FROM market_events
+                WHERE job_id = ?
+                ORDER BY sequence DESC
+                LIMIT ?
+                """,
+                (job_id, limit),
+            ).fetchall()
+        return [self._event_record(row) for row in reversed(rows)]
+
+    def _get_request_concurrency_summary_sync(self, job_id: str) -> JsonDict:
+        self._ensure_initialized()
+        with self._connect() as connection:
+            job = self._require_job_row(connection, job_id)
+            rows = connection.execute(
+                """
+                SELECT attempts.started_at, attempts.finished_at, attempts.worker_id, attempts.transport_id,
+                       bindings.registration_id, bindings.current_egress_ip
+                FROM market_operation_attempts AS attempts
+                JOIN market_operations AS operations ON operations.operation_id = attempts.operation_id
+                LEFT JOIN market_worker_identity_bindings AS bindings ON bindings.worker_id = attempts.worker_id
+                WHERE operations.job_id = ? AND operations.kind = ?
+                ORDER BY attempts.started_at ASC, attempts.attempt_id ASC
+                """,
+                (job_id, OperationKind.FETCH_BATCH.value),
+            ).fetchall()
+            peak_row = connection.execute(
+                """
+                SELECT MAX(CAST(json_extract(payload_json, '$.peak_requests') AS INTEGER)) AS peak_requests
+                FROM market_events
+                WHERE job_id = ? AND event_type = 'request.started'
+                """,
+                (job_id,),
+            ).fetchone()
+
+        timeline: list[tuple[datetime, int]] = []
+        workers: set[str] = set()
+        transports: set[str] = set()
+        accounts: set[str] = set()
+        egress_ips: set[str] = set()
+        first_started: datetime | None = None
+        last_finished: datetime | None = None
+        for row in rows:
+            try:
+                started = datetime.fromisoformat(str(row["started_at"]).replace("Z", "+00:00"))
+            except (TypeError, ValueError):
+                continue
+            try:
+                finished = datetime.fromisoformat(str(row["finished_at"]).replace("Z", "+00:00"))
+            except (TypeError, ValueError):
+                finished = started
+            if finished < started:
+                finished = started
+            timeline.extend(((started, 1), (finished, -1)))
+            first_started = started if first_started is None or started < first_started else first_started
+            last_finished = finished if last_finished is None or finished > last_finished else last_finished
+            for target, value in (
+                (workers, row["worker_id"]),
+                (transports, row["transport_id"]),
+                (accounts, row["registration_id"]),
+                (egress_ips, row["current_egress_ip"]),
+            ):
+                if value:
+                    target.add(str(value))
+
+        active = 0
+        peak = 0
+        for _moment, delta in sorted(timeline, key=lambda item: (item[0], item[1])):
+            active = max(0, active + delta)
+            peak = max(peak, active)
+        if peak_row is not None and peak_row["peak_requests"] is not None:
+            peak = max(peak, int(peak_row["peak_requests"]))
+        duration_seconds = (
+            max(0, int((last_finished - first_started).total_seconds()))
+            if first_started is not None and last_finished is not None
+            else 0
+        )
+        return {
+            "configured_workers": int(job["desired_workers"]),
+            "fetch_attempt_count": len(rows),
+            "peak_parallel_requests": peak,
+            "distinct_workers": len(workers),
+            "distinct_transports": len(transports),
+            "distinct_accounts": len(accounts),
+            "distinct_egress_ips": len(egress_ips),
+            "first_request_at": _timestamp(first_started) if first_started is not None else None,
+            "last_request_at": _timestamp(last_finished) if last_finished is not None else None,
+            "collection_request_span_seconds": duration_seconds,
+        }
 
     def _get_event_sequence_bounds_sync(self, job_id: str) -> JsonDict:
         self._ensure_initialized()
@@ -2436,7 +2716,9 @@ class MarketJobRepository:
                     raise MarketCommitConflictError(f"shard {shard_id} does not belong to job {job_id}")
                 operation = self._require_operation_row(connection, operation_id)
                 if operation["job_id"] != job_id or operation["shard_id"] != shard_id:
-                    raise MarketCommitConflictError(f"operation {operation_id} does not belong to the supplied job/shard")
+                    raise MarketCommitConflictError(
+                        f"operation {operation_id} does not belong to the supplied job/shard"
+                    )
 
                 effective_source = source or shard["source"]
                 effective_attempt_id = attempt_id or self._latest_attempt_id(connection, operation_id)
@@ -2631,7 +2913,9 @@ class MarketJobRepository:
                     },
                     emitted_at=now,
                 )
-                last_sequence = event_rows[-1]["sequence"] if event_rows else self._latest_event_sequence(connection, job_id)
+                last_sequence = (
+                    event_rows[-1]["sequence"] if event_rows else self._latest_event_sequence(connection, job_id)
+                )
                 checkpoint_id = _new_identifier("checkpoint")
                 connection.execute(
                     """
@@ -2754,8 +3038,9 @@ class MarketJobRepository:
                 """
                 INSERT INTO market_transports (
                     transport_id, kind, health, slot, proxy_url, profile_id, profile_name, country, pid,
-                    generation, lease_owner, quarantine_until, last_rotate_reason, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    generation, lease_owner, quarantine_until, last_rotate_reason, egress_ip,
+                    egress_checked_at, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(transport_id) DO UPDATE SET
                     kind = excluded.kind,
                     health = excluded.health,
@@ -2769,6 +3054,8 @@ class MarketJobRepository:
                     lease_owner = excluded.lease_owner,
                     quarantine_until = excluded.quarantine_until,
                     last_rotate_reason = excluded.last_rotate_reason,
+                    egress_ip = excluded.egress_ip,
+                    egress_checked_at = excluded.egress_checked_at,
                     updated_at = excluded.updated_at
                 """,
                 (
@@ -2785,11 +3072,15 @@ class MarketJobRepository:
                     data.get("lease_owner"),
                     data.get("quarantine_until"),
                     data.get("last_rotate_reason"),
+                    data.get("egress_ip"),
+                    data.get("egress_checked_at"),
                     now,
                     now,
                 ),
             )
-            row = connection.execute("SELECT * FROM market_transports WHERE transport_id = ?", (transport_id,)).fetchone()
+            row = connection.execute(
+                "SELECT * FROM market_transports WHERE transport_id = ?", (transport_id,)
+            ).fetchone()
         return self._transport_record(row)
 
     def _get_worker_sync(self, worker_id: str) -> JsonDict | None:
@@ -2849,6 +3140,351 @@ class MarketJobRepository:
             rows = connection.execute(query, parameters).fetchall()
         return [self._transport_record(row) for row in rows]
 
+    def _sync_market_account_inventory_sync(self, accounts: Sequence[Mapping[str, Any]]) -> list[JsonDict]:
+        self._ensure_initialized()
+        normalized: list[JsonDict] = []
+        for raw in accounts:
+            registration_id = _optional_text(raw.get("registration_id"))
+            username = _optional_text(raw.get("username"))
+            email = _optional_text(raw.get("email"))
+            status = _optional_text(raw.get("status"))
+            if registration_id is None or username is None or email is None or status is None:
+                continue
+            raw_slot = raw.get("registration_slot")
+            try:
+                preferred_slot = int(raw_slot) if raw_slot is not None else None
+            except (TypeError, ValueError):
+                preferred_slot = None
+            if preferred_slot is not None and preferred_slot < 1:
+                preferred_slot = None
+            normalized.append(
+                {
+                    "registration_id": registration_id,
+                    "username": username,
+                    "email": email,
+                    "status": status,
+                    "market_enabled": 1 if raw.get("market_enabled") is not False else 0,
+                    "session_cookie_count": max(int(raw.get("session_cookie_count") or 0), 0),
+                    "signup_ip": _optional_text(raw.get("signup_ip")),
+                    "preferred_slot": preferred_slot,
+                    "preferred_transport_id": _optional_text(raw.get("registration_transport_id"))
+                    or (f"vpnte-slot-{preferred_slot}" if preferred_slot is not None else None),
+                    "persona_id": _optional_text(raw.get("persona_id")),
+                }
+            )
+        now = utc_now()
+        identifiers = [item["registration_id"] for item in normalized]
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                if identifiers:
+                    placeholders = ", ".join("?" for _ in identifiers)
+                    connection.execute(
+                        f"""
+                        UPDATE market_account_inventory
+                        SET status = 'missing_local', market_enabled = 0, updated_at = ?
+                        WHERE registration_id NOT IN ({placeholders})
+                        """,
+                        (now, *identifiers),
+                    )
+                else:
+                    connection.execute(
+                        "UPDATE market_account_inventory SET status = 'missing_local', market_enabled = 0, updated_at = ?",
+                        (now,),
+                    )
+                for item in normalized:
+                    connection.execute(
+                        """
+                        INSERT INTO market_account_inventory (
+                            registration_id, username, email, status, market_enabled, session_cookie_count,
+                            signup_ip, preferred_slot, preferred_transport_id, persona_id, created_at, updated_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(registration_id) DO UPDATE SET
+                            username = excluded.username,
+                            email = excluded.email,
+                            status = excluded.status,
+                            market_enabled = CASE
+                                WHEN market_account_inventory.market_enabled = 0 THEN 0
+                                ELSE excluded.market_enabled
+                            END,
+                            session_cookie_count = excluded.session_cookie_count,
+                            signup_ip = excluded.signup_ip,
+                            preferred_slot = excluded.preferred_slot,
+                            preferred_transport_id = excluded.preferred_transport_id,
+                            persona_id = excluded.persona_id,
+                            updated_at = excluded.updated_at
+                        """,
+                        (
+                            item["registration_id"],
+                            item["username"],
+                            item["email"],
+                            item["status"],
+                            item["market_enabled"],
+                            item["session_cookie_count"],
+                            item["signup_ip"],
+                            item["preferred_slot"],
+                            item["preferred_transport_id"],
+                            item["persona_id"],
+                            now,
+                            now,
+                        ),
+                    )
+                rows = connection.execute(
+                    "SELECT * FROM market_account_inventory ORDER BY username COLLATE NOCASE, registration_id"
+                ).fetchall()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return [self._market_account_inventory_record(row) for row in rows]
+
+    def _list_market_account_inventory_sync(self, enabled_only: bool) -> list[JsonDict]:
+        self._ensure_initialized()
+        query = "SELECT * FROM market_account_inventory"
+        if enabled_only:
+            query += " WHERE market_enabled = 1 AND status = 'activated' AND session_cookie_count > 0"
+        query += " ORDER BY last_used_at IS NOT NULL, last_used_at, username COLLATE NOCASE, registration_id"
+        with self._connect() as connection:
+            rows = connection.execute(query).fetchall()
+        return [self._market_account_inventory_record(row) for row in rows]
+
+    def _set_market_account_enabled_sync(self, registration_id: str, enabled: bool) -> JsonDict:
+        self._ensure_initialized()
+        identifier = _optional_text(registration_id)
+        if identifier is None:
+            raise ValueError("registration_id is required")
+        now = utc_now()
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                current = connection.execute(
+                    "SELECT * FROM market_account_inventory WHERE registration_id = ?", (identifier,)
+                ).fetchone()
+                if current is None:
+                    raise MarketJobRepositoryError(f"market account not found: {identifier}")
+                if not enabled:
+                    active = connection.execute(
+                        "SELECT 1 FROM market_worker_identity_bindings WHERE registration_id = ? AND state = 'active' LIMIT 1",
+                        (identifier,),
+                    ).fetchone()
+                    if active is not None:
+                        raise MarketJobRepositoryError("cannot disable an account while it is leased by a worker")
+                connection.execute(
+                    "UPDATE market_account_inventory SET market_enabled = ?, updated_at = ? WHERE registration_id = ?",
+                    (1 if enabled else 0, now, identifier),
+                )
+                row = connection.execute(
+                    "SELECT * FROM market_account_inventory WHERE registration_id = ?", (identifier,)
+                ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._market_account_inventory_record(row)
+
+    def _get_market_identity_binding_sync(self, worker_id: str) -> JsonDict | None:
+        self._ensure_initialized()
+        identifier = _optional_text(worker_id)
+        if identifier is None:
+            return None
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM market_worker_identity_bindings WHERE worker_id = ?", (identifier,)
+            ).fetchone()
+        return self._market_identity_binding_record(row) if row else None
+
+    def _list_market_identity_bindings_sync(self, job_id: str | None, active_only: bool) -> list[JsonDict]:
+        self._ensure_initialized()
+        query = "SELECT * FROM market_worker_identity_bindings WHERE 1 = 1"
+        parameters: list[Any] = []
+        if job_id is not None:
+            query += " AND job_id = ?"
+            parameters.append(job_id)
+        if active_only:
+            query += " AND state = 'active'"
+        query += " ORDER BY worker_id"
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [self._market_identity_binding_record(row) for row in rows]
+
+    def _claim_market_identity_binding_sync(
+        self,
+        worker_id: str,
+        job_id: str,
+        registration_id: str,
+        transport_id: str,
+        current_egress_ip: str,
+        binding_mode: str,
+        lease_token: str,
+        lease_deadline: str | None,
+        now: str,
+    ) -> JsonDict:
+        self._ensure_initialized()
+        worker = _optional_text(worker_id)
+        job = _optional_text(job_id)
+        account = _optional_text(registration_id)
+        transport = _optional_text(transport_id)
+        egress_ip = _optional_text(current_egress_ip)
+        mode = _optional_text(binding_mode) or "fallback"
+        token = _optional_text(lease_token)
+        if worker is None or job is None or account is None or transport is None or egress_ip is None or token is None:
+            raise ValueError(
+                "worker_id, job_id, registration_id, transport_id, current_egress_ip and lease_token are required"
+            )
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                self._require_job_row(connection, job)
+                connection.execute(
+                    """
+                    UPDATE market_worker_identity_bindings
+                    SET state = 'released', released_at = COALESCE(released_at, ?),
+                        last_error = COALESCE(last_error, 'lease_expired'), updated_at = ?
+                    WHERE state = 'active' AND lease_deadline IS NOT NULL AND lease_deadline <= ?
+                        AND worker_id <> ?
+                    """,
+                    (now, now, now, worker),
+                )
+                inventory = connection.execute(
+                    "SELECT * FROM market_account_inventory WHERE registration_id = ?", (account,)
+                ).fetchone()
+                if inventory is None:
+                    raise MarketJobRepositoryError(f"market account not found: {account}")
+                if (
+                    int(inventory["market_enabled"]) != 1
+                    or str(inventory["status"]) != "activated"
+                    or int(inventory["session_cookie_count"]) < 1
+                ):
+                    raise MarketJobRepositoryError(f"market account is not eligible: {account}")
+                route = connection.execute(
+                    "SELECT transport_id FROM market_transports WHERE transport_id = ?", (transport,)
+                ).fetchone()
+                if route is None:
+                    raise MarketJobRepositoryError(f"market transport not found: {transport}")
+                connection.execute(
+                    """
+                    UPDATE market_worker_identity_bindings
+                    SET state = 'released', released_at = COALESCE(released_at, ?), updated_at = ?
+                    WHERE worker_id = ? AND state = 'active'
+                    """,
+                    (now, now, worker),
+                )
+                connection.execute(
+                    """
+                    INSERT INTO market_worker_identity_bindings (
+                        worker_id, job_id, registration_id, transport_id, current_egress_ip, binding_mode,
+                        state, lease_token, lease_deadline, assigned_at, released_at, last_error, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, NULL, NULL, ?)
+                    ON CONFLICT(worker_id) DO UPDATE SET
+                        job_id = excluded.job_id,
+                        registration_id = excluded.registration_id,
+                        transport_id = excluded.transport_id,
+                        current_egress_ip = excluded.current_egress_ip,
+                        binding_mode = excluded.binding_mode,
+                        state = 'active',
+                        lease_token = excluded.lease_token,
+                        lease_deadline = excluded.lease_deadline,
+                        assigned_at = excluded.assigned_at,
+                        released_at = NULL,
+                        last_error = NULL,
+                        updated_at = excluded.updated_at
+                    """,
+                    (worker, job, account, transport, egress_ip, mode, token, lease_deadline, now, now),
+                )
+                connection.execute(
+                    "UPDATE market_account_inventory SET last_used_at = ?, last_error = NULL, updated_at = ? WHERE registration_id = ?",
+                    (now, now, account),
+                )
+                row = connection.execute(
+                    "SELECT * FROM market_worker_identity_bindings WHERE worker_id = ?", (worker,)
+                ).fetchone()
+                connection.execute("COMMIT")
+            except sqlite3.IntegrityError as exc:
+                connection.execute("ROLLBACK")
+                raise MarketJobRepositoryError("market account, route, or egress IP is already leased") from exc
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._market_identity_binding_record(row)
+
+    def _renew_market_identity_binding_sync(
+        self,
+        worker_id: str,
+        lease_token: str,
+        lease_deadline: str | None,
+        now: str,
+    ) -> JsonDict | None:
+        self._ensure_initialized()
+        worker = _optional_text(worker_id)
+        token = _optional_text(lease_token)
+        if worker is None or token is None:
+            return None
+        with self._connect() as connection:
+            connection.execute(
+                """
+                UPDATE market_worker_identity_bindings
+                SET lease_deadline = ?, updated_at = ?
+                WHERE worker_id = ? AND state = 'active' AND lease_token = ?
+                """,
+                (lease_deadline, now, worker, token),
+            )
+            row = connection.execute(
+                "SELECT * FROM market_worker_identity_bindings WHERE worker_id = ?", (worker,)
+            ).fetchone()
+        return self._market_identity_binding_record(row) if row else None
+
+    def _release_market_identity_binding_sync(self, worker_id: str, reason: str | None, now: str) -> JsonDict | None:
+        self._ensure_initialized()
+        worker = _optional_text(worker_id)
+        if worker is None:
+            return None
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    """
+                    UPDATE market_worker_identity_bindings
+                    SET state = 'released', lease_deadline = NULL, released_at = COALESCE(released_at, ?),
+                        last_error = ?, updated_at = ?
+                    WHERE worker_id = ? AND state = 'active'
+                    """,
+                    (now, _optional_text(reason), now, worker),
+                )
+                row = connection.execute(
+                    "SELECT * FROM market_worker_identity_bindings WHERE worker_id = ?", (worker,)
+                ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._market_identity_binding_record(row) if row else None
+
+    def _clear_market_identity_route_sync(self, worker_id: str, reason: str | None, now: str) -> JsonDict | None:
+        self._ensure_initialized()
+        worker = _optional_text(worker_id)
+        if worker is None:
+            return None
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    """
+                    UPDATE market_worker_identity_bindings
+                    SET transport_id = NULL, current_egress_ip = NULL, binding_mode = 'waiting_route',
+                        last_error = ?, updated_at = ?
+                    WHERE worker_id = ? AND state = 'active'
+                    """,
+                    (_optional_text(reason), now, worker),
+                )
+                row = connection.execute(
+                    "SELECT * FROM market_worker_identity_bindings WHERE worker_id = ?", (worker,)
+                ).fetchone()
+                connection.execute("COMMIT")
+            except Exception:
+                connection.execute("ROLLBACK")
+                raise
+        return self._market_identity_binding_record(row) if row else None
+
     def _get_listing_sync(self, job_id: str, listing_id: int | str) -> JsonDict | None:
         self._ensure_initialized()
         identifier = self._listing_id_cursor(listing_id)
@@ -2869,7 +3505,9 @@ class MarketJobRepository:
         self._ensure_initialized()
         self._validate_pagination(limit, 0)
         after = self._listing_id_cursor(cursor, allow_zero=True) if cursor is not None else 0
-        query = "SELECT listings.* FROM market_listings AS listings WHERE listings.job_id = ? AND listings.listing_id > ?"
+        query = (
+            "SELECT listings.* FROM market_listings AS listings WHERE listings.job_id = ? AND listings.listing_id > ?"
+        )
         parameters: list[Any] = [job_id, after]
         if shard_id is not None:
             query += """
@@ -2969,7 +3607,7 @@ class MarketJobRepository:
                         WHERE job_id = ?
                           AND kind = ?
                           AND idempotency_key LIKE ?
-                          AND state IN ({','.join('?' for _ in active_states)})
+                          AND state IN ({",".join("?" for _ in active_states)})
                         LIMIT 1
                         """,
                         (
@@ -3228,7 +3866,9 @@ class MarketJobRepository:
                         ),
                     )
                 if seller_features is not None:
-                    seller_key = _optional_text(seller_features.get("seller_key")) or _optional_text(listing["seller_key"])
+                    seller_key = _optional_text(seller_features.get("seller_key")) or _optional_text(
+                        listing["seller_key"]
+                    )
                     if seller_key is not None:
                         connection.execute(
                             """
@@ -3389,11 +4029,15 @@ class MarketJobRepository:
         if not isinstance(dossier, Mapping):
             raise TypeError("semantic analysis dossier must be a mapping")
         groups = dossier.get("groups")
-        group_by_id = {
-            _optional_text(group.get("cluster_id")): dict(group)
-            for group in groups
-            if isinstance(group, Mapping) and _optional_text(group.get("cluster_id"))
-        } if isinstance(groups, list) else {}
+        group_by_id = (
+            {
+                _optional_text(group.get("cluster_id")): dict(group)
+                for group in groups
+                if isinstance(group, Mapping) and _optional_text(group.get("cluster_id"))
+            }
+            if isinstance(groups, list)
+            else {}
+        )
         with self._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
@@ -3411,7 +4055,9 @@ class MarketJobRepository:
                 for embedding in embeddings:
                     listing_id = self._listing_id_cursor(embedding.get("listing_id"))
                     if listing_id not in allowed_listing_ids:
-                        raise ValueError(f"semantic embedding listing {listing_id} is not price-eligible for job {job_id}")
+                        raise ValueError(
+                            f"semantic embedding listing {listing_id} is not price-eligible for job {job_id}"
+                        )
                     text_hash = _optional_text(embedding.get("text_hash"))
                     vector = embedding.get("vector")
                     if text_hash is None or not isinstance(vector, list) or not vector:
@@ -3755,7 +4401,9 @@ class MarketJobRepository:
     def _get_draft_handoff_sync(self, handoff_id: str) -> JsonDict | None:
         self._ensure_initialized()
         with self._connect() as connection:
-            row = connection.execute("SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)).fetchone()
+            row = connection.execute(
+                "SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)
+            ).fetchone()
         return self._draft_handoff_record(row) if row is not None else None
 
     def _get_draft_handoff_for_recommendation_sync(self, recommendation_id: str) -> JsonDict | None:
@@ -3782,7 +4430,9 @@ class MarketJobRepository:
         with self._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
-                row = connection.execute("SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)).fetchone()
+                row = connection.execute(
+                    "SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)
+                ).fetchone()
                 if row is None:
                     raise MarketJobNotFoundError(f"market draft handoff {handoff_id!r} was not found")
                 if expected_manifest_hash is not None and row["manifest_hash"] != expected_manifest_hash:
@@ -3793,8 +4443,34 @@ class MarketJobRepository:
                     raise MarketJobRepositoryError(f"market draft handoff {handoff_id!r} cannot accept fields")
 
                 changed = row["manifest_hash"] != manifest_hash or row["selection_hash"] != selection_hash
-                next_state = "fields_confirmed" if fields_confirmed else "mapping"
-                clear_draft = changed or next_state != "draft_generated"
+                if not changed and row["state"] == "draft_generated":
+                    next_state = "draft_generated"
+                elif fields_confirmed or (not changed and row["state"] == "fields_confirmed"):
+                    next_state = "fields_confirmed"
+                else:
+                    next_state = "mapping"
+                clear_draft = changed or (row["state"] == "draft_generated" and next_state != "draft_generated")
+                if next_state == "draft_generated":
+                    generator_request = row["generator_request_json"]
+                elif next_state == "fields_confirmed":
+                    generator_request = _dump_json({"status": "ready"})
+                else:
+                    generator_request = "{}"
+                draft_json = row["draft_json"]
+                if clear_draft:
+                    previous_draft = _load_json(row["draft_json"], {})
+                    preserved_assets = {
+                        key: previous_draft[key]
+                        for key in (
+                            "cover_image_path",
+                            "cover_image",
+                            "cover_text",
+                            "cover_subtitle",
+                            "portfolio_assets",
+                        )
+                        if previous_draft.get(key) not in (None, "", [])
+                    }
+                    draft_json = _dump_json(preserved_assets)
                 connection.execute(
                     """
                     UPDATE market_draft_handoffs
@@ -3810,8 +4486,8 @@ class MarketJobRepository:
                         _dump_json(selection),
                         selection_hash,
                         _dump_json(validation),
-                        _dump_json({"status": "ready"}) if fields_confirmed else "{}",
-                        "{}" if clear_draft else row["draft_json"],
+                        generator_request,
+                        draft_json,
                         None if clear_draft else row["draft_hash"],
                         now,
                         handoff_id,
@@ -3837,10 +4513,12 @@ class MarketJobRepository:
         with self._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
-                row = connection.execute("SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)).fetchone()
+                row = connection.execute(
+                    "SELECT * FROM market_draft_handoffs WHERE handoff_id = ?", (handoff_id,)
+                ).fetchone()
                 if row is None:
                     raise MarketJobNotFoundError(f"market draft handoff {handoff_id!r} was not found")
-                if row["state"] != "fields_confirmed":
+                if row["state"] not in {"fields_confirmed", "draft_generated"}:
                     raise MarketJobRepositoryError(
                         f"market draft handoff {handoff_id!r} requires fields_confirmed before draft generation"
                     )
@@ -3866,6 +4544,7 @@ class MarketJobRepository:
         handoff_id: str,
         publish_result: JsonDict,
         kwork_id: str | None,
+        draft_hash: str | None,
         now: str,
     ) -> JsonDict:
         self._ensure_initialized()
@@ -3881,6 +4560,7 @@ class MarketJobRepository:
                     raise MarketJobRepositoryError(
                         f"market draft handoff {handoff_id!r} requires a generated draft before publication"
                     )
+                effective_draft_hash = draft_hash or handoff["draft_hash"]
                 recommendation = connection.execute(
                     "SELECT * FROM market_recommendations WHERE recommendation_id = ?",
                     (handoff["recommendation_id"],),
@@ -3892,7 +4572,7 @@ class MarketJobRepository:
                     SELECT * FROM market_published_listings
                     WHERE handoff_id = ? AND draft_hash = ?
                     """,
-                    (handoff_id, handoff["draft_hash"]),
+                    (handoff_id, effective_draft_hash),
                 ).fetchone()
                 if existing is None:
                     published_id = _new_identifier("published")
@@ -3910,7 +4590,7 @@ class MarketJobRepository:
                             handoff_id,
                             recommendation["source_cluster_id"],
                             kwork_id,
-                            handoff["draft_hash"],
+                            effective_draft_hash,
                             _dump_json(publish_result),
                             now,
                             now,
@@ -4196,14 +4876,16 @@ class MarketJobRepository:
                 current = self._require_worker_command_row(connection, command_id)
                 updates = ["state = ?"]
                 parameters: list[Any] = [state_value]
-                if state_value in {CommandState.ACKNOWLEDGED.value, CommandState.COMPLETED.value} and current[
-                    "acknowledged_at"
-                ] is None:
+                if (
+                    state_value in {CommandState.ACKNOWLEDGED.value, CommandState.COMPLETED.value}
+                    and current["acknowledged_at"] is None
+                ):
                     updates.append("acknowledged_at = ?")
                     parameters.append(now)
-                if state_value in {CommandState.COMPLETED.value, CommandState.FAILED.value} and current[
-                    "completed_at"
-                ] is None:
+                if (
+                    state_value in {CommandState.COMPLETED.value, CommandState.FAILED.value}
+                    and current["completed_at"] is None
+                ):
                     updates.append("completed_at = ?")
                     parameters.append(now)
                 if error is not _UNSET:
@@ -4410,9 +5092,7 @@ class MarketJobRepository:
 
     @staticmethod
     def _require_worker_command_row(connection: sqlite3.Connection, command_id: str) -> sqlite3.Row:
-        row = connection.execute(
-            "SELECT * FROM market_worker_commands WHERE command_id = ?", (command_id,)
-        ).fetchone()
+        row = connection.execute("SELECT * FROM market_worker_commands WHERE command_id = ?", (command_id,)).fetchone()
         if row is None:
             raise MarketJobRepositoryError(f"market worker command not found: {command_id}")
         return row
@@ -4579,6 +5259,12 @@ class MarketJobRepository:
 
     @staticmethod
     def _job_record(row: sqlite3.Row) -> JsonDict:
+        raw_account_ids = _load_json(row["account_registration_ids_json"], [])
+        account_registration_ids = (
+            [str(value).strip() for value in raw_account_ids if isinstance(value, str) and str(value).strip()]
+            if isinstance(raw_account_ids, list)
+            else []
+        )
         return {
             "job_id": row["job_id"],
             "scope": {
@@ -4592,6 +5278,7 @@ class MarketJobRepository:
             "profile": row["profile"],
             "target_unique_cards": int(row["target_unique_cards"]),
             "desired_workers": int(row["desired_workers"]),
+            "account_registration_ids": account_registration_ids,
             "network_policy": row["network_policy"],
             "source_policy": row["source_policy"],
             "include_ai": bool(row["include_ai"]),
@@ -4881,6 +5568,43 @@ class MarketJobRepository:
         }
 
     @staticmethod
+    def _market_account_inventory_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "registration_id": row["registration_id"],
+            "username": row["username"],
+            "email": row["email"],
+            "status": row["status"],
+            "market_enabled": bool(int(row["market_enabled"])),
+            "session_cookie_count": int(row["session_cookie_count"]),
+            "signup_ip": row["signup_ip"],
+            "preferred_slot": row["preferred_slot"],
+            "preferred_transport_id": row["preferred_transport_id"],
+            "persona_id": row["persona_id"],
+            "last_used_at": row["last_used_at"],
+            "last_error": row["last_error"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _market_identity_binding_record(row: sqlite3.Row) -> JsonDict:
+        return {
+            "worker_id": row["worker_id"],
+            "job_id": row["job_id"],
+            "registration_id": row["registration_id"],
+            "transport_id": row["transport_id"],
+            "current_egress_ip": row["current_egress_ip"],
+            "binding_mode": row["binding_mode"],
+            "state": row["state"],
+            "lease_token": row["lease_token"],
+            "lease_deadline": row["lease_deadline"],
+            "assigned_at": row["assigned_at"],
+            "released_at": row["released_at"],
+            "last_error": row["last_error"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
     def _transport_record(row: sqlite3.Row) -> JsonDict:
         return {
             "transport_id": row["transport_id"],
@@ -4896,6 +5620,8 @@ class MarketJobRepository:
             "lease_owner": row["lease_owner"],
             "quarantine_until": row["quarantine_until"],
             "last_rotate_reason": row["last_rotate_reason"],
+            "egress_ip": row["egress_ip"],
+            "egress_checked_at": row["egress_checked_at"],
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
         }

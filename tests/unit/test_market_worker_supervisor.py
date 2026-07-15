@@ -161,3 +161,6 @@ async def test_idle_worker_polls_do_not_flood_durable_events(tmp_path):
     state_events = [event for event in events if event["type"] == "worker.state_changed"]
     assert len(state_events) == 1
     assert state_events[0]["payload"]["actual_state"] == WorkerState.BUSY.value
+    assert state_events[0]["payload"]["previous_actual_state"] == WorkerState.IDLE.value
+    assert state_events[0]["payload"]["generation"] == 1
+    assert state_events[0]["payload"]["last_error"] is None

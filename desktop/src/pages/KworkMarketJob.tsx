@@ -1,24 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowLeft, RefreshCw } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Activity, ArrowLeft, BarChart3, Database, LayoutDashboard, Send } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 
 import { AttemptEvidencePanel } from '../features/kwork-market/components/AttemptEvidencePanel'
 import { EventTimeline } from '../features/kwork-market/components/EventTimeline'
+import { FleetPanel } from '../features/kwork-market/components/FleetPanel'
 import { JobAssistantPanel } from '../features/kwork-market/components/JobAssistantPanel'
 import { JobConfigControls, jobConfigDraftFromJob, type JobConfigDraft } from '../features/kwork-market/components/JobConfigControls'
-import { JobMetrics } from '../features/kwork-market/components/JobMetrics'
+import { JobOverviewPanel } from '../features/kwork-market/components/JobOverviewPanel'
 import { JobToolbar } from '../features/kwork-market/components/JobToolbar'
 import { ListingsTable } from '../features/kwork-market/components/ListingsTable'
 import { OperationTable } from '../features/kwork-market/components/OperationTable'
+import { PublicationWorkspace } from '../features/kwork-market/components/PublicationWorkspace'
 import { ResultsPanel } from '../features/kwork-market/components/ResultsPanel'
 import { ShardProgressTable } from '../features/kwork-market/components/ShardProgressTable'
+import { TransportPanel } from '../features/kwork-market/components/TransportPanel'
 import { WorkerTable } from '../features/kwork-market/components/WorkerTable'
-import { formatTransportProxyRoute, transportHealthLabel } from '../features/kwork-market/components/shared'
 import { marketJobsApi } from '../features/kwork-market/api'
 import { useMarketJobStream } from '../features/kwork-market/hooks/useMarketJobStream'
+import { marketResultModel, type JsonRecord } from '../features/kwork-market/resultModel'
 import type {
   MarketJobSnapshot,
   MarketJob,
+  MarketJobEvent,
   MarketListingPage,
   MarketOperation,
   MarketOperationAttempt,
@@ -46,6 +50,7 @@ function parseOptionalPositiveInteger(value: string, label: string): number | nu
 }
 
 type RefreshOptions = { background?: boolean }
+type JobView = 'overview' | 'insights' | 'publication' | 'data' | 'execution'
 
 export default function KworkMarketJob() {
   const { jobId } = useParams<{ jobId: string }>()
@@ -55,6 +60,7 @@ export default function KworkMarketJob() {
   const [workers, setWorkers] = useState<MarketWorker[]>([])
   const [transports, setTransports] = useState<MarketTransport[]>([])
   const [listingPage, setListingPage] = useState<MarketListingPage>({ items: [] })
+  const [durableEvents, setDurableEvents] = useState<MarketJobEvent[]>([])
   const [results, setResults] = useState<MarketResults | null>(null)
   const [configDraft, setConfigDraft] = useState<JobConfigDraft | null>(null)
   const [configDirty, setConfigDirty] = useState(false)
@@ -72,6 +78,11 @@ export default function KworkMarketJob() {
   const [loading, setLoading] = useState(true)
   const [actionBusy, setActionBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [publicationOpportunity, setPublicationOpportunity] = useState<JsonRecord | null>(null)
+  const [activeView, setActiveView] = useState<JobView>(() => {
+    const saved = window.sessionStorage.getItem(`psr:kwork-market:view:${jobId ?? ''}`)
+    return ['overview', 'insights', 'publication', 'data', 'execution'].includes(saved ?? '') ? saved as JobView : 'overview'
+  })
 
   const refresh = useCallback(async ({ background = false }: RefreshOptions = {}) => {
     if (!jobId) return
@@ -82,9 +93,10 @@ export default function KworkMarketJob() {
       marketJobsApi.getJob(jobId),
       marketJobsApi.getOperations(jobId, { limit: 100 }),
       marketJobsApi.getShards(jobId, { limit: 100 }),
-      marketJobsApi.getWorkers(jobId, { limit: 100 }),
+      marketJobsApi.getWorkers(jobId, { limit: 1000 }),
       marketJobsApi.getTransports(jobId, { limit: 100 }),
       marketJobsApi.getListings(jobId, { limit: 100 }),
+      marketJobsApi.getEvents(jobId, { limit: 1000, tail: true }),
       marketJobsApi.getResults(jobId),
     ])
     if (requestId !== refreshRequestId.current) {
@@ -92,13 +104,14 @@ export default function KworkMarketJob() {
       return
     }
 
-    const [snapshotResponse, operationResponse, shardResponse, workerResponse, transportResponse, listingsResponse, resultsResponse] = responses
+    const [snapshotResponse, operationResponse, shardResponse, workerResponse, transportResponse, listingsResponse, eventsResponse, resultsResponse] = responses
     if (snapshotResponse.status === 'fulfilled') setInitialSnapshot(snapshotResponse.value)
     if (operationResponse.status === 'fulfilled') setOperations(operationResponse.value.items)
     if (shardResponse.status === 'fulfilled') setShards(shardResponse.value.items)
     if (workerResponse.status === 'fulfilled') setWorkers(workerResponse.value.items)
     if (transportResponse.status === 'fulfilled') setTransports(transportResponse.value.items)
     if (listingsResponse.status === 'fulfilled') setListingPage(listingsResponse.value)
+    if (eventsResponse.status === 'fulfilled') setDurableEvents(eventsResponse.value.items)
     if (resultsResponse.status === 'fulfilled') setResults(resultsResponse.value)
 
     const failure = responses.find((response) => response.status === 'rejected')
@@ -133,6 +146,12 @@ export default function KworkMarketJob() {
   const visibleWorkers = workers.length ? workers : snapshot?.workers ?? []
   const visibleShards = shards.length ? shards : snapshot?.shards ?? []
   const visibleTransports = transports.length ? transports : snapshot?.transports ?? []
+  const visibleEvents = useMemo(() => {
+    const merged = new Map<number, MarketJobEvent>()
+    for (const event of durableEvents) merged.set(event.seq, event)
+    for (const event of stream.events) merged.set(event.seq, event)
+    return [...merged.values()].sort((left, right) => left.seq - right.seq)
+  }, [durableEvents, stream.events])
   const persistedJob = snapshot?.job
   const job = optimisticJob && (!persistedJob || optimisticJob.revision >= persistedJob.revision)
     ? optimisticJob
@@ -143,6 +162,10 @@ export default function KworkMarketJob() {
   useEffect(() => () => {
     if (backgroundRefreshTimer.current !== null) window.clearTimeout(backgroundRefreshTimer.current)
   }, [])
+
+  useEffect(() => {
+    if (jobId) window.sessionStorage.setItem(`psr:kwork-market:view:${jobId}`, activeView)
+  }, [activeView, jobId])
 
   useEffect(() => {
     if (!job || configBusy || configDirty) return
@@ -271,23 +294,88 @@ export default function KworkMarketJob() {
   if (!jobId) return <main className="p-6 text-zinc-400">Не указан идентификатор запуска.</main>
   if (!job) return <main className="p-6"><Link to="/kwork-market" className="btn btn-ghost"><ArrowLeft className="h-4 w-4" />Запуски</Link><p className="mt-5 text-sm text-zinc-400">{loading ? 'Загружаем запуск…' : error ?? 'Запуск не найден.'}</p></main>
 
-  const activeTransports = visibleTransports.filter((transport) => transport.lease_owner).length
+  const tabs: Array<{ id: JobView; label: string; note: string; icon: typeof LayoutDashboard }> = [
+    { id: 'overview', label: 'Обзор', note: 'главное', icon: LayoutDashboard },
+    { id: 'insights', label: 'Выводы', note: results ? 'готовы' : 'ожидаются', icon: BarChart3 },
+    { id: 'publication', label: 'Публикация', note: 'карточка Kwork', icon: Send },
+    { id: 'data', label: 'Данные', note: `${listingPage.items.length} карточек`, icon: Database },
+    { id: 'execution', label: 'Выполнение', note: `${visibleWorkers.length} workers`, icon: Activity },
+  ]
 
   return (
-    <main className="min-h-0">
+    <main className="market-job-workbench min-h-0">
       <JobToolbar job={job} streamState={stream.streamState} busy={actionBusy || configBusy} onRefresh={() => void refresh()} onPause={() => void invoke(() => marketJobsApi.pauseJob(jobId))} onResume={() => void invoke(() => marketJobsApi.resumeJob(jobId))} onStop={(force) => void invoke(() => marketJobsApi.stopJob(jobId, { force }))} />
-      <div className="space-y-4 p-5 max-lg:p-4">
-        <JobConfigControls job={job} draft={configDraft ?? jobConfigDraftFromJob(job)} dirty={configDirty} busy={configBusy || actionBusy} error={configError} onChange={updateConfigDraft} onReset={resetConfigDraft} onSubmit={() => void applyConfig()} />
-        <div className="flex items-center justify-between gap-3"><Link to="/kwork-market" className="btn btn-ghost text-xs"><ArrowLeft className="h-3.5 w-3.5" />Запуски</Link><button type="button" title="Обновить сведения о запуске" aria-label="Обновить сведения о запуске" onClick={() => void refresh()} className="btn btn-ghost h-8 w-8 justify-center px-0"><RefreshCw className="h-4 w-4" /></button></div>
-        {error && <div className="border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200">{error}</div>}
-        <JobMetrics job={job} />
-        <ResultsPanel results={results} />
-        <JobAssistantPanel jobId={jobId} results={results} />
-        <div className="grid grid-cols-2 gap-4 max-2xl:grid-cols-1"><WorkerTable workers={visibleWorkers} transports={visibleTransports} onCommand={(workerId, command) => void invoke(() => marketJobsApi.commandWorker(jobId, workerId, command))} /><ShardProgressTable shards={visibleShards} /></div>
-        <OperationTable operations={operations} onRetry={(operationId) => void invoke(() => marketJobsApi.retryOperation(jobId, operationId))} onShowAttempts={(operation) => void showOperationAttempts(operation)} />
-        <div ref={attemptPanelRef}><AttemptEvidencePanel operation={evidenceOperation} attempts={operationAttempts} loading={attemptsLoading} error={attemptsError} onClose={closeOperationAttempts} /></div>
-        <ListingsTable listings={listingPage.items} loading={loading} hasMore={typeof listingPage.next_cursor === 'number'} onLoadMore={() => void loadMoreListings()} />
-        <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-4 max-2xl:grid-cols-1"><EventTimeline events={stream.events} /><section className="factory-panel p-4"><h2 className="text-sm font-medium text-white">Маршруты и пул</h2><p className="mt-1 text-xs text-zinc-500">{visibleTransports.length ? `${visibleTransports.length} в пуле, занято: ${activeTransports}` : 'Маршрутов из управляемого пула пока нет.'}</p><div className="mt-3 space-y-2">{visibleTransports.map((transport) => <div key={transport.transport_id} className="border-b border-surface-700/60 pb-2 text-xs last:border-0"><div className="font-mono text-zinc-300">{transport.transport_id}</div><div className="mt-1 break-all font-mono text-zinc-500">{transportHealthLabel(transport.health)} / {formatTransportProxyRoute(transport.proxy_url)}</div><div className="mt-1 text-zinc-500">{[transport.profile_name, transport.profile_id].filter(Boolean).join(' / ') || 'профиль не указан'} / {transport.country ?? 'страна не указана'} / {transport.lease_owner ? `занят: ${transport.lease_owner}` : 'свободен'}</div></div>)}{!visibleTransports.length && <p className="text-xs text-zinc-500">При прямом подключении маршрут не назначается.</p>}</div></section></div>
+      <nav className="market-job-nav" aria-label="Разделы запуска">
+        <div className="market-job-nav-inner">
+          {tabs.map(({ id, label, note, icon: Icon }) => (
+            <button key={id} type="button" className={activeView === id ? 'is-active' : ''} aria-current={activeView === id ? 'page' : undefined} onClick={() => setActiveView(id)}>
+              <Icon className="h-4 w-4" />
+              <span><strong>{label}</strong><small>{note}</small></span>
+            </button>
+          ))}
+        </div>
+      </nav>
+      <div className="market-job-content">
+        {error && <div className="market-error-banner">{error}</div>}
+
+        {activeView === 'overview' && (
+          <JobOverviewPanel
+            job={job}
+            results={results}
+            workers={visibleWorkers}
+            transports={visibleTransports}
+            shards={visibleShards}
+            events={visibleEvents}
+            onOpenInsights={() => setActiveView('insights')}
+            onOpenPublication={() => {
+              setPublicationOpportunity(marketResultModel(results).opportunities[0] ?? null)
+              setActiveView('publication')
+            }}
+            onOpenExecution={() => setActiveView('execution')}
+          />
+        )}
+
+        {activeView === 'insights' && (
+          <div className="market-view-stack">
+            <ResultsPanel
+              results={results}
+              onOpenPublication={(opportunity) => {
+                setPublicationOpportunity(opportunity)
+                setActiveView('publication')
+              }}
+            />
+            <JobAssistantPanel jobId={jobId} results={results} />
+          </div>
+        )}
+
+        {activeView === 'publication' && (
+          <PublicationWorkspace
+            job={job}
+            results={results}
+            opportunity={publicationOpportunity ?? marketResultModel(results).opportunities[0] ?? null}
+          />
+        )}
+
+        {activeView === 'data' && (
+          <div className="market-view-stack">
+            <ListingsTable listings={listingPage.items} loading={loading} hasMore={typeof listingPage.next_cursor === 'number'} onLoadMore={() => void loadMoreListings()} />
+            <ShardProgressTable shards={visibleShards} />
+          </div>
+        )}
+
+        {activeView === 'execution' && (
+          <div className="market-view-stack">
+            <JobConfigControls job={job} draft={configDraft ?? jobConfigDraftFromJob(job)} dirty={configDirty} busy={configBusy || actionBusy} error={configError} onChange={updateConfigDraft} onReset={resetConfigDraft} onSubmit={() => void applyConfig()} />
+            <FleetPanel jobId={jobId} />
+            <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-4 max-2xl:grid-cols-1">
+              <WorkerTable workers={visibleWorkers} transports={visibleTransports} onCommand={(workerId, command) => void invoke(() => marketJobsApi.commandWorker(jobId, workerId, command))} />
+              <TransportPanel transports={visibleTransports} />
+            </div>
+            <OperationTable operations={operations} onRetry={(operationId) => void invoke(() => marketJobsApi.retryOperation(jobId, operationId))} onShowAttempts={(operation) => void showOperationAttempts(operation)} />
+            <div ref={attemptPanelRef}><AttemptEvidencePanel operation={evidenceOperation} attempts={operationAttempts} loading={attemptsLoading} error={attemptsError} onClose={closeOperationAttempts} /></div>
+            <EventTimeline events={visibleEvents} job={job} transports={visibleTransports} />
+          </div>
+        )}
       </div>
     </main>
   )

@@ -26,6 +26,7 @@ from .ai_evidence import AiEvidenceError, AiEvidencePolicy, build_ai_evidence_pa
 from .analyzer import MarketResultsAnalyzer
 from .enrichment import EnrichmentPolicy, EnrichmentSelectionError, select_enrichment_candidates, select_enrichment_sample
 from .executor import MarketOperationExecutor
+from .identity_pool import MarketAccountContext, MarketIdentityLease, MarketIdentityPool
 from .exporter import MarketExportError, MarketSnapshotExporter, SnapshotExporter, export_market_snapshot
 from .metrics import MarketMetricsError, linear_quantile, market_metrics_to_wire, project_market_metrics
 from .rate_control import (
@@ -101,6 +102,9 @@ __all__ = [
     "EnrichmentSelectionError",
     "MarketExportError",
     "MarketOperationExecutor",
+    "MarketAccountContext",
+    "MarketIdentityLease",
+    "MarketIdentityPool",
     "MarketMetricsError",
     "RateControlError",
     "RateControlPolicy",

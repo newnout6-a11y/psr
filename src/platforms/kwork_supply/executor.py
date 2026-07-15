@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Mapping
+from dataclasses import dataclass, field as dataclass_field
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from hashlib import sha256
@@ -17,11 +18,12 @@ from kwork.exceptions import KworkHTTPException
 
 from src.platforms.kwork_market import KworkMarketClient
 
-from .analyzer import MarketResultsAnalyzer
+from .analyzer import MarketResultsAnalyzer, generate_market_ai_verdict
 from .artifacts import LocalArtifactStore
 from .contracts import BatchState, ContractState, CursorKind, ProtectionStatus, SourceCursor
 from .coordinator import MarketScanCoordinator
 from .exporter import MarketSnapshotExporter
+from .identity_pool import MarketIdentityPool
 from .mapper import ScopeMapper, ScopePartition
 from .models import (
     JobPhase,
@@ -54,6 +56,13 @@ JsonDict = dict[str, Any]
 ClientFactory = Callable[[str | None], Any]
 WebCookieProvider = Callable[[], Awaitable[Mapping[str, str]]]
 RateSleeper = Callable[[float], Awaitable[None]]
+
+
+@dataclass(slots=True)
+class _ParallelFetchWave:
+    expected: int
+    ready_workers: set[str] = dataclass_field(default_factory=set)
+    event: asyncio.Event = dataclass_field(default_factory=asyncio.Event)
 
 
 DEFAULT_RATE_CONTROL_POLICY = RateControlPolicy(
@@ -119,6 +128,11 @@ def _job_model(record: Mapping[str, Any]) -> MarketJob:
         profile=str(record["profile"]),
         target_unique_cards=int(record["target_unique_cards"]),
         desired_workers=int(record["desired_workers"]),
+        account_registration_ids=tuple(
+            str(value).strip()
+            for value in record.get("account_registration_ids", [])
+            if isinstance(value, str) and value.strip()
+        ),
         network_policy=NetworkPolicy(str(record["network_policy"])),
         source_policy=SourcePolicy(str(record["source_policy"])),
         include_ai=bool(record["include_ai"]),
@@ -278,9 +292,13 @@ class MarketOperationExecutor:
         exporter: MarketSnapshotExporter | None = None,
         rate_control_policy: RateControlPolicy | None = None,
         web_cookie_provider: WebCookieProvider | None = None,
+        identity_pool: MarketIdentityPool | None = None,
         rate_clock: Callable[[], float] | None = None,
         rate_sleeper: RateSleeper | None = None,
+        fetch_wave_timeout_seconds: float = 60.0,
     ) -> None:
+        if fetch_wave_timeout_seconds <= 0:
+            raise ValueError("fetch_wave_timeout_seconds must be positive")
         self.coordinator = coordinator
         self.client_factory = client_factory or (
             lambda proxy_url: KworkMarketClient(proxy_url=proxy_url, use_environment_proxy=False)
@@ -288,15 +306,26 @@ class MarketOperationExecutor:
         self.artifact_store = artifact_store or LocalArtifactStore()
         self.mapper = mapper or ScopeMapper()
         self.planner = planner or ShardPlanner()
-        self.analyzer = analyzer or MarketResultsAnalyzer(coordinator.repository)
+        self.analyzer = analyzer or MarketResultsAnalyzer(
+            coordinator.repository,
+            ai_verdict_provider=generate_market_ai_verdict,
+        )
         self.exporter = exporter or MarketSnapshotExporter(self.artifact_store)
         self.rate_control_policy = rate_control_policy or DEFAULT_RATE_CONTROL_POLICY
         self._web_cookie_provider = web_cookie_provider
+        self.identity_pool = identity_pool
         self._rate_clock = rate_clock or time.monotonic
         self._rate_sleeper = rate_sleeper or asyncio.sleep
         self._rate_control_states: dict[str, RateControlState] = {}
         self._rate_control_lock = asyncio.Lock()
         self._seller_enrichment_locks: dict[str, asyncio.Lock] = {}
+        self._request_concurrency_lock = asyncio.Lock()
+        self._active_source_requests: dict[str, set[str]] = {}
+        self._peak_source_requests: dict[str, int] = {}
+        self._fetch_wave_timeout_seconds = fetch_wave_timeout_seconds
+        self._fetch_wave_lock = asyncio.Lock()
+        self._fetch_waves: dict[str, _ParallelFetchWave] = {}
+        self._released_fetch_waves: set[str] = set()
 
     @property
     def handlers(self) -> dict[OperationKind, Callable[[MarketWorker, Mapping[str, Any]], Any]]:
@@ -355,6 +384,7 @@ class MarketOperationExecutor:
                     job,
                     root_batch=batch,
                     attributes=mapping_evidence.get("category_attributes"),
+                    catalog_filters=mapping_evidence.get("catalog_filters"),
                 )
                 if partitions:
                     scope_map = scope_map.with_partitions((*scope_map.partitions, *partitions))
@@ -393,22 +423,61 @@ class MarketOperationExecutor:
                 worker_id=worker.worker_id,
                 operation_id=str(operation["operation_id"]),
             )
-            plan = self.planner.plan_initial(_job_model(planning), scope_map)
-            shards = await self._persist_plan_idempotently(plan)
             mapping_payload = operation.get("payload")
             mapping_payload = mapping_payload if isinstance(mapping_payload, Mapping) else {}
             resume_from_completed = mapping_payload.get("resume_from_completed") is True
             partition_mapping = resume_from_completed or mapping_payload.get("partition_mapping") is True
+            if partition_mapping:
+                existing_shards = await self.coordinator.repository.list_shards(job.job_id, limit=500)
+                exhausted_filters = {
+                    self._filter_signature(shard["filters"])
+                    for shard in existing_shards
+                    if shard.get("state") == "exhausted" and isinstance(shard.get("filters"), Mapping)
+                }
+                remaining_partitions = tuple(
+                    partition
+                    for partition in scope_map.partitions
+                    if self._filter_signature(partition.filters) not in exhausted_filters
+                )
+                if remaining_partitions:
+                    scope_map = scope_map.with_partitions(remaining_partitions)
+            plan = self.planner.plan_initial(_job_model(planning), scope_map)
+            shards = await self._persist_plan_idempotently(plan)
             scheduled_fetches = 0
+            root_filter_signature = self._filter_signature(job.scope.filters)
+            parallel_wave_id = (
+                f"{job.job_id}:{mapping_checkpoint['checkpoint_id']}"
+                if not partition_mapping and len(plan.shards) > 1
+                else None
+            )
+            parallel_wave_size = min(len(plan.shards), max(job.desired_workers, 1))
             for planned, shard in zip(plan.shards, shards, strict=True):
                 if partition_mapping and shard["state"] == "exhausted" and shard.get("cursor") is None:
                     continue
+                shard_filters = shard.get("filters") if isinstance(shard.get("filters"), Mapping) else {}
+                is_mapping_candidate = self._filter_signature(shard_filters) != root_filter_signature
+                payload_extra: JsonDict = {}
+                if parallel_wave_id is not None:
+                    payload_extra.update(
+                        {
+                            "parallel_wave_id": parallel_wave_id,
+                            "parallel_wave_size": parallel_wave_size,
+                        }
+                    )
+                if is_mapping_candidate and batch.fingerprint:
+                    payload_extra.update(
+                        {
+                            "mapping_candidate": True,
+                            "validation_root_fingerprint": batch.fingerprint,
+                        }
+                    )
                 fetch = await self._enqueue_fetch_operation(
                     job.job_id,
                     shard,
                     cursor=None,
                     remaining_requests=planned.request_budget,
                     priority=int(shard["priority"]),
+                    payload_extra=payload_extra or None,
                 )
                 if fetch["state"] in {
                     OperationState.QUEUED.value,
@@ -507,6 +576,7 @@ class MarketOperationExecutor:
         payload = payload if isinstance(payload, Mapping) else {}
         cursor = _cursor_from_payload(payload.get("cursor") if "cursor" in payload else shard.get("cursor"))
         remaining_requests = max(int(payload.get("remaining_requests") or 1), 1)
+        await self._await_parallel_fetch_wave(worker, operation, payload)
         adapter, client = await self._web_adapter(worker)
         try:
             request = adapter.build_request(
@@ -534,6 +604,55 @@ class MarketOperationExecutor:
                     ",".join(verdict.reason_codes) or "web catalog contract violation",
                     failure_kind="contract_violation",
                 )
+            validation_root_fingerprint = payload.get("validation_root_fingerprint")
+            if (
+                payload.get("mapping_candidate") is True
+                and isinstance(validation_root_fingerprint, str)
+                and validation_root_fingerprint
+                and batch.fingerprint == validation_root_fingerprint
+            ):
+                result = await self.coordinator.repository.commit_accepted_batch(
+                    job_id=worker.job_id,
+                    shard_id=shard_id,
+                    operation_id=str(operation["operation_id"]),
+                    attempt_id=(str(operation["attempt_id"]) if operation.get("attempt_id") else None),
+                    listings=[],
+                    source=batch.source,
+                    idempotency_key=f"filtered:{operation['operation_id']}",
+                    requested_cursor=_cursor_payload(batch.requested_cursor),
+                    reported_cursor=_cursor_payload(batch.reported_cursor),
+                    next_cursor=None,
+                    raw_response_ref=raw_ref,
+                    fingerprint=batch.fingerprint,
+                    counter_deltas={"requests": 1, "rejected_partitions": 1},
+                    event_payloads=(
+                        {
+                            "event_type": "operation.completed",
+                            "worker_id": worker.worker_id,
+                            "payload": {
+                                "kind": OperationKind.FETCH_BATCH.value,
+                                "state": "filter_not_effective",
+                            },
+                        },
+                        {
+                            "event_type": "shard.progress",
+                            "worker_id": worker.worker_id,
+                            "payload": {
+                                "shard_id": shard_id,
+                                "received": batch.actual_item_count,
+                                "new_unique": 0,
+                                "duplicates": batch.actual_item_count,
+                                "validation": "filter_not_effective",
+                                "raw_response_ref": raw_ref,
+                            },
+                        },
+                    ),
+                    next_operation=None,
+                    shard_state="exhausted",
+                )
+                await self.coordinator.publish_committed_events(worker.job_id, result["event_sequences"])
+                await self._complete_job_if_finished(worker.job_id)
+                return
             next_cursor = batch.next_cursor if verdict.state is ContractState.ACCEPTED else None
             next_operation: JsonDict | None = None
             if next_cursor is not None and remaining_requests > 1:
@@ -706,7 +825,7 @@ class MarketOperationExecutor:
             )
 
         scope = _job_model(job).scope
-        adapter, client = self._mobile_adapter(worker)
+        adapter, client = await self._mobile_adapter(worker)
         try:
             request = adapter.build_request(
                 category_id=scope.category_id,
@@ -822,7 +941,7 @@ class MarketOperationExecutor:
         ):
             return
 
-        client = self.client_factory(worker.transport_proxy_url)
+        client = await self._client_for(worker)
         try:
             listing_key = _optional_text(listing.get("listing_key"))
             if listing_key is None:
@@ -960,10 +1079,26 @@ class MarketOperationExecutor:
         """Project metrics, checkpoint them, then queue the deterministic export."""
 
         operation_id = str(operation["operation_id"])
+        job = await self._require_job(worker.job_id)
+        if job["state"] in {
+            JobState.COMPLETED.value,
+            JobState.STOPPED.value,
+            JobState.FAILED.value,
+            JobState.BLOCKED.value,
+        }:
+            return
         analysis = await self.analyzer.analyze(worker.job_id, operation_id=operation_id)
         job = await self._require_job(worker.job_id)
+        if job["state"] in {
+            JobState.COMPLETED.value,
+            JobState.STOPPED.value,
+            JobState.FAILED.value,
+            JobState.BLOCKED.value,
+        }:
+            return
         selection = analysis.get("enrichment_selection")
         ai_evidence = analysis.get("ai_evidence")
+        ai_verdict = analysis.get("ai_verdict")
         selection_summary = (
             {"selected_count": selection.get("selected_count", 0)} if isinstance(selection, Mapping) else {}
         )
@@ -989,6 +1124,13 @@ class MarketOperationExecutor:
                 "checkpoint_id": analysis["checkpoint"]["checkpoint_id"],
                 "enrichment": selection_summary,
                 "ai_evidence": ai_summary,
+                "ai_verdict": {
+                    "status": ai_verdict.get("status"),
+                    "market_verdict": ai_verdict.get("market_verdict"),
+                    "confidence": ai_verdict.get("confidence"),
+                }
+                if isinstance(ai_verdict, Mapping)
+                else None,
             },
             revision=job["revision"],
             worker_id=worker.worker_id,
@@ -1087,7 +1229,11 @@ class MarketOperationExecutor:
         cursor: SourceCursor | None,
         remaining_requests: int,
         priority: int,
+        payload_extra: Mapping[str, Any] | None = None,
     ) -> JsonDict:
+        payload = {"cursor": _cursor_payload(cursor), "remaining_requests": remaining_requests}
+        if payload_extra:
+            payload.update(dict(payload_extra))
         operation = await self.coordinator.repository.enqueue_operation(
             Operation(
                 operation_id=f"op_{self._operation_hash(job_id, str(shard['shard_id']), cursor)}",
@@ -1097,7 +1243,7 @@ class MarketOperationExecutor:
                 state=OperationState.QUEUED,
                 priority=priority,
                 idempotency_key=f"fetch:{shard['shard_id']}:{_cursor_key(cursor)}",
-                payload={"cursor": _cursor_payload(cursor), "remaining_requests": remaining_requests},
+                payload=payload,
             )
         )
         job = await self._require_job(job_id)
@@ -1128,7 +1274,7 @@ class MarketOperationExecutor:
     @staticmethod
     def _needs_partition_probes(job: MarketJob, root_batch: Any) -> bool:
         stream_limit = getattr(root_batch, "source_total", None)
-        return job.scope.classifier_id is not None or (
+        return job.desired_workers > 1 or job.scope.classifier_id is not None or (
             isinstance(stream_limit, int) and stream_limit > 0 and job.target_unique_cards > stream_limit
         )
 
@@ -1166,11 +1312,14 @@ class MarketOperationExecutor:
         *,
         root_batch: Any,
         attributes: object,
+        catalog_filters: object,
     ) -> tuple[tuple[ScopePartition, ...], list[JsonDict]]:
         candidate_attributes = attributes if isinstance(attributes, Mapping) else None
-        all_candidates = self.mapper.classification_partition_candidates(
+        candidate_filters = catalog_filters if isinstance(catalog_filters, Mapping) else None
+        all_candidates = self.mapper.parallel_partition_candidates(
             job.scope,
             candidate_attributes,
+            candidate_filters,
             max_candidates=100,
         )
         existing_shards = await self.coordinator.repository.list_shards(job.job_id, limit=500)
@@ -1179,62 +1328,27 @@ class MarketOperationExecutor:
             for shard in existing_shards
             if isinstance(shard.get("filters"), Mapping)
         }
+        probe_limit = min(max(job.desired_workers * 2, job.desired_workers, 1), 100)
         candidates = tuple(
             candidate
             for candidate in all_candidates
             if self._filter_signature(candidate.filters) not in existing_filters
-        )[:5]
-        accepted: list[ScopePartition] = []
-        probes: list[JsonDict] = []
-        root_fingerprint = getattr(root_batch, "fingerprint", None)
-        for index, candidate in enumerate(candidates, start=1):
-            request = adapter.build_request(
-                alias=job.scope.canonical_alias or "",
-                category_id=job.scope.category_id,
-                filters=candidate.filters,
-            )
-            batch = await self._fetch_web_batch(worker, adapter, request)
-            raw_response_ref = self._write_mapping_probe_raw(
-                batch,
-                job_id=job.job_id,
-                operation=operation,
-                index=index,
-            )
-            verdict = adapter.validate_batch(request, batch, previous=None)
-            probe: JsonDict = {
+        )[:probe_limit]
+        probes = [
+            {
                 "key": candidate.key,
                 "filters": dict(candidate.filters),
-                "contract_state": verdict.state.value,
-                "reason_codes": list(verdict.reason_codes),
-                "actual_item_count": batch.actual_item_count,
-                "source_total_found": batch.source_total_found,
-                "raw_response_ref": raw_response_ref,
+                "contract_state": "scheduled",
+                "reason_codes": [],
+                "actual_item_count": None,
+                "source_total_found": candidate.expected_count,
+                "raw_response_ref": None,
+                "accepted": None,
+                "validation": "first worker fetch",
             }
-            if verdict.state is ContractState.BLOCKED:
-                raise await self._protection_retry(worker, batch)
-            if verdict.state is not ContractState.ACCEPTED:
-                probe["accepted"] = False
-                probes.append(probe)
-                continue
-            if root_fingerprint is not None and batch.fingerprint == root_fingerprint:
-                probe["accepted"] = False
-                probe["reason_codes"] = [*probe["reason_codes"], "filter_not_effective"]
-                probes.append(probe)
-                continue
-            expected_count = batch.source_total_found
-            accepted.append(
-                ScopePartition(
-                    key=candidate.key,
-                    filters=candidate.filters,
-                    expected_count=expected_count if expected_count is not None else candidate.expected_count,
-                    priority=expected_count if expected_count is not None else candidate.priority,
-                    source=candidate.source,
-                    alias=candidate.alias,
-                )
-            )
-            probe["accepted"] = True
-            probes.append(probe)
-        return tuple(accepted), probes
+            for candidate in candidates
+        ]
+        return candidates, probes
 
     def _write_mapping_probe_raw(
         self,
@@ -1313,11 +1427,150 @@ class MarketOperationExecutor:
 
     async def _fetch_web_batch(self, worker: MarketWorker, adapter: KworkWebCatalogAdapter, request) -> Any:
         await self._acquire_source_permit(worker, adapter.name)
-        return await adapter.fetch_batch(request)
+        return await self._tracked_source_fetch(worker, adapter.name, lambda: adapter.fetch_batch(request))
 
     async def _fetch_mobile_batch(self, worker: MarketWorker, adapter: KworkMobileKworksAdapter, request) -> Any:
         await self._acquire_source_permit(worker, adapter.name)
-        return await adapter.fetch_batch(request)
+        return await self._tracked_source_fetch(worker, adapter.name, lambda: adapter.fetch_batch(request))
+
+    async def _tracked_source_fetch(
+        self,
+        worker: MarketWorker,
+        source: str,
+        fetch: Callable[[], Awaitable[Any]],
+    ) -> Any:
+        started = time.monotonic()
+        async with self._request_concurrency_lock:
+            active_workers = self._active_source_requests.setdefault(worker.job_id, set())
+            active_workers.add(worker.worker_id)
+            active_count = len(active_workers)
+            peak_count = max(self._peak_source_requests.get(worker.job_id, 0), active_count)
+            self._peak_source_requests[worker.job_id] = peak_count
+        await self.coordinator.emit(
+            worker.job_id,
+            "request.started",
+            {
+                "source": source,
+                "active_requests": active_count,
+                "peak_requests": peak_count,
+                "transport_id": getattr(worker, "transport_id", None),
+                "account_registration_id": getattr(worker, "account_registration_id", None),
+            },
+            worker_id=worker.worker_id,
+            operation_id=getattr(worker, "current_operation_id", None),
+        )
+        outcome = "ok"
+        error_type: str | None = None
+        try:
+            return await fetch()
+        except BaseException as exc:
+            outcome = "error"
+            error_type = type(exc).__name__
+            raise
+        finally:
+            async with self._request_concurrency_lock:
+                active_workers = self._active_source_requests.setdefault(worker.job_id, set())
+                active_workers.discard(worker.worker_id)
+                active_count = len(active_workers)
+                peak_count = self._peak_source_requests.get(worker.job_id, 0)
+            await self.coordinator.emit(
+                worker.job_id,
+                "request.finished",
+                {
+                    "source": source,
+                    "outcome": outcome,
+                    "error_type": error_type,
+                    "duration_ms": int((time.monotonic() - started) * 1000),
+                    "active_requests": active_count,
+                    "peak_requests": peak_count,
+                    "transport_id": getattr(worker, "transport_id", None),
+                    "account_registration_id": getattr(worker, "account_registration_id", None),
+                },
+                worker_id=worker.worker_id,
+                operation_id=getattr(worker, "current_operation_id", None),
+            )
+
+    async def _await_parallel_fetch_wave(
+        self,
+        worker: MarketWorker,
+        operation: Mapping[str, Any],
+        payload: Mapping[str, Any],
+    ) -> None:
+        wave_id = _optional_text(payload.get("parallel_wave_id"))
+        expected = _optional_int(payload.get("parallel_wave_size"))
+        if wave_id is None or expected is None or expected <= 1:
+            return
+
+        release_now = False
+        async with self._fetch_wave_lock:
+            if wave_id in self._released_fetch_waves:
+                return
+            wave = self._fetch_waves.get(wave_id)
+            if wave is None:
+                wave = _ParallelFetchWave(expected=expected)
+                self._fetch_waves[wave_id] = wave
+            else:
+                wave.expected = max(wave.expected, expected)
+            wave.ready_workers.add(worker.worker_id)
+            ready_count = len(wave.ready_workers)
+            expected_count = wave.expected
+            if ready_count >= expected_count:
+                self._released_fetch_waves.add(wave_id)
+                self._fetch_waves.pop(wave_id, None)
+                wave.event.set()
+                release_now = True
+
+        await self.coordinator.emit(
+            worker.job_id,
+            "request.wave_waiting",
+            {
+                "wave_id": wave_id,
+                "ready_workers": ready_count,
+                "expected_workers": expected_count,
+            },
+            worker_id=worker.worker_id,
+            operation_id=str(operation.get("operation_id") or "") or None,
+        )
+        if release_now:
+            await self.coordinator.emit(
+                worker.job_id,
+                "request.wave_released",
+                {
+                    "wave_id": wave_id,
+                    "ready_workers": ready_count,
+                    "expected_workers": expected_count,
+                    "reason": "all_workers_ready",
+                },
+                worker_id=worker.worker_id,
+                operation_id=str(operation.get("operation_id") or "") or None,
+            )
+            return
+
+        try:
+            await asyncio.wait_for(wave.event.wait(), timeout=self._fetch_wave_timeout_seconds)
+        except TimeoutError:
+            timed_out = False
+            async with self._fetch_wave_lock:
+                if wave_id not in self._released_fetch_waves:
+                    self._released_fetch_waves.add(wave_id)
+                    self._fetch_waves.pop(wave_id, None)
+                    wave.event.set()
+                    ready_count = len(wave.ready_workers)
+                    expected_count = wave.expected
+                    timed_out = True
+            if timed_out:
+                await self.coordinator.emit(
+                    worker.job_id,
+                    "request.wave_released",
+                    {
+                        "wave_id": wave_id,
+                        "ready_workers": ready_count,
+                        "expected_workers": expected_count,
+                        "reason": "timeout",
+                    },
+                    worker_id=worker.worker_id,
+                    operation_id=str(operation.get("operation_id") or "") or None,
+                )
 
     @staticmethod
     def _rate_scope_key(worker: MarketWorker) -> str:
@@ -1448,9 +1701,17 @@ class MarketOperationExecutor:
         await self.coordinator.emit_state_changed(blocked, {"reason": reason})
 
     async def _web_adapter(self, worker: MarketWorker) -> tuple[KworkWebCatalogAdapter, Any]:
-        client = self.client_factory(worker.transport_proxy_url)
+        client = await self._client_for(worker)
         cookies: dict[str, str] | None = None
-        if self._web_cookie_provider is not None:
+        if self.identity_pool is not None:
+            context = await self.identity_pool.context_for_worker(worker.worker_id)
+            if context is None:
+                raise RetryableOperationError(
+                    "worker has no active Kwork account session",
+                    failure_kind="identity_unavailable",
+                )
+            cookies = dict(context.cookies)
+        elif self._web_cookie_provider is not None:
             provided = await self._web_cookie_provider()
             if isinstance(provided, Mapping):
                 cookies = {
@@ -1460,9 +1721,27 @@ class MarketOperationExecutor:
                 }
         return KworkWebCatalogAdapter(client=client, cookies=cookies), client
 
-    def _mobile_adapter(self, worker: MarketWorker) -> tuple[KworkMobileKworksAdapter, Any]:
-        client = self.client_factory(worker.transport_proxy_url)
+    async def _mobile_adapter(self, worker: MarketWorker) -> tuple[KworkMobileKworksAdapter, Any]:
+        client = await self._client_for(worker)
         return KworkMobileKworksAdapter(client=client), client
+
+    async def _client_for(self, worker: MarketWorker) -> Any:
+        if self.identity_pool is None:
+            return self.client_factory(worker.transport_proxy_url)
+        context = await self.identity_pool.context_for_worker(worker.worker_id)
+        if context is None:
+            raise RetryableOperationError(
+                "worker has no active Kwork account session",
+                failure_kind="identity_unavailable",
+            )
+        return KworkMarketClient(
+            proxy_url=worker.transport_proxy_url,
+            use_environment_proxy=False,
+            account_email=context.email,
+            account_password=context.password,
+            account_cookies=context.cookies,
+            persona_headers=context.headers,
+        )
 
     def _write_raw(self, batch, *, job_id: str, operation: Mapping[str, Any]) -> str | None:
         raw_payload = batch.metadata.get("_raw_payload")

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Send, Sparkles } from 'lucide-react'
+import { Bot, Send, Sparkles } from 'lucide-react'
 
 import { marketJobsApi } from '../api'
 import type { MarketResults } from '../types'
@@ -33,27 +33,33 @@ export function JobAssistantPanel({ jobId, results }: { jobId: string; results: 
   }
 
   return (
-    <section className="factory-panel p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-2 text-sm font-medium text-white"><Sparkles className="h-4 w-4 text-sky-300" />AI-разбор текущего запуска</h2>
-          <p className="mt-1 text-xs text-zinc-500">Контекст привязан к этому запуску и обновляется из его сохранённых карточек.</p>
+    <section className="market-surface overflow-hidden">
+      <div className="market-surface-head flex-wrap">
+        <div className="flex items-center gap-3">
+          <span className="market-icon-tile"><Bot className="h-4 w-4" /></span>
+          <div>
+            <div className="market-section-label">Ассистент</div>
+            <h2 className="mt-1 text-base font-semibold text-white">Спросить по этому запуску</h2>
+          </div>
         </div>
-        <button type="button" className="btn btn-ghost h-8 px-3 text-xs" disabled={busy} onClick={() => void ask(SUMMARY_QUESTION)}>
+        <button type="button" className="market-compact-action" disabled={busy} onClick={() => void ask(SUMMARY_QUESTION)}>
+          <Sparkles className="h-3.5 w-3.5" />
           {busy ? 'Готовим ответ…' : 'Краткий вывод'}
         </button>
       </div>
-      {results && !results.latest_checkpoint && (
-        <p className="mt-3 border-l-2 border-amber-500/50 pl-3 text-xs text-zinc-400">
+      <div className="p-4">
+        {results && !results.latest_checkpoint && (
+          <p className="market-notice mb-3">
           Это разбор частичного среза: {formatCount(uniqueCards)} из {formatCount(targetCards)} карточек. Итоговый срез ещё не создан.
-        </p>
-      )}
-      <form className="mt-3 flex gap-2 max-md:flex-col" onSubmit={(event) => { event.preventDefault(); void ask(message) }}>
-        <textarea className="input min-h-16 flex-1 px-3 py-2 text-xs" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Задайте вопрос по этому запуску" disabled={busy} />
-        <button type="submit" className="btn h-auto min-h-10 px-3 max-md:self-end" title="Отправить вопрос" aria-label="Отправить вопрос" disabled={busy || !message.trim()}><Send className="h-4 w-4" /></button>
-      </form>
-      {error && <p className="mt-3 border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200">{error}</p>}
-      {answer && <div className="mt-3 whitespace-pre-wrap border-l-2 border-sky-500/50 pl-3 text-sm leading-6 text-zinc-200">{answer}</div>}
+          </p>
+        )}
+        <form className="market-assistant-compose" onSubmit={(event) => { event.preventDefault(); void ask(message) }}>
+          <textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Например: какая ниша выглядит наименее перегретой?" disabled={busy} />
+          <button type="submit" className="market-icon-action" title="Отправить вопрос" aria-label="Отправить вопрос" disabled={busy || !message.trim()}><Send className="h-4 w-4" /></button>
+        </form>
+        {error && <p className="market-error-banner mt-3">{error}</p>}
+        {answer && <div className="market-assistant-answer">{answer}</div>}
+      </div>
     </section>
   )
 }

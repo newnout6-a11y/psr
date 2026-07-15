@@ -72,7 +72,8 @@ def test_planner_is_deterministic_and_allocates_bounded_budgets(job: MarketJob, 
     ]
     assert first.request_budget == 5
     assert sum(item.request_budget for item in first.shards) == 5
-    assert [item.shard.priority for item in first.shards] == [20, 20, 10]
+    assert [item.shard.priority for item in first.shards] == [20, 20]
+    assert [item.request_budget for item in first.shards] == [3, 2]
     assert first.aggregate_scope_total == 13000
     assert first.observed_first_batch_count == 2
 
@@ -95,6 +96,56 @@ def test_default_budget_uses_observed_batch_not_aggregate_total(scope: MarketSco
     assert plan.request_budget == 3
     assert plan.observed_first_batch_count == 2
     assert plan.aggregate_scope_total == 13000
+
+
+def test_default_parallel_budget_keeps_full_root_fallback(scope: MarketScope, valid_scope_map):
+    job = MarketJob(
+        job_id="job_parallel_fallback",
+        scope=scope,
+        profile="working",
+        target_unique_cards=5,
+        desired_workers=3,
+        network_policy=NetworkPolicy.PREFER_VPNTE,
+        source_policy=SourcePolicy.VALIDATED_ONLY,
+        include_ai=False,
+    )
+
+    plan = ShardPlanner().plan_initial(job, valid_scope_map)
+
+    assert len(plan.shards) == 3
+    assert plan.shards[0].shard.filters == scope.filters
+    assert [item.request_budget for item in plan.shards] == [3, 1, 1]
+    assert plan.request_budget == 5
+
+
+def test_planner_keeps_one_initial_batch_for_each_of_100_validated_partitions(scope: MarketScope, valid_scope_map):
+    partitions = tuple(
+        ScopePartition(
+            key=f"attribute:10:{index}",
+            filters={"attribute[10]": str(index)},
+            expected_count=24,
+            priority=100 - index,
+            source="web_catalog",
+            alias="website-repair",
+        )
+        for index in range(1, 101)
+    )
+    job = MarketJob(
+        job_id="job_one_hundred_workers",
+        scope=scope,
+        profile="working",
+        target_unique_cards=1,
+        desired_workers=100,
+        network_policy=NetworkPolicy.VPNTE_ONLY,
+        source_policy=SourcePolicy.VALIDATED_ONLY,
+        include_ai=False,
+    )
+
+    plan = ShardPlanner().plan_initial(job, valid_scope_map.with_partitions(partitions))
+
+    assert len(plan.shards) == 100
+    assert plan.request_budget == 100
+    assert all(item.request_budget == 1 for item in plan.shards)
 
 
 def test_planner_rejects_a_scope_map_without_validated_alias(scope: MarketScope):

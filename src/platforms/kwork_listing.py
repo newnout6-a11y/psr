@@ -8,9 +8,12 @@ checkbox fields.
 
 from __future__ import annotations
 
+import asyncio
+import copy
 import re
 import hashlib
 import json
+import time
 from pathlib import Path
 from html import unescape
 from typing import Any
@@ -22,6 +25,10 @@ from src.platforms.kwork_form_contract import normalize_attribute_selection
 from src.utils.vpnte_proxy import kwork_http_proxy_url
 
 KWORK_WEB_BASE_URL = "https://kwork.ru"
+CLASSIFICATION_CACHE_TTL = 300.0
+_CLASSIFICATION_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+_CLASSIFICATION_INFLIGHT: dict[str, asyncio.Task[dict[str, Any]]] = {}
+_CLASSIFICATION_CACHE_LOCK = asyncio.Lock()
 
 ATTRIBUTE_NAME_RE = re.compile(r"^(?:new_custom_)?attribute\[(\d+)\](\[\])?$")
 FIELD_PART_RE = re.compile(r"([^\[\]]+)|\[([^\[\]]*)\]")
@@ -282,7 +289,9 @@ def parse_classification_html(html: str) -> list[dict[str, Any]]:
                 "multiple": multiple,
                 "required": _attr_present(input_node, "required") or _attr_present(input_node, "data-required"),
                 "options": [],
-                "value": _clean_text(input_node.get("value") if input_node.name != "textarea" else input_node.get_text(" ", strip=True)),
+                "value": _clean_text(
+                    input_node.get("value") if input_node.name != "textarea" else input_node.get_text(" ", strip=True)
+                ),
                 "placeholder": _clean_text(input_node.get("placeholder") or ""),
                 "data": dict(input_node.attrs),
             },
@@ -309,7 +318,7 @@ def parse_classification_html(html: str) -> list[dict[str, Any]]:
                         "has_child": bool(option.get("data-has-child") or option.get("data-child")),
                         "data": dict(option.attrs),
                     }
-            )
+                )
             continue
 
         if input_type in {"text", "textarea", "custom_text"}:
@@ -417,7 +426,7 @@ def _assign_bracket_value(target: dict[str, Any], root: str, tokens: list[str], 
     for index, token in enumerate(tokens):
         is_last = index == len(tokens) - 1
         next_token = "" if is_last else tokens[index + 1]
-        next_factory = list if next_token.isdigit() or next_token == "" else dict
+        next_factory = list if next_token == "" else dict
 
         if isinstance(current, list):
             if token == "":
@@ -684,87 +693,177 @@ class KworkWebListingClient:
         self.cookies = cookies or {}
 
     async def open_new(self) -> dict[str, Any]:
-        async with httpx.AsyncClient(
-            base_url=KWORK_WEB_BASE_URL,
-            headers={
-                "Accept": "text/html,application/xhtml+xml",
-                "Referer": f"{KWORK_WEB_BASE_URL}/manage_kworks",
-                "User-Agent": "Mozilla/5.0 PSR-KworkListing/1.0",
-            },
-            timeout=20.0,
-            follow_redirects=True,
-            proxy=kwork_http_proxy_url(rotate=False),
-            trust_env=False,
-        ) as client:
-            response = await client.get("/new", cookies=self.cookies)
-            final_url = str(response.url)
-            verification = manual_verification_response(response.status_code, response.text, final_url)
-            if verification:
-                return verification
-            if "/login" in final_url:
-                return {
-                    "ok": False,
-                    "code": "login_required",
-                    "final_url": final_url,
-                    "detail": "Kwork redirected /new to login.",
-                }
-            response.raise_for_status()
+        response: httpx.Response | None = None
+        last_error = ""
+        for attempt in range(3):
+            try:
+                async with httpx.AsyncClient(
+                    base_url=KWORK_WEB_BASE_URL,
+                    headers={
+                        "Accept": "text/html,application/xhtml+xml",
+                        "Referer": f"{KWORK_WEB_BASE_URL}/manage_kworks",
+                        "User-Agent": "Mozilla/5.0 PSR-KworkListing/1.0",
+                    },
+                    timeout=30.0,
+                    follow_redirects=True,
+                    proxy=kwork_http_proxy_url(rotate=attempt == 2),
+                    trust_env=False,
+                ) as client:
+                    response = await client.get("/new", cookies=self.cookies)
+                break
+            except httpx.TransportError as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                logger.warning(f"Kwork /new transport retry {attempt + 1}/3: {last_error}")
+                if attempt < 2:
+                    await asyncio.sleep(1.5 if attempt == 0 else 4.0)
+
+        if response is None:
+            return {
+                "ok": False,
+                "code": "new_form_transport_error",
+                "detail": last_error or "Kwork /new connection failed.",
+            }
+        final_url = str(response.url)
+        verification = manual_verification_response(response.status_code, response.text, final_url)
+        if verification:
+            return verification
+        if "/login" in final_url:
+            return {
+                "ok": False,
+                "code": "login_required",
+                "final_url": final_url,
+                "detail": "Kwork redirected /new to login.",
+            }
+        response.raise_for_status()
         snapshot = parse_new_form_snapshot(response.text, final_url=final_url)
         if not snapshot.get("ok"):
             snapshot["code"] = "new_form_unavailable"
             snapshot["detail"] = "Kwork /new did not contain a recognizable save form."
         return snapshot
 
-    async def load_classification(self, category_id: int, attribute_id: int | None = None, lang: str = "ru") -> dict[str, Any]:
+    async def load_classification(
+        self, category_id: int, attribute_id: int | None = None, lang: str = "ru"
+    ) -> dict[str, Any]:
+        cache_key = f"{category_id}:{attribute_id or 0}:{lang}"
+        cached = _CLASSIFICATION_CACHE.get(cache_key)
+        if cached and time.monotonic() - cached[0] <= CLASSIFICATION_CACHE_TTL:
+            result = copy.deepcopy(cached[1])
+            result["cache_status"] = "hit"
+            return result
+        if cached:
+            _CLASSIFICATION_CACHE.pop(cache_key, None)
+
+        async with _CLASSIFICATION_CACHE_LOCK:
+            cached = _CLASSIFICATION_CACHE.get(cache_key)
+            if cached and time.monotonic() - cached[0] <= CLASSIFICATION_CACHE_TTL:
+                result = copy.deepcopy(cached[1])
+                result["cache_status"] = "hit"
+                return result
+            task = _CLASSIFICATION_INFLIGHT.get(cache_key)
+            if task is None:
+                task = asyncio.create_task(
+                    self._load_classification_uncached(category_id, attribute_id=attribute_id, lang=lang)
+                )
+                _CLASSIFICATION_INFLIGHT[cache_key] = task
+
+        try:
+            result = await asyncio.shield(task)
+        finally:
+            async with _CLASSIFICATION_CACHE_LOCK:
+                if _CLASSIFICATION_INFLIGHT.get(cache_key) is task and task.done():
+                    _CLASSIFICATION_INFLIGHT.pop(cache_key, None)
+
+        if result.get("success") and not result.get("code"):
+            _CLASSIFICATION_CACHE[cache_key] = (time.monotonic(), copy.deepcopy(result))
+        response = copy.deepcopy(result)
+        response["cache_status"] = "miss"
+        return response
+
+    async def _load_classification_uncached(
+        self,
+        category_id: int,
+        attribute_id: int | None = None,
+        lang: str = "ru",
+    ) -> dict[str, Any]:
         params: dict[str, Any] = {"categoryId": category_id, "lang": lang}
         if attribute_id:
             params["attributeId"] = attribute_id
-        async with httpx.AsyncClient(
-            base_url=KWORK_WEB_BASE_URL,
-            headers={
-                "Accept": "application/json, text/plain, */*",
-                "Referer": f"{KWORK_WEB_BASE_URL}/new",
-                "X-Requested-With": "XMLHttpRequest",
-                "User-Agent": "Mozilla/5.0 PSR-KworkListing/1.0",
-            },
-            timeout=20.0,
-            follow_redirects=True,
-            proxy=kwork_http_proxy_url(rotate=False),
-            trust_env=False,
-        ) as client:
-            response = await client.get("/api/attribute/loadclassification", params=params, cookies=self.cookies)
-            verification = manual_verification_response(response.status_code, response.text, str(response.url))
-            if verification:
-                return {
-                    "success": False,
-                    "category_id": category_id,
-                    "attribute_id": attribute_id,
-                    "lang": lang,
-                    "html": "",
-                    "controls": [],
-                    "raw_keys": [],
-                    **verification,
-                }
-            response.raise_for_status()
+        response: httpx.Response | None = None
+        last_error = ""
+        for attempt in range(3):
             try:
-                data = response.json() if response.content else {}
-            except json.JSONDecodeError:
-                final_url = str(response.url)
-                login_required = "/login" in final_url or "login" in (response.text or "")[:800].lower()
-                return {
-                    "success": False,
-                    "ok": False,
-                    "category_id": category_id,
-                    "attribute_id": attribute_id,
-                    "lang": lang,
-                    "html": "",
-                    "controls": [],
-                    "raw_keys": [],
-                    "http_status": response.status_code,
-                    "code": "login_required" if login_required else "non_json_loadclassification_response",
-                    "detail": (response.text or "")[:500],
-                    "final_url": final_url,
-                }
+                async with httpx.AsyncClient(
+                    base_url=KWORK_WEB_BASE_URL,
+                    headers={
+                        "Accept": "application/json, text/plain, */*",
+                        "Referer": f"{KWORK_WEB_BASE_URL}/new",
+                        "X-Requested-With": "XMLHttpRequest",
+                        "User-Agent": "Mozilla/5.0 PSR-KworkListing/1.0",
+                    },
+                    timeout=30.0,
+                    follow_redirects=True,
+                    proxy=kwork_http_proxy_url(rotate=attempt == 2),
+                    trust_env=False,
+                ) as client:
+                    response = await client.get(
+                        "/api/attribute/loadclassification", params=params, cookies=self.cookies
+                    )
+                break
+            except httpx.TransportError as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                logger.warning(
+                    "Kwork classification transport retry "
+                    f"{attempt + 1}/3 for category {category_id}, attribute {attribute_id}: {last_error}"
+                )
+                if attempt < 2:
+                    await asyncio.sleep(1.5 if attempt == 0 else 4.0)
+
+        if response is None:
+            return {
+                "success": False,
+                "ok": False,
+                "category_id": category_id,
+                "attribute_id": attribute_id,
+                "lang": lang,
+                "html": "",
+                "controls": [],
+                "raw_keys": [],
+                "code": "classification_transport_error",
+                "detail": last_error or "Kwork classification connection failed.",
+            }
+
+        verification = manual_verification_response(response.status_code, response.text, str(response.url))
+        if verification:
+            return {
+                "success": False,
+                "category_id": category_id,
+                "attribute_id": attribute_id,
+                "lang": lang,
+                "html": "",
+                "controls": [],
+                "raw_keys": [],
+                **verification,
+            }
+        response.raise_for_status()
+        try:
+            data = response.json() if response.content else {}
+        except json.JSONDecodeError:
+            final_url = str(response.url)
+            login_required = "/login" in final_url or "login" in (response.text or "")[:800].lower()
+            return {
+                "success": False,
+                "ok": False,
+                "category_id": category_id,
+                "attribute_id": attribute_id,
+                "lang": lang,
+                "html": "",
+                "controls": [],
+                "raw_keys": [],
+                "http_status": response.status_code,
+                "code": "login_required" if login_required else "non_json_loadclassification_response",
+                "detail": (response.text or "")[:500],
+                "final_url": final_url,
+            }
         html = str(data.get("html") or "")
         return {
             "success": bool(data.get("success", True)),
@@ -804,42 +903,74 @@ class KworkWebListingClient:
         if draft_id:
             data["kwork_id"] = str(draft_id)
 
-        async with httpx.AsyncClient(
-            base_url=KWORK_WEB_BASE_URL,
-            headers={
-                "Accept": "application/json, text/plain, */*",
-                "Referer": f"{KWORK_WEB_BASE_URL}/new",
-                "X-Requested-With": "XMLHttpRequest",
-                "User-Agent": "Mozilla/5.0 PSR-KworkListing/1.0",
-            },
-            timeout=60.0,
-            follow_redirects=True,
-            proxy=kwork_http_proxy_url(rotate=False),
-            trust_env=False,
-        ) as client:
-            with file_path.open("rb") as fh:
-                response = await client.post(
-                    "/temp-image-upload",
-                    cookies=self.cookies,
-                    data=data,
-                    files={"file": (file_path.name, fh, "image/png")},
-                )
-            if "/login" in str(response.url):
-                return {"ok": False, "code": "login_required", "final_url": str(response.url)}
-            response.raise_for_status()
+        response: httpx.Response | None = None
+        last_error = ""
+        for attempt in range(3):
             try:
-                payload = response.json()
-            except json.JSONDecodeError:
+                async with httpx.AsyncClient(
+                    base_url=KWORK_WEB_BASE_URL,
+                    headers={
+                        "Accept": "application/json, text/plain, */*",
+                        "Referer": f"{KWORK_WEB_BASE_URL}/new",
+                        "X-Requested-With": "XMLHttpRequest",
+                        "User-Agent": "Mozilla/5.0 PSR-KworkListing/1.0",
+                    },
+                    timeout=90.0,
+                    follow_redirects=True,
+                    proxy=kwork_http_proxy_url(rotate=attempt == 2),
+                    trust_env=False,
+                ) as client:
+                    with file_path.open("rb") as fh:
+                        response = await client.post(
+                            "/temp-image-upload",
+                            cookies=self.cookies,
+                            data=data,
+                            files={"file": (file_path.name, fh, "image/png")},
+                        )
+                if "/login" in str(response.url):
+                    return {"ok": False, "code": "login_required", "final_url": str(response.url)}
+                response.raise_for_status()
+                break
+            except httpx.TransportError as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                logger.warning(f"Kwork cover upload transport retry {attempt + 1}/3 for {file_path.name}: {last_error}")
+                if attempt < 2:
+                    await asyncio.sleep(1.5 if attempt == 0 else 4.0)
+            except httpx.HTTPStatusError as exc:
                 return {
                     "ok": False,
-                    "code": "non_json_upload_response",
-                    "http_status": response.status_code,
-                    "detail": response.text[:500],
+                    "code": "cover_upload_http_error",
+                    "http_status": exc.response.status_code,
+                    "detail": (exc.response.text or str(exc))[:500],
                 }
 
+        if response is None or response.status_code >= 400:
+            return {
+                "ok": False,
+                "code": "cover_upload_transport_error",
+                "detail": last_error or "Kwork cover upload connection failed.",
+            }
+        try:
+            payload = response.json()
+        except json.JSONDecodeError:
+            return {
+                "ok": False,
+                "code": "non_json_upload_response",
+                "http_status": response.status_code,
+                "detail": response.text[:500],
+            }
+
         image_data = payload.get("data") if isinstance(payload.get("data"), dict) else payload
-        image_path = image_data.get("src") or image_data.get("image_path") or image_data.get("path") or image_data.get("name")
-        upload_draft_id = image_data.get("kwork_id") or image_data.get("draft_id") or payload.get("kwork_id") or payload.get("draft_id") or draft_id
+        image_path = (
+            image_data.get("src") or image_data.get("image_path") or image_data.get("path") or image_data.get("name")
+        )
+        upload_draft_id = (
+            image_data.get("kwork_id")
+            or image_data.get("draft_id")
+            or payload.get("kwork_id")
+            or payload.get("draft_id")
+            or draft_id
+        )
         if not image_path:
             return {
                 "ok": False,
@@ -856,6 +987,108 @@ class KworkWebListingClient:
             "first_photo_path": image_path or "",
             "first_photo_hash": image_data.get("image_hash") or image_data.get("hash") or "",
             "draft_id": str(upload_draft_id or "") if upload_draft_id else "",
+        }
+
+    async def upload_portfolio_image(
+        self,
+        path: str | Path,
+        *,
+        known_hashes: list[str] | None = None,
+        kwork_id: str | int | None = None,
+        portfolio_id: str | int | None = None,
+    ) -> dict[str, Any]:
+        """Upload one temporary portfolio image through Kwork's web endpoint."""
+
+        file_path = Path(path)
+        if not file_path.is_file():
+            return {"ok": False, "code": "portfolio_file_missing", "detail": str(file_path)}
+
+        data: dict[str, str] = {}
+        for index, value in enumerate(known_hashes or []):
+            if value:
+                data[f"hashes[{index}]"] = str(value)
+        if kwork_id not in (None, ""):
+            data["kwork_id"] = str(kwork_id)
+        if portfolio_id not in (None, ""):
+            data["portfolio_id"] = str(portfolio_id)
+
+        mime_type = "image/png" if file_path.suffix.lower() == ".png" else "image/jpeg"
+        response: httpx.Response | None = None
+        last_error = ""
+        for attempt in range(3):
+            try:
+                async with httpx.AsyncClient(
+                    base_url=KWORK_WEB_BASE_URL,
+                    headers={
+                        "Accept": "application/json, text/plain, */*",
+                        "Referer": f"{KWORK_WEB_BASE_URL}/new",
+                        "X-Requested-With": "XMLHttpRequest",
+                        "User-Agent": "Mozilla/5.0 PSR-KworkListing/1.0",
+                    },
+                    timeout=90.0,
+                    follow_redirects=True,
+                    proxy=kwork_http_proxy_url(rotate=attempt == 2),
+                    trust_env=False,
+                ) as client:
+                    with file_path.open("rb") as fh:
+                        response = await client.post(
+                            "/portfolio/upload_image",
+                            cookies=self.cookies,
+                            data=data,
+                            files={"file": (file_path.name, fh, mime_type)},
+                        )
+                if "/login" in str(response.url):
+                    return {"ok": False, "code": "login_required", "final_url": str(response.url)}
+                response.raise_for_status()
+                break
+            except httpx.TransportError as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                logger.warning(
+                    f"Kwork portfolio upload transport retry {attempt + 1}/3 for {file_path.name}: {last_error}"
+                )
+                if attempt < 2:
+                    await asyncio.sleep(1.5 if attempt == 0 else 4.0)
+            except httpx.HTTPStatusError as exc:
+                return {
+                    "ok": False,
+                    "code": "portfolio_upload_http_error",
+                    "http_status": exc.response.status_code,
+                    "detail": (exc.response.text or str(exc))[:500],
+                }
+
+        if response is None or response.status_code >= 400:
+            return {
+                "ok": False,
+                "code": "portfolio_upload_transport_error",
+                "detail": last_error or "Kwork portfolio upload connection failed.",
+            }
+        try:
+            payload = response.json()
+        except json.JSONDecodeError:
+            return {
+                "ok": False,
+                "code": "non_json_portfolio_upload_response",
+                "http_status": response.status_code,
+                "detail": response.text[:500],
+            }
+
+        image_data = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+        if not payload.get("success") or not image_data.get("id"):
+            return {
+                "ok": False,
+                "code": "portfolio_upload_failed",
+                "detail": payload.get("error") or payload.get("data") or "Kwork returned no portfolio media id.",
+                "raw": payload,
+            }
+        return {
+            "ok": True,
+            "raw": payload,
+            "id": int(image_data["id"]),
+            "hash": str(image_data.get("hash") or ""),
+            "url": str(image_data.get("url") or image_data.get("urlThumbnail") or ""),
+            "urlBig": str(image_data.get("urlBig") or image_data.get("url") or image_data.get("urlThumbnail") or ""),
+            "type": str(image_data.get("type") or "jpg"),
+            "crop": image_data.get("crop"),
         }
 
     async def save_kwork(self, form_payload: list[tuple[str, str]], referer: str | None = None) -> dict[str, Any]:
@@ -996,7 +1229,9 @@ class KworkWebListingClient:
                 if not name:
                     continue
                 control = dict(raw_control)
-                control["options"] = [dict(option) for option in raw_control.get("options") or [] if isinstance(option, dict)]
+                control["options"] = [
+                    dict(option) for option in raw_control.get("options") or [] if isinstance(option, dict)
+                ]
                 parent_ids = set(_selection_values(control.get("parent_option_ids")))
                 if parent_id is not None:
                     parent_ids.add(parent_id)
@@ -1038,13 +1273,16 @@ class KworkWebListingClient:
 
         def selected_dynamic_parent_ids(current_selection: dict[str, Any]) -> list[int]:
             selected_ids = set(selected_attribute_ids(current_selection))
-            parent_ids: list[int] = []
+            option_ids: set[int] = set()
             for control in deduped.values():
                 for option in control.get("options") or []:
                     option_id = _as_int(option.get("id"))
-                    if option_id is not None and option_id in selected_ids and option.get("has_child"):
-                        parent_ids.append(option_id)
-            return parent_ids
+                    if option_id is not None:
+                        option_ids.add(option_id)
+            # Kwork does not consistently expose a has-child marker in the HTML.
+            # Probing selected option ids is cheap and is the only reliable way to
+            # discover required child controls before live validation.
+            return sorted(selected_ids.intersection(option_ids))
 
         normalization = normalized_selection()
         selected = normalization["selection"]
@@ -1102,6 +1340,7 @@ class KworkWebListingClient:
             "fragments": [
                 {
                     "attribute_id": item["attribute_id"],
+                    "cache_status": item.get("cache_status", "miss"),
                     "count": item.get("count"),
                     "selectedCount": item.get("selectedCount"),
                     "disableIds": item.get("disableIds") or {},

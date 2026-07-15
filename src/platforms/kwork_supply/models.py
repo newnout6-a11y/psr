@@ -149,6 +149,7 @@ class MarketJobCreate:
     profile: str = "working"
     target_unique_cards: int = 60
     desired_workers: int = 2
+    account_registration_ids: tuple[str, ...] = ()
     network_policy: NetworkPolicy = NetworkPolicy.PREFER_VPNTE
     source_policy: SourcePolicy = SourcePolicy.VALIDATED_ONLY
     include_ai: bool = True
@@ -160,6 +161,20 @@ class MarketJobCreate:
             raise ValueError("target_unique_cards must be between 1 and 10000")
         if isinstance(self.desired_workers, bool) or not isinstance(self.desired_workers, int) or self.desired_workers <= 0:
             raise ValueError("desired_workers must be a positive integer")
+        normalized_accounts: list[str] = []
+        seen_accounts: set[str] = set()
+        for value in self.account_registration_ids:
+            if not isinstance(value, str):
+                raise ValueError("account_registration_ids must contain strings")
+            registration_id = value.strip()
+            if not registration_id:
+                raise ValueError("account_registration_ids cannot contain blanks")
+            if registration_id not in seen_accounts:
+                normalized_accounts.append(registration_id)
+                seen_accounts.add(registration_id)
+        if len(normalized_accounts) > 1_000:
+            raise ValueError("account_registration_ids cannot contain more than 1000 accounts")
+        object.__setattr__(self, "account_registration_ids", tuple(normalized_accounts))
         if self.request_budget is not None and self.request_budget <= 0:
             raise ValueError("request_budget must be positive")
         if self.time_budget_seconds is not None and self.time_budget_seconds <= 0:
@@ -176,6 +191,7 @@ class MarketJob:
     network_policy: NetworkPolicy
     source_policy: SourcePolicy
     include_ai: bool
+    account_registration_ids: tuple[str, ...] = ()
     state: JobState = JobState.PREPARING
     phase: JobPhase = JobPhase.PREPARE
     revision: int = 1
@@ -234,6 +250,8 @@ class TransportSnapshot:
     lease_owner: str | None = None
     quarantine_until: str | None = None
     last_rotate_reason: str | None = None
+    egress_ip: str | None = None
+    egress_checked_at: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

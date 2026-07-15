@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -195,7 +196,7 @@ def vpnte_config_snapshot() -> dict[str, Any]:
     client = VpnteProxyClient()
     return {
         "enabled": vpnte_proxy_enabled(),
-        "rotate_on_next": _truthy("VPNTE_PROXY_ROTATE_ON_NEXT", True),
+        "rotate_on_next": _truthy("VPNTE_PROXY_ROTATE_ON_NEXT", False),
         "strict": _truthy("VPNTE_PROXY_STRICT", True),
         "country": os.getenv("VPNTE_PROXY_COUNTRY", "").strip(),
         "profile_id": os.getenv("VPNTE_PROXY_PROFILE_ID", "").strip(),
@@ -291,6 +292,20 @@ class VpnteProxyClient:
         self.timeout = float(os.getenv("VPNTE_PROXY_TIMEOUT", "10") or "10")
 
     @property
+    def health_timeout(self) -> float:
+        try:
+            return max(self.timeout, float(os.getenv("VPNTE_PROXY_HEALTH_TIMEOUT", "20") or "20"))
+        except (TypeError, ValueError):
+            return max(self.timeout, 20.0)
+
+    @property
+    def health_warmup(self) -> float:
+        try:
+            return max(0.0, float(os.getenv("VPNTE_PROXY_HEALTH_WARMUP", "1") or "1"))
+        except (TypeError, ValueError):
+            return 1.0
+
+    @property
     def control_url(self) -> str:
         return (
             os.getenv("VPNTE_CONTROL_URL", "").strip().rstrip("/")
@@ -313,6 +328,7 @@ class VpnteProxyClient:
         method: str = "GET",
         params: dict[str, str | int | None] | None = None,
         auth: bool = False,
+        timeout: float | None = None,
     ) -> dict[str, Any]:
         query = self._query(params or {})
         url = f"{self.control_url}{path}"
@@ -332,7 +348,7 @@ class VpnteProxyClient:
 
         request = urllib.request.Request(url, data=data, headers=headers, method=method.upper())
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+            with urllib.request.urlopen(request, timeout=self.timeout if timeout is None else timeout) as response:
                 raw = response.read().decode("utf-8", errors="replace").strip()
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace").strip()
@@ -380,6 +396,57 @@ class VpnteProxyClient:
         payload = self._request("/status", params={"slot": normalized_slot})
         return _normalize_instance(payload, fallback_slot=normalized_slot)
 
+    def healthcheck(self, slot: int | str) -> dict[str, Any]:
+        normalized_slot = _normalize_slot(slot)
+        payload = self._request(
+            "/healthcheck",
+            method="POST",
+            auth=True,
+            params={"slot": normalized_slot},
+            timeout=self.health_timeout,
+        )
+        return _normalize_instance(payload, fallback_slot=normalized_slot)
+
+    def _confirm_action(
+        self,
+        payload: dict[str, Any],
+        *,
+        slot: int | None,
+        action: str,
+    ) -> dict[str, Any]:
+        direct = _normalize_instance(payload, fallback_slot=slot)
+        direct_slot = _optional_int(direct.get("slot"))
+        has_health_contract = "health" in direct or "processRunning" in direct
+
+        if has_health_contract and direct_slot is not None:
+            if _authoritative_instance([direct], slot=direct_slot) is not None:
+                return direct
+            if direct.get("processRunning") is True:
+                if self.health_warmup:
+                    time.sleep(self.health_warmup)
+                try:
+                    checked = self.healthcheck(direct_slot)
+                except Exception as exc:
+                    raise RuntimeError(
+                        f"VPNTE slot {direct_slot} health check after {action} did not complete: {exc}"
+                    ) from exc
+                if _authoritative_instance([checked], slot=direct_slot) is not None:
+                    return checked
+                health = str(checked.get("health") or "unhealthy")
+                detail = str(checked.get("lastError") or checked.get("last_error") or "no healthy proxyUrl")
+                raise RuntimeError(
+                    f"VPNTE slot {direct_slot} failed health check after {action}: {health}: {detail}"
+                )
+
+            health = str(direct.get("health") or "unhealthy")
+            detail = str(direct.get("lastError") or direct.get("last_error") or "proxy process is not running")
+            raise RuntimeError(f"VPNTE slot {direct_slot} failed after {action}: {health}: {detail}")
+
+        selected = _authoritative_instance(self.instances(), slot=slot)
+        if selected is None:
+            raise RuntimeError(f"VPNTE /instances did not confirm {action} slot {slot}")
+        return selected
+
     def list(self, country: str | None = None) -> list[dict[str, Any]]:
         payload = self._request("/list", params={"country": country})
         rows = payload.get("profiles", [])
@@ -402,17 +469,13 @@ class VpnteProxyClient:
             else (profile_id or os.getenv("VPNTE_PROXY_PROFILE_ID")),
             "port": port if normalized_slot is not None else (port or os.getenv("VPNTE_PROXY_PORT")),
         }
-        self._request(
+        payload = self._request(
             "/start",
             method="POST",
             auth=True,
             params=params,
         )
-        refreshed = self.instances()
-        selected = _authoritative_instance(refreshed, slot=normalized_slot)
-        if selected is None:
-            raise RuntimeError(f"VPNTE /instances did not confirm started slot {normalized_slot}")
-        return selected
+        return self._confirm_action(payload, slot=normalized_slot, action="started")
 
     def rotate(
         self,
@@ -431,17 +494,13 @@ class VpnteProxyClient:
             else (profile_id or os.getenv("VPNTE_PROXY_PROFILE_ID")),
             "port": port if normalized_slot is not None else (port or os.getenv("VPNTE_PROXY_PORT")),
         }
-        self._request(
+        payload = self._request(
             "/rotate",
             method="POST",
             auth=True,
             params=params,
         )
-        refreshed = self.instances()
-        selected = _authoritative_instance(refreshed, slot=normalized_slot)
-        if selected is None:
-            raise RuntimeError(f"VPNTE /instances did not confirm rotated slot {normalized_slot}")
-        return selected
+        return self._confirm_action(payload, slot=normalized_slot, action="rotated")
 
     def connect(
         self,
@@ -454,16 +513,13 @@ class VpnteProxyClient:
         profile = str(profile_id).strip()
         if not profile:
             raise ValueError("profile_id is required")
-        self._request(
+        payload = self._request(
             "/connect",
             method="POST",
             auth=True,
             params={"slot": normalized_slot, "id": profile},
         )
-        selected = _authoritative_instance(self.instances(), slot=normalized_slot)
-        if selected is None:
-            raise RuntimeError(f"VPNTE /instances did not confirm connected slot {normalized_slot}")
-        return selected
+        return self._confirm_action(payload, slot=normalized_slot, action="connected")
 
     def trigger(
         self,
@@ -476,11 +532,8 @@ class VpnteProxyClient:
         params: dict[str, str | int | None] = {"slot": normalized_slot}
         if profile_id is not None and str(profile_id).strip():
             params["id"] = str(profile_id).strip()
-        self._request("/trigger", method="POST", auth=True, params=params)
-        selected = _authoritative_instance(self.instances(), slot=normalized_slot)
-        if selected is None:
-            raise RuntimeError(f"VPNTE /instances did not confirm triggered slot {normalized_slot}")
-        return selected
+        payload = self._request("/trigger", method="POST", auth=True, params=params)
+        return self._confirm_action(payload, slot=normalized_slot, action="triggered")
 
     def stop(self, slot: int | str) -> dict[str, Any]:
         normalized_slot = _normalize_slot(slot)
@@ -542,10 +595,7 @@ class VpnteProxyClient:
             selected = self.ensure_started()
         slot = _optional_int(selected.get("slot"))
         if rotate and slot is not None:
-            self.rotate(slot=slot)
-            selected = _authoritative_instance(self.instances(), slot=slot)
-            if selected is None:
-                raise RuntimeError(f"VPNTE /instances did not confirm rotated slot {slot}")
+            selected = self.rotate(slot=slot)
         proxy_url = str(selected.get("proxyUrl") or "").strip()
         if not proxy_url:
             raise RuntimeError("VPNTE /instances returned no running proxyUrl")

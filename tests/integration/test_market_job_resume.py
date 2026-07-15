@@ -17,13 +17,14 @@ from src.platforms.kwork_supply.supervisor import MarketWorkerSupervisor
 
 
 def raw_catalog(cards: list[Mapping[str, object]]) -> dict[str, object]:
+    normalized_cards = [{**dict(card), "price": card.get("price", 20_000)} for card in cards]
     return {
         "success": True,
         "data": {
             "stateData": {
                 "viewData": {
                     "filters": {"activeCategoryId": 38, "kworksCount": 100},
-                    "kworks": {"total": 20, "total_found": 100, "posts": {"data": cards}},
+                    "kworks": {"total": 20, "total_found": 100, "posts": {"data": normalized_cards}},
                 }
             }
         },
@@ -122,8 +123,8 @@ async def test_expired_lease_is_recovered_and_job_continues_without_duplicate_ca
     assert any(event["type"] == "job.metrics" for event in events)
     assert any(event["type"] == "result.ready" for event in events)
     checkpoints = await repository.list_checkpoints("job_resume", limit=1)
-    assert checkpoints[0]["metrics"]["enrichment_selection"]["selected_count"] == 4
-    assert checkpoints[0]["metrics"]["ai_evidence"]["sample_based"] is True
+    assert checkpoints[0]["metrics"]["enrichment_selection"]["selected_count"] == 0
+    assert checkpoints[0]["metrics"]["ai_evidence"]["sample_based"] is False
 
 
 @pytest.mark.asyncio

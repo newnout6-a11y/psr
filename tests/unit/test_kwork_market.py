@@ -9,6 +9,7 @@ from src.platforms.kwork_market import (
     KworkMarketClient,
     _COMPETITOR_DETAIL_CACHE,
     _MARKET_METRICS_CACHE,
+    _PRICE_RULES_CACHE,
     _SELLER_DETAIL_CACHE,
     _clean_text,
     _market_api_retry_attempts,
@@ -28,9 +29,7 @@ class FakeKworkApi:
                     {
                         "id": 1,
                         "name": "Root",
-                        "subcategories": [
-                            {"id": 2, "name": "Child", "children": [{"id": 3, "name": "Leaf"}]}
-                        ],
+                        "subcategories": [{"id": 2, "name": "Child", "children": [{"id": 3, "name": "Leaf"}]}],
                     }
                 ]
             }
@@ -265,10 +264,18 @@ def test_clean_text_handles_kwork_volume_dict_and_html():
     bad_text = f"{bitrix} {maintenance}".encode("utf-8").decode("latin1")
 
     assert _clean_text({"volume_type_id": 0, "volume_service_in_kwork": bad_hour}) == f"1 {hour}"
-    assert _clean_text(f"{{'volume_type_id': 0, 'base_volume': 1, 'volume_service_in_kwork': '{bad_edit}'}}") == f"1 {edit}"
+    assert (
+        _clean_text(f"{{'volume_type_id': 0, 'base_volume': 1, 'volume_service_in_kwork': '{bad_edit}'}}")
+        == f"1 {edit}"
+    )
     assert _clean_text("{'volume_type_id': 0, 'base_volume': 1, 'volume_service_in_kwork': ''}") == ""
-    assert _clean_text(f"<p><strong>{bad_text.split()[0]}</strong> {bad_text.split()[1]}</p>") == f"{bitrix} {maintenance}"
-    assert _clean_text(f"&lt;p&gt;&lt;strong&gt;{bad_text.split()[0]}&lt;/strong&gt; {bad_text.split()[1]}&lt;/p&gt;") == f"{bitrix} {maintenance}"
+    assert (
+        _clean_text(f"<p><strong>{bad_text.split()[0]}</strong> {bad_text.split()[1]}</p>") == f"{bitrix} {maintenance}"
+    )
+    assert (
+        _clean_text(f"&lt;p&gt;&lt;strong&gt;{bad_text.split()[0]}&lt;/strong&gt; {bad_text.split()[1]}&lt;/p&gt;")
+        == f"{bitrix} {maintenance}"
+    )
 
 
 def test_build_market_insights_summarizes_competition_for_ui():
@@ -307,15 +314,23 @@ def test_build_market_insights_summarizes_competition_for_ui():
     assert insights["price"] == {"min": 1000, "median": 2000, "max": 7000, "sample_size": 3}
     assert insights["seller_review_strength"]["reviews_100_plus"] == 2
     assert insights["seller_repetition_in_sample"]["repeated_sellers"] == [{"seller": "seller_a", "cards": 2}]
-    assert insights["top_classifiers"][0]["name"] == "\u0414\u043e\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0441\u0430\u0439\u0442\u0430"
+    assert (
+        insights["top_classifiers"][0]["name"]
+        == "\u0414\u043e\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0441\u0430\u0439\u0442\u0430"
+    )
     assert any(item["term"] == "wordpress" for item in insights["title_terms"])
     assert any("13626" in item for item in insights["bullets"])
     assert any("В выбранном срезе" in item for item in insights["bullets"])
     assert any("Упакуй доверие" in item for item in insights["recommendations"])
-    visible_text = insights["bullets"] + insights["recommendations"] + [item["name"] for item in insights["top_classifiers"]]
+    visible_text = (
+        insights["bullets"] + insights["recommendations"] + [item["name"] for item in insights["top_classifiers"]]
+    )
     assert not any(any(marker in item for marker in ("Рџ", "Р’", "Ð", "PSC")) for item in visible_text)
     assert insights["recommendations"]
-    assert any(item["query"] == "\u0414\u043e\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0441\u0430\u0439\u0442\u0430" for item in insights["search_queries"])
+    assert any(
+        item["query"] == "\u0414\u043e\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0441\u0430\u0439\u0442\u0430"
+        for item in insights["search_queries"]
+    )
     assert any(item["source"] == "classifier" for item in insights["search_queries"])
 
 
@@ -368,7 +383,9 @@ async def test_web_catalog_alias_snapshot_throttles_and_summarizes(tmp_path):
     assert data["errors"][0]["status"] == "invalid_alias"
     assert data["results"][0]["cookie_count"] == 1
     assert data["file_path"].startswith(str(tmp_path))
-    assert json.loads((tmp_path / Path(data["file_path"]).name).read_text(encoding="utf-8"))["aggregate"]["ok_count"] == 1
+    assert (
+        json.loads((tmp_path / Path(data["file_path"]).name).read_text(encoding="utf-8"))["aggregate"]["ok_count"] == 1
+    )
 
 
 @pytest.mark.asyncio
@@ -448,7 +465,11 @@ async def test_market_metrics_uses_selected_attribute_option_as_effective_classi
         attribute_filters={"attribute[208]": 3587, "attribute[3610][]": [3612]},
         attribute_controls=[
             {"name": "attribute[208]", "options": [{"id": 3587, "label": "Р В§Р В°РЎвЂљ-Р В±Р С•РЎвЂљРЎвЂ№"}]},
-            {"name": "attribute[3610][]", "question": "Р СџР В»Р В°РЎвЂљРЎвЂћР С•РЎР‚Р СР В°", "options": [{"id": 3612, "label": "Telegram"}]},
+            {
+                "name": "attribute[3610][]",
+                "question": "Р СџР В»Р В°РЎвЂљРЎвЂћР С•РЎР‚Р СР В°",
+                "options": [{"id": 3612, "label": "Telegram"}],
+            },
         ],
     )
 
@@ -774,6 +795,83 @@ async def test_market_intelligence_snapshot_attaches_price_rules():
 
 
 @pytest.mark.asyncio
+async def test_price_rules_cache_reuses_successful_response(monkeypatch):
+    from src.platforms import kwork_market as kwork_market_module
+
+    _PRICE_RULES_CACHE.clear()
+    calls: list[dict] = []
+
+    class Response:
+        content = b"{}"
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"response": {"prices": {"minPrice": 500, "maxPrice": 70000}}}
+
+    class AsyncClient:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, traceback):
+            return None
+
+        async def get(self, path, *, params):
+            calls.append({"path": path, "params": params, "proxy": self.kwargs.get("proxy")})
+            return Response()
+
+    monkeypatch.setattr(kwork_market_module.httpx, "AsyncClient", AsyncClient)
+    client = KworkMarketClient(api=FakeKworkApi(), use_environment_proxy=False)
+
+    first = await client.get_price_rules(25)
+    second = await client.get_price_rules(25)
+
+    assert len(calls) == 1
+    assert first["status"] == "ok"
+    assert first["cache_status"] == "miss"
+    assert second["cache_status"] == "hit"
+    assert second["response"]["prices"]["minPrice"] == 500
+
+
+@pytest.mark.asyncio
+async def test_price_rules_transport_failure_is_non_blocking(monkeypatch):
+    from src.platforms import kwork_market as kwork_market_module
+
+    _PRICE_RULES_CACHE.clear()
+    monkeypatch.setenv("KWORK_MARKET_API_RETRY_ATTEMPTS", "2")
+    calls = 0
+
+    class AsyncClient:
+        def __init__(self, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, traceback):
+            return None
+
+        async def get(self, path, *, params):
+            nonlocal calls
+            calls += 1
+            request = kwork_market_module.httpx.Request("GET", f"https://kwork.ru{path}")
+            raise kwork_market_module.httpx.ReadError("connection closed", request=request)
+
+    monkeypatch.setattr(kwork_market_module.httpx, "AsyncClient", AsyncClient)
+    result = await KworkMarketClient(api=FakeKworkApi(), use_environment_proxy=False).get_price_rules(25)
+
+    assert calls == 2
+    assert result["success"] is False
+    assert result["status"] == "unavailable"
+    assert result["prices"] is None
+    assert "ReadError" in result["detail"]
+
+
+@pytest.mark.asyncio
 async def test_buyer_scout_without_rubric_or_explicit_probes_does_not_use_default_windows(monkeypatch):
     from src.platforms import kwork as kwork_module
 
@@ -1015,7 +1113,9 @@ async def test_buyer_scout_ranks_low_offer_projects_and_attaches_details(monkeyp
     assert summary["best_windows"][0]["name"] == "telegram"
     assert summary["next_actions"]
     assert any("Сначала ответь" in item for item in summary["next_actions"])
-    assert not any("Reply first" in item or "Рџ" in item or "Р’" in item or "Ð" in item for item in summary["next_actions"])
+    assert not any(
+        "Reply first" in item or "Рџ" in item or "Р’" in item or "Ð" in item for item in summary["next_actions"]
+    )
     assert data["top"][0]["id"] == 1
     assert data["top"][0]["score"] > data["top"][1]["score"]
     assert data["top"][0]["project_detail"]["status"] == "ok"
@@ -1025,8 +1125,14 @@ async def test_buyer_scout_ranks_low_offer_projects_and_attaches_details(monkeyp
     assert {"zero_offer", "repeat_buyers", "proven_buyers"} <= signal_kinds
     assert "probe_leaders" not in signal_kinds
     signal_labels = {item["kind"]: item["label"] for item in data["aggregate"]["market_signals"]}
-    assert signal_labels["zero_offer"] == "\u041b\u043e\u0442\u044b \u0431\u0435\u0437 \u043e\u0442\u043a\u043b\u0438\u043a\u043e\u0432"
-    assert signal_labels["proven_buyers"] == "\u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u0438 \u043d\u0430\u043d\u0438\u043c\u0430\u044e\u0442"
+    assert (
+        signal_labels["zero_offer"]
+        == "\u041b\u043e\u0442\u044b \u0431\u0435\u0437 \u043e\u0442\u043a\u043b\u0438\u043a\u043e\u0432"
+    )
+    assert (
+        signal_labels["proven_buyers"]
+        == "\u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u0438 \u043d\u0430\u043d\u0438\u043c\u0430\u044e\u0442"
+    )
     signal_text = [
         text
         for item in data["aggregate"]["market_signals"]
@@ -1155,10 +1261,19 @@ async def test_buyer_scout_control_probe_does_not_change_rubric_ranking(monkeypa
         async def get_raw_projects(self, **kwargs):
             query = str(kwargs.get("query") or "")
             if query == "сайты":
-                return ([{"id": 1, "title": "Доработка сайта", "category_id": 41, "price": 3000, "offers": 0}], {"paging": {"total": 1}})
+                return (
+                    [{"id": 1, "title": "Доработка сайта", "category_id": 41, "price": 3000, "offers": 0}],
+                    {"paging": {"total": 1}},
+                )
             if query == "ручная проверка":
-                return ([{"id": 2, "title": "Лот только для контроля", "category_id": 41, "price": 3000, "offers": 0}], {"paging": {"total": 1}})
-            return ([{"id": 3, "title": "Сайт", "category_id": 41, "price": 3000, "offers": 0}], {"paging": {"total": 1}})
+                return (
+                    [{"id": 2, "title": "Лот только для контроля", "category_id": 41, "price": 3000, "offers": 0}],
+                    {"paging": {"total": 1}},
+                )
+            return (
+                [{"id": 3, "title": "Сайт", "category_id": 41, "price": 3000, "offers": 0}],
+                {"paging": {"total": 1}},
+            )
 
     monkeypatch.setattr(kwork_module, "get_kwork_service", lambda: Service())
     client = KworkMarketClient(api=FakeKworkApi())

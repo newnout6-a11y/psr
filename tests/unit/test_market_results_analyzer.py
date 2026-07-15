@@ -135,9 +135,35 @@ async def test_analyzer_uses_durable_enrichment_for_clusters_and_terra_dossier(t
     result = await MarketResultsAnalyzer(
         repository,
         semantic_analyzer=LocalSemanticAnalyzer(embedder=_AnalyzerEmbedder()),
+        ai_verdict_provider=lambda packet: _fake_ai_verdict(packet),
     ).analyze("job_local_semantic")
 
     assert result["semantic_analysis"]["cluster_count"] == 1
     assert result["semantic_analysis"]["embedding_models"] == ["test-analyzer-embedder"]
     assert result["ai_evidence"]["sample_based"] is False
     assert len(result["ai_evidence"]["terra_dossier"]["groups"]) == 1
+    assert result["ai_verdict"]["status"] == "ok"
+    assert result["ai_verdict"]["market_verdict"] == "promising_for_entry"
+    assert result["checkpoint"]["metrics"]["ai_verdict"] == result["ai_verdict"]
+
+
+async def _fake_ai_verdict(packet):
+    group = packet["dossier"]["groups"][0]
+    return {
+        "market_verdict": "promising_for_entry",
+        "confidence": 78,
+        "summary": "Есть подтверждённая группа с умеренным барьером входа.",
+        "reasons": ["Есть свежие отзывы и несколько продавцов."],
+        "opportunities": [
+            {
+                "cluster_id": group["cluster_id"],
+                "label": group["label"],
+                "verdict": "promising_for_entry",
+                "confidence": 78,
+                "why": "Спрос подтверждён локальными доказательствами.",
+                "evidence_ids": group["evidence_ids"],
+            }
+        ],
+        "risks": [],
+        "rejected_cases": [],
+    }

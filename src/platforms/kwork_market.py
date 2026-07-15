@@ -18,7 +18,7 @@ from collections import Counter
 from datetime import UTC, datetime
 from html import unescape
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 import httpx
 from loguru import logger
@@ -32,11 +32,13 @@ CATALOG_ALIAS_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*(?:/[a-z0-9][a-z0-9_-]*)*$")
 MARKET_METRICS_CACHE_TTL = 120.0
 COMPETITOR_DETAIL_CACHE_TTL = 900.0
 SELLER_DETAIL_CACHE_TTL = 900.0
+PRICE_RULES_CACHE_TTL = 900.0
 _MARKET_METRICS_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 _MARKET_METRICS_INFLIGHT: dict[str, asyncio.Task[dict[str, Any]]] = {}
 _MARKET_CACHE_LOCK = asyncio.Lock()
 _COMPETITOR_DETAIL_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 _SELLER_DETAIL_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+_PRICE_RULES_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 BUYER_REASONABLE_BUDGET_MAX = 150000
 BUYER_DEFAULT_PRICE_TO = 5000
 
@@ -591,16 +593,16 @@ def build_market_insights(
     if kworks_count is not None:
         bullets.append(f"В выбранном срезе найдено {kworks_count} кворков.")
     if prices:
-        bullets.append(
-            f"Цена в топе: от {min(prices)} ₽ до {max(prices)} ₽, медиана {price_summary['median']} ₽."
-        )
+        bullets.append(f"Цена в топе: от {min(prices)} ₽ до {max(prices)} ₽, медиана {price_summary['median']} ₽.")
     if reviews:
         bullets.append(
             f"В выборке {reviews_100_plus}/{len(reviews)} карточек имеют 100+ отзывов; это индикатор силы продавцов, а не качества ниши."
         )
     if repeated_sellers:
         sellers_text = ", ".join(f"{item['seller']} ({item['cards']})" for item in repeated_sellers[:4])
-        bullets.append(f"В этой выборке повторяются продавцы {sellers_text}; это повтор карточек, а не концентрация рынка.")
+        bullets.append(
+            f"В этой выборке повторяются продавцы {sellers_text}; это повтор карточек, а не концентрация рынка."
+        )
     if title_terms:
         bullets.append("Частые темы в заголовках: " + ", ".join(item["term"] for item in title_terms[:6]) + ".")
     if body_terms:
@@ -615,17 +617,25 @@ def build_market_insights(
 
     recommendations: list[str] = []
     if reviews and reviews_100_plus >= max(1, len(reviews) // 2):
-        recommendations.append("Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы.")
+        recommendations.append(
+            "Упакуй доверие: кейсы, гарантия, понятный объём работ и сильная обложка важнее общей фразы."
+        )
     if price_summary["median"]:
         recommendations.append(f"Базовую цену лучше держать около медианы среза: примерно {price_summary['median']} ₽.")
     if title_terms:
         recommendations.append(
-            "В заголовке стоит явно назвать технологию или тип услуги: " + ", ".join(item["term"] for item in title_terms[:4]) + "."
+            "В заголовке стоит явно назвать технологию или тип услуги: "
+            + ", ".join(item["term"] for item in title_terms[:4])
+            + "."
         )
     if repeated_sellers:
-        recommendations.append("Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез.")
+        recommendations.append(
+            "Не копируй топ целиком: повторяющиеся продавцы занимают места за счёт доверия, ищи более узкий срез."
+        )
     if top_classifiers:
-        narrow = [item for item in top_classifiers if item.get("kworks_count") and item["kworks_count"] < (kworks_count or 0)]
+        narrow = [
+            item for item in top_classifiers if item.get("kworks_count") and item["kworks_count"] < (kworks_count or 0)
+        ]
         if narrow:
             recommendations.append(
                 "Проверь более узкие срезы: "
@@ -725,7 +735,9 @@ def selected_classifier_ids_from_attributes(
         if name not in (selection or {}):
             continue
         options = control.get("options") if isinstance(control.get("options"), list) else []
-        option_ids = {_as_int(option.get("id") or option.get("value")) for option in options if isinstance(option, dict)}
+        option_ids = {
+            _as_int(option.get("id") or option.get("value")) for option in options if isinstance(option, dict)
+        }
         option_ids.discard(0)
         if not option_ids:
             continue
@@ -837,19 +849,11 @@ def _extract_state_data(html: str) -> dict[str, Any]:
 
 
 def _meta_content(html: str, key: str) -> str:
-    pattern = (
-        r"<meta[^>]+(?:name|property)=[\"']"
-        + re.escape(key)
-        + r"[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>"
-    )
+    pattern = r"<meta[^>]+(?:name|property)=[\"']" + re.escape(key) + r"[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>"
     match = re.search(pattern, html, flags=re.I)
     if match:
         return _clean_text(match.group(1))
-    pattern = (
-        r"<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:name|property)=[\"']"
-        + re.escape(key)
-        + r"[\"'][^>]*>"
-    )
+    pattern = r"<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:name|property)=[\"']" + re.escape(key) + r"[\"'][^>]*>"
     match = re.search(pattern, html, flags=re.I)
     return _clean_text(match.group(1)) if match else ""
 
@@ -863,29 +867,67 @@ class KworkMarketClient:
         *,
         proxy_url: str | None = None,
         use_environment_proxy: bool = True,
+        account_email: str = "",
+        account_password: str = "",
+        account_cookies: Mapping[str, str] | None = None,
+        persona_headers: Mapping[str, str] | None = None,
     ) -> None:
         self._api = api
         self._owns_api = api is None
         self._proxy_url = proxy_url
         self._use_environment_proxy = use_environment_proxy
+        self._account_email = account_email.strip()
+        self._account_password = account_password
+        self._account_cookies = {
+            str(name): str(value) for name, value in (account_cookies or {}).items() if str(name).strip() and str(value)
+        }
+        self._persona_headers = {
+            str(name): str(value) for name, value in (persona_headers or {}).items() if str(name).strip() and str(value)
+        }
 
-    def _configured_proxy(self) -> str | None:
+    def _configured_proxy(self, *, rotate: bool = False) -> str | None:
         if self._proxy_url is not None:
             return self._proxy_url
-        return _market_http_proxy_url(rotate=False) if self._use_environment_proxy else None
+        return _market_http_proxy_url(rotate=rotate) if self._use_environment_proxy else None
 
     async def _get_api(self) -> Any:
         if self._api is None:
             from kwork import Kwork
 
             self._api = Kwork(
-                login="",
-                password="",
+                login=self._account_email,
+                password=self._account_password,
                 timeout=_market_api_timeout(),
                 retry_max_attempts=_market_api_retry_attempts(),
                 proxy=self._configured_proxy(),
             )
+            self._apply_account_identity(self._api)
         return self._api
+
+    def _apply_account_identity(self, api: Any) -> None:
+        """Apply one stored account session and stable request headers to a Kwork API instance."""
+
+        if not self._account_cookies and not self._persona_headers:
+            return
+        try:
+            session = api.session
+        except Exception:
+            return
+        try:
+            if self._account_cookies:
+                cookie_jar = getattr(session, "cookie_jar", None)
+                if cookie_jar is not None and hasattr(cookie_jar, "update_cookies"):
+                    from yarl import URL
+
+                    cookie_jar.update_cookies(self._account_cookies, response_url=URL(KWORK_WEB_BASE_URL))
+                    cookie_jar.update_cookies(self._account_cookies, response_url=URL("https://api.kwork.ru/"))
+                elif hasattr(session, "cookies"):
+                    session.cookies.update(self._account_cookies)
+            headers = getattr(session, "headers", None)
+            if headers is not None and self._persona_headers:
+                headers.update(self._persona_headers)
+        except Exception:
+            return
 
     async def close(self) -> None:
         if self._owns_api and self._api is not None:
@@ -986,27 +1028,76 @@ class KworkMarketClient:
         return result
 
     async def get_price_rules(self, category_id: int, attribute_id: int | None = None) -> dict[str, Any]:
+        if category_id <= 0:
+            raise ValueError("category_id must be positive")
+
         endpoint = "attributegetprices" if attribute_id else "categorygetprices"
         params: dict[str, Any] = {"categoryId": category_id, "lang": "ru"}
         if attribute_id:
             params["attributeId"] = attribute_id
 
-        async with httpx.AsyncClient(
-            base_url=f"{KWORK_WEB_BASE_URL}/api/freeprice",
-            headers={
-                "Accept": "application/json, text/plain, */*",
-                "Referer": f"{KWORK_WEB_BASE_URL}/new",
-                "X-Requested-With": "XMLHttpRequest",
-                "User-Agent": "Mozilla/5.0 PSR-KworkMarket/1.0",
-            },
-            timeout=_market_api_timeout(),
-            follow_redirects=True,
-            proxy=self._configured_proxy(),
-            trust_env=False,
-        ) as client:
-            response = await client.get(f"/{endpoint}", params=params)
-            response.raise_for_status()
-            return response.json() if response.content else {}
+        cache_key = f"{category_id}:{attribute_id or 0}"
+        cache_item = _PRICE_RULES_CACHE.get(cache_key)
+        if cache_item and time.monotonic() - cache_item[0] <= PRICE_RULES_CACHE_TTL:
+            cached = copy.deepcopy(cache_item[1])
+            cached["cache_status"] = "hit"
+            return cached
+
+        last_error: BaseException | None = None
+        attempts = _market_api_retry_attempts()
+        for attempt in range(attempts):
+            try:
+                async with httpx.AsyncClient(
+                    base_url=f"{KWORK_WEB_BASE_URL}/api/freeprice",
+                    headers={
+                        "Accept": "application/json, text/plain, */*",
+                        "Referer": f"{KWORK_WEB_BASE_URL}/new",
+                        "X-Requested-With": "XMLHttpRequest",
+                        "User-Agent": "Mozilla/5.0 PSR-KworkMarket/1.0",
+                    },
+                    timeout=_market_api_timeout(),
+                    follow_redirects=True,
+                    proxy=self._configured_proxy(rotate=attempt > 0),
+                    trust_env=False,
+                ) as client:
+                    response = await client.get(f"/{endpoint}", params=params)
+                    response.raise_for_status()
+                    payload = response.json() if response.content else {}
+                    result = payload if isinstance(payload, dict) else {}
+                    result.setdefault("success", True)
+                    result.update(
+                        {
+                            "status": "ok",
+                            "category_id": category_id,
+                            "attribute_id": attribute_id,
+                            "cache_status": "miss",
+                        }
+                    )
+                    _PRICE_RULES_CACHE[cache_key] = (time.monotonic(), copy.deepcopy(result))
+                    return result
+            except (httpx.HTTPError, ValueError) as exc:
+                last_error = exc
+                if attempt + 1 < attempts:
+                    await asyncio.sleep(min(0.25 * (attempt + 1), 1.0))
+
+        detail = f"{type(last_error).__name__}: {last_error}" if last_error else "price rules request failed"
+        if cache_item:
+            stale = copy.deepcopy(cache_item[1])
+            stale.update({"status": "stale", "cache_status": "stale", "detail": detail})
+            logger.warning(f"KworkMarket: price rules {cache_key} unavailable, using stale cache: {detail}")
+            return stale
+
+        logger.warning(f"KworkMarket: price rules {cache_key} unavailable: {detail}")
+        return {
+            "success": False,
+            "status": "unavailable",
+            "category_id": category_id,
+            "attribute_id": attribute_id,
+            "prices": None,
+            "response": {},
+            "cache_status": "miss",
+            "detail": detail,
+        }
 
     @staticmethod
     def summarize_price_rules(data: dict[str, Any]) -> dict[str, Any]:
@@ -1107,18 +1198,21 @@ class KworkMarketClient:
                 params[str(key)] = value
 
         endpoint = f"/catalog_kworks_filters/{clean_alias}"
+        request_headers = {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+            "Referer": f"{KWORK_WEB_BASE_URL}/categories/{clean_alias}",
+            "X-Requested-With": "XMLHttpRequest",
+            "User-Agent": "Mozilla/5.0 PSR-KworkMarket/1.0",
+        }
+        request_headers.update(self._persona_headers)
+        effective_cookies = cookies if cookies is not None else self._account_cookies
         async with httpx.AsyncClient(
             base_url=KWORK_WEB_BASE_URL,
-            headers={
-                "Accept": "application/json, text/javascript, */*; q=0.01",
-                "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
-                "Referer": f"{KWORK_WEB_BASE_URL}/categories/{clean_alias}",
-                "X-Requested-With": "XMLHttpRequest",
-                "User-Agent": "Mozilla/5.0 PSR-KworkMarket/1.0",
-            },
+            headers=request_headers,
             timeout=_market_api_timeout(),
             follow_redirects=True,
-            cookies=cookies or None,
+            cookies=effective_cookies or None,
             proxy=self._configured_proxy(),
             trust_env=False,
         ) as client:
@@ -1317,7 +1411,9 @@ class KworkMarketClient:
             for item in _safe_list(catalog.get("kworks")):
                 if not isinstance(item, dict):
                     continue
-                key = str(item.get("id") or item.get("PID") or item.get("share_url") or item.get("url") or len(merged_kworks))
+                key = str(
+                    item.get("id") or item.get("PID") or item.get("share_url") or item.get("url") or len(merged_kworks)
+                )
                 if key in seen_kworks:
                     continue
                 seen_kworks.add(key)
@@ -1380,7 +1476,10 @@ class KworkMarketClient:
                     "title": item.get("title") or item.get("name"),
                     "price": item.get("price") or item.get("priceWithCurrency"),
                     "classifier_id": item.get("classifier_id") or item.get("classifierId"),
-                    "image_url": item.get("image_url") or cover.get("tablet") or cover.get("phone") or item.get("photo"),
+                    "image_url": item.get("image_url")
+                    or cover.get("tablet")
+                    or cover.get("phone")
+                    or item.get("photo"),
                     "share_url": share_url,
                     "worker": worker.get("username") or item.get("username"),
                     "worker_avatar": worker.get("profilepicture"),
@@ -1480,14 +1579,12 @@ class KworkMarketClient:
                 or stats.get("reviews_count")
                 or reviews.get("count")
             ),
-            "completed_orders": stats.get("completed_orders") or profile.get("completed_orders") or user.get("orders_done"),
+            "completed_orders": stats.get("completed_orders")
+            or profile.get("completed_orders")
+            or user.get("orders_done"),
             "active_kworks_count": stats.get("active_kworks_count") or profile.get("active_kworks_count"),
             "portfolio_count": len(portfolio),
-            "skills": [
-                item.get("name") if isinstance(item, dict) else str(item)
-                for item in skills[:12]
-                if item
-            ],
+            "skills": [item.get("name") if isinstance(item, dict) else str(item) for item in skills[:12] if item],
             "raw_keys": sorted(profile.keys()),
         }
 
@@ -1621,7 +1718,10 @@ class KworkMarketClient:
                         "worker": worker.get("username") or item.get("username"),
                         "rating": worker.get("rating") or item.get("rating"),
                         "reviews": worker.get("reviews_count") or item.get("reviews_count"),
-                        "image_url": item.get("image_url") or cover.get("tablet") or cover.get("phone") or item.get("photo"),
+                        "image_url": item.get("image_url")
+                        or cover.get("tablet")
+                        or cover.get("phone")
+                        or item.get("photo"),
                     }
                 )
             return {"total": len(items), "items": related}
@@ -1746,7 +1846,9 @@ class KworkMarketClient:
                 seller_counts[username] = seller_counts.get(username, 0) + 1
         usernames = [
             username
-            for username, _count in sorted(seller_counts.items(), key=lambda item: item[1], reverse=True)[: max(0, limit)]
+            for username, _count in sorted(seller_counts.items(), key=lambda item: item[1], reverse=True)[
+                : max(0, limit)
+            ]
         ]
         if not usernames:
             return []
@@ -1790,10 +1892,7 @@ class KworkMarketClient:
         short_user = kwork.get("short_user_info") if isinstance(kwork.get("short_user_info"), dict) else {}
 
         title = _clean_text(
-            kwork.get("kwork_title")
-            or kwork.get("title")
-            or kwork.get("gtitle")
-            or competitor.get("title"),
+            kwork.get("kwork_title") or kwork.get("title") or kwork.get("gtitle") or competitor.get("title"),
             220,
         )
         description = _clean_text(
@@ -1817,7 +1916,10 @@ class KworkMarketClient:
         worker = _clean_text(short_user.get("username") or kwork.get("username") or competitor.get("worker"), 80)
         extra: dict[str, Any] = {"status": "skipped"}
         try:
-            extra = {"status": "ok", **self.summarize_competitor_extra(await self.request("getKworkDetailsExtra", id=kwork_id))}
+            extra = {
+                "status": "ok",
+                **self.summarize_competitor_extra(await self.request("getKworkDetailsExtra", id=kwork_id)),
+            }
         except Exception as exc:
             extra = {"status": "error", "error": f"{type(exc).__name__}: {exc}"}
 
@@ -2615,7 +2717,11 @@ class KworkMarketClient:
             reverse=True,
         )
         high_budget = sorted(
-            [project for project in low_offer if budget(project) >= 10000 and (not budget_max or budget(project) <= budget_max)],
+            [
+                project
+                for project in low_offer
+                if budget(project) >= 10000 and (not budget_max or budget(project) <= budget_max)
+            ],
             key=lambda project: (budget(project), project.get("score") or 0),
             reverse=True,
         )
@@ -2737,11 +2843,17 @@ class KworkMarketClient:
         ]
         next_actions: list[str] = []
         if zero_offer:
-            next_actions.append(f"Сначала ответь на {len(zero_offer)} лотов без откликов, пока туда не набежали конкуренты.")
+            next_actions.append(
+                f"Сначала ответь на {len(zero_offer)} лотов без откликов, пока туда не набежали конкуренты."
+            )
         if budget_fit:
-            next_actions.append(f"Держи потолок бюджета {budget_cap} ₽ для этого аккаунта: найдено {len(budget_fit)} подходящих лотов с малой конкуренцией.")
+            next_actions.append(
+                f"Держи потолок бюджета {budget_cap} ₽ для этого аккаунта: найдено {len(budget_fit)} подходящих лотов с малой конкуренцией."
+            )
         if best_windows:
-            next_actions.append(f"Повтори самый сильный поисковый срез: {best_windows[0]['name']} ({best_windows[0]['count']} лотов).")
+            next_actions.append(
+                f"Повтори самый сильный поисковый срез: {best_windows[0]['name']} ({best_windows[0]['count']} лотов)."
+            )
         if proven:
             next_actions.append(f"Выше ставь {len(proven)} покупателей с видимой историей найма.")
         if query_suggestions:
@@ -2937,7 +3049,11 @@ class KworkMarketClient:
                             parsed = None
                 if parsed is None:
                     try:
-                        parsed = json.loads(raw_text[raw_text.find("{") : raw_text.rfind("}") + 1]) if "{" in raw_text and "}" in raw_text else None
+                        parsed = (
+                            json.loads(raw_text[raw_text.find("{") : raw_text.rfind("}") + 1])
+                            if "{" in raw_text and "}" in raw_text
+                            else None
+                        )
                     except Exception:
                         parsed = None
             recommendations = self._normalize_buyer_recommendations(parsed or [], limit=max_recommendations)
@@ -2959,7 +3075,9 @@ class KworkMarketClient:
                     "why": "Самый частый термин в текущих лотах рубрики.",
                     "budget": f"{context.get('budget_min') or 0}–{context.get('budget_max_seen') or context.get('budget_max') or 0} ₽",
                     "competition": "по частоте в выборке",
-                    "examples": [example.get("title") for example in context.get("examples", [])[:3] if example.get("title")],
+                    "examples": [
+                        example.get("title") for example in context.get("examples", [])[:3] if example.get("title")
+                    ],
                 }
             )
         if not fallback:
@@ -2971,7 +3089,9 @@ class KworkMarketClient:
                     "why": "Базовый запрос из выбранной рубрики.",
                     "budget": f"до {context.get('budget_max') or BUYER_DEFAULT_PRICE_TO} ₽",
                     "competition": "неизвестно",
-                    "examples": [example.get("title") for example in context.get("examples", [])[:3] if example.get("title")],
+                    "examples": [
+                        example.get("title") for example in context.get("examples", [])[:3] if example.get("title")
+                    ],
                 }
             ]
         return self._normalize_buyer_recommendations(fallback, limit=max_recommendations)
@@ -3008,7 +3128,12 @@ class KworkMarketClient:
                 fetch_cookies = getattr(service, "_fetch_session_hub_cookies", None)
                 cookies = await fetch_cookies() if fetch_cookies else {}
             if not cookies:
-                return {"status": "skipped", "query": clean_query, "detail": "missing Session Hub cookies", "suggestions": []}
+                return {
+                    "status": "skipped",
+                    "query": clean_query,
+                    "detail": "missing Session Hub cookies",
+                    "suggestions": [],
+                }
 
             async with httpx.AsyncClient(
                 headers={
@@ -3291,9 +3416,13 @@ class KworkMarketClient:
                 ]
                 rubric_sample_projects.extend(page_projects)
                 page_paging = (
-                    page_meta.get("paging") if isinstance(page_meta, dict) and isinstance(page_meta.get("paging"), dict) else {}
+                    page_meta.get("paging")
+                    if isinstance(page_meta, dict) and isinstance(page_meta.get("paging"), dict)
+                    else {}
                 )
-                current_total = _as_int(page_paging.get("total") or page_meta.get("total") or len(page_projects), default=len(page_projects))
+                current_total = _as_int(
+                    page_paging.get("total") or page_meta.get("total") or len(page_projects), default=len(page_projects)
+                )
                 rubric_total = max(rubric_total, current_total)
                 rubric_sample_rows.append(
                     {
@@ -3309,7 +3438,9 @@ class KworkMarketClient:
                 if current_total and len(rubric_sample_projects) >= current_total:
                     break
 
-            rubric_summaries = [self._summarize_project(item) for item in rubric_sample_projects if isinstance(item, dict)]
+            rubric_summaries = [
+                self._summarize_project(item) for item in rubric_sample_projects if isinstance(item, dict)
+            ]
             query_recommendations = await self.build_buyer_rubric_recommendations(
                 projects=rubric_summaries,
                 category_id=category_id,
@@ -3380,7 +3511,10 @@ class KworkMarketClient:
                         page_rows.append(
                             {
                                 "page": current_page,
-                                "count": _as_int(page_paging.get("total") or page_meta.get("total") or len(page_projects), default=len(page_projects))
+                                "count": _as_int(
+                                    page_paging.get("total") or page_meta.get("total") or len(page_projects),
+                                    default=len(page_projects),
+                                )
                                 if isinstance(page_meta, dict)
                                 else len(page_projects),
                                 "sample_count": len(page_projects),
@@ -3399,12 +3533,22 @@ class KworkMarketClient:
                             row["pages"] = page_rows
                             row["timings_ms"] = {"total": int((time.monotonic() - window_started) * 1000)}
                             return row
-                        total_available = _as_int(page_paging.get("total") or page_meta.get("total"), default=0) if isinstance(page_meta, dict) else 0
-                        if not page_projects or (total_available and len(projects) >= total_available) or len(projects) >= max_window_items:
+                        total_available = (
+                            _as_int(page_paging.get("total") or page_meta.get("total"), default=0)
+                            if isinstance(page_meta, dict)
+                            else 0
+                        )
+                        if (
+                            not page_projects
+                            or (total_available and len(projects) >= total_available)
+                            or len(projects) >= max_window_items
+                        ):
                             break
                     projects = projects[:max_window_items]
                     meta = first_meta
-                    paging = meta.get("paging") if isinstance(meta, dict) and isinstance(meta.get("paging"), dict) else {}
+                    paging = (
+                        meta.get("paging") if isinstance(meta, dict) and isinstance(meta.get("paging"), dict) else {}
+                    )
                     count = _as_int(
                         paging.get("total")
                         or paging.get("count")
@@ -3498,10 +3642,27 @@ class KworkMarketClient:
                 "unique_projects": len(seen),
                 "zero_offer_count": sum(1 for item in seen.values() if item.get("offers") == 0),
                 "low_offer_count": sum(1 for item in seen.values() if 0 <= (item.get("offers") or 999) <= 5),
-                "budget_fit_count": sum(1 for item in seen.values() if 0 <= (item.get("offers") or 999) <= 5 and (not budget_cap or _as_int(item.get("price")) <= budget_cap)),
+                "budget_fit_count": sum(
+                    1
+                    for item in seen.values()
+                    if 0 <= (item.get("offers") or 999) <= 5
+                    and (not budget_cap or _as_int(item.get("price")) <= budget_cap)
+                ),
                 "proven_buyer_count": sum(1 for item in seen.values() if _as_int(item.get("user_hired_percent")) >= 30),
                 "recommendations": [
-                    {**item, "count": _as_int(next((probe.get("count") for probe in probe_results if probe.get("query") == item.get("query")), 0))}
+                    {
+                        **item,
+                        "count": _as_int(
+                            next(
+                                (
+                                    probe.get("count")
+                                    for probe in probe_results
+                                    if probe.get("query") == item.get("query")
+                                ),
+                                0,
+                            )
+                        ),
+                    }
                     for item in query_recommendations
                 ],
                 "control_windows": control_windows,
@@ -3516,7 +3677,9 @@ class KworkMarketClient:
             snapshot: dict[str, Any] = {
                 "generated_at": _utc_timestamp(),
                 "source": "psr.kwork_buyer_scout",
-                "status": "ok" if probe_results and any(item.get("status") == "ok" for item in probe_results) else "empty",
+                "status": "ok"
+                if probe_results and any(item.get("status") == "ok" for item in probe_results)
+                else "empty",
                 "config": {
                     "max_probes": max_probes,
                     "page": page,
@@ -3575,7 +3738,9 @@ class KworkMarketClient:
             return snapshot
 
         selected_probes = probes or []
-        selected_probes = [dict(item) for item in selected_probes if isinstance(item, dict)][: max(1, min(max_probes, 30))]
+        selected_probes = [dict(item) for item in selected_probes if isinstance(item, dict)][
+            : max(1, min(max_probes, 30))
+        ]
         if budget_cap:
             for probe in selected_probes:
                 probe.setdefault("price_to", budget_cap)
@@ -3624,12 +3789,17 @@ class KworkMarketClient:
                     if not first_meta:
                         first_meta = page_meta if isinstance(page_meta, dict) else {}
                     page_paging = (
-                        page_meta.get("paging") if isinstance(page_meta, dict) and isinstance(page_meta.get("paging"), dict) else {}
+                        page_meta.get("paging")
+                        if isinstance(page_meta, dict) and isinstance(page_meta.get("paging"), dict)
+                        else {}
                     )
                     page_rows.append(
                         {
                             "page": current_page,
-                            "count": _as_int(page_paging.get("total") or page_meta.get("total") or len(page_projects), default=len(page_projects))
+                            "count": _as_int(
+                                page_paging.get("total") or page_meta.get("total") or len(page_projects),
+                                default=len(page_projects),
+                            )
                             if isinstance(page_meta, dict)
                             else len(page_projects),
                             "sample_count": len(page_projects),
@@ -3641,8 +3811,16 @@ class KworkMarketClient:
                     if isinstance(page_meta, dict) and page_meta.get("token_required"):
                         token_required_stop = True
                         break
-                    total_available = _as_int(page_paging.get("total") or page_meta.get("total"), default=0) if isinstance(page_meta, dict) else 0
-                    if not page_projects or (total_available and len(projects) >= total_available) or len(projects) >= max_probe_items:
+                    total_available = (
+                        _as_int(page_paging.get("total") or page_meta.get("total"), default=0)
+                        if isinstance(page_meta, dict)
+                        else 0
+                    )
+                    if (
+                        not page_projects
+                        or (total_available and len(projects) >= total_available)
+                        or len(projects) >= max_probe_items
+                    ):
                         break
                 projects = projects[:max_probe_items]
                 meta = first_meta
@@ -3661,7 +3839,11 @@ class KworkMarketClient:
                     project_id = str(project.get("id") or "").strip()
                     if not project_id:
                         continue
-                    scored = {**project, **self.score_buyer_project(project, budget_max=budget_cap), "matched_probe": name}
+                    scored = {
+                        **project,
+                        **self.score_buyer_project(project, budget_max=budget_cap),
+                        "matched_probe": name,
+                    }
                     existing = seen.get(project_id)
                     if existing is None or scored.get("score", 0) > existing.get("score", 0):
                         seen[project_id] = scored
@@ -3681,7 +3863,9 @@ class KworkMarketClient:
                     endpoint_errors.append(
                         {
                             "probe": name,
-                            "detail": _clean_text(meta.get("detail") or "token-mode auth required for project API", 240),
+                            "detail": _clean_text(
+                                meta.get("detail") or "token-mode auth required for project API", 240
+                            ),
                         }
                     )
             except Exception as exc:
@@ -3726,7 +3910,9 @@ class KworkMarketClient:
                     buyer_history_cache[username] = await self.fetch_buyer_history(username, limit=6)
                 project["buyer_history"] = buyer_history_cache[username]
         query_suggestions = (
-            await self.build_buyer_query_suggestions(selected_probes, max_queries=5, suggestion_limit=query_suggestion_limit)
+            await self.build_buyer_query_suggestions(
+                selected_probes, max_queries=5, suggestion_limit=query_suggestion_limit
+            )
             if include_query_suggestions and query_suggestion_limit > 0
             else []
         )
@@ -3792,7 +3978,13 @@ class KworkMarketClient:
         statuses = statuses_response.get("response") if isinstance(statuses_response, dict) else statuses_response
         offers_response = data.get("offers")
         offers_root = offers_response.get("response") if isinstance(offers_response, dict) else offers_response
-        offers = _safe_list(offers_root if isinstance(offers_root, list) else offers_root.get("offers") if isinstance(offers_root, dict) else [])
+        offers = _safe_list(
+            offers_root
+            if isinstance(offers_root, list)
+            else offers_root.get("offers")
+            if isinstance(offers_root, dict)
+            else []
+        )
 
         worker = actor.get("worker") if isinstance(actor.get("worker"), dict) else actor
         status_items = _safe_list(statuses)
@@ -3978,9 +4170,7 @@ class KworkMarketClient:
         query_demand: dict[str, Any] = {}
         demand_category_ids = list(
             dict.fromkeys(
-                _as_int(seed.get("category_id"))
-                for seed in resolved_seeds
-                if _as_int(seed.get("category_id"))
+                _as_int(seed.get("category_id")) for seed in resolved_seeds if _as_int(seed.get("category_id"))
             )
         )
         if include_demand and demand_category_ids:

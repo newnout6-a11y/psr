@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+from contextlib import suppress
 from collections.abc import Awaitable, Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from .coordinator import MarketScanCoordinator
+from .identity_pool import MarketIdentityLease, MarketIdentityPool
 from .models import (
     CommandState,
     JobState,
@@ -49,6 +51,7 @@ class MarketWorker:
         generation: int,
         handlers: Mapping[OperationKind | str, OperationHandler],
         transport_manager: TransportManager | None = None,
+        identity_pool: MarketIdentityPool | None = None,
         lease_seconds: int = 60,
         poll_interval_seconds: float = 0.25,
     ) -> None:
@@ -66,6 +69,7 @@ class MarketWorker:
         self.generation = generation
         self.handlers = {self._kind_key(kind): handler for kind, handler in handlers.items()}
         self.transport_manager = transport_manager
+        self.identity_pool = identity_pool
         self.lease_seconds = lease_seconds
         self.poll_interval_seconds = poll_interval_seconds
 
@@ -73,11 +77,12 @@ class MarketWorker:
         self._desired_state = WorkerDesiredState.RUNNING
         self._current_operation_id: str | None = None
         self._transport_id: str | None = None
+        self._identity_lease: MarketIdentityLease | None = None
         self._stop_requested = False
         self._drain_requested = False
         self._direct_fallback_reported = False
         self._last_heartbeat_at: str | None = None
-        self._last_emitted_state_signature: tuple[str, str, str | None, str | None] | None = None
+        self._last_emitted_state_signature: tuple[str, str, str | None, str | None, str | None] | None = None
 
     @property
     def actual_state(self) -> WorkerState:
@@ -105,6 +110,12 @@ class MarketWorker:
         """Return the current durable route identifier, never the proxy secret."""
 
         return self._transport_id
+
+    @property
+    def account_registration_id(self) -> str | None:
+        """Return the local account ID assigned to this worker, never credentials."""
+
+        return self._identity_lease.registration_id if self._identity_lease is not None else None
 
     async def quarantine_current_transport(self, *, reason: str, until: str | None = None) -> bool:
         """Quarantine the currently leased route after an explicit protection signal."""
@@ -216,6 +227,10 @@ class MarketWorker:
             worker_id=self.worker_id,
             operation_id=operation_id,
         )
+        lease_heartbeat = asyncio.create_task(
+            self._renew_operation_lease(operation_id),
+            name=f"market-operation-lease-{operation_id}",
+        )
         try:
             handler = self.handlers.get(str(operation["kind"]))
             if handler is None:
@@ -239,9 +254,25 @@ class MarketWorker:
         except Exception as exc:  # noqa: BLE001 - handlers are isolated durable operations.
             await self._fail_operation(operation, str(exc), failure_kind="handler_error")
         finally:
+            lease_heartbeat.cancel()
+            with suppress(asyncio.CancelledError):
+                await lease_heartbeat
             self._current_operation_id = None
             if not self._drain_requested:
                 await self._persist_state(WorkerState.IDLE)
+
+    async def _renew_operation_lease(self, operation_id: str) -> None:
+        interval = max(min(self.lease_seconds / 3, 20.0), 0.25)
+        while True:
+            await asyncio.sleep(interval)
+            try:
+                await self.coordinator.repository.renew_operation_lease(
+                    operation_id,
+                    self.worker_id,
+                    lease_seconds=self.lease_seconds,
+                )
+            except Exception:
+                return
 
     async def _fail_operation(
         self,
@@ -326,6 +357,17 @@ class MarketWorker:
             self.request_stop()
             return
         if command is WorkerCommandKind.ROTATE:
+            if self.identity_pool is not None:
+                lease = await self.identity_pool.rotate(
+                    self.worker_id,
+                    self.job_id,
+                    country=payload.get("country") if isinstance(payload.get("country"), str) else None,
+                )
+                self._identity_lease = lease
+                self._transport_id = lease.transport_id if lease is not None else None
+                if lease is None:
+                    raise RuntimeError("no free unique VPNTE IP after route rotation")
+                return
             if self.transport_manager is None or self._transport_id is None:
                 raise RuntimeError("worker has no managed transport to rotate")
             snapshot = self.transport_manager.rotate(
@@ -342,11 +384,45 @@ class MarketWorker:
             )
             return
         if command is WorkerCommandKind.RECONNECT:
+            if self.identity_pool is not None:
+                lease = await self.identity_pool.rebind(
+                    self.worker_id,
+                    self.job_id,
+                    reason="worker_reconnect",
+                )
+                self._identity_lease = lease
+                self._transport_id = lease.transport_id if lease is not None else None
+                return
             await self._release_transport()
             return
         raise RuntimeError(f"unsupported worker command {command.value!r}")
 
     async def _ensure_transport(self, job: Mapping[str, Any]) -> bool:
+        if self.identity_pool is not None:
+            if self._identity_lease is not None and self._transport_id is not None:
+                snapshot = self.transport_manager.get(self._transport_id) if self.transport_manager is not None else None
+                if (
+                    snapshot is not None
+                    and snapshot.lease_owner == self.worker_id
+                    and snapshot.health is TransportHealth.HEALTHY
+                ):
+                    return True
+            lease = await self.identity_pool.acquire(self.worker_id, self.job_id)
+            if lease is None:
+                await self._persist_state(WorkerState.BACKOFF, last_error="no eligible Kwork account with a unique VPNTE IP")
+                return False
+            self._identity_lease = lease
+            self._transport_id = lease.transport_id
+            snapshot = self.transport_manager.get(self._transport_id) if self.transport_manager is not None else None
+            if snapshot is not None:
+                await self.coordinator.repository.upsert_transport(snapshot)
+            await self.coordinator.emit(
+                self.job_id,
+                "worker.identity_bound",
+                lease.public_data(),
+                worker_id=self.worker_id,
+            )
+            return True
         policy = NetworkPolicy(str(job["network_policy"]))
         if policy is NetworkPolicy.DIRECT_ONLY:
             return True
@@ -385,6 +461,11 @@ class MarketWorker:
         return False
 
     async def _release_transport(self) -> None:
+        if self.identity_pool is not None:
+            await self.identity_pool.release(self.worker_id, reason="worker_released")
+            self._identity_lease = None
+            self._transport_id = None
+            return
         if self.transport_manager is None or self._transport_id is None:
             self._transport_id = None
             return
@@ -398,9 +479,12 @@ class MarketWorker:
             await self.coordinator.repository.upsert_transport(snapshot)
 
     async def _persist_state(self, actual: WorkerState, *, last_error: str | None = None) -> None:
+        previous_actual = self._actual_state
         self._actual_state = actual
         heartbeat = utc_now()
         self._last_heartbeat_at = heartbeat
+        if self.identity_pool is not None:
+            await self.identity_pool.renew(self.worker_id)
         record = await self.coordinator.repository.upsert_worker(
             {
                 "worker_id": self.worker_id,
@@ -420,6 +504,7 @@ class MarketWorker:
             str(record["desired_state"]),
             record["transport_id"],
             record["current_operation_id"],
+            record["last_error"],
         )
         # Leasing and idle heartbeats happen several times a second. Persist
         # them for recovery, but reserve the user-facing stream for changes
@@ -427,15 +512,31 @@ class MarketWorker:
         if actual in {WorkerState.LEASING, WorkerState.IDLE} or state_signature == self._last_emitted_state_signature:
             return
         self._last_emitted_state_signature = state_signature
+        payload: dict[str, Any] = {
+            "previous_actual_state": previous_actual.value,
+            "actual_state": record["actual_state"],
+            "desired_state": record["desired_state"],
+            "transport_id": record["transport_id"],
+            "current_operation_id": record["current_operation_id"],
+            "last_error": record["last_error"],
+            "generation": record["generation"],
+        }
+        if self._identity_lease is not None:
+            payload.update(
+                {
+                    "registration_id": self._identity_lease.registration_id,
+                    "username": self._identity_lease.username,
+                    "slot": self._identity_lease.slot,
+                    "egress_ip": self._identity_lease.egress_ip,
+                    "signup_ip": self._identity_lease.signup_ip,
+                    "persona_id": self._identity_lease.persona_id,
+                    "binding_mode": self._identity_lease.binding_mode,
+                }
+            )
         await self.coordinator.emit(
             self.job_id,
             "worker.state_changed",
-            {
-                "actual_state": record["actual_state"],
-                "desired_state": record["desired_state"],
-                "transport_id": record["transport_id"],
-                "current_operation_id": record["current_operation_id"],
-            },
+            payload,
             worker_id=self.worker_id,
         )
 

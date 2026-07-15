@@ -26,6 +26,33 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json()
 }
 
+const formManifestCache = new Map<string, { expiresAt: number; value: KworkFormManifest }>()
+const formManifestRequests = new Map<string, Promise<KworkFormManifest>>()
+
+function formManifestCacheKey(categoryId: number, payload: KworkFormManifestRequest): string {
+  const selection = Object.fromEntries(Object.entries(payload.selection || {}).sort(([left], [right]) => left.localeCompare(right)))
+  return JSON.stringify({ categoryId, classifierId: payload.classifier_id || null, lang: payload.lang || 'ru', selection })
+}
+
+function getKworkFormManifestCached(categoryId: number, payload: KworkFormManifestRequest): Promise<KworkFormManifest> {
+  const key = formManifestCacheKey(categoryId, payload)
+  const cached = formManifestCache.get(key)
+  if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.value)
+  const pending = formManifestRequests.get(key)
+  if (pending) return pending
+  const next = request<KworkFormManifest>(`/api/kwork/market/category/${categoryId}/form-manifest`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }).then((manifest) => {
+    if (manifest.success !== false && manifest.code !== 'manual_verification_required') {
+      formManifestCache.set(key, { expiresAt: Date.now() + 45_000, value: manifest })
+    }
+    return manifest
+  }).finally(() => formManifestRequests.delete(key))
+  formManifestRequests.set(key, next)
+  return next
+}
+
 // ── Orchestrator ────────────────────────────────────────────────────────────
 
 export interface RuntimeConfig {
@@ -125,6 +152,45 @@ export const api = {
       state_parser: string
     }>('/api/kwork/status'),
 
+  registerKworkAccount: (payload: KworkRegistrationRequest) =>
+    request<KworkRegistrationResult>('/api/kwork/register', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  registerKworkAccountsBatch: (payload: KworkRegistrationBatchRequest) =>
+    request<KworkRegistrationBatchResult>('/api/kwork/register/batch', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  verifyKworkRegistration: (payload: KworkRegistrationVerificationRequest) =>
+    request<KworkRegistrationResult>('/api/kwork/register/verify', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getKworkRegistrationCredentials: (registrationId: string) =>
+    request<KworkRegistrationCredentials>('/api/kwork/register/credentials', {
+      method: 'POST',
+      body: JSON.stringify({ registration_id: registrationId }),
+    }),
+
+  listKworkRegistrationAccounts: () =>
+    request<{ accounts: KworkRegistrationAccount[]; total: number }>('/api/kwork/register/accounts'),
+
+  checkKworkRegistrationAccountSession: (registrationId: string) =>
+    request<KworkRegistrationAccountSessionCheck>(
+      `/api/kwork/register/accounts/${encodeURIComponent(registrationId)}/session-check`,
+      { method: 'POST' },
+    ),
+
+  deleteKworkRegistrationAccount: (registrationId: string) =>
+    request<{ ok: boolean; registration_id: string }>(
+      `/api/kwork/register/accounts/${encodeURIComponent(registrationId)}`,
+      { method: 'DELETE' },
+    ),
+
   getKworkVerificationStatus: (writeFile = false) =>
     request<KworkVerificationStatus>(`/api/kwork/verification-status?write_file=${writeFile ? 'true' : 'false'}`),
 
@@ -152,10 +218,7 @@ export const api = {
   },
 
   getKworkFormManifest: (categoryId: number, payload: KworkFormManifestRequest) =>
-    request<KworkFormManifest>(`/api/kwork/market/category/${categoryId}/form-manifest`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
+    getKworkFormManifestCached(categoryId, payload),
 
   suggestKworkAttribute: (categoryId: number, payload: KworkAttributeSuggestRequest) =>
     request<KworkAttributeSuggestResult>(`/api/kwork/market/category/${categoryId}/attribute-suggest`, {
@@ -420,6 +483,137 @@ export interface KworkInspectProject {
   client_hired_percent?: number
   client_user_id?: string
   platform_data?: Record<string, unknown>
+}
+
+export interface KworkRegistrationRequest {
+  email?: string
+  mail_provider: 'catchmail' | 'firstmail'
+  mail_password?: string
+  user_type: 1 | 2
+  promo?: string
+  use_simple?: boolean
+  track_client_id?: string
+  action_after?: string
+  is_subscribed?: boolean
+  captcha_token?: string
+  captcha_field?: 'smart-token' | 'g-recaptcha-response'
+  firstmail_api_key?: string
+  dry_run?: boolean
+}
+
+export interface KworkRegistrationBatchRequest extends KworkRegistrationRequest {
+  account_count: number
+  vpnte_slots: number[]
+  avoid_used_ips?: boolean
+}
+
+export interface KworkRegistrationBatchResult {
+  ok: boolean
+  requested_count: number
+  completed_count: number
+  activated_count: number
+  proxy_count: number
+  selected_proxy_count?: number
+  reachable_proxy_count?: number
+  healthy_proxy_count?: number
+  reserve_proxy_count?: number
+  failed_proxy_count?: number
+  duplicate_proxy_count?: number
+  used_ip_proxy_count?: number
+  avoid_used_ips?: boolean
+  parallel_limit: number
+  vpnte_slots: number[]
+  selected_vpnte_slots?: number[]
+  reserve_vpnte_slots?: number[]
+  failed_vpnte_slots?: number[]
+  duplicate_vpnte_slots?: number[]
+  used_ip_vpnte_slots?: number[]
+  results: KworkRegistrationResult[]
+}
+
+export interface KworkRegistrationVerificationRequest {
+  registration_id: string
+  mail_password?: string
+  firstmail_api_key?: string
+}
+
+export interface KworkRegistrationCredentials {
+  registration_id: string
+  email: string
+  username: string
+  password: string
+}
+
+export interface KworkRegistrationAccount {
+  registration_id: string
+  email: string
+  username: string
+  user_type: 1 | 2
+  mail_provider: 'catchmail' | 'firstmail'
+  status: string
+  created_at?: string
+  registration_started_at?: string
+  activated_at?: string | null
+  signup_ip?: string | null
+  activation_ip?: string | null
+  session_cookie_count?: number
+  last_error?: string | null
+}
+
+export interface KworkRegistrationSessionCheck {
+  ok: boolean
+  auth_mode?: string
+  status_code?: number
+  final_url?: string
+  reason?: string | null
+}
+
+export interface KworkRegistrationAccountSessionCheck extends KworkRegistrationAccount {
+  session_check: KworkRegistrationSessionCheck
+}
+
+export interface KworkRegistrationResult {
+  ok: boolean
+  status: string
+  registration_id?: string
+  email: string
+  username: string
+  mail_provider?: 'catchmail' | 'firstmail'
+  registration_started_at?: string
+  password_generated?: boolean
+  signup_ip?: string
+  activation_ip?: string
+  preflight_ip?: string
+  session_cookie_count?: number
+  user_type: 1 | 2
+  activated: boolean
+  captcha_required: boolean
+  phone_fields_sent: boolean
+  message?: string
+  code?: string
+  reason?: string
+  status_code?: number
+  final_url?: string
+  signup_fields?: string[]
+  signup_http_status?: number
+  signup_fallback_http_status?: number
+  activation_link_found?: boolean
+  batch_index?: number
+  proxy_index?: number | null
+  proxy_configured?: boolean
+  vpnte_slot?: number
+  post_activation?: {
+    ok?: boolean
+    username?: string
+    verified?: boolean
+    actor_status?: string
+    reason?: string
+  }
+  session_proof?: {
+    ok?: boolean
+    auth_mode?: string
+    reason?: string
+  }
 }
 
 export interface KworkCategoryNode {
@@ -838,6 +1032,11 @@ export interface KworkMarketIntelligenceHistory {
 
 export interface KworkPriceRules {
   success?: boolean
+  status?: 'ok' | 'stale' | 'unavailable' | string
+  detail?: string
+  cache_status?: 'hit' | 'miss' | 'stale' | string
+  category_id?: number
+  attribute_id?: number | null
   prices?: {
     priceGradation?: number[] | Record<string, number[] | Record<string, number>>
     typicalPriceGradation?: number[]

@@ -60,42 +60,70 @@ class RatePacer:
             if elapsed < delay:
                 await asyncio.sleep(delay - elapsed)
 
-            self._timestamps.append(time.monotonic())
-            cutoff = time.monotonic() - self.burst_window
-            self._timestamps = [t for t in self._timestamps if t > cutoff]
-            if len(self._timestamps) >= self.burst_limit:
-                extra = self.burst_window - (time.monotonic() - self._timestamps[0])
-                if extra > 0:
-                    logger.debug(f"KworkExt: burst limit ({self.burst_limit}/{self.burst_window}s), пауза {extra:.1f}s")
-                    await asyncio.sleep(extra)
-                    self._timestamps = []
+            if self.burst_limit > 0:
+                self._timestamps.append(time.monotonic())
+                cutoff = time.monotonic() - self.burst_window
+                self._timestamps = [t for t in self._timestamps if t > cutoff]
+                if len(self._timestamps) >= self.burst_limit:
+                    extra = self.burst_window - (time.monotonic() - self._timestamps[0])
+                    if extra > 0:
+                        logger.debug(f"KworkExt: burst limit ({self.burst_limit}/{self.burst_window}s), пауза {extra:.1f}s")
+                        await asyncio.sleep(extra)
+                        self._timestamps = []
 
             self._last_call = time.monotonic()
 
 
 _pacer: RatePacer | None = None
+_scoped_pacers: dict[tuple[str, float, float, int, float], RatePacer] = {}
 
 
-def get_pacer() -> RatePacer:
+def get_pacer(
+    *,
+    scope: str | None = None,
+    min_delay: float | None = None,
+    max_delay: float | None = None,
+    burst_limit: int | None = None,
+    burst_window: float | None = None,
+) -> RatePacer:
     global _pacer
+
+    def configured_float(value: float | None, env_name: str, default: float) -> float:
+        if value is not None:
+            return float(value)
+        try:
+            return float(os.getenv(env_name, str(default)))
+        except (ValueError, TypeError):
+            return default
+
+    def configured_int(value: int | None, env_name: str, default: int) -> int:
+        if value is not None:
+            return int(value)
+        try:
+            return int(os.getenv(env_name, str(default)))
+        except (ValueError, TypeError):
+            return default
+
+    min_d = max(0.0, configured_float(min_delay, "KWORK_PACE_MIN", 1.5))
+    max_d = max(min_d, configured_float(max_delay, "KWORK_PACE_MAX", 4.0))
+    burst = max(0, configured_int(burst_limit, "KWORK_BURST_LIMIT", 15))
+    window = max(0.0, configured_float(burst_window, "KWORK_BURST_WINDOW", 60.0))
+
+    def create_pacer() -> RatePacer:
+        return RatePacer(min_delay=min_d, max_delay=max_d, burst_limit=burst, burst_window=window)
+
+    if scope:
+        scope_key = scope.strip()
+        if scope_key:
+            key = (scope_key, min_d, max_d, burst, window)
+            pacer = _scoped_pacers.get(key)
+            if pacer is None:
+                pacer = create_pacer()
+                _scoped_pacers[key] = pacer
+            return pacer
+
     if _pacer is None:
-        try:
-            min_d = float(os.getenv("KWORK_PACE_MIN", "1.5"))
-        except (ValueError, TypeError):
-            min_d = 1.5
-        try:
-            max_d = float(os.getenv("KWORK_PACE_MAX", "4.0"))
-        except (ValueError, TypeError):
-            max_d = 4.0
-        try:
-            burst = int(os.getenv("KWORK_BURST_LIMIT", "15"))
-        except (ValueError, TypeError):
-            burst = 15
-        try:
-            window = float(os.getenv("KWORK_BURST_WINDOW", "60"))
-        except (ValueError, TypeError):
-            window = 60.0
-        _pacer = RatePacer(min_delay=min_d, max_delay=max_d, burst_limit=burst, burst_window=window)
+        _pacer = create_pacer()
     return _pacer
 
 
@@ -117,10 +145,15 @@ class ProxyRotator:
         self._bad: dict[str, float] = {}
         self._bad_ttl = 300.0
 
-    def next(self) -> str | None:
+    def next(self, *, rotate: bool | None = None) -> str | None:
         if vpnte_proxy_enabled():
-            rotate = os.getenv("VPNTE_PROXY_ROTATE_ON_NEXT", "1").strip().lower() not in {"0", "false", "no", "off"}
-            return effective_proxy_url(rotate=rotate, fallback=os.getenv("PROXY_URL") or None)
+            should_rotate = (
+                os.getenv("VPNTE_PROXY_ROTATE_ON_NEXT", "0").strip().lower()
+                not in {"0", "false", "no", "off"}
+                if rotate is None
+                else bool(rotate)
+            )
+            return effective_proxy_url(rotate=should_rotate, fallback=os.getenv("PROXY_URL") or None)
         if not self._proxies:
             return os.getenv("PROXY_URL") or None
         now = time.monotonic()
@@ -1353,7 +1386,8 @@ def _patch_request_pacing() -> None:
     async def _paced_request(self, method, endpoint, use_token=False, **kwargs):
         skip_pacing = bool(kwargs.pop("_psr_skip_pacing", False))
         if not skip_pacing:
-            await get_pacer().wait()
+            scope = str(getattr(self, "_psr_proxy_url", "") or getattr(self, "_proxy", "") or "")
+            await get_pacer(scope=scope or None).wait()
         return await original_request(self, method, endpoint, use_token=use_token, **kwargs)
 
     KworkAPI.request = _paced_request
@@ -1362,7 +1396,8 @@ def _patch_request_pacing() -> None:
         original_rwb = KworkAPI.request_with_body
 
         async def _paced_rwb(self, endpoint, use_token=False, **kwargs):
-            await get_pacer().wait()
+            scope = str(getattr(self, "_psr_proxy_url", "") or getattr(self, "_proxy", "") or "")
+            await get_pacer(scope=scope or None).wait()
             return await original_rwb(self, endpoint, use_token=use_token, **kwargs)
 
         KworkAPI.request_with_body = _paced_rwb
@@ -1371,7 +1406,8 @@ def _patch_request_pacing() -> None:
         original_rm = KworkAPI.request_multipart
 
         async def _paced_rm(self, endpoint, use_token=False, **kwargs):
-            await get_pacer().wait()
+            scope = str(getattr(self, "_psr_proxy_url", "") or getattr(self, "_proxy", "") or "")
+            await get_pacer(scope=scope or None).wait()
             return await original_rm(self, endpoint, use_token=use_token, **kwargs)
 
         KworkAPI.request_multipart = _paced_rm

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import binascii
 import hashlib
@@ -115,11 +116,15 @@ def _image_api_key(fallback_key: str = "") -> str:
 def _image_api_url(endpoint: str, fallback_url: str) -> str:
     conn = _image_connection()
     base = (
-        os.getenv("KWORK_COVER_IMAGE_BASE_URL")
-        or str(conn.get("url") or "")
-        or os.getenv("OPENAI_IMAGE_BASE_URL")
-        or ""
-    ).strip().rstrip("/")
+        (
+            os.getenv("KWORK_COVER_IMAGE_BASE_URL")
+            or str(conn.get("url") or "")
+            or os.getenv("OPENAI_IMAGE_BASE_URL")
+            or ""
+        )
+        .strip()
+        .rstrip("/")
+    )
     if not base:
         base = fallback_url.rsplit("/images/generations", 1)[0].rstrip("/")
     prefix = (os.getenv("KWORK_COVER_IMAGE_API_PREFIX") or os.getenv("OPENAI_IMAGE_API_PREFIX") or "/v1").strip("/")
@@ -167,20 +172,24 @@ def _competitor_cover_items(request: dict[str, Any], limit: int | None = None) -
     for item in competitors:
         if not isinstance(item, dict):
             continue
-        image_url = str(item.get("image_url") or item.get("cover") or "").strip()
-        if not image_url or image_url in seen:
-            continue
-        seen.add(image_url)
-        result.append(
-            {
-                "title": str(item.get("title") or "")[:160],
-                "image_url": image_url,
-                "price": str(item.get("price") or ""),
-                "service_size": str(item.get("service_size") or ""),
-            }
-        )
-        if len(result) >= max_items:
-            break
+        portfolio_images = item.get("portfolio_images") if isinstance(item.get("portfolio_images"), list) else []
+        sources = [item.get("image_url") or item.get("cover"), *portfolio_images]
+        for index, source in enumerate(sources):
+            image_url = str(source or "").strip()
+            if not image_url or image_url in seen:
+                continue
+            seen.add(image_url)
+            result.append(
+                {
+                    "title": str(item.get("title") or "")[:160],
+                    "image_url": image_url,
+                    "price": str(item.get("price") or ""),
+                    "service_size": str(item.get("service_size") or ""),
+                    "reference_kind": "cover" if index == 0 else "portfolio",
+                }
+            )
+            if len(result) >= max_items:
+                return result
     return result
 
 
@@ -331,16 +340,45 @@ def _generate_local_cover_png(path: Path, title: str, context: str = "") -> None
     _write_rgb_png(path, width, height, pixels)
 
 
+def _usable_cover_text(value: Any) -> str:
+    text = str(value or "").strip()
+    visible = [char for char in text if not char.isspace()]
+    if not visible or sum(char == "?" for char in visible) / len(visible) >= 0.4:
+        return ""
+    return text
+
+
 def _cover_text_from_draft(draft: dict[str, Any], request: dict[str, Any]) -> tuple[str, str]:
-    explicit = str(request.get("cover_text") or "").strip()
+    explicit = _usable_cover_text(request.get("cover_text"))
     title = explicit or str(draft.get("title") or request.get("service_summary") or "Kwork").strip()
     title = re.sub(r"^(Сделаю|Разработаю|Настрою)\s+", "", title, flags=re.I).strip()
     title = title.replace("Telegram-бота или скрипт автоматизации", "Telegram-бот или скрипт")
     title = title.replace("телеграм бота или автоматизацию", "Telegram-бот или автоматизация")
-    subtitle = str(request.get("cover_subtitle") or request.get("audience") or draft.get("auditory") or "").strip()
-    if subtitle:
-        subtitle = f"для {subtitle}" if not subtitle.lower().startswith("для ") else subtitle
-    return _truncate(title, 54), _truncate(subtitle, 42)
+    lower = title.lower()
+    if "логотип" in lower and ("кирил" in lower or "русск" in lower):
+        title = "Логотип на русском"
+    elif "шрифт" in lower and ("кирил" in lower or "русск" in lower):
+        title = "Шрифт под кириллицу"
+    explicit_subtitle = _usable_cover_text(request.get("cover_subtitle"))
+    subtitle = explicit_subtitle or str(request.get("audience") or draft.get("auditory") or "").strip()
+    if subtitle.lower().startswith("клиенты, которым нужна услуга:"):
+        subtitle = ""
+    elif subtitle and not explicit_subtitle and not re.match(r"^(для|под|на|без|с)\b", subtitle, flags=re.I):
+        subtitle = f"для {subtitle}"
+    return _truncate(title, 38), _truncate(subtitle, 46)
+
+
+def _sanitize_kwork_text(value: Any) -> str:
+    text = str(value or "").strip()
+    replacements = (
+        (r"\bобсуд(?:ить|им)\s+до\s+заказа\b", "уточнить в рамках заказа"),
+        (r"\bсвяз(?:аться|аться со мной)\s+до\s+заказа\b", "задать вопросы в чате заказа"),
+        (r"\b(?:напишите|пишите|спросите)\s+до\s+заказа\b", "задайте вопросы в чате заказа"),
+        (r"\bдо\s+заказа\b", "перед началом работы"),
+    )
+    for pattern, replacement in replacements:
+        text = re.sub(pattern, replacement, text, flags=re.I)
+    return text
 
 
 def _wrap_words(text: str, max_chars: int, max_lines: int) -> list[str]:
@@ -364,7 +402,7 @@ def _wrap_words(text: str, max_chars: int, max_lines: int) -> list[str]:
 
 def _overlay_cover_offer(path: Path, draft: dict[str, Any], request: dict[str, Any]) -> bool:
     try:
-        from PIL import Image, ImageDraw, ImageFilter, ImageFont
+        from PIL import Image, ImageDraw, ImageFont
     except Exception as exc:
         logger.debug(f"KworkAutopublish: Pillow unavailable for cover text overlay: {exc}")
         return False
@@ -373,8 +411,8 @@ def _overlay_cover_offer(path: Path, draft: dict[str, Any], request: dict[str, A
         image = Image.open(path).convert("RGBA")
         width, height = image.size
         title, subtitle = _cover_text_from_draft(draft, request)
-        title_lines = _wrap_words(title, 18 if len(title) > 28 else 22, 3)
-        subtitle_lines = _wrap_words(subtitle, 28, 2) if subtitle else []
+        title_lines = _wrap_words(title, 20, 2)
+        subtitle_lines = _wrap_words(subtitle, 38, 1) if subtitle else []
 
         configured_font = os.getenv("KWORK_COVER_FONT", "").strip()
         font_candidates: list[Path] = []
@@ -388,8 +426,8 @@ def _overlay_cover_offer(path: Path, draft: dict[str, Any], request: dict[str, A
             ]
         )
         font_path = next((item for item in font_candidates if item.is_file()), None)
-        title_size = max(44, min(82, width // 16))
-        subtitle_size = max(24, min(38, width // 32))
+        title_size = max(50, min(78, width // 18))
+        subtitle_size = max(22, min(32, width // 42))
         if font_path:
             title_font = ImageFont.truetype(str(font_path), title_size)
             subtitle_font = ImageFont.truetype(str(font_path), subtitle_size)
@@ -399,40 +437,43 @@ def _overlay_cover_offer(path: Path, draft: dict[str, Any], request: dict[str, A
 
         overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
         draw = ImageDraw.Draw(overlay)
-        margin = int(width * 0.055)
-        box_w = int(width * 0.55)
-        line_gap = int(title_size * 0.16)
-        subtitle_gap = int(subtitle_size * 0.55) if subtitle_lines else 0
-        title_heights = [
-            draw.textbbox((0, 0), line, font=title_font, stroke_width=1)[3] for line in title_lines
-        ]
+        gradient_top = int(height * 0.48)
+        gradient_height = max(1, height - gradient_top)
+        for y in range(gradient_top, height):
+            progress = (y - gradient_top) / gradient_height
+            alpha = int(218 * (progress**1.35))
+            draw.line((0, y, width, y), fill=(4, 7, 11, alpha))
+
+        margin_x = int(width * 0.055)
+        margin_bottom = int(height * 0.075)
+        line_gap = int(title_size * 0.12)
+        subtitle_gap = int(height * 0.025) if subtitle_lines else 0
+        title_heights = [draw.textbbox((0, 0), line, font=title_font, stroke_width=2)[3] for line in title_lines]
         subtitle_heights = [draw.textbbox((0, 0), line, font=subtitle_font)[3] for line in subtitle_lines]
-        text_h = sum(title_heights) + line_gap * max(0, len(title_lines) - 1)
-        text_h += subtitle_gap + sum(subtitle_heights) + int(subtitle_size * 0.12) * max(0, len(subtitle_lines) - 1)
-        box_h = min(int(height * 0.48), text_h + int(height * 0.12))
-        x0 = margin
-        y0 = int(height * 0.12)
-        x1 = x0 + box_w
-        y1 = y0 + box_h
-
-        shadow = Image.new("RGBA", image.size, (0, 0, 0, 0))
-        shadow_draw = ImageDraw.Draw(shadow)
-        shadow_draw.rounded_rectangle((x0 + 10, y0 + 12, x1 + 10, y1 + 12), radius=28, fill=(0, 0, 0, 145))
-        shadow = shadow.filter(ImageFilter.GaussianBlur(10))
-        overlay.alpha_composite(shadow)
-        draw.rounded_rectangle((x0, y0, x1, y1), radius=28, fill=(5, 8, 14, 196), outline=(255, 255, 255, 58), width=2)
-        draw.rectangle((x0, y0, x0 + 12, y1), fill=(255, 122, 24, 235))
-
-        cursor_y = y0 + int(height * 0.055)
-        text_x = x0 + int(width * 0.045)
+        text_h = sum(title_heights) + line_gap * max(0, len(title_lines) - 1) + subtitle_gap + sum(subtitle_heights)
+        cursor_y = height - margin_bottom - text_h
+        text_x = margin_x
+        draw.rounded_rectangle(
+            (text_x, cursor_y - int(height * 0.03), text_x + int(width * 0.085), cursor_y - int(height * 0.02)),
+            radius=4,
+            fill=(108, 210, 244, 245),
+        )
         for line in title_lines:
+            draw.text(
+                (text_x + 3, cursor_y + 4),
+                line,
+                font=title_font,
+                fill=(0, 0, 0, 170),
+                stroke_width=2,
+                stroke_fill=(0, 0, 0, 120),
+            )
             draw.text(
                 (text_x, cursor_y),
                 line,
                 font=title_font,
                 fill=(255, 255, 255, 255),
                 stroke_width=2,
-                stroke_fill=(0, 0, 0, 150),
+                stroke_fill=(0, 0, 0, 185),
             )
             bbox = draw.textbbox((text_x, cursor_y), line, font=title_font, stroke_width=2)
             cursor_y = bbox[3] + line_gap
@@ -440,7 +481,7 @@ def _overlay_cover_offer(path: Path, draft: dict[str, Any], request: dict[str, A
         if subtitle_lines:
             cursor_y += subtitle_gap
             for line in subtitle_lines:
-                draw.text((text_x, cursor_y), line, font=subtitle_font, fill=(255, 190, 115, 255))
+                draw.text((text_x, cursor_y), line, font=subtitle_font, fill=(184, 222, 236, 255))
                 bbox = draw.textbbox((text_x, cursor_y), line, font=subtitle_font)
                 cursor_y = bbox[3] + int(subtitle_size * 0.12)
 
@@ -458,6 +499,216 @@ def _should_overlay_cover_text(request: dict[str, Any]) -> bool:
     if isinstance(value, str):
         return value.strip().lower() in {"1", "true", "yes", "on"}
     return value is True
+
+
+def _portfolio_font(size: int, *, bold: bool = False):
+    from PIL import ImageFont
+
+    configured = os.getenv("KWORK_COVER_FONT", "").strip()
+    candidates = [Path(configured)] if configured else []
+    candidates.extend(
+        [
+            Path("C:/Windows/Fonts/segoeuib.ttf" if bold else "C:/Windows/Fonts/segoeui.ttf"),
+            Path("C:/Windows/Fonts/arialbd.ttf" if bold else "C:/Windows/Fonts/arial.ttf"),
+        ]
+    )
+    font_path = next((item for item in candidates if item.is_file()), None)
+    return ImageFont.truetype(str(font_path), size) if font_path else ImageFont.load_default()
+
+
+def _portfolio_work_specs(draft: dict[str, Any]) -> list[dict[str, str]]:
+    offer = str(draft.get("cover_text") or draft.get("title") or "Логотип на русском").strip()
+    return [
+        {
+            "title": "Кириллица для логотипа",
+            "subtitle": "Адаптация знака и фирменного написания",
+            "symbol": "Я",
+            "offer": offer,
+        },
+        {
+            "title": "Знак и шрифт в новом алфавите",
+            "subtitle": "Сохраняю характер исходного бренда",
+            "symbol": "Л",
+            "offer": offer,
+        },
+        {
+            "title": "Версии для светлого и тёмного фона",
+            "subtitle": "Готовые варианты для разных носителей",
+            "symbol": "Ф",
+            "offer": offer,
+        },
+        {
+            "title": "Аватар и компактный знак",
+            "subtitle": "Читаемость в малом размере",
+            "symbol": "Б",
+            "offer": offer,
+        },
+        {
+            "title": "Система начертаний бренда",
+            "subtitle": "Основной знак, подпись и монохром",
+            "symbol": "А",
+            "offer": offer,
+        },
+    ]
+
+
+def _required_portfolio_count(draft: dict[str, Any]) -> int:
+    explicit = draft.get("portfolio_required_count")
+    if explicit not in (None, ""):
+        try:
+            return max(0, min(10, int(explicit)))
+        except (TypeError, ValueError):
+            pass
+    return 5 if int(draft.get("category_id") or 0) == 25 else 0
+
+
+def _render_portfolio_assets(draft: dict[str, Any], *, count: int = 5) -> list[dict[str, str]]:
+    existing = draft.get("portfolio_assets") if isinstance(draft.get("portfolio_assets"), list) else []
+    reusable = [
+        dict(item)
+        for item in existing
+        if isinstance(item, dict) and item.get("path") and Path(str(item["path"])).is_file()
+    ]
+    if len(reusable) >= count:
+        return reusable[:count]
+
+    try:
+        from PIL import Image, ImageDraw, ImageFilter, ImageOps
+    except Exception as exc:
+        logger.warning(f"KworkAutopublish: Pillow unavailable for portfolio boards: {exc}")
+        return []
+
+    cover_path = Path(str(draft.get("cover_image_path") or draft.get("image_path") or ""))
+    source = None
+    if cover_path.is_file():
+        try:
+            source = Image.open(cover_path).convert("RGB")
+        except Exception as exc:
+            logger.debug(f"KworkAutopublish: could not reuse cover for portfolio boards: {exc}")
+
+    specs = _portfolio_work_specs(draft)[:count]
+    output_dir = PROPOSAL_ASSETS_DIR / "kwork_autopublish"
+    stem = _slug(cover_path.stem if cover_path.name else str(draft.get("title") or int(time.time())))
+    palette = [
+        ((8, 31, 27), (245, 239, 222), (200, 164, 96)),
+        ((17, 24, 33), (223, 236, 241), (94, 198, 226)),
+        ((242, 238, 227), (21, 48, 42), (192, 117, 72)),
+        ((27, 25, 35), (240, 232, 216), (115, 205, 174)),
+        ((10, 24, 36), (235, 239, 234), (231, 161, 69)),
+    ]
+    result: list[dict[str, str]] = []
+
+    for index, spec in enumerate(specs):
+        background, foreground, accent = palette[index % len(palette)]
+        canvas = Image.new("RGB", (1200, 800), background)
+        draw = ImageDraw.Draw(canvas)
+        title_font = _portfolio_font(54, bold=True)
+        subtitle_font = _portfolio_font(28)
+        label_font = _portfolio_font(19, bold=True)
+        symbol_font = _portfolio_font(145, bold=True)
+
+        if source is not None:
+            blurred = ImageOps.fit(source, (1200, 800)).filter(ImageFilter.GaussianBlur(18))
+            veil = Image.new("RGB", canvas.size, background)
+            canvas = Image.blend(blurred, veil, 0.82)
+            draw = ImageDraw.Draw(canvas)
+
+        draw.text((64, 54), f"КЕЙС {index + 1:02d}", font=label_font, fill=accent)
+        draw.text((64, 96), spec["title"], font=title_font, fill=foreground)
+        draw.text((67, 166), spec["subtitle"], font=subtitle_font, fill=(*foreground[:2], max(0, foreground[2] - 18)))
+
+        if index == 0:
+            draw.rounded_rectangle((64, 250, 530, 684), radius=18, fill=foreground)
+            draw.rounded_rectangle((670, 250, 1136, 684), radius=18, outline=accent, width=4)
+            draw.text((205, 338), "A", font=symbol_font, fill=background)
+            draw.text((805, 338), spec["symbol"], font=symbol_font, fill=foreground)
+            draw.line((548, 467, 650, 467), fill=accent, width=5)
+            draw.polygon([(650, 467), (627, 452), (627, 482)], fill=accent)
+            draw.text((190, 595), "LATIN", font=label_font, fill=background)
+            draw.text((783, 595), "КИРИЛЛИЦА", font=label_font, fill=accent)
+        elif index == 1:
+            draw.rounded_rectangle((70, 258, 1130, 690), radius=22, fill=(245, 241, 230))
+            draw.ellipse((135, 323, 395, 583), outline=accent, width=18)
+            draw.text((196, 348), spec["symbol"], font=symbol_font, fill=background)
+            draw.text((485, 332), "BRAND", font=_portfolio_font(72, bold=True), fill=background)
+            draw.text((490, 426), "БРЕНД", font=_portfolio_font(72, bold=True), fill=accent)
+            for row in range(3):
+                y = 550 + row * 35
+                draw.rounded_rectangle((490, y, 930 - row * 80, y + 11), radius=5, fill=(134, 137, 130))
+        elif index == 2:
+            draw.rounded_rectangle((64, 250, 584, 694), radius=18, fill=(246, 241, 226))
+            draw.rounded_rectangle((616, 250, 1136, 694), radius=18, fill=(12, 29, 26))
+            for x, text_fill in ((64, (17, 47, 41)), (616, (246, 241, 226))):
+                draw.ellipse((x + 150, 330, x + 370, 550), outline=accent, width=14)
+                draw.text((x + 206, 354), spec["symbol"], font=_portfolio_font(112, bold=True), fill=text_fill)
+                draw.text((x + 171, 604), "BRAND / БРЕНД", font=label_font, fill=text_fill)
+        elif index == 3:
+            draw.rounded_rectangle((78, 272, 520, 690), radius=38, fill=(244, 240, 229))
+            draw.rounded_rectangle((680, 272, 1122, 690), radius=38, fill=(244, 240, 229))
+            for x, scale in ((176, 1.0), (815, 0.68)):
+                radius = int(118 * scale)
+                cx, cy = x + radius, 440
+                draw.ellipse(
+                    (cx - radius, cy - radius, cx + radius, cy + radius), fill=background, outline=accent, width=12
+                )
+                font = _portfolio_font(int(112 * scale), bold=True)
+                bbox = draw.textbbox((0, 0), spec["symbol"], font=font)
+                draw.text(
+                    (cx - (bbox[2] - bbox[0]) / 2, cy - (bbox[3] - bbox[1]) / 2 - 8),
+                    spec["symbol"],
+                    font=font,
+                    fill=foreground,
+                )
+            draw.text((158, 622), "ОСНОВНОЙ ЗНАК", font=label_font, fill=background)
+            draw.text((792, 622), "АВАТАР", font=label_font, fill=background)
+        else:
+            glyphs = ["А", "Б", "В", "Д", "Л", "Я"]
+            for item_index, glyph in enumerate(glyphs):
+                col, row = item_index % 3, item_index // 3
+                x, y = 76 + col * 360, 262 + row * 202
+                draw.rounded_rectangle((x, y, x + 320, y + 166), radius=14, outline=accent, width=3)
+                draw.text((x + 28, y + 20), glyph, font=_portfolio_font(86, bold=True), fill=foreground)
+                draw.text((x + 156, y + 61), f"STYLE {item_index + 1}", font=label_font, fill=accent)
+
+        path = ensure_parent(output_dir / f"{stem}-portfolio-{index + 1:02d}.jpg")
+        canvas.save(path, "JPEG", quality=94, subsampling=0, optimize=True)
+        result.append(
+            {
+                "title": spec["title"],
+                "subtitle": spec["subtitle"],
+                "path": str(path),
+                "asset_url": f"{API_BASE_URL}/api/kwork/autopublish/assets/{path.name}",
+            }
+        )
+
+    if source is not None:
+        source.close()
+    return result
+
+
+def _portfolio_payload(upload: dict[str, Any], title: str, index: int) -> dict[str, Any]:
+    media_id = int(upload["id"])
+    item_crop = upload.get("crop") or {"x": 0, "y": 0, "w": 1, "h": 1}
+    return {
+        "id": None,
+        "draftHash": int(time.time() * 1000) + index,
+        "cover": {
+            "id": None,
+            "crop": item_crop,
+            "type": "image",
+            "idPortfolioMedia": media_id,
+        },
+        "title": _truncate(title, 80),
+        "description": "",
+        "items": [
+            {
+                "id": media_id,
+                "crop": item_crop,
+                "position": 0,
+                "portfolio_type": "photo",
+            }
+        ],
+    }
 
 
 def _default_cover_crop(path: str | Path) -> dict[str, int]:
@@ -530,6 +781,11 @@ def _normalize_cover_png(path: Path) -> tuple[bool, str]:
 class KworkAutopublishService:
     """Generate Kwork listing drafts and build guarded save payloads."""
 
+    @staticmethod
+    def ensure_portfolio_assets(draft: dict[str, Any]) -> list[dict[str, str]]:
+        count = _required_portfolio_count(draft)
+        return _render_portfolio_assets(draft, count=count) if count else []
+
     async def generate_draft(self, request: dict[str, Any]) -> dict[str, Any]:
         category_id = int(request.get("category_id") or 0)
         if category_id <= 0:
@@ -540,6 +796,9 @@ class KworkAutopublishService:
             {
                 "category_id": category_id,
                 "classifier_id": request.get("classifier_id"),
+                "variant_index": int(request.get("variant_index") or 0),
+                "variant_count": max(1, min(3, int(request.get("variant_count") or 1))),
+                "creative_direction": str(request.get("creative_direction") or "").strip(),
                 "price": int(request.get("price") or draft.get("price") or 500),
                 "work_time": int(request.get("work_time") or draft.get("work_time") or 3),
                 "attributes": request.get("attributes") or {},
@@ -550,11 +809,20 @@ class KworkAutopublishService:
         )
 
         image = None
+        if request.get("cover_text") or request.get("cover_subtitle"):
+            cover_title, cover_subtitle = _cover_text_from_draft(draft, request)
+            draft["cover_text"] = cover_title
+            draft["cover_subtitle"] = cover_subtitle
         if request.get("generate_image"):
+            cover_title, cover_subtitle = _cover_text_from_draft(draft, request)
+            draft["cover_text"] = cover_title
+            draft["cover_subtitle"] = cover_subtitle
             image = await self.generate_cover(draft, request)
             if isinstance(image, dict) and image.get("path"):
                 draft["cover_image_path"] = image.get("path")
                 draft["cover_image"] = image
+                if _required_portfolio_count(draft):
+                    draft["portfolio_assets"] = self.ensure_portfolio_assets(draft)
 
         return {"ok": True, "draft": draft, "image": image}
 
@@ -601,6 +869,7 @@ class KworkAutopublishService:
                     "Use competitor examples only as market references and best practices. Do not copy text verbatim.",
                     "Prefer concrete scope, deliverables, buyer instructions, and limits.",
                     "If audience is empty, keep auditory empty. Do not invent a target audience.",
+                    "When variant_count is greater than one, make this offer meaningfully different from the other variants while staying in the same market niche.",
                 ],
                 "category": {
                     "id": request.get("category_id"),
@@ -615,6 +884,11 @@ class KworkAutopublishService:
                 "fixed_price": request.get("price"),
                 "fixed_work_time": request.get("work_time"),
                 "portfolio_context": request.get("portfolio_context") or "",
+                "variant": {
+                    "index": int(request.get("variant_index") or 0) + 1,
+                    "count": max(1, min(3, int(request.get("variant_count") or 1))),
+                    "creative_direction": request.get("creative_direction") or "",
+                },
                 "required_json_schema": {
                     "title": "string, <=80 chars",
                     "description": "string, 600-1200 chars",
@@ -703,7 +977,9 @@ class KworkAutopublishService:
         status: str,
         detail: str = "",
     ) -> None:
-        analysis = request.get("_cover_visual_analysis") if isinstance(request.get("_cover_visual_analysis"), dict) else {}
+        analysis = (
+            request.get("_cover_visual_analysis") if isinstance(request.get("_cover_visual_analysis"), dict) else {}
+        )
         payload = {
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "status": status,
@@ -713,6 +989,8 @@ class KworkAutopublishService:
             "classifier": request.get("classifier_name"),
             "service_summary": request.get("service_summary") or request.get("brief") or "",
             "audience": request.get("audience") or draft.get("auditory") or "",
+            "cover_text": request.get("cover_text") or "",
+            "cover_subtitle": request.get("cover_subtitle") or "",
             "prompt": prompt,
             "prompt_source": prompt_source,
             "detail": detail,
@@ -723,15 +1001,21 @@ class KworkAutopublishService:
             "cover_prompt_context": request.get("_cover_prompt_context") or {},
         }
         try:
-            ensure_parent(_cover_sidecar_path(path)).write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            ensure_parent(_cover_sidecar_path(path)).write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
         except Exception as exc:
             logger.debug(f"KworkAutopublish: cover sidecar write failed: {exc}")
 
     async def build_cover_prompt(self, draft: dict[str, Any], request: dict[str, Any]) -> tuple[str, str]:
-        visual_analysis = await self.analyze_competitor_covers(draft, request)
+        visual_analysis = request.get("_cover_visual_analysis")
+        if not isinstance(visual_analysis, dict):
+            visual_analysis = await self.analyze_competitor_covers(draft, request)
         request["_cover_visual_analysis"] = visual_analysis
         cover_history = self._recent_cover_history()
-        request["_cover_history"] = [{key: value for key, value in item.items() if key != "data_url"} for item in cover_history]
+        request["_cover_history"] = [
+            {key: value for key, value in item.items() if key != "data_url"} for item in cover_history
+        ]
         fallback = self._fallback_cover_prompt(draft, request, visual_analysis=visual_analysis)
         request["_cover_prompt_context"] = _cover_prompt_context(
             visual_analysis,
@@ -751,9 +1035,18 @@ class KworkAutopublishService:
                 or request.get("provider")
                 or None
             )
-            model = request.get("cover_prompt_model") or os.getenv("KWORK_COVER_PROMPT_MODEL") or request.get("model") or None
-            prompt_payload = json.dumps(self._cover_prompt_brief(draft, request, visual_analysis=visual_analysis), ensure_ascii=False)
-            competitor_prompt_images = [str(item) for item in request.get("_cover_competitor_image_data_urls", []) if item]
+            model = (
+                request.get("cover_prompt_model")
+                or os.getenv("KWORK_COVER_PROMPT_MODEL")
+                or request.get("model")
+                or None
+            )
+            prompt_payload = json.dumps(
+                self._cover_prompt_brief(draft, request, visual_analysis=visual_analysis), ensure_ascii=False
+            )
+            competitor_prompt_images = [
+                str(item) for item in request.get("_cover_competitor_image_data_urls", []) if item
+            ]
             history_prompt_images = [str(item.get("data_url")) for item in cover_history if item.get("data_url")]
             prompt_images = [*competitor_prompt_images, *history_prompt_images][:8]
             competitor_images_sent = min(len(competitor_prompt_images), len(prompt_images))
@@ -766,6 +1059,11 @@ class KworkAutopublishService:
                 history_images_sent=history_images_sent,
                 route="llm_vision" if prompt_images else "llm_text_no_images",
             )
+            overlay_instruction = (
+                "The image model must not draw any readable text; reserve a calm lower-third area because exact typography is applied after generation. "
+                if _should_overlay_cover_text(request)
+                else "The image model itself must draw the provided short Russian offer as clean readable text. "
+            )
             system_prompt = (
                 "You are an art director for Kwork cover images. "
                 "Write one image-generation prompt in English. "
@@ -773,11 +1071,14 @@ class KworkAutopublishService:
                 "First compare attached competitor covers and recent generated covers when images are provided. "
                 "Choose a composition strategy that is visibly different from recent generated covers while still fitting the market. "
                 "Do not default to the same dark SaaS dashboard or left text panel unless the provided visual evidence makes it clearly best. "
-                "Avoid fake detailed UI screenshots, tiny unreadable interface text, random icons, and cluttered collage layouts. "
-                "Prefer one clean commercial composition with a clear subject, strong hierarchy, premium lighting, and enough empty space for Russian text. "
+                "For web and software services, show a plausible real landing page, application result, browser screen, or code editor with a few large coherent details. "
+                "For design services, show the finished identity or layout applied to realistic surfaces. "
+                "Avoid tiny unreadable interface text, random icons, abstract glowing geometry, and cluttered collage layouts. "
+                "Prefer one clean commercial composition with a clear subject, strong hierarchy, premium lighting, and visible proof of the delivered outcome. "
+                "Use a before/after transformation or a few polished work samples when they communicate the service better than an abstract scene. "
                 "Name concrete composition, palette, subject, text placement, and what should be better than the competitor average. "
                 "Never copy competitor covers exactly, never include logos, contacts, watermarks, or brand names. "
-                "The image model itself must draw the provided short Russian offer as clean readable text."
+                f"{overlay_instruction}"
             )
             try:
                 if prompt_images:
@@ -915,7 +1216,9 @@ class KworkAutopublishService:
                 ),
                 model=request.get("cover_vision_model") or os.getenv("KWORK_COVER_VISION_MODEL") or None,
                 temperature=float(request.get("cover_vision_temperature") or 0.25),
-                max_tokens=int(request.get("cover_vision_max_tokens") or os.getenv("KWORK_COVER_VISION_MAX_TOKENS", "700")),
+                max_tokens=int(
+                    request.get("cover_vision_max_tokens") or os.getenv("KWORK_COVER_VISION_MAX_TOKENS", "700")
+                ),
                 task="kwork_cover_vision",
                 system_prompt=(
                     "You are a visual art director. Analyze marketplace cover images from pixels. "
@@ -940,23 +1243,32 @@ class KworkAutopublishService:
             }
 
     async def _download_competitor_covers(self, items: list[dict[str, str]]) -> list[dict[str, str]]:
-        downloaded: list[dict[str, str]] = []
         headers = {
             "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
             "User-Agent": "Mozilla/5.0 PSR-KworkCoverVision/1.0",
         }
-        async with httpx.AsyncClient(timeout=_vision_timeout_seconds(), follow_redirects=True, trust_env=False) as client:
-            for item in items:
+        semaphore = asyncio.Semaphore(4)
+        async with httpx.AsyncClient(
+            timeout=_vision_timeout_seconds(), follow_redirects=True, trust_env=False
+        ) as client:
+
+            async def download(item: dict[str, str]) -> dict[str, str] | None:
                 try:
-                    response = await client.get(item["image_url"], headers=headers)
-                    response.raise_for_status()
+                    async with semaphore:
+                        response = await client.get(item["image_url"], headers=headers)
+                        response.raise_for_status()
                     raw = response.content[: 5 * 1024 * 1024]
-                    if not raw:
-                        continue
-                    downloaded.append({**item, "data_url": _image_bytes_to_data_url(raw, response.headers.get("content-type", ""))})
+                    if raw:
+                        return {
+                            **item,
+                            "data_url": _image_bytes_to_data_url(raw, response.headers.get("content-type", "")),
+                        }
                 except Exception as exc:
                     logger.debug(f"KworkAutopublish: competitor cover download failed: {item.get('image_url')} ({exc})")
-        return downloaded
+                return None
+
+            results = await asyncio.gather(*(download(item) for item in items))
+        return [item for item in results if item is not None]
 
     def _cover_prompt_brief(
         self,
@@ -976,10 +1288,44 @@ class KworkAutopublishService:
                 {
                     "title": item.get("title"),
                     "image_url": item.get("image_url"),
+                    "portfolio_images": (item.get("portfolio_images") or [])[:4]
+                    if isinstance(item.get("portfolio_images"), list)
+                    else [],
                     "description": _truncate(str(item.get("description") or ""), 450),
                     "service_size": item.get("service_size"),
                     "price": item.get("price"),
                 }
+            )
+
+        overlay_text = _should_overlay_cover_text(request)
+        requirements = [
+            "3:2 cover composition for a freelance marketplace listing",
+            "inspect competitor covers and portfolio examples when attached; explicitly avoid repeating our recent layouts",
+            "the prompt must explain a specific visual strategy based on those attached images, not a reusable fixed template",
+            "use competitor visual analysis as market context, then create a stronger and fresher cover for this exact service",
+            "show the actual outcome, a before/after transformation, or 2-3 polished work samples rather than a generic poster",
+            "for web or software work, show a plausible finished landing page, application screen, browser result, or code editor with a few large coherent elements",
+            "for design work, show the finished identity, layout, packaging, or asset applied to realistic surfaces instead of decorative abstract shapes",
+            "avoid unreadable microtext and fake random interfaces, but do not replace the real deliverable with generic icons or glowing geometry",
+            "professional, credible, visually specific; not childish and not a generic SaaS poster",
+            "no logos, no brand names, no contacts, no watermarks",
+            "use competitor covers only as market context; do not copy them",
+        ]
+        if overlay_text:
+            requirements.extend(
+                [
+                    "do not render any readable text inside the generated image; exact Russian typography is added after generation",
+                    "leave the lower third visually calm enough for a short deterministic title overlay",
+                ]
+            )
+        else:
+            requirements.extend(
+                [
+                    "include the required Russian offer text directly inside the generated image",
+                    "choose the text placement from the visual analysis; use any calm high-contrast area that fits this specific cover",
+                    "make the Russian text short, legible, and typographically clean",
+                    "no extra readable text beyond the required offer",
+                ]
             )
 
         return {
@@ -991,6 +1337,11 @@ class KworkAutopublishService:
                 "audience": request.get("audience") or draft.get("auditory") or "",
                 "category": request.get("category_name"),
                 "classifier": request.get("classifier_name"),
+            },
+            "variant": {
+                "index": int(request.get("variant_index") or 0) + 1,
+                "count": max(1, min(3, int(request.get("variant_count") or 1))),
+                "creative_direction": request.get("creative_direction") or "",
             },
             "competitor_cover_examples": competitor_examples,
             "competitor_visual_analysis": visual_analysis or {"status": "not_run", "brief": ""},
@@ -1004,25 +1355,16 @@ class KworkAutopublishService:
             },
             "attached_image_context": {
                 "competitor_covers": len(request.get("_cover_competitor_image_data_urls") or []),
-                "recent_generated_covers": len([item for item in (request.get("_cover_history") or []) if item.get("path")]),
+                "recent_generated_covers": len(
+                    [item for item in (request.get("_cover_history") or []) if item.get("path")]
+                ),
             },
             "required_cover_text": {
                 "title": _cover_text_from_draft(draft, request)[0],
                 "subtitle": _cover_text_from_draft(draft, request)[1],
+                "rendered_after_generation": overlay_text,
             },
-            "requirements": [
-                "3:2 cover composition for a freelance marketplace listing",
-                "include the required Russian offer text directly inside the generated image",
-                "choose the text placement from the visual analysis; use any calm high-contrast area that fits this specific cover",
-                "make the Russian text short, legible, and typographically clean",
-                "inspect competitor covers and recent generated covers when attached; explicitly avoid repeating our recent layouts",
-                "the prompt must explain a specific visual strategy based on those attached images, not a reusable fixed template",
-                "use competitor visual analysis as market context, then create a stronger and fresher cover for this exact service",
-                "show the outcome visually, not a generic poster",
-                "professional, credible, visually specific; not childish and not a generic SaaS poster",
-                "no extra readable text beyond the required offer, no logos, no brand names, no contacts, no watermarks",
-                "use competitor covers only as market context; do not copy them",
-            ],
+            "requirements": requirements,
         }
 
     def _fallback_cover_prompt(
@@ -1054,23 +1396,33 @@ class KworkAutopublishService:
             else ""
         )
         cover_title, cover_subtitle = _cover_text_from_draft(draft, request)
-        cover_text = f'Add large readable Russian text: "{cover_title}"'
-        if cover_subtitle:
-            cover_text += f' and smaller subtitle "{cover_subtitle}"'
-        cover_text += ". "
+        direction = str(request.get("creative_direction") or "").strip()
+        direction_line = f"Creative direction for this variant: {direction}. " if direction else ""
+        if _should_overlay_cover_text(request):
+            cover_text = (
+                "Do not draw any readable text, letters, logos, or watermarks. "
+                "Keep the lower third calm and high-contrast for a deterministic typography overlay added after generation. "
+            )
+        else:
+            cover_text = f'Add large readable Russian text: "{cover_title}"'
+            if cover_subtitle:
+                cover_text += f' and smaller subtitle "{cover_subtitle}"'
+            cover_text += ". No extra readable text. "
         return (
             "Create a 3:2 Kwork cover image for a freelance service listing. "
             f"{cover_text}"
-            "Place the text on a high-contrast calm area chosen for this composition; do not force a left-panel layout. "
-            "No extra readable text, no logos, no brand names, no contacts, no watermarks. "
-            "Avoid fake detailed UI screenshots, tiny unreadable interface text, random icon collages, and generic dark dashboard banners. "
-            "Make it look like a premium, credible service preview with one clear subject, clean hierarchy, polished lighting, and a concrete outcome rather than abstract decoration. "
+            "Do not force a left-panel layout. No logos, no brand names, no contacts, no watermarks. "
+            "Show the real deliverable: a credible finished landing page, application screen, code editor, brand system, layout, or before/after result that matches the service. "
+            "Avoid tiny unreadable interface text, random icon collages, generic dark dashboard banners, and abstract glowing geometry used instead of the product. "
+            "Make it look like a premium, credible service preview with one clear subject, clean hierarchy, polished lighting, and a concrete outcome. "
+            "Prefer a convincing before/after transformation or a small set of polished work samples when that makes the service easier to understand. "
             f"Service title: {draft.get('title')}. "
             f"Audience: {request.get('audience') or draft.get('auditory') or ''}. "
             f"Category: {request.get('category_name') or ''}. "
             f"{analysis_line}"
             f"{history_line}"
             f"{reference_line}"
+            f"{direction_line}"
             f"Context: {request.get('image_context') or request.get('service_summary') or ''}"
         )
 
@@ -1121,16 +1473,26 @@ class KworkAutopublishService:
         faq = parsed.get("faq")
         if not isinstance(faq, list):
             faq = fallback["faq"]
+        normalized_faq = []
+        for item in faq[:5]:
+            if not isinstance(item, dict):
+                continue
+            normalized_faq.append(
+                {
+                    "question": _sanitize_kwork_text(item.get("question")),
+                    "answer": _sanitize_kwork_text(item.get("answer")),
+                }
+            )
         normalized = {
-            "title": _truncate(str(parsed.get("title") or fallback["title"]), 80),
-            "description": str(parsed.get("description") or fallback["description"]).strip(),
-            "instruction": str(parsed.get("instruction") or fallback["instruction"]).strip(),
-            "auditory": str(parsed.get("auditory") or fallback["auditory"]).strip(),
-            "service_size": str(parsed.get("service_size") or fallback["service_size"]).strip(),
-            "volume": str(parsed.get("volume") or fallback["volume"]).strip(),
+            "title": _truncate(_sanitize_kwork_text(parsed.get("title") or fallback["title"]), 80),
+            "description": _sanitize_kwork_text(parsed.get("description") or fallback["description"]),
+            "instruction": _sanitize_kwork_text(parsed.get("instruction") or fallback["instruction"]),
+            "auditory": _sanitize_kwork_text(parsed.get("auditory") or fallback["auditory"]),
+            "service_size": _sanitize_kwork_text(parsed.get("service_size") or fallback["service_size"]),
+            "volume": _sanitize_kwork_text(parsed.get("volume") or fallback["volume"]),
             "price": int(parsed.get("price") or fallback["price"]),
             "work_time": int(parsed.get("work_time") or fallback["work_time"]),
-            "faq": faq[:5],
+            "faq": normalized_faq,
         }
         return normalized
 
@@ -1147,7 +1509,9 @@ class KworkAutopublishService:
         fallback_url = _openai_url("images/generations")
         api_key = _image_api_key(_first_openai_key())
         if not api_key:
-            return self.generate_local_cover(path, draft, request, prompt, "OPENAI_API_KEY/OPENAI_API_KEYS is not configured")
+            return self.generate_local_cover(
+                path, draft, request, prompt, "OPENAI_API_KEY/OPENAI_API_KEYS is not configured"
+            )
 
         primary_payload = {
             "model": os.getenv("KWORK_COVER_IMAGE_MODEL", os.getenv("PROPOSAL_IMAGE_MODEL", "gpt-image-2")),
@@ -1174,7 +1538,9 @@ class KworkAutopublishService:
             async with httpx.AsyncClient(timeout=_image_timeout_seconds(), trust_env=False) as client:
                 data: dict[str, Any] = {}
                 for index, payload in enumerate(payloads):
-                    response = await client.post(_image_api_url("images/generations", fallback_url), headers=headers, json=payload)
+                    response = await client.post(
+                        _image_api_url("images/generations", fallback_url), headers=headers, json=payload
+                    )
                     if response.status_code in {400, 422} and index < len(payloads) - 1:
                         errors.append(
                             f"{payload.get('model')} {payload.get('size')} quality={payload.get('quality')}: "
@@ -1335,6 +1701,26 @@ class KworkAutopublishService:
             ("is_save_kwork", "1"),
         ]
 
+        if int(draft.get("category_id") or 0) == 25:
+            pairs.extend(
+                [
+                    (
+                        "bundle_standard_description",
+                        str(
+                            draft.get("bundle_standard_description")
+                            or "Адаптация одного готового логотипа под кириллицу"
+                        ),
+                    ),
+                    ("package_volume", str(draft.get("package_volume") or 1)),
+                    (
+                        "bundle_standard_duration",
+                        str(draft.get("bundle_standard_duration") or draft.get("work_time") or 3),
+                    ),
+                    ("bundle_extra_standard_value[category][190]", "1"),
+                    ("bundle_extra_standard_value[category][191]", str(draft.get("package_volume") or 1)),
+                ]
+            )
+
         for key in ("csrftoken", "draft_id"):
             value = draft.get(key)
             if value not in (None, ""):
@@ -1381,7 +1767,11 @@ class KworkAutopublishService:
         if first_photo_path:
             pairs.append(("first_photo_path", str(first_photo_path)))
             pairs.append(("first-kwork-photo", "null"))
-        crop = cover_upload.get("first-kwork-photo-size[]") or cover_upload.get("crop") or draft.get("first-kwork-photo-size[]")
+        crop = (
+            cover_upload.get("first-kwork-photo-size[]")
+            or cover_upload.get("crop")
+            or draft.get("first-kwork-photo-size[]")
+        )
         if crop:
             pairs.append(
                 (
@@ -1389,6 +1779,9 @@ class KworkAutopublishService:
                     crop if isinstance(crop, str) else json.dumps(crop, ensure_ascii=False),
                 )
             )
+        portfolios = draft.get("portfolios") if isinstance(draft.get("portfolios"), list) else []
+        if portfolios:
+            pairs.append(("portfolio", json.dumps(portfolios, ensure_ascii=False)))
         return pairs
 
     def build_save_payload(self, draft: dict[str, Any]) -> dict[str, Any]:
@@ -1412,8 +1805,11 @@ class KworkAutopublishService:
             "attribute_manifest_hash": (
                 normalization["manifest_hash"] if normalization is not None else draft.get("attribute_manifest_hash")
             ),
-            "selection_hash": normalization["selection_hash"] if normalization is not None else draft.get("selection_hash"),
+            "selection_hash": normalization["selection_hash"]
+            if normalization is not None
+            else draft.get("selection_hash"),
             "faq": faq,
+            "portfolio": draft.get("portfolios") if isinstance(draft.get("portfolios"), list) else [],
             "is_save_kwork": 1,
             "form_payload": form_payload,
         }
@@ -1453,14 +1849,20 @@ class KworkAutopublishService:
             "confirmation_phrase": os.getenv("KWORK_AUTOPUBLISH_CONFIRM_PHRASE", PUBLISH_CONFIRMATION_PHRASE),
         }
 
-    def validate_publish_confirmation(self, draft: dict[str, Any], token: str = "", confirmation: str = "") -> dict[str, Any]:
+    def validate_publish_confirmation(
+        self, draft: dict[str, Any], token: str = "", confirmation: str = ""
+    ) -> dict[str, Any]:
         phrase = os.getenv("KWORK_AUTOPUBLISH_CONFIRM_PHRASE", PUBLISH_CONFIRMATION_PHRASE)
         if confirmation.strip() != phrase:
             return {"ok": False, "code": "confirmation_phrase_required", "detail": f"Type {phrase} to publish live."}
 
         parts = str(token or "").split(".")
         if len(parts) != 3:
-            return {"ok": False, "code": "publish_token_required", "detail": "Live publish requires a fresh preflight token."}
+            return {
+                "ok": False,
+                "code": "publish_token_required",
+                "detail": "Live publish requires a fresh preflight token.",
+            }
 
         issued_raw, token_hash, signature = parts
         try:
@@ -1470,7 +1872,11 @@ class KworkAutopublishService:
 
         ttl = int(os.getenv("KWORK_AUTOPUBLISH_CONFIRM_TTL_SECONDS", "600") or "600")
         if issued_at < int(time.time()) - ttl:
-            return {"ok": False, "code": "publish_token_expired", "detail": "Publish token expired; run preflight again."}
+            return {
+                "ok": False,
+                "code": "publish_token_expired",
+                "detail": "Publish token expired; run preflight again.",
+            }
 
         draft_hash = self.draft_hash(draft)
         if not hmac.compare_digest(token_hash, draft_hash):
@@ -1488,7 +1894,8 @@ class KworkAutopublishService:
         missing: list[str] = []
         selection, normalization = _normalized_draft_selection(draft)
         if not isinstance(selection, dict) or not any(
-            value not in (None, "") and not (isinstance(value, list) and len(value) == 0) for value in selection.values()
+            value not in (None, "") and not (isinstance(value, list) and len(value) == 0)
+            for value in selection.values()
         ):
             missing.append("attribute_selection")
 
@@ -1498,7 +1905,9 @@ class KworkAutopublishService:
         unresolved = (
             normalization["unresolved_required"]
             if normalization is not None
-            else manifest.get("unresolved_required") if isinstance(manifest.get("unresolved_required"), list) else []
+            else manifest.get("unresolved_required")
+            if isinstance(manifest.get("unresolved_required"), list)
+            else []
         )
         for item in unresolved:
             if item not in (None, "") and str(item) not in missing:
@@ -1605,7 +2014,9 @@ class KworkAutopublishService:
         hidden = web_state.get("hidden_fields") if isinstance(web_state.get("hidden_fields"), dict) else {}
         if hidden:
             live_draft["hidden_fields"] = {**hidden, **(live_draft.get("hidden_fields") or {})}
-        live_draft.update({key: value for key, value in hidden.items() if key not in live_draft and value not in (None, "")})
+        live_draft.update(
+            {key: value for key, value in hidden.items() if key not in live_draft and value not in (None, "")}
+        )
         if web_state.get("csrftoken") and not live_draft.get("csrftoken"):
             live_draft["csrftoken"] = web_state["csrftoken"]
         if web_state.get("draft_id") and not live_draft.get("draft_id"):
@@ -1635,6 +2046,51 @@ class KworkAutopublishService:
             if upload.get("draft_id") and not live_draft.get("draft_id"):
                 live_draft["draft_id"] = upload["draft_id"]
 
+        portfolio_uploads: list[dict[str, Any]] = []
+        required_portfolio_count = _required_portfolio_count(live_draft)
+        portfolios = live_draft.get("portfolios") if isinstance(live_draft.get("portfolios"), list) else []
+        if required_portfolio_count and len(portfolios) < required_portfolio_count:
+            assets = self.ensure_portfolio_assets(live_draft)
+            if len(assets) < required_portfolio_count:
+                payload = self.build_save_payload(live_draft)
+                return {
+                    "ok": False,
+                    "dry_run": False,
+                    "payload": payload,
+                    "web_state": web_state,
+                    "code": "portfolio_generation_failed",
+                    "detail": "Kwork requires at least five portfolio works for this category.",
+                }
+
+            known_hashes: list[str] = []
+            cover_upload = live_draft.get("cover_upload") if isinstance(live_draft.get("cover_upload"), dict) else {}
+            if cover_upload.get("first_photo_hash"):
+                known_hashes.append(str(cover_upload["first_photo_hash"]))
+            generated_portfolios: list[dict[str, Any]] = []
+            for index, asset in enumerate(assets[:required_portfolio_count]):
+                upload = await client.upload_portfolio_image(
+                    str(asset["path"]),
+                    known_hashes=known_hashes,
+                    kwork_id=live_draft.get("kwork_id"),
+                )
+                portfolio_uploads.append({"asset": asset, "upload": upload})
+                if not upload.get("ok"):
+                    payload = self.build_save_payload(live_draft)
+                    return {
+                        "ok": False,
+                        "dry_run": False,
+                        "payload": payload,
+                        "web_state": web_state,
+                        "portfolio_uploads": portfolio_uploads,
+                        "code": upload.get("code") or "portfolio_upload_failed",
+                        "detail": upload.get("detail") or "Kwork portfolio image upload failed.",
+                    }
+                if upload.get("hash"):
+                    known_hashes.append(str(upload["hash"]))
+                generated_portfolios.append(_portfolio_payload(upload, str(asset.get("title") or "Работа"), index))
+            live_draft["portfolio_assets"] = assets[:required_portfolio_count]
+            live_draft["portfolios"] = generated_portfolios
+
         payload = self.build_save_payload(live_draft)
         save_method = getattr(client, "save_kwork_json", client.save_kwork)
         save_result = await save_method(payload["form_payload"], referer=web_state.get("final_url"))
@@ -1642,12 +2098,15 @@ class KworkAutopublishService:
         verified = bool(verify_result and verify_result.get("ok"))
         verify_code = str(verify_result.get("code") or "") if isinstance(verify_result, dict) else ""
         save_code = str(save_result.get("code") or "")
-        manual_verification = verify_code == "manual_verification_required" or save_code == "manual_verification_required"
+        manual_verification = (
+            verify_code == "manual_verification_required" or save_code == "manual_verification_required"
+        )
         return {
             "ok": bool(save_result.get("ok") and verified),
             "dry_run": False,
             "payload": payload,
             "web_state": web_state,
+            "portfolio_uploads": portfolio_uploads,
             "save_result": save_result,
             "verify_result": verify_result,
             "code": (
@@ -1687,7 +2146,14 @@ class KworkAutopublishService:
 
         service = get_kwork_service()
         cookies = await service._fetch_session_hub_cookies()
-        return cookies or self._env_web_cookies()
+        if not cookies:
+            cookies = self._env_web_cookies()
+        if cookies:
+            probe = await KworkWebListingClient(cookies).open_new()
+            if probe.get("ok"):
+                return cookies
+        refreshed = await service.refresh_web_session_cookies(url_to_redirect="/new")
+        return refreshed or cookies
 
     @staticmethod
     def _env_web_cookies() -> dict[str, str]:

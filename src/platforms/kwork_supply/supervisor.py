@@ -8,6 +8,7 @@ from contextlib import suppress
 from typing import Any
 
 from .coordinator import MarketScanCoordinator
+from .identity_pool import MarketIdentityPool
 from .models import JobState, NetworkPolicy, OperationKind, TransportHealth
 from .rate_control import (
     ConcurrencyPolicy,
@@ -41,6 +42,7 @@ class MarketWorkerSupervisor:
         *,
         handlers: Mapping[OperationKind | str, OperationHandler],
         transport_manager: TransportManager | None = None,
+        identity_pool: MarketIdentityPool | None = None,
         reconcile_interval_seconds: float = 1.0,
         worker_poll_interval_seconds: float = 0.25,
         concurrency_policy: ConcurrencyPolicy | None = None,
@@ -53,6 +55,7 @@ class MarketWorkerSupervisor:
         self.coordinator = coordinator
         self.handlers = handlers
         self.transport_manager = transport_manager
+        self.identity_pool = identity_pool
         self.reconcile_interval_seconds = reconcile_interval_seconds
         self.worker_poll_interval_seconds = worker_poll_interval_seconds
         self.concurrency_policy = concurrency_policy or ConcurrencyPolicy()
@@ -60,7 +63,7 @@ class MarketWorkerSupervisor:
         self._tasks: dict[str, asyncio.Task[None]] = {}
         self._workers: dict[str, MarketWorker] = {}
         self._loop_task: asyncio.Task[None] | None = None
-        self._last_concurrency_advice: dict[str, tuple[int, tuple[str, ...], int | None]] = {}
+        self._last_concurrency_advice: dict[str, tuple[int, int, tuple[str, ...], int | None, int | None]] = {}
         self._closed = False
 
     @property
@@ -158,6 +161,9 @@ class MarketWorkerSupervisor:
                 if next_cursor == cursor:
                     break
                 cursor = next_cursor
+        identity_capacity: int | None = None
+        if self.identity_pool is not None:
+            identity_capacity = await self.identity_pool.capacity_for_job(job_id)
         signal_record = await self.coordinator.repository.get_job_concurrency_signals(
             job_id,
             window=self.concurrency_window_attempts,
@@ -172,7 +178,7 @@ class MarketWorkerSupervisor:
         )
         has_protection = bool(signals.http_403_count or signals.http_429_count)
         has_window = signals.attempt_count >= self.concurrency_policy.min_sample_size
-        if healthy_transport_count is None and not has_protection and not has_window:
+        if identity_capacity is None and healthy_transport_count is None and not has_protection and not has_window:
             return configured
 
         recommendation = recommend_worker_concurrency(
@@ -180,14 +186,19 @@ class MarketWorkerSupervisor:
             current_workers=configured,
             signals=signals,
         )
-        effective = min(configured, recommendation.recommended_workers)
+        effective = configured
         if healthy_transport_count is not None:
             effective = min(effective, healthy_transport_count)
+        if identity_capacity is not None:
+            effective = min(effective, identity_capacity)
+        recommended = min(effective, recommendation.recommended_workers)
         await self._emit_concurrency_advice(
             job,
             configured=configured,
             effective=effective,
+            recommended=recommended,
             healthy_transport_count=healthy_transport_count,
+            identity_capacity=identity_capacity,
             signal_record=signal_record,
             reasons=recommendation.reasons,
         )
@@ -199,14 +210,21 @@ class MarketWorkerSupervisor:
         *,
         configured: int,
         effective: int,
+        recommended: int,
         healthy_transport_count: int | None,
+        identity_capacity: int | None,
         signal_record: Mapping[str, Any],
         reasons: tuple[str, ...],
     ) -> None:
-        if effective == configured:
+        if effective == configured and recommended == effective:
             return
         job_id = str(job["job_id"])
-        signature = (effective, reasons, healthy_transport_count)
+        normalized_reasons = reasons
+        if identity_capacity is not None and effective < configured:
+            normalized_reasons += ("account_identity_capacity",)
+        if healthy_transport_count is not None and effective < configured:
+            normalized_reasons += ("healthy_transport_cap",)
+        signature = (effective, recommended, normalized_reasons, healthy_transport_count, identity_capacity)
         if self._last_concurrency_advice.get(job_id) == signature:
             return
         self._last_concurrency_advice[job_id] = signature
@@ -216,14 +234,16 @@ class MarketWorkerSupervisor:
             {
                 "configured_workers": configured,
                 "effective_workers": effective,
+                "recommended_workers": recommended,
                 "healthy_transport_count": healthy_transport_count,
+                "identity_capacity": identity_capacity,
                 "window_attempt_count": signal_record["window_attempt_count"],
                 "success_count": signal_record["success_count"],
                 "http_403_count": signal_record["http_403_count"],
                 "http_429_count": signal_record["http_429_count"],
                 "timeout_count": signal_record["timeout_count"],
                 "novelty_rate": signal_record["novelty_rate"],
-                "reasons": list(reasons),
+                "reasons": list(normalized_reasons),
                 "advisory": True,
             },
             revision=int(job["revision"]),
@@ -239,6 +259,7 @@ class MarketWorkerSupervisor:
             generation=generation,
             handlers=self.handlers,
             transport_manager=self.transport_manager,
+            identity_pool=self.identity_pool,
             poll_interval_seconds=self.worker_poll_interval_seconds,
         )
         task = asyncio.create_task(worker.run(), name=f"market-worker:{worker_id}")

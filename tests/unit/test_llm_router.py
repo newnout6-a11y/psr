@@ -479,7 +479,56 @@ class TestOpenAICompatibleClient:
         }
 
     @pytest.mark.asyncio
-    async def test_generate_with_images_posts_multimodal_payload(self, monkeypatch):
+    async def test_generate_with_images_posts_responses_multimodal_payload(self, monkeypatch):
+        captured = {}
+
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"output_text": "visual brief"}
+
+        class FakeClient:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def post(self, url, **kwargs):
+                captured["url"] = url
+                captured["json"] = kwargs.get("json")
+                return FakeResponse()
+
+        monkeypatch.setattr("httpx.AsyncClient", FakeClient)
+        client = OpenAICompatibleClient(api_key="k", base_url="https://api.example.com", wire_api="responses")
+
+        result = await client.generate_with_images(
+            prompt="analyze",
+            image_urls=["data:image/jpeg;base64,aaa"],
+            model="vision-model",
+            temperature=0.1,
+            max_tokens=200,
+            system_prompt="system",
+        )
+
+        assert result == "visual brief"
+        assert captured["url"] == "https://api.example.com/v1/responses"
+        assert captured["json"]["store"] is False
+        message_content = captured["json"]["input"][1]["content"]
+        assert message_content[0] == {"type": "input_text", "text": "analyze"}
+        assert message_content[1] == {
+            "type": "input_image",
+            "image_url": "data:image/jpeg;base64,aaa",
+            "detail": "auto",
+        }
+
+    @pytest.mark.asyncio
+    async def test_generate_with_images_keeps_chat_multimodal_payload(self, monkeypatch):
         captured = {}
 
         class FakeResponse:
@@ -505,7 +554,7 @@ class TestOpenAICompatibleClient:
                 return FakeResponse()
 
         monkeypatch.setattr("httpx.AsyncClient", FakeClient)
-        client = OpenAICompatibleClient(api_key="k", base_url="https://api.example.com", wire_api="responses")
+        client = OpenAICompatibleClient(api_key="k", base_url="https://api.example.com", wire_api="chat")
 
         result = await client.generate_with_images(
             prompt="analyze",

@@ -64,11 +64,25 @@ class ShardPlanner:
             raise ShardPlanningError("scope map has no candidate partitions")
         observed = scope_map.observed_first_batch_count
         estimated = math.ceil(job.target_unique_cards / observed) if observed > 0 else None
-        request_budget = job.request_budget or max(len(partitions), estimated or len(partitions))
-        if request_budget <= 0:
-            raise ShardPlanningError("request budget must be positive")
-        selected = partitions[: min(len(partitions), request_budget)]
-        budgets = self._allocate_budgets(request_budget, len(selected))
+        if job.request_budget is not None:
+            request_budget = job.request_budget
+            if request_budget <= 0:
+                raise ShardPlanningError("request budget must be positive")
+            initial_width = min(len(partitions), request_budget, max(job.desired_workers, 1))
+            selected = partitions[:initial_width]
+            budgets = self._allocate_budgets(request_budget, len(selected))
+        else:
+            # Keep the unfiltered root stream alive long enough to reach the
+            # target even when parallel candidate filters are empty or ignored.
+            root_signature = _stable_json(scope_map.scope.filters)
+            root = next((item for item in partitions if _stable_json(item.filters) == root_signature), None)
+            if root is not None:
+                partitions = (root, *(item for item in partitions if item is not root))
+            initial_width = min(len(partitions), max(job.desired_workers, 1))
+            selected = partitions[:initial_width]
+            primary_budget = max(estimated or 1, 1)
+            budgets = (primary_budget, *(1 for _item in selected[1:]))
+            request_budget = sum(budgets)
 
         planned_shards: list[PlannedShard] = []
         for partition, shard_budget in zip(selected, budgets, strict=True):

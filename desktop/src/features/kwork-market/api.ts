@@ -5,6 +5,9 @@ import type {
   MarketEventPage,
   MarketEventsQuery,
   MarketAssistantResponse,
+  MarketAccountEnabledPayload,
+  MarketAccountPoolAccount,
+  MarketAccountPoolSnapshot,
   MarketJob,
   MarketJobPage,
   MarketJobsQuery,
@@ -16,6 +19,13 @@ import type {
   MarketOperation,
   MarketOperationsQuery,
   MarketResults,
+  MarketRecommendation,
+  MarketRecommendationCreatePayload,
+  MarketRecommendationTransitionResponse,
+  MarketDraftHandoff,
+  MarketHandoffDraftResponse,
+  MarketHandoffPublishResponse,
+  MarketPublishedListing,
   MarketShardPage,
   MarketPaginationParams,
   MarketTransportPage,
@@ -74,6 +84,22 @@ export interface MarketJobsApiClient {
   getListings(jobId: string, params?: MarketListingsQuery): Promise<MarketListingPage>
   getEvents(jobId: string, params?: MarketEventsQuery): Promise<MarketEventPage>
   getResults(jobId: string): Promise<MarketResults>
+  listRecommendations(jobId: string): Promise<{ job_id: string; items: MarketRecommendation[] }>
+  createRecommendation(jobId: string, payload: MarketRecommendationCreatePayload): Promise<{ recommendation: MarketRecommendation }>
+  confirmRecommendation(jobId: string, recommendationId: string, expectedRevision?: number, loadManifest?: boolean): Promise<MarketRecommendationTransitionResponse>
+  rejectRecommendation(jobId: string, recommendationId: string, expectedRevision?: number): Promise<MarketRecommendationTransitionResponse>
+  getDraftHandoff(jobId: string, handoffId: string): Promise<MarketDraftHandoff>
+  refreshDraftHandoffManifest(jobId: string, handoffId: string): Promise<{ handoff: MarketDraftHandoff }>
+  updateDraftHandoffSelection(jobId: string, handoffId: string, manifestHash: string, selection: Record<string, unknown>, confirm: boolean): Promise<{ handoff: MarketDraftHandoff }>
+  generateDraftHandoff(jobId: string, handoffId: string, generationOptions?: Record<string, unknown>): Promise<MarketHandoffDraftResponse>
+  publishDraftHandoff(jobId: string, handoffId: string, payload: { dry_run: boolean; confirm_token?: string; confirmation?: string; variant_index?: number }): Promise<MarketHandoffPublishResponse>
+  listPublishedListings(jobId: string): Promise<{ job_id: string; items: MarketPublishedListing[] }>
+  getAccountPool(): Promise<MarketAccountPoolSnapshot>
+  syncAccountPool(): Promise<MarketAccountPoolSnapshot>
+  setAccountPoolAccount(registrationId: string, payload: MarketAccountEnabledPayload): Promise<{ account: MarketAccountPoolAccount }>
+  getFleet(jobId: string): Promise<MarketAccountPoolSnapshot>
+  reconcileFleet(jobId: string): Promise<MarketAccountPoolSnapshot>
+  rebindWorker(jobId: string, workerId: string): Promise<unknown>
   askAssistant(jobId: string, message: string): Promise<MarketAssistantResponse>
   commandWorker(jobId: string, workerId: string, command: 'drain' | 'restart' | 'disable' | 'rotate' | 'reconnect'): Promise<MarketWorkerCommand>
   retryOperation(jobId: string, operationId: string): Promise<MarketOperation>
@@ -117,8 +143,63 @@ export const marketJobsApi: MarketJobsApiClient = {
     marketRequest<MarketEventPage>(withQuery(`${jobPath(jobId)}/events`, {
       after_seq: params.after_seq,
       limit: params.limit,
+      tail: params.tail,
     })),
   getResults: (jobId) => marketRequest<MarketResults>(`${jobPath(jobId)}/results`),
+  listRecommendations: (jobId) => marketRequest<{ job_id: string; items: MarketRecommendation[] }>(`${jobPath(jobId)}/recommendations`),
+  createRecommendation: (jobId, payload) =>
+    marketRequest<{ recommendation: MarketRecommendation }>(`${jobPath(jobId)}/recommendations`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  confirmRecommendation: (jobId, recommendationId, expectedRevision, loadManifest = false) =>
+    marketRequest<MarketRecommendationTransitionResponse>(`${jobPath(jobId)}/recommendations/${encodeURIComponent(recommendationId)}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...(expectedRevision === undefined ? {} : { expected_revision: expectedRevision }),
+        load_manifest: loadManifest,
+      }),
+    }),
+  rejectRecommendation: (jobId, recommendationId, expectedRevision) =>
+    marketRequest<MarketRecommendationTransitionResponse>(`${jobPath(jobId)}/recommendations/${encodeURIComponent(recommendationId)}/reject`, {
+      method: 'POST',
+      body: JSON.stringify(expectedRevision === undefined ? {} : { expected_revision: expectedRevision }),
+    }),
+  getDraftHandoff: (jobId, handoffId) =>
+    marketRequest<MarketDraftHandoff>(`${jobPath(jobId)}/draft-handoffs/${encodeURIComponent(handoffId)}`),
+  refreshDraftHandoffManifest: (jobId, handoffId) =>
+    marketRequest<{ handoff: MarketDraftHandoff }>(`${jobPath(jobId)}/draft-handoffs/${encodeURIComponent(handoffId)}/refresh-manifest`, {
+      method: 'POST',
+      body: JSON.stringify({ lang: 'ru' }),
+    }),
+  updateDraftHandoffSelection: (jobId, handoffId, manifestHash, selection, confirm) =>
+    marketRequest<{ handoff: MarketDraftHandoff }>(`${jobPath(jobId)}/draft-handoffs/${encodeURIComponent(handoffId)}/selection`, {
+      method: 'PUT',
+      body: JSON.stringify({ manifest_hash: manifestHash, selection, confirm }),
+    }),
+  generateDraftHandoff: (jobId, handoffId, generationOptions = {}) =>
+    marketRequest<MarketHandoffDraftResponse>(`${jobPath(jobId)}/draft-handoffs/${encodeURIComponent(handoffId)}/draft`, {
+      method: 'POST',
+      body: JSON.stringify({ generation_options: generationOptions }),
+    }),
+  publishDraftHandoff: (jobId, handoffId, payload) =>
+    marketRequest<MarketHandoffPublishResponse>(`${jobPath(jobId)}/draft-handoffs/${encodeURIComponent(handoffId)}/publish`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  listPublishedListings: (jobId) =>
+    marketRequest<{ job_id: string; items: MarketPublishedListing[] }>(`${jobPath(jobId)}/published-listings`),
+  getAccountPool: () => marketRequest<MarketAccountPoolSnapshot>('/api/kwork/market/account-pool'),
+  syncAccountPool: () => marketRequest<MarketAccountPoolSnapshot>('/api/kwork/market/account-pool/sync', { method: 'POST' }),
+  setAccountPoolAccount: (registrationId, payload) =>
+    marketRequest<{ account: MarketAccountPoolAccount }>(`/api/kwork/market/account-pool/accounts/${encodeURIComponent(registrationId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  getFleet: (jobId) => marketRequest<MarketAccountPoolSnapshot>(`${jobPath(jobId)}/fleet`),
+  reconcileFleet: (jobId) => marketRequest<MarketAccountPoolSnapshot>(`${jobPath(jobId)}/fleet/reconcile`, { method: 'POST' }),
+  rebindWorker: (jobId, workerId) =>
+    marketRequest<unknown>(`${jobPath(jobId)}/workers/${encodeURIComponent(workerId)}/rebind`, { method: 'POST' }),
   askAssistant: (jobId, message) =>
     marketRequest<MarketAssistantResponse>(`${jobPath(jobId)}/assistant`, {
       method: 'POST',

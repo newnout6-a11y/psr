@@ -9,19 +9,28 @@ dates, category ids, price limits and raw user metadata.
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import inspect
 import json
 import os
 import re
+import secrets
+import string
 import time
+import uuid
 from dataclasses import dataclass
-from typing import Any
+from datetime import UTC, datetime
+from http.cookiejar import Cookie
+from typing import Any, Mapping
+from urllib.parse import quote, urlparse
 
 from loguru import logger
 from yarl import URL
 
 from src.paths import KWORK_MANUAL_COOKIES_FILE
+from src.platforms.kwork_account_store import KworkAccountStore, KworkAccountStoreError, StoredKworkAccount
 from src.platforms.kwork_ext import KworkExtensions, apply_kwork_patches
+from src.platforms.kwork_ext import get_pacer
 from src.utils.vpnte_proxy import kwork_http_proxy_url
 
 apply_kwork_patches()
@@ -30,7 +39,80 @@ from src.parsers.base_parser import ProjectItem
 
 
 KWORK_BASE_URL = "https://kwork.ru"
+KWORK_REGISTRATION_USER_AGENT = "Mozilla/5.0 PSR-KworkRegistration/1.0"
 STATE_MARKER = "window.stateData="
+
+_KWORK_USERNAME_TRANSLIT = str.maketrans(
+    {
+        "а": "a",
+        "б": "b",
+        "в": "v",
+        "г": "g",
+        "д": "d",
+        "е": "e",
+        "ё": "e",
+        "ж": "zh",
+        "з": "z",
+        "и": "i",
+        "й": "y",
+        "к": "k",
+        "л": "l",
+        "м": "m",
+        "н": "n",
+        "о": "o",
+        "п": "p",
+        "р": "r",
+        "с": "s",
+        "т": "t",
+        "у": "u",
+        "ф": "f",
+        "х": "kh",
+        "ц": "ts",
+        "ч": "ch",
+        "ш": "sh",
+        "щ": "shch",
+        "ъ": "",
+        "ы": "y",
+        "ь": "",
+        "э": "e",
+        "ю": "yu",
+        "я": "ya",
+    }
+)
+_KWORK_EMAIL_RE = re.compile(r"^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$")
+_KWORK_USERNAME_PREFIXES = ("bright", "calm", "clear", "north", "silver", "smart", "steady", "swift")
+_KWORK_USERNAME_WORDS = ("bridge", "canvas", "craft", "forge", "frame", "mosaic", "orbit", "pixel")
+_KWORK_DEFAULT_BLOCKED_DOMAINS = {
+    "10minutemail.com",
+    "dispostable.com",
+    "guerrillamail.com",
+    "mailinator.com",
+    "tempmail.com",
+    "yopmail.com",
+    "bekommenmail.com",
+}
+
+
+class KworkRegistrationError(ValueError):
+    """A user-correctable registration preflight or signup failure."""
+
+    def __init__(self, code: str, message: str, *, payload: Mapping[str, Any] | None = None) -> None:
+        super().__init__(message)
+        self.code = code
+        self.payload = dict(payload or {})
+
+
+@dataclass(frozen=True, slots=True)
+class _RegistrationRouteProbe:
+    slot: int
+    proxy: str
+    egress_ip: str | None
+    elapsed_ms: int
+    error: str | None = None
+
+    @property
+    def healthy(self) -> bool:
+        return self.egress_ip is not None and self.error is None
 
 
 class KworkAPIResponseError(RuntimeError):
@@ -431,6 +513,12 @@ class KworkService:
         self._session_hub_cookies_at: float = 0.0
         self._session_hub_fetch_task: asyncio.Task[dict[str, str]] | None = None
         self._transport_recovery_lock = asyncio.Lock()
+        self._registration_account_store: KworkAccountStore | None = None
+
+    def _registration_store(self) -> KworkAccountStore:
+        if self._registration_account_store is None:
+            self._registration_account_store = KworkAccountStore()
+        return self._registration_account_store
 
     def reset_cycle(self) -> None:
         """Reset per-cycle counters. Call at the start of each parsing cycle."""
@@ -529,7 +617,7 @@ class KworkService:
 
             phone = os.getenv("KWORK_PHONE", "")
             proxy = (
-                get_proxy_rotator().next()
+                get_proxy_rotator().next(rotate=False)
                 if os.getenv("KWORK_PROXY_LIST") or vpnte_proxy_enabled()
                 else (os.getenv("PROXY_URL") or None)
             )
@@ -553,7 +641,10 @@ class KworkService:
             return api
 
         except Exception as e:
-            logger.debug(f"KworkService: Session Hub недоступен ({e})")
+            logger.debug(
+                f"KworkService: не удалось создать API-клиент из Session Hub cookies "
+                f"({type(e).__name__}: {e})"
+            )
             return None
 
     async def _fetch_session_hub_cookies(self) -> dict[str, str]:
@@ -615,6 +706,113 @@ class KworkService:
                 self._session_hub_cookies = fallback
                 self._session_hub_cookies_at = time.monotonic()
             return fallback
+
+    @staticmethod
+    def _web_cookie_dict(api: Any) -> dict[str, str]:
+        try:
+            jar = api.session.cookie_jar
+        except Exception:
+            return {}
+        result: dict[str, str] = {}
+        try:
+            for item in jar:
+                name = str(getattr(item, "key", "") or "").strip()
+                value = str(getattr(item, "value", "") or "").strip()
+                try:
+                    domain = str(item["domain"] or "")
+                except Exception:
+                    domain = ""
+                if name and value and (not domain or "kwork.ru" in domain):
+                    result[name] = value
+        except Exception as exc:
+            logger.debug(f"KworkService: failed to export refreshed web cookies: {exc}")
+        return result
+
+    @staticmethod
+    def _persist_manual_web_cookies(cookies: dict[str, str]) -> None:
+        if not cookies:
+            return
+        payload = {
+            "saved_at": datetime.now(UTC).isoformat(),
+            "source": "mobile_web_auth_token",
+            "cookies": [
+                {
+                    "name": name,
+                    "value": value,
+                    "domain": ".kwork.ru",
+                    "path": "/",
+                    "secure": True,
+                    "httpOnly": False,
+                }
+                for name, value in sorted(cookies.items())
+            ],
+        }
+        try:
+            KWORK_MANUAL_COOKIES_FILE.parent.mkdir(parents=True, exist_ok=True)
+            temporary = KWORK_MANUAL_COOKIES_FILE.with_suffix(".tmp")
+            temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            temporary.replace(KWORK_MANUAL_COOKIES_FILE)
+        except Exception as exc:
+            logger.debug(f"KworkService: could not persist refreshed web cookies locally: {exc}")
+
+    async def _persist_session_hub_cookies(self, cookies: dict[str, str]) -> None:
+        if not cookies:
+            return
+        import httpx
+
+        hub_url = os.getenv("SESSION_HUB_URL", "http://127.0.0.1:8669/cookies").strip()
+        update_url = f"{hub_url.rsplit('/', 1)[0]}/update"
+        payload = {
+            "domain": "kwork.ru",
+            "cookies": [
+                {"name": name, "value": value, "domain": "kwork.ru", "path": "/"}
+                for name, value in sorted(cookies.items())
+            ],
+        }
+        try:
+            async with httpx.AsyncClient(trust_env=False) as client:
+                response = await client.post(update_url, json=payload, timeout=10.0)
+            if response.status_code >= 400:
+                logger.debug(f"KworkService: Session Hub cookie update returned HTTP {response.status_code}")
+        except Exception as exc:
+            logger.debug(f"KworkService: could not persist refreshed web cookies in Session Hub: {exc}")
+        self._persist_manual_web_cookies(cookies)
+
+    async def refresh_web_session_cookies(self, *, url_to_redirect: str = "/new") -> dict[str, str]:
+        """Create a fresh kwork.ru web session through the official mobile web-auth flow."""
+
+        api = await self.get_token_api()
+        if api is None or not getattr(api, "web", None):
+            return {}
+        try:
+            result = await api.web.login_via_mobile_web_auth_token(
+                url_to_redirect=url_to_redirect,
+                user_agent=os.getenv("KWORK_WEB_USER_AGENT", "Mozilla/5.0 PSR-KworkListing/1.0"),
+            )
+        except Exception as exc:
+            logger.warning(f"KworkService: web auth token flow failed: {type(exc).__name__}: {exc}")
+            return {}
+
+        fresh = self._web_cookie_dict(api)
+        if not fresh:
+            logger.warning("KworkService: web auth token flow returned no kwork.ru cookies")
+            return {}
+        merged = merge_manual_kwork_cookies(
+            {
+                **env_kwork_web_cookies(),
+                **self._session_hub_cookies,
+            }
+        )
+        merged.update(fresh)
+        self._session_hub_cookies = merged
+        self._session_hub_cookies_at = time.monotonic()
+        await self._persist_session_hub_cookies(merged)
+        logger.info(
+            "KworkService: refreshed web session through mobile auth token "
+            f"({len(merged)} cookies, status={getattr(result, 'status', 'unknown')}, "
+            f"url={getattr(result, 'final_url', '')})"
+        )
+        return dict(merged)
 
     def _apply_cookies_to_api(self, api: Any, cookies: dict[str, str] | None = None) -> bool:
         """Apply Session Hub cookies to the underlying Kwork HTTP session."""
@@ -725,7 +923,7 @@ class KworkService:
                     ),
                     "Referer": "https://kwork.ru/inbox",
                 },
-                timeout=20.0,
+                timeout=6.0,
                 proxy=kwork_http_proxy_url(rotate=False),
                 trust_env=False,
             ) as client:
@@ -823,7 +1021,7 @@ class KworkService:
             return None
 
     async def mark_web_dialog_read(self, recipient: str | int) -> dict[str, Any]:
-        """Best-effort mark a Kwork web dialog as read using the live web session and API fallbacks."""
+        """Best-effort mark a Kwork web dialog as read through the live web session."""
         import httpx
 
         result: dict[str, Any] = {"ok": False, "web_opened": False, "api_read": False, "api_tracks_read": False}
@@ -844,7 +1042,7 @@ class KworkService:
                         ),
                         "Referer": "https://kwork.ru/inbox",
                     },
-                    timeout=20.0,
+                    timeout=6.0,
                     proxy=kwork_http_proxy_url(rotate=False),
                     trust_env=False,
                 ) as client:
@@ -871,27 +1069,13 @@ class KworkService:
             except Exception as e:
                 logger.debug(f"KworkService: failed to open web dialog for read mark: {e}")
 
-        if chat:
-            normalized = self._normalize_web_dialog(chat)
-            message_id = normalized.get("last_message_id")
-            dialog_id = normalized.get("dialog_id") or normalized.get("user_id")
-        else:
-            message_id = None
-            dialog_id = recipient
-
-        try:
-            if message_id and str(message_id).isdigit():
-                result["api_read"] = bool(await self.inbox_read(int(message_id)))
-        except Exception as e:
-            logger.debug(f"KworkService: inboxRead fallback failed: {e}")
-
-        try:
-            if dialog_id and str(dialog_id).isdigit():
-                result["api_tracks_read"] = bool(await self.mark_inbox_read(int(dialog_id)))
-        except Exception as e:
-            logger.debug(f"KworkService: markInboxTracksAsRead fallback failed: {e}")
-
-        result["ok"] = bool(result["web_opened"] or result["api_read"] or result["api_tracks_read"])
+        # Opening /inbox/{username} is the browser-equivalent read action.
+        # The legacy API fallbacks require an undocumented payload shape and
+        # currently respond with "not enough parameters". Do not turn a
+        # successful web read into two failing API calls.
+        if not result["web_opened"]:
+            result["reason"] = result.get("reason") or "web_dialog_unavailable"
+        result["ok"] = bool(result["web_opened"])
         return result
 
     async def _try_email_password(self) -> Any | None:
@@ -909,27 +1093,34 @@ class KworkService:
         if api is not None:
             return api
 
-        # Retry once with 5s delay on auth failure (Requirement 7.5)
-        logger.info("KworkService: повторная попытка авторизации через 5с...")
+        # Retry once with 5s delay after client initialization failed.
+        logger.info("KworkService: повторная попытка создать API-клиент через 5с...")
         await asyncio.sleep(5)
 
         api = await self._create_api_client(email, password)
         if api is not None:
-            logger.info("KworkService: повторная авторизация успешна")
+            logger.info("KworkService: API-клиент успешно создан со второй попытки")
             return api
 
         # Both attempts failed (Requirement 7.6)
-        logger.error("KworkService: авторизация не удалась после повторной попытки")
+        logger.error("KworkService: не удалось создать рабочий API-клиент после повторной попытки")
         return None
 
-    async def _create_api_client(self, email: str, password: str) -> Any | None:
+    async def _create_api_client(self, email: str, password: str, *, proxy: str | None = None) -> Any | None:
         """Create and authenticate a Kwork API client. Returns None on failure."""
         try:
-            from kwork import Kwork
-
             from src.platforms.kwork_ext import get_proxy_rotator
 
-            proxy = get_proxy_rotator().next()
+            proxy = proxy or get_proxy_rotator().next(rotate=False)
+        except Exception as e:
+            logger.warning(
+                f"KworkService: не удалось выбрать healthy VPNTE маршрут до email/password "
+                f"({type(e).__name__}: {e})"
+            )
+            return None
+
+        try:
+            from kwork import Kwork
 
             api = Kwork(
                 login=email,
@@ -947,7 +1138,7 @@ class KworkService:
             )
             return api
         except Exception as e:
-            logger.warning(f"KworkService: ошибка авторизации email/password: {e}")
+            logger.warning(f"KworkService: ошибка создания email/password API-клиента: {type(e).__name__}: {e}")
             return None
 
     async def _recover_transport(self, failed_api: Any, error: BaseException | None = None) -> Any | None:
@@ -960,7 +1151,7 @@ class KworkService:
             try:
                 from src.platforms.kwork_ext import get_proxy_rotator
 
-                proxy = get_proxy_rotator().next()
+                proxy = get_proxy_rotator().next(rotate=False)
             except Exception as exc:
                 logger.warning(f"KworkService: VPNTE proxy recovery failed to discover live proxy: {exc}")
                 return None
@@ -1049,6 +1240,1457 @@ class KworkService:
             return self._token_api
 
         return await self.get_api()
+
+    @staticmethod
+    def _generate_username(email: str) -> str:
+        """Generate a readable, random Kwork login without special characters."""
+
+        del email
+        candidate = (
+            f"{secrets.choice(_KWORK_USERNAME_PREFIXES)}"
+            f"{secrets.choice(_KWORK_USERNAME_WORDS)}"
+            f"{secrets.randbelow(9000) + 1000}"
+        )
+        if not re.fullmatch(r"[a-z0-9]{4,20}", candidate):
+            raise KworkRegistrationError("invalid_username", "Could not generate a valid Kwork login")
+        return candidate
+
+    @staticmethod
+    def _registration_email_error(email: str) -> str | None:
+        normalized = email.strip()
+        if not normalized:
+            return "Email is required"
+        if len(normalized) > 90 or not _KWORK_EMAIL_RE.fullmatch(normalized):
+            return "Email has an invalid format or is too long"
+        domain = normalized.rsplit("@", 1)[-1].lower()
+        blocked = {
+            item.strip().lower()
+            for item in os.getenv("KWORK_BLOCKED_EMAIL_DOMAINS", "").split(",")
+            if item.strip()
+        }
+        if domain in (_KWORK_DEFAULT_BLOCKED_DOMAINS | blocked):
+            return f"Email domain is not accepted by Kwork: {domain}"
+        return None
+
+    @staticmethod
+    def _registration_mail_provider(value: str) -> str:
+        provider = str(value or "catchmail").strip().lower()
+        if provider not in {"catchmail", "firstmail"}:
+            raise KworkRegistrationError("invalid_mail_provider", "mail_provider must be catchmail or firstmail")
+        return provider
+
+    @staticmethod
+    def _normalize_registration_proxy(value: str) -> str | None:
+        """Validate a VPNTE proxy URL and return an HTTPX-compatible URL."""
+
+        raw = str(value or "").strip()
+        if not raw:
+            return None
+        if "://" not in raw:
+            parts = raw.split(":", 3)
+            if len(parts) == 4:
+                host, port, username, password = parts
+                raw = f"http://{quote(username, safe='')}:{quote(password, safe='')}@{host}:{port}"
+            else:
+                raw = f"http://{raw}"
+        parsed = urlparse(raw)
+        try:
+            port = parsed.port
+        except ValueError:
+            port = None
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname or not port:
+            raise KworkRegistrationError("invalid_proxy", "Proxy must be host:port, host:port:login:password, or an HTTP(S) URL")
+        return raw
+
+    @staticmethod
+    def _registration_pacer(proxy: str | None):
+        try:
+            min_delay = float(os.getenv("KWORK_REGISTRATION_PACE_MIN", "0"))
+        except (TypeError, ValueError):
+            min_delay = 0.0
+        try:
+            max_delay = float(os.getenv("KWORK_REGISTRATION_PACE_MAX", "0"))
+        except (TypeError, ValueError):
+            max_delay = min_delay
+        try:
+            burst_limit = int(os.getenv("KWORK_REGISTRATION_BURST_LIMIT", "0"))
+        except (TypeError, ValueError):
+            burst_limit = 0
+        return get_pacer(
+            scope=f"registration:{proxy or 'direct'}",
+            min_delay=max(0.0, min_delay),
+            max_delay=max(0.0, max_delay),
+            burst_limit=max(0, burst_limit),
+        )
+
+    def _vpnte_registration_proxies(self, slots: list[int]) -> list[tuple[int, str]]:
+        """Resolve active VPNTE slots from the local Control API into proxy URLs."""
+
+        from src.utils.vpnte_proxy import VpnteProxyClient
+
+        requested_slots: list[int] = []
+        for raw_slot in slots:
+            if isinstance(raw_slot, bool):
+                raise KworkRegistrationError("vpnte_slot_unavailable", "VPNTE slot must be an integer greater than zero")
+            try:
+                slot = int(raw_slot)
+            except (TypeError, ValueError) as exc:
+                raise KworkRegistrationError("vpnte_slot_unavailable", "VPNTE slot must be an integer greater than zero") from exc
+            if slot < 1:
+                raise KworkRegistrationError("vpnte_slot_unavailable", "VPNTE slot must be an integer greater than zero")
+            if slot not in requested_slots:
+                requested_slots.append(slot)
+        try:
+            instances = VpnteProxyClient().instances()
+        except Exception as exc:
+            raise KworkRegistrationError("vpnte_proxy_unavailable", f"VPNTE Control API is unavailable: {exc}") from exc
+
+        active: dict[int, str] = {}
+        for instance in instances:
+            try:
+                slot = int(instance.get("slot"))
+            except (TypeError, ValueError):
+                continue
+            proxy_url = str(instance.get("proxyUrl") or "").strip()
+            if instance.get("running") is True and proxy_url:
+                normalized = self._normalize_registration_proxy(proxy_url)
+                if normalized:
+                    active[slot] = normalized
+
+        selected_slots = requested_slots or sorted(active)
+        missing = [slot for slot in selected_slots if slot not in active]
+        if missing:
+            formatted = ", ".join(str(slot) for slot in missing)
+            raise KworkRegistrationError("vpnte_slot_unavailable", f"VPNTE slots are not running or have no proxyUrl: {formatted}")
+        if not selected_slots:
+            raise KworkRegistrationError("vpnte_proxy_unavailable", "VPNTE Control API returned no active proxy instances")
+        return [(slot, active[slot]) for slot in selected_slots]
+
+    @staticmethod
+    def _registration_route_timeout() -> float:
+        raw = os.getenv("KWORK_REGISTRATION_ROUTE_TIMEOUT", os.getenv("VPNTE_PROXY_TIMEOUT", "10"))
+        try:
+            return min(30.0, max(2.0, float(raw)))
+        except (TypeError, ValueError):
+            return 10.0
+
+    @staticmethod
+    def _registration_route_concurrency() -> int:
+        try:
+            return min(32, max(1, int(os.getenv("KWORK_REGISTRATION_ROUTE_CONCURRENCY", "12"))))
+        except (TypeError, ValueError):
+            return 12
+
+    def _registration_used_ips(self) -> set[str]:
+        used: set[str] = set()
+        try:
+            records = self._registration_store().list()
+        except KworkAccountStoreError as exc:
+            logger.warning("Kwork registration: cannot read stored account IPs: {}", exc)
+            return used
+        for record in records:
+            for candidate in (record.signup_ip, record.activation_ip):
+                if not candidate:
+                    continue
+                try:
+                    used.add(str(ipaddress.ip_address(candidate)))
+                except ValueError:
+                    continue
+        return used
+
+    async def _probe_registration_route(self, slot: int, proxy: str) -> _RegistrationRouteProbe:
+        import httpx
+
+        started = time.monotonic()
+        timeout = self._registration_route_timeout()
+        try:
+            async with httpx.AsyncClient(
+                base_url=KWORK_BASE_URL,
+                follow_redirects=True,
+                headers={"User-Agent": KWORK_REGISTRATION_USER_AGENT},
+                proxy=proxy,
+                timeout=httpx.Timeout(timeout),
+                trust_env=False,
+            ) as client:
+                await self._check_registration_gate(client)
+                egress_ip: str | None = None
+                last_ip_error = "egress_ip_unavailable"
+                for url, json_response in (
+                    ("https://api.ipify.org?format=json", True),
+                    ("https://checkip.amazonaws.com", False),
+                ):
+                    try:
+                        response = await client.get(url)
+                        response.raise_for_status()
+                        if json_response:
+                            payload = response.json()
+                            candidate = str(payload.get("ip") or "") if isinstance(payload, Mapping) else ""
+                        else:
+                            candidate = str(response.text or "").strip()
+                        egress_ip = str(ipaddress.ip_address(candidate))
+                        break
+                    except Exception as exc:
+                        last_ip_error = type(exc).__name__
+                if egress_ip is None:
+                    raise KworkRegistrationError(last_ip_error, "Could not determine route egress IP")
+            return _RegistrationRouteProbe(
+                slot=slot,
+                proxy=proxy,
+                egress_ip=egress_ip,
+                elapsed_ms=round((time.monotonic() - started) * 1000),
+            )
+        except KworkRegistrationError as exc:
+            logger.debug("Kwork registration route preflight: slot {} failed with {}", slot, exc.code)
+            return _RegistrationRouteProbe(
+                slot=slot,
+                proxy=proxy,
+                egress_ip=None,
+                elapsed_ms=round((time.monotonic() - started) * 1000),
+                error=exc.code,
+            )
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            logger.debug(
+                "Kwork registration route preflight: slot {} failed with {}: {}",
+                slot,
+                type(exc).__name__,
+                exc,
+            )
+            return _RegistrationRouteProbe(
+                slot=slot,
+                proxy=proxy,
+                egress_ip=None,
+                elapsed_ms=round((time.monotonic() - started) * 1000),
+                error=type(exc).__name__,
+            )
+
+    async def _preflight_registration_routes(
+        self,
+        routes: list[tuple[int, str]],
+    ) -> list[_RegistrationRouteProbe]:
+        concurrency = min(self._registration_route_concurrency(), len(routes))
+        timeout = self._registration_route_timeout()
+        semaphore = asyncio.Semaphore(concurrency)
+        completed_count = 0
+        healthy_count = 0
+        healthy_ips: set[str] = set()
+        progress_step = 10 if len(routes) > 10 else len(routes)
+        logger.info(
+            "Kwork registration route preflight started: {} route(s), concurrency {}, timeout {:.1f}s",
+            len(routes),
+            concurrency,
+            timeout,
+        )
+
+        async def probe(slot: int, proxy: str) -> _RegistrationRouteProbe:
+            nonlocal completed_count, healthy_count
+            async with semaphore:
+                result = await self._probe_registration_route(slot, proxy)
+            completed_count += 1
+            if result.healthy:
+                healthy_count += 1
+                healthy_ips.add(str(result.egress_ip))
+            if completed_count == len(routes) or completed_count % progress_step == 0:
+                logger.info(
+                    "Kwork registration route preflight: {}/{} checked, {} reachable, {} unique IP(s)",
+                    completed_count,
+                    len(routes),
+                    healthy_count,
+                    len(healthy_ips),
+                )
+            return result
+
+        return list(await asyncio.gather(*(probe(slot, proxy) for slot, proxy in routes)))
+
+    @staticmethod
+    def _json_response(response: Any) -> dict[str, Any]:
+        try:
+            payload = response.json()
+        except Exception:
+            return {"success": False, "error": str(getattr(response, "text", ""))[:500]}
+        return payload if isinstance(payload, dict) else {"data": payload}
+
+    @staticmethod
+    def _payload_success(payload: Mapping[str, Any]) -> bool:
+        """Accept the boolean spellings/envelopes used by Kwork responses."""
+
+        for candidate in (payload.get("success"), payload.get("ok")):
+            if candidate is True or str(candidate).strip().lower() in {"1", "true", "yes"}:
+                return True
+        nested = payload.get("data")
+        return isinstance(nested, Mapping) and KworkService._payload_success(nested)
+
+    @staticmethod
+    def _signup_requires_captcha(payload: Mapping[str, Any]) -> bool:
+        """Treat a CAPTCHA flag as actionable only when form validation did not fail first."""
+
+        if payload.get("captcha_required") is True:
+            return True
+        if not payload.get("recaptcha_show"):
+            return False
+        return not bool(payload.get("error") or payload.get("errors"))
+
+    @staticmethod
+    def _signup_error_message(payload: Mapping[str, Any]) -> str:
+        raw = payload.get("error") or payload.get("errors")
+        if isinstance(raw, Mapping):
+            parts = [str(value).strip() for value in raw.values() if str(value).strip()]
+            return "; ".join(parts) or "Kwork signup failed"
+        if isinstance(raw, list):
+            parts = [str(value).strip() for value in raw if str(value).strip()]
+            return "; ".join(parts) or "Kwork signup failed"
+        return str(raw).strip() or "Kwork signup failed"
+
+    async def _check_registration_gate(self, client: Any) -> dict[str, Any]:
+        response = await client.get("/api/ban/disallowfreeregister")
+        status_code = int(getattr(response, "status_code", 200) or 200)
+        if not 200 <= status_code < 300:
+            raise_for_status = getattr(response, "raise_for_status", None)
+            if callable(raise_for_status):
+                raise_for_status()
+            raise RuntimeError(f"Kwork registration gate returned HTTP {status_code}")
+        payload = self._json_response(response)
+        raw: Any = payload
+        if isinstance(payload, dict):
+            for key in ("disallow", "disallowfreeregister", "data", "value"):
+                if key in payload:
+                    raw = payload[key]
+                    break
+        if raw is True or str(raw).strip().lower() in {"true", "1", "yes", "on"}:
+            raise KworkRegistrationError("registration_disabled", "Kwork currently disallows free registration", payload=payload)
+        return payload
+
+    async def _check_email(self, client: Any, email: str) -> dict[str, Any]:
+        response = await client.get("/api/user/checkemail", params={"email": email})
+        payload = self._json_response(response)
+        if bool(payload.get("in_stop_list")):
+            raise KworkRegistrationError("email_stop_list", "Email belongs to Kwork stop-list", payload=payload)
+        if self._payload_success(payload):
+            raise KworkRegistrationError("email_exists", "Email is already registered on Kwork", payload=payload)
+        if payload.get("error"):
+            raise KworkRegistrationError("email_rejected", str(payload["error"]), payload=payload)
+        return payload
+
+    async def _check_login(self, client: Any, login: str, *, force_generate: bool = False) -> tuple[str, dict[str, Any]]:
+        candidate = login
+        for attempt in range(3):
+            form: dict[str, str] = {"login": candidate, "getFreeLogin": "true", "jsub": "1"}
+            if force_generate:
+                form["forceGenerate"] = "true"
+            response = await client.post("/api/user/checklogin", data=form)
+            payload = self._json_response(response)
+            if self._payload_success(payload):
+                resolved = str(payload.get("login") or candidate).strip()
+                if 4 <= len(resolved) <= 20 and re.fullmatch(r"[a-z0-9]+", resolved):
+                    if "kwork" not in resolved and "support" not in resolved:
+                        return resolved, payload
+            suggestion = str(payload.get("login") or payload.get("username") or "").strip().lower()
+            if suggestion and suggestion != candidate:
+                candidate = re.sub(r"[^a-z0-9]+", "", suggestion)[:20]
+                continue
+            candidate = f"{candidate[:17]}{attempt + 1}"[:20]
+        raise KworkRegistrationError("login_unavailable", "Could not obtain a free Kwork login")
+
+    @staticmethod
+    def _build_signup_form(
+        *,
+        email: str,
+        username: str,
+        password: str,
+        user_type: int,
+        promo: str = "",
+        track_client_id: str = "",
+        action_after: str = "",
+        timezone: str | None = None,
+        is_subscribed: bool = False,
+        captcha_token: str = "",
+        captcha_field: str = "smart-token",
+    ) -> dict[str, str]:
+        form = {
+            "track_client_id": track_client_id or str(uuid.uuid4()),
+            "userType": str(user_type),
+            "user_email": email,
+            "user_username": username,
+            "user_password": password,
+            "user_promo": promo,
+            "jsub": "1",
+            "tz": timezone or os.getenv("TIMEZONE_REGION", "Europe/Moscow"),
+            "signup_mode": "email",
+        }
+        if action_after:
+            form["action_after"] = action_after
+        if is_subscribed:
+            form["is_subscribed"] = "1"
+        if captcha_token.strip():
+            form[captcha_field] = captcha_token.strip()
+        return form
+
+    @staticmethod
+    def _mask_secret(value: str) -> str:
+        value = str(value or "")
+        return "*" * max(8, len(value)) if value else ""
+
+    @staticmethod
+    def _generate_registration_password(*, forbidden: str = "") -> str:
+        """Generate an ASCII password that cannot equal a Kwork login."""
+
+        special_characters = "!@#$%"
+        alphabet = string.ascii_letters + string.digits + special_characters
+        for _ in range(3):
+            password = "".join(
+                (
+                    secrets.choice(string.ascii_uppercase),
+                    secrets.choice(string.ascii_lowercase),
+                    secrets.choice(string.digits),
+                    secrets.choice(special_characters),
+                    "".join(secrets.choice(alphabet) for _ in range(16)),
+                )
+            )
+            if password.casefold() != forbidden.strip().casefold():
+                return password
+        raise KworkRegistrationError("password_generation_failed", "Could not generate a unique Kwork password")
+
+    @staticmethod
+    def _serialize_registration_cookies(client: Any) -> list[dict[str, Any]]:
+        cookies = getattr(client, "cookies", None)
+        jar = getattr(cookies, "jar", None)
+        if jar is None:
+            return []
+
+        serialized: list[dict[str, Any]] = []
+        for cookie in jar:
+            name = str(getattr(cookie, "name", "") or "").strip()
+            value = str(getattr(cookie, "value", "") or "")
+            if not name or not value:
+                continue
+            rest = getattr(cookie, "_rest", {}) or {}
+            serialized.append(
+                {
+                    "version": int(getattr(cookie, "version", 0) or 0),
+                    "name": name,
+                    "value": value,
+                    "port": getattr(cookie, "port", None),
+                    "port_specified": bool(getattr(cookie, "port_specified", False)),
+                    "domain": str(getattr(cookie, "domain", "") or "kwork.ru"),
+                    "domain_specified": bool(getattr(cookie, "domain_specified", True)),
+                    "domain_initial_dot": bool(getattr(cookie, "domain_initial_dot", False)),
+                    "path": str(getattr(cookie, "path", "") or "/"),
+                    "path_specified": bool(getattr(cookie, "path_specified", True)),
+                    "expires": getattr(cookie, "expires", None),
+                    "secure": bool(getattr(cookie, "secure", False)),
+                    "discard": bool(getattr(cookie, "discard", False)),
+                    "comment": getattr(cookie, "comment", None),
+                    "comment_url": getattr(cookie, "comment_url", None),
+                    "rest": {str(key): None if value is None else str(value) for key, value in dict(rest).items()},
+                    "rfc2109": bool(getattr(cookie, "rfc2109", False)),
+                }
+            )
+        return serialized
+
+    @staticmethod
+    def _restore_registration_cookies(session: Mapping[str, Any] | None) -> Any:
+        import httpx
+
+        cookies = httpx.Cookies()
+        records = session.get("cookies", []) if isinstance(session, Mapping) else []
+        if not isinstance(records, list):
+            return cookies
+        for record in records:
+            if not isinstance(record, Mapping):
+                continue
+            name = str(record.get("name") or "").strip()
+            value = str(record.get("value") or "")
+            if not name or not value:
+                continue
+            domain = str(record.get("domain") or "kwork.ru").strip() or "kwork.ru"
+            path = str(record.get("path") or "/").strip() or "/"
+            expires = record.get("expires")
+            try:
+                expires = int(expires) if expires not in (None, "") else None
+            except (TypeError, ValueError):
+                expires = None
+            raw_rest = record.get("rest")
+            rest = dict(raw_rest) if isinstance(raw_rest, Mapping) else {}
+            try:
+                cookies.jar.set_cookie(
+                    Cookie(
+                        version=int(record.get("version") or 0),
+                        name=name,
+                        value=value,
+                        port=str(record.get("port")) if record.get("port") else None,
+                        port_specified=bool(record.get("port_specified")),
+                        domain=domain,
+                        domain_specified=bool(record.get("domain_specified", True)),
+                        domain_initial_dot=bool(record.get("domain_initial_dot", domain.startswith("."))),
+                        path=path,
+                        path_specified=bool(record.get("path_specified", True)),
+                        secure=bool(record.get("secure")),
+                        expires=expires,
+                        discard=bool(record.get("discard", expires is None)),
+                        comment=str(record.get("comment")) if record.get("comment") else None,
+                        comment_url=str(record.get("comment_url")) if record.get("comment_url") else None,
+                        rest=rest,
+                        rfc2109=bool(record.get("rfc2109")),
+                    )
+                )
+            except (TypeError, ValueError):
+                continue
+        return cookies
+
+    @classmethod
+    def _registration_session_snapshot(
+        cls,
+        client: Any,
+        *,
+        proxy: str | None,
+        auth_data: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "cookies": cls._serialize_registration_cookies(client),
+            "proxy_url": str(proxy or ""),
+            "user_agent": KWORK_REGISTRATION_USER_AGENT,
+            "auth_data": dict(auth_data or {}),
+        }
+
+    def _registration_http_client(
+        self,
+        *,
+        proxy: str | None,
+        session: Mapping[str, Any] | None = None,
+    ) -> Any:
+        import httpx
+
+        stored_user_agent = str((session or {}).get("user_agent") or KWORK_REGISTRATION_USER_AGENT)
+        return httpx.AsyncClient(
+            base_url=KWORK_BASE_URL,
+            follow_redirects=True,
+            headers={
+                "User-Agent": stored_user_agent,
+                "Referer": f"{KWORK_BASE_URL}/signup",
+            },
+            cookies=self._restore_registration_cookies(session),
+            timeout=self.timeout,
+            proxy=proxy or None,
+            trust_env=False,
+        )
+
+    @staticmethod
+    async def _capture_registration_ip(client: Any) -> str | None:
+        """Read the public egress IP using the exact HTTP transport of the signup session."""
+
+        try:
+            response = await client.get("https://api.ipify.org", params={"format": "json"})
+            if not (200 <= int(response.status_code) < 300):
+                return None
+            payload = response.json()
+            candidate = str(payload.get("ip") or "") if isinstance(payload, Mapping) else ""
+            return str(ipaddress.ip_address(candidate)) if candidate else None
+        except Exception as exc:
+            logger.debug("Kwork registration: cannot capture egress IP ({})", type(exc).__name__)
+            return None
+
+    def _save_registration_state(
+        self,
+        result: dict[str, Any],
+        *,
+        password: str,
+        client: Any,
+        proxy: str | None,
+        auth_data: Mapping[str, Any] | None = None,
+        signup_ip: str | None = None,
+        activation_ip: str | None = None,
+        activated_at: str | None = None,
+        last_error: str | None = None,
+    ) -> StoredKworkAccount:
+        try:
+            record = self._registration_store().save(
+                registration_id=str(result["registration_id"]),
+                email=str(result["email"]),
+                username=str(result["username"]),
+                user_type=int(result["user_type"]),
+                mail_provider=str(result["mail_provider"]),
+                status=str(result["status"]),
+                registration_started_at=str(result["registration_started_at"]),
+                password=password,
+                session=self._registration_session_snapshot(client, proxy=proxy, auth_data=auth_data),
+                signup_ip=signup_ip,
+                activation_ip=activation_ip,
+                registration_slot=(
+                    int(result["registration_slot"])
+                    if isinstance(result.get("registration_slot"), int) and result["registration_slot"] > 0
+                    else None
+                ),
+                registration_proxy_url=proxy,
+                activated_at=activated_at,
+                last_error=last_error,
+            )
+        except KworkAccountStoreError as exc:
+            raise KworkRegistrationError("account_persistence_failed", "Could not save Kwork account session") from exc
+        result.update(record.public_data())
+        return record
+
+    async def _fetch_verification_link(
+        self,
+        email: str,
+        mail_password: str,
+        api_key: str | None = None,
+        *,
+        mail_provider: str = "catchmail",
+        after: datetime | None = None,
+        initial_delay: float = 0.0,
+        proxy: str | None = None,
+    ) -> str | None:
+        timeout = float(os.getenv("KWORK_REGISTRATION_MAIL_TIMEOUT", "120"))
+        poll_interval = float(os.getenv("KWORK_REGISTRATION_MAIL_POLL_INTERVAL", "1.1"))
+        if mail_provider == "catchmail":
+            from src.utils.catchmail import CatchmailClient
+
+            delay = min(10.0, max(0.0, float(initial_delay)))
+            client = CatchmailClient(
+                email=email,
+                base_url=os.getenv("CATCHMAIL_API_BASE_URL", "https://api.catchmail.io/api/v1"),
+                proxy=proxy or "",
+            )
+            return await client.wait_for_kwork_link(
+                timeout=timeout,
+                poll_interval=poll_interval,
+                after=after,
+                initial_delay=delay,
+            )
+
+        from src.utils.firstmail import FirstmailClient
+
+        client = FirstmailClient(
+            email=email,
+            password=mail_password,
+            api_key=api_key or os.getenv("FIRSTMAIL_API_KEY"),
+            proxy=proxy or kwork_http_proxy_url(rotate=False),
+        )
+        return await client.wait_for_kwork_link(
+            timeout=timeout,
+            poll_interval=poll_interval,
+            after=after,
+        )
+
+    async def _activate_account(self, link: str, client: Any) -> dict[str, Any]:
+        parsed = URL(link)
+        if parsed.scheme != "https" or (parsed.host or "").lower() not in {"kwork.ru", "www.kwork.ru"}:
+            raise KworkRegistrationError("unsafe_activation_link", "Activation link host is not allowlisted")
+        if not any(marker in (parsed.path or "").lower() for marker in ("activ", "confirm", "verify", "email")):
+            raise KworkRegistrationError("unsafe_activation_link", "Activation link path is not an activation endpoint")
+        response = await client.get(link)
+        final_url = str(getattr(response, "url", link))
+        final_host = (URL(final_url).host or "").lower()
+        body = str(getattr(response, "text", "") or "").lower()
+        challenge = "/not_access.php" in final_url.lower() or "smart-captcha" in body or "data-sitekey" in body
+        if final_host not in {"kwork.ru", "www.kwork.ru"}:
+            return {
+                "ok": False,
+                "status_code": response.status_code,
+                "final_url": final_url,
+                "reason": "unsafe_redirect",
+            }
+        if challenge:
+            return {
+                "ok": False,
+                "status_code": response.status_code,
+                "final_url": final_url,
+                "reason": "captcha_required",
+            }
+        body_markers = (
+            "account activated",
+            "activation successful",
+            "email confirmed",
+            "email подтвержден",
+            "аккаунт активирован",
+            "регистрация завершена",
+            "добро пожаловать",
+        )
+        body_proof = any(marker in body for marker in body_markers)
+        return {
+            "ok": 200 <= response.status_code < 400 and body_proof,
+            "http_ok": 200 <= response.status_code < 400,
+            "status_code": response.status_code,
+            "final_url": final_url,
+            "body_proof": body_proof,
+            "reason": None if body_proof else "activation_response_unconfirmed",
+        }
+
+    async def _verify_activated_account(
+        self,
+        email: str,
+        password: str,
+        *,
+        proxy: str | None = None,
+    ) -> dict[str, Any]:
+        """Prove activation with a read-only authenticated actor request."""
+
+        api = await self._create_api_client(email, password, proxy=proxy)
+        if api is None:
+            return {"ok": False, "reason": "post_activation_login_failed"}
+        try:
+            payload = await api.request("post", "actor", use_token=True)
+            actor = payload.get("response") if isinstance(payload, dict) else None
+            success = isinstance(payload, dict) and payload.get("success") is True and isinstance(actor, dict)
+            if not success:
+                return {"ok": False, "reason": "post_activation_actor_failed"}
+            return {
+                "ok": True,
+                "auth_mode": "email+password",
+                "username": actor.get("username", ""),
+                "verified": actor.get("verified"),
+                "actor_status": actor.get("status", ""),
+            }
+        except Exception as exc:
+            return {"ok": False, "reason": f"post_activation_actor_failed: {type(exc).__name__}: {exc}"}
+        finally:
+            close = getattr(api, "close", None)
+            if close:
+                try:
+                    result = close()
+                    if inspect.isawaitable(result):
+                        await result
+                except Exception:
+                    pass
+
+    async def _verify_registration_session(self, client: Any) -> dict[str, Any]:
+        """Check the persisted browser-like session without submitting a password."""
+
+        try:
+            response = await client.get("/inbox")
+            final_url = str(getattr(response, "url", f"{KWORK_BASE_URL}/inbox"))
+            body = str(getattr(response, "text", "") or "")
+            status_code = int(getattr(response, "status_code", 0) or 0)
+            redirected_to_login = "/login" in final_url.lower() or "/signin" in final_url.lower()
+            has_session_marker = "window.chatList=" in body or "logout" in body.lower()
+            return {
+                "ok": 200 <= status_code < 400 and not redirected_to_login and has_session_marker,
+                "auth_mode": "saved_http_session",
+                "status_code": status_code,
+                "final_url": final_url,
+                "reason": (
+                    "session_redirected_to_login"
+                    if redirected_to_login
+                    else None
+                    if has_session_marker
+                    else "session_response_unconfirmed"
+                ),
+            }
+        except Exception as exc:
+            return {"ok": False, "auth_mode": "saved_http_session", "reason": f"session_check_failed: {type(exc).__name__}"}
+
+    async def register_account(
+        self,
+        email: str,
+        mail_password: str,
+        user_type: int = 1,
+        promo: str = "",
+        use_simple: bool = False,
+        *,
+        track_client_id: str = "",
+        action_after: str = "",
+        is_subscribed: bool = False,
+        captcha_token: str = "",
+        captcha_field: str = "smart-token",
+        firstmail_api_key: str = "",
+        mail_provider: str = "catchmail",
+        dry_run: bool = False,
+        proxy_url: str = "",
+        registration_slot: int | None = None,
+    ) -> dict[str, Any]:
+        """Run the email-only Kwork signup flow with explicit intermediate status."""
+
+        provider = self._registration_mail_provider(mail_provider)
+        normalized_email = email.strip().lower()
+        generated_mailbox = provider == "catchmail" and not normalized_email
+        if generated_mailbox:
+            from src.utils.catchmail import CatchmailClient, CatchmailError
+
+            try:
+                normalized_email = CatchmailClient.generate_address(
+                    domain=os.getenv("CATCHMAIL_DOMAIN", "catchmail.io"),
+                )
+            except CatchmailError as exc:
+                raise KworkRegistrationError("invalid_email", str(exc)) from exc
+        validation_error = self._registration_email_error(normalized_email)
+        if validation_error:
+            raise KworkRegistrationError("invalid_email", validation_error)
+        if provider == "firstmail" and not mail_password.strip():
+            raise KworkRegistrationError("invalid_mail_credentials", "Firstmail requires mailbox credentials")
+        if user_type not in {1, 2}:
+            raise KworkRegistrationError("invalid_user_type", "user_type must be 1 or 2")
+        if registration_slot is not None and (isinstance(registration_slot, bool) or registration_slot < 1):
+            raise KworkRegistrationError("vpnte_slot_unavailable", "VPNTE slot must be an integer greater than zero")
+        username = self._generate_username(normalized_email)
+        mail_started_at = datetime.now(UTC)
+        result: dict[str, Any] = {
+            "ok": False,
+            "status": "preflight",
+            "registration_id": uuid.uuid4().hex,
+            "email": normalized_email,
+            "username": username,
+            "mail_provider": provider,
+            "registration_started_at": mail_started_at.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+            "password_generated": True,
+            "user_type": user_type,
+            "activated": False,
+            "captcha_required": False,
+            "phone_fields_sent": False,
+        }
+        if registration_slot is not None:
+            result["registration_slot"] = int(registration_slot)
+        proxy = self._normalize_registration_proxy(proxy_url) if proxy_url.strip() else kwork_http_proxy_url(rotate=False)
+        pacer = self._registration_pacer(proxy)
+
+        def public_result() -> dict[str, Any]:
+            for key in ("password", "password_masked", "csrftoken", "token", "activation_link"):
+                result.pop(key, None)
+            result["ok"] = result["status"] in {"activated", "preflight_ok"}
+            return result
+
+        async with self._registration_http_client(proxy=proxy) as client:
+            await pacer.wait()
+            await self._check_registration_gate(client)
+            for email_attempt in range(3):
+                await pacer.wait()
+                try:
+                    await self._check_email(client, normalized_email)
+                    break
+                except KworkRegistrationError as exc:
+                    if not (generated_mailbox and exc.code == "email_exists" and email_attempt < 2):
+                        raise
+                    from src.utils.catchmail import CatchmailClient, CatchmailError
+
+                    try:
+                        normalized_email = CatchmailClient.generate_address(
+                            domain=os.getenv("CATCHMAIL_DOMAIN", "catchmail.io"),
+                        )
+                    except CatchmailError as generation_exc:
+                        raise KworkRegistrationError("invalid_email", str(generation_exc)) from generation_exc
+                    result["email"] = normalized_email
+                    result["username"] = self._generate_username(normalized_email)
+            await pacer.wait()
+            username, login_payload = await self._check_login(client, str(result["username"]))
+            result["username"] = username
+            result["login_check"] = login_payload
+            kwork_password = self._generate_registration_password(forbidden=username)
+            result["password_masked"] = self._mask_secret(kwork_password)
+            form = self._build_signup_form(
+                email=normalized_email,
+                username=username,
+                password=kwork_password,
+                user_type=user_type,
+                promo=promo,
+                track_client_id=track_client_id,
+                action_after=action_after,
+                is_subscribed=is_subscribed,
+                captcha_token=captcha_token,
+                captcha_field=captcha_field,
+            )
+            result["signup_fields"] = sorted(key for key in form if "password" not in key)
+            if dry_run:
+                result["status"] = "preflight_ok"
+                return public_result()
+            endpoint = "/api/user/simplesignup" if use_simple else "/api/user/signup"
+            signup_ip = await self._capture_registration_ip(client)
+            await pacer.wait()
+            response = await client.post(endpoint, files={key: (None, value) for key, value in form.items()})
+            signup_payload = self._json_response(response)
+            result["signup_http_status"] = response.status_code
+            result["signup"] = {
+                key: signup_payload.get(key)
+                for key in ("success", "errors", "error", "recaptcha_show", "captcha_required", "action_after", "redirect")
+                if key in signup_payload
+            }
+            if self._signup_requires_captcha(signup_payload):
+                result.update(status="captcha_required", captcha_required=True, message="Kwork requires manual CAPTCHA")
+                return public_result()
+            if not use_simple and not self._payload_success(signup_payload) and (
+                response.status_code in {404, 405} or self._signup_endpoint_missing(signup_payload)
+            ):
+                logger.info("Kwork registration: ordinary signup endpoint rejected, retrying simplesignup")
+                await pacer.wait()
+                response = await client.post(
+                    "/api/user/simplesignup",
+                    files={key: (None, value) for key, value in form.items()},
+                )
+                signup_payload = self._json_response(response)
+                result["signup_fallback_http_status"] = response.status_code
+                result["signup_fallback"] = {
+                    key: signup_payload.get(key)
+                    for key in ("success", "errors", "error", "recaptcha_show", "captcha_required", "action_after", "redirect")
+                    if key in signup_payload
+                }
+                if self._signup_requires_captcha(signup_payload):
+                    result.update(status="captcha_required", captcha_required=True, message="Kwork requires manual CAPTCHA")
+                    return public_result()
+            if not self._payload_success(signup_payload):
+                result.update(status="signup_failed", message=self._signup_error_message(signup_payload))
+                return public_result()
+            result["status"] = "signup_submitted"
+            auth_data = {
+                key: signup_payload.get(key)
+                for key in ("csrftoken", "token")
+                if signup_payload.get(key) not in (None, "")
+            }
+            self._save_registration_state(
+                result,
+                password=kwork_password,
+                client=client,
+                proxy=proxy,
+                auth_data=auth_data,
+                signup_ip=signup_ip,
+            )
+            if provider == "catchmail" or mail_password:
+                try:
+                    link = await self._fetch_verification_link(
+                        normalized_email,
+                        mail_password,
+                        firstmail_api_key or os.getenv("FIRSTMAIL_API_KEY"),
+                        mail_provider=provider,
+                        after=mail_started_at,
+                        proxy=proxy,
+                        initial_delay=max(0.0, float(os.getenv("KWORK_REGISTRATION_MAIL_INITIAL_DELAY", "0"))),
+                    )
+                except Exception as exc:
+                    message = f"Signup succeeded; mailbox polling failed: {type(exc).__name__}: {exc}"
+                    result.update(status="activation_pending", message=message)
+                    self._save_registration_state(
+                        result,
+                        password=kwork_password,
+                        client=client,
+                        proxy=proxy,
+                        auth_data=auth_data,
+                        signup_ip=signup_ip,
+                        last_error=message,
+                    )
+                    return public_result()
+                if link:
+                    await pacer.wait()
+                    activation = await self._activate_account(link, client)
+                    result.update(activation, activation_link_found=True)
+                    activation_ip = await self._capture_registration_ip(client)
+                    session_proof = await self._verify_registration_session(client) if activation.get("http_ok") else {
+                        "ok": False,
+                        "auth_mode": "saved_http_session",
+                        "reason": "activation_http_failed",
+                    }
+                    result["session_proof"] = session_proof
+                    if activation.get("http_ok"):
+                        proof = await self._verify_activated_account(normalized_email, kwork_password, proxy=proxy)
+                        result["post_activation"] = proof
+                        result["activated"] = bool(session_proof.get("ok") or proof.get("ok"))
+                    result["status"] = "activated" if result["activated"] else "activation_failed"
+                    self._save_registration_state(
+                        result,
+                        password=kwork_password,
+                        client=client,
+                        proxy=proxy,
+                        auth_data=auth_data,
+                        signup_ip=signup_ip,
+                        activation_ip=activation_ip,
+                        activated_at=(
+                            datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+                            if result["activated"]
+                            else None
+                        ),
+                        last_error=None if result["activated"] else str(result.get("reason") or "activation_failed"),
+                    )
+                else:
+                    result.update(status="activation_pending", message="Signup succeeded; activation link was not found")
+                    self._save_registration_state(
+                        result,
+                        password=kwork_password,
+                        client=client,
+                        proxy=proxy,
+                        auth_data=auth_data,
+                        signup_ip=signup_ip,
+                        last_error="activation_link_not_found",
+                    )
+            else:
+                result.update(status="signup_submitted", message="Signup succeeded; mailbox credentials were not supplied")
+                self._save_registration_state(
+                    result,
+                    password=kwork_password,
+                    client=client,
+                    proxy=proxy,
+                    auth_data=auth_data,
+                    signup_ip=signup_ip,
+                )
+        return public_result()
+
+    async def register_accounts_batch(
+        self,
+        *,
+        account_count: int,
+        vpnte_slots: list[int],
+        email: str = "",
+        mail_password: str = "",
+        user_type: int = 1,
+        promo: str = "",
+        use_simple: bool = False,
+        track_client_id: str = "",
+        action_after: str = "",
+        is_subscribed: bool = False,
+        captcha_token: str = "",
+        captcha_field: str = "smart-token",
+        firstmail_api_key: str = "",
+        mail_provider: str = "catchmail",
+        avoid_used_ips: bool = False,
+        dry_run: bool = False,
+    ) -> dict[str, Any]:
+        """Create accounts through selected VPNTE slots, up to five distinct routes at once."""
+
+        provider = self._registration_mail_provider(mail_provider)
+        if account_count < 1:
+            raise KworkRegistrationError("invalid_account_count", "account_count must be at least 1")
+        if account_count > 1 and provider != "catchmail":
+            raise KworkRegistrationError("batch_mail_provider_not_supported", "Batch registration requires CatchMail")
+        if account_count > 1 and email.strip():
+            raise KworkRegistrationError("batch_email_not_supported", "Batch registration requires an empty email field")
+
+        vpnte_proxies = self._vpnte_registration_proxies(vpnte_slots)
+        selected_slots = [slot for slot, _proxy in vpnte_proxies]
+        if len(vpnte_proxies) < account_count:
+            raise KworkRegistrationError(
+                "vpnte_capacity_insufficient",
+                (
+                    f"Для {account_count} аккаунтов нужно не меньше {account_count} отдельных VPNTE-слотов; "
+                    f"выбрано {len(vpnte_proxies)}. Регистрация не запущена."
+                ),
+                payload={
+                    "requested_count": account_count,
+                    "selected_route_count": len(vpnte_proxies),
+                    "selected_vpnte_slots": selected_slots,
+                    "unique_available_ip_count": 0,
+                    "avoid_used_ips": avoid_used_ips,
+                },
+            )
+
+        route_probes = await self._preflight_registration_routes(vpnte_proxies)
+        used_ips = self._registration_used_ips() if avoid_used_ips else set()
+        failed_probes: list[_RegistrationRouteProbe] = []
+        duplicate_probes: list[_RegistrationRouteProbe] = []
+        used_ip_probes: list[_RegistrationRouteProbe] = []
+        available_probes: list[_RegistrationRouteProbe] = []
+        available_ips: set[str] = set()
+        for probe in route_probes:
+            if not probe.healthy or not probe.egress_ip:
+                failed_probes.append(probe)
+            elif probe.egress_ip in used_ips:
+                used_ip_probes.append(probe)
+            elif probe.egress_ip in available_ips:
+                duplicate_probes.append(probe)
+            else:
+                available_ips.add(probe.egress_ip)
+                available_probes.append(probe)
+
+        logger.info(
+            (
+                "Kwork registration route preflight completed: {} selected, {} reachable, "
+                "{} unique available, {} failed, {} duplicate, {} already used"
+            ),
+            len(vpnte_proxies),
+            sum(1 for probe in route_probes if probe.healthy),
+            len(available_probes),
+            len(failed_probes),
+            len(duplicate_probes),
+            len(used_ip_probes),
+        )
+        if len(available_probes) < account_count:
+            payload = {
+                "requested_count": account_count,
+                "selected_route_count": len(vpnte_proxies),
+                "reachable_route_count": sum(1 for probe in route_probes if probe.healthy),
+                "unique_available_ip_count": len(available_probes),
+                "failed_route_count": len(failed_probes),
+                "duplicate_route_count": len(duplicate_probes),
+                "used_ip_route_count": len(used_ip_probes),
+                "avoid_used_ips": avoid_used_ips,
+                "selected_vpnte_slots": selected_slots,
+                "available_vpnte_slots": [probe.slot for probe in available_probes],
+                "failed_vpnte_slots": [probe.slot for probe in failed_probes],
+                "duplicate_vpnte_slots": [probe.slot for probe in duplicate_probes],
+                "used_ip_vpnte_slots": [probe.slot for probe in used_ip_probes],
+                "failed_route_errors": [
+                    {"slot": probe.slot, "error": probe.error or "unavailable", "elapsed_ms": probe.elapsed_ms}
+                    for probe in failed_probes
+                ],
+            }
+            raise KworkRegistrationError(
+                "vpnte_capacity_insufficient",
+                (
+                    f"Рабочих уникальных VPNTE IP недостаточно: найдено {len(available_probes)}, "
+                    f"требуется {account_count}. Регистрация не запущена."
+                ),
+                payload=payload,
+            )
+
+        assigned_probes = available_probes[:account_count]
+        reserve_probes = available_probes[account_count:]
+        parallel_limit = min(5, len(assigned_probes))
+        logger.info(
+            (
+                "Kwork registration batch started: {} account(s), {} assigned route(s), "
+                "{} healthy reserve route(s), parallel limit {}"
+            ),
+            account_count,
+            len(assigned_probes),
+            len(reserve_probes),
+            parallel_limit,
+        )
+
+        async def register_one(
+            *,
+            batch_index: int,
+            proxy_index: int,
+            vpnte_slot: int,
+            proxy: str,
+            preflight_ip: str,
+        ) -> tuple[int, dict[str, Any]]:
+            try:
+                logger.info(
+                    "Kwork registration {}/{} started through VPNTE slot {}",
+                    batch_index,
+                    account_count,
+                    vpnte_slot,
+                )
+                item = await self.register_account(
+                    email=email if account_count == 1 else "",
+                    mail_password=mail_password,
+                    user_type=user_type,
+                    promo=promo,
+                    use_simple=use_simple,
+                    track_client_id=track_client_id,
+                    action_after=action_after,
+                    is_subscribed=is_subscribed,
+                    captcha_token=captcha_token,
+                    captcha_field=captcha_field,
+                    firstmail_api_key=firstmail_api_key,
+                    mail_provider=provider,
+                    dry_run=dry_run,
+                    proxy_url=proxy,
+                    registration_slot=vpnte_slot,
+                )
+                item["batch_index"] = batch_index
+                item["proxy_index"] = proxy_index
+                item["vpnte_slot"] = vpnte_slot
+                item["proxy_configured"] = True
+                item["preflight_ip"] = preflight_ip
+                logger.info(
+                    "Kwork registration {}/{} finished with status {} through VPNTE slot {}",
+                    batch_index,
+                    account_count,
+                    item.get("status") or "unknown",
+                    vpnte_slot,
+                )
+                return batch_index, item
+            except KworkRegistrationError as exc:
+                logger.warning(
+                    "Kwork registration {}/{} failed with {} through VPNTE slot {}",
+                    batch_index,
+                    account_count,
+                    exc.code,
+                    vpnte_slot,
+                )
+                return batch_index, {
+                    "ok": False,
+                    "status": "registration_error",
+                    "batch_index": batch_index,
+                    "proxy_index": proxy_index,
+                    "vpnte_slot": vpnte_slot,
+                    "proxy_configured": True,
+                    "preflight_ip": preflight_ip,
+                    "code": exc.code,
+                    "message": str(exc),
+                }
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                logger.warning(
+                    "Kwork registration {}/{} failed with {} through VPNTE slot {}",
+                    batch_index,
+                    account_count,
+                    type(exc).__name__,
+                    vpnte_slot,
+                )
+                return batch_index, {
+                    "ok": False,
+                    "status": "registration_error",
+                    "batch_index": batch_index,
+                    "proxy_index": proxy_index,
+                    "vpnte_slot": vpnte_slot,
+                    "proxy_configured": True,
+                    "preflight_ip": preflight_ip,
+                    "code": "transport_error",
+                    "message": f"{type(exc).__name__}: {exc}",
+                }
+
+        # Every account receives its own preflight-confirmed egress IP. Extra
+        # healthy routes stay unused as reserve instead of hiding bad early slots.
+        pending = [
+            (index + 1, index + 1, probe.slot, probe.proxy, str(probe.egress_ip))
+            for index, probe in enumerate(assigned_probes)
+        ]
+        results_by_index: dict[int, dict[str, Any]] = {}
+        while pending:
+            wave: list[tuple[int, int, int, str, str]] = []
+            deferred: list[tuple[int, int, int, str, str]] = []
+            wave_proxies: set[str] = set()
+            for item in pending:
+                _batch_index, _proxy_index, _vpnte_slot, proxy, _preflight_ip = item
+                if len(wave) < 5 and proxy not in wave_proxies:
+                    wave.append(item)
+                    wave_proxies.add(proxy)
+                else:
+                    deferred.append(item)
+
+            completed = await asyncio.gather(
+                *(
+                    register_one(
+                        batch_index=batch_index,
+                        proxy_index=proxy_index,
+                        vpnte_slot=vpnte_slot,
+                        proxy=proxy,
+                        preflight_ip=preflight_ip,
+                    )
+                    for batch_index, proxy_index, vpnte_slot, proxy, preflight_ip in wave
+                )
+            )
+            results_by_index.update(completed)
+            pending = deferred
+
+        results = [results_by_index[index] for index in range(1, account_count + 1)]
+
+        activated_count = sum(1 for item in results if item.get("activated"))
+        logger.info(
+            "Kwork registration batch completed: {}/{} account(s) activated",
+            activated_count,
+            account_count,
+        )
+        return {
+            "ok": activated_count == account_count,
+            "requested_count": account_count,
+            "completed_count": len(results),
+            "activated_count": activated_count,
+            "proxy_count": len(assigned_probes),
+            "selected_proxy_count": len(vpnte_proxies),
+            "reachable_proxy_count": sum(1 for probe in route_probes if probe.healthy),
+            "healthy_proxy_count": len(available_probes),
+            "reserve_proxy_count": len(reserve_probes),
+            "failed_proxy_count": len(failed_probes),
+            "duplicate_proxy_count": len(duplicate_probes),
+            "used_ip_proxy_count": len(used_ip_probes),
+            "avoid_used_ips": avoid_used_ips,
+            "parallel_limit": parallel_limit,
+            "vpnte_slots": [probe.slot for probe in assigned_probes],
+            "selected_vpnte_slots": selected_slots,
+            "reserve_vpnte_slots": [probe.slot for probe in reserve_probes],
+            "failed_vpnte_slots": [probe.slot for probe in failed_probes],
+            "duplicate_vpnte_slots": [probe.slot for probe in duplicate_probes],
+            "used_ip_vpnte_slots": [probe.slot for probe in used_ip_probes],
+            "results": results,
+        }
+
+    async def verify_registration_activation(
+        self,
+        *,
+        registration_id: str,
+        mail_password: str = "",
+        firstmail_api_key: str = "",
+    ) -> dict[str, Any]:
+        """Resume activation in the encrypted HTTP session created by signup."""
+
+        clean_registration_id = registration_id.strip()
+        if not clean_registration_id:
+            raise KworkRegistrationError("registration_id_required", "registration_id is required to restore the signup session")
+        try:
+            record = self._registration_store().get(clean_registration_id)
+        except KworkAccountStoreError as exc:
+            raise KworkRegistrationError("account_persistence_failed", "Could not restore Kwork account session") from exc
+        if record is None:
+            raise KworkRegistrationError("registration_not_found", "Saved Kwork registration was not found")
+        if record.status == "activated":
+            result = record.public_data()
+            result.update(
+                ok=True,
+                activated=True,
+                captcha_required=False,
+                phone_fields_sent=False,
+                message="Account was already activated in the saved session",
+            )
+            return result
+
+        logger.info(
+            "Kwork activation retry started for {} through saved VPNTE slot {}",
+            record.username,
+            record.registration_slot or "unknown",
+        )
+        provider = self._registration_mail_provider(record.mail_provider)
+        if provider == "firstmail" and not mail_password.strip():
+            raise KworkRegistrationError("invalid_mail_credentials", "Firstmail requires mailbox credentials")
+        try:
+            after = datetime.fromisoformat(record.registration_started_at.replace("Z", "+00:00"))
+            if after.tzinfo is None:
+                after = after.replace(tzinfo=UTC)
+            else:
+                after = after.astimezone(UTC)
+        except ValueError as exc:
+            raise KworkRegistrationError("invalid_registration_timestamp", "Saved registration timestamp is invalid") from exc
+
+        auth_data = record.session.get("auth_data")
+        if not isinstance(auth_data, Mapping):
+            auth_data = {}
+        proxy = str(record.session.get("proxy_url") or "") or None
+        result: dict[str, Any] = {
+            **record.public_data(),
+            "ok": False,
+            "status": "activation_pending",
+            "activated": False,
+            "captcha_required": False,
+            "phone_fields_sent": False,
+        }
+
+        async with self._registration_http_client(proxy=proxy, session=record.session) as client:
+            try:
+                link = await self._fetch_verification_link(
+                    record.email,
+                    mail_password,
+                    firstmail_api_key or os.getenv("FIRSTMAIL_API_KEY"),
+                    mail_provider=provider,
+                    after=after,
+                    proxy=proxy,
+                )
+            except Exception as exc:
+                message = f"Mailbox polling failed: {type(exc).__name__}: {exc}"
+                logger.warning("Kwork activation retry for {} failed during mailbox polling: {}", record.username, message)
+                result["message"] = message
+                self._save_registration_state(
+                    result,
+                    password=record.password,
+                    client=client,
+                    proxy=proxy,
+                    auth_data=auth_data,
+                    last_error=message,
+                )
+                return result
+
+            if not link:
+                logger.info("Kwork activation retry for {} is still pending: activation link not found", record.username)
+                result["message"] = "Activation link was not found yet"
+                self._save_registration_state(
+                    result,
+                    password=record.password,
+                    client=client,
+                    proxy=proxy,
+                    auth_data=auth_data,
+                    last_error="activation_link_not_found",
+                )
+                return result
+
+            await self._registration_pacer(proxy).wait()
+            activation = await self._activate_account(link, client)
+            result.update(activation, activation_link_found=True)
+            activation_ip = await self._capture_registration_ip(client)
+            session_proof = await self._verify_registration_session(client) if activation.get("http_ok") else {
+                "ok": False,
+                "auth_mode": "saved_http_session",
+                "reason": "activation_http_failed",
+            }
+            result["session_proof"] = session_proof
+            if activation.get("http_ok"):
+                proof = await self._verify_activated_account(record.email, record.password, proxy=proxy)
+                result["post_activation"] = proof
+                result["activated"] = bool(session_proof.get("ok") or proof.get("ok"))
+            result["status"] = "activated" if result["activated"] else "activation_failed"
+            result["ok"] = bool(result["activated"])
+            self._save_registration_state(
+                result,
+                password=record.password,
+                client=client,
+                proxy=proxy,
+                auth_data=auth_data,
+                activation_ip=activation_ip,
+                activated_at=(
+                    datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+                    if result["activated"]
+                    else None
+                ),
+                last_error=None if result["activated"] else str(result.get("reason") or "activation_failed"),
+            )
+            logger.info(
+                "Kwork activation retry for {} finished with status {}",
+                record.username,
+                result["status"],
+            )
+        return result
+
+    def list_registration_accounts(self) -> list[dict[str, Any]]:
+        """Return the locally saved registration inventory without credentials or cookies."""
+
+        try:
+            records = self._registration_store().list()
+        except KworkAccountStoreError as exc:
+            raise KworkRegistrationError("account_persistence_failed", "Could not read saved Kwork registrations") from exc
+        return [record.public_data() for record in records]
+
+    async def check_registration_account_session(self, registration_id: str) -> dict[str, Any]:
+        """Check whether one saved HTTP session is still authenticated on Kwork."""
+
+        clean_registration_id = registration_id.strip()
+        if not clean_registration_id:
+            raise KworkRegistrationError("registration_id_required", "registration_id is required")
+        try:
+            record = self._registration_store().get(clean_registration_id)
+        except KworkAccountStoreError as exc:
+            raise KworkRegistrationError("account_persistence_failed", "Could not restore Kwork account session") from exc
+        if record is None:
+            raise KworkRegistrationError("registration_not_found", "Saved Kwork registration was not found")
+
+        proxy = str(record.session.get("proxy_url") or "") or None
+        async with self._registration_http_client(proxy=proxy, session=record.session) as client:
+            await self._registration_pacer(proxy).wait()
+            session_check = await self._verify_registration_session(client)
+        return {**record.public_data(), "session_check": session_check}
+
+    def delete_registration_account(self, registration_id: str) -> dict[str, Any]:
+        """Remove one locally saved account record without deleting the remote Kwork account."""
+
+        clean_registration_id = registration_id.strip()
+        if not clean_registration_id:
+            raise KworkRegistrationError("registration_id_required", "registration_id is required")
+        try:
+            deleted = self._registration_store().delete(clean_registration_id)
+        except KworkAccountStoreError as exc:
+            raise KworkRegistrationError("account_persistence_failed", "Could not delete saved Kwork registration") from exc
+        if not deleted:
+            raise KworkRegistrationError("registration_not_found", "Saved Kwork registration was not found")
+        return {"ok": True, "registration_id": clean_registration_id}
+
+    def get_registration_credentials(self, registration_id: str) -> dict[str, Any]:
+        """Return the generated credentials for a locally stored registration."""
+
+        clean_registration_id = registration_id.strip()
+        if not clean_registration_id:
+            raise KworkRegistrationError("registration_id_required", "registration_id is required")
+        try:
+            record = self._registration_store().get(clean_registration_id)
+        except KworkAccountStoreError as exc:
+            raise KworkRegistrationError("account_persistence_failed", "Could not restore Kwork account credentials") from exc
+        if record is None:
+            raise KworkRegistrationError("registration_not_found", "Saved Kwork registration was not found")
+        return {
+            "registration_id": record.registration_id,
+            "email": record.email,
+            "username": record.username,
+            "password": record.password,
+        }
+
+    @staticmethod
+    def _signup_endpoint_missing(payload: Mapping[str, Any]) -> bool:
+        text = json.dumps(payload, ensure_ascii=False).lower()
+        return any(marker in text for marker in ("not found", "unknown endpoint", "method not allowed", "simplesignup"))
 
     def reset_api(self) -> None:
         """Reset current client for re-authorization.

@@ -8,7 +8,7 @@ import re
 import time
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 import httpx
 from fastapi import APIRouter, HTTPException, Query
@@ -18,7 +18,12 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from src.paths import PROPOSAL_ASSETS_DIR, REFERENCE_DIR
-from src.platforms.kwork import KWORK_BASE_URL, KworkStateDataParser, get_kwork_service
+from src.platforms.kwork import (
+    KWORK_BASE_URL,
+    KworkRegistrationError,
+    KworkStateDataParser,
+    get_kwork_service,
+)
 from src.platforms.kwork_autopublish import KworkAutopublishService
 from src.platforms.kwork_ext import KworkExtensions
 from src.platforms.kwork_form_contract import normalize_attribute_selection
@@ -141,6 +146,57 @@ class KworkPublishRequest(BaseModel):
 
 class KworkPublishPreflightRequest(BaseModel):
     draft: dict[str, Any]
+
+
+class KworkRegisterRequest(BaseModel):
+    """Explicit, manual email-only Kwork registration request."""
+
+    email: str = Field(default="", max_length=90)
+    mail_provider: str = Field(default="catchmail", pattern=r"^(catchmail|firstmail)$")
+    mail_password: str = Field(default="", max_length=256)
+    user_type: int = Field(default=1, ge=1, le=2)
+    promo: str = Field(default="", max_length=512)
+    use_simple: bool = False
+    track_client_id: str = Field(default="", max_length=256)
+    action_after: str = Field(default="", max_length=128)
+    is_subscribed: bool = False
+    captcha_token: str = Field(default="", max_length=4096)
+    captcha_field: str = Field(default="smart-token", pattern=r"^(smart-token|g-recaptcha-response)$")
+    firstmail_api_key: str = Field(default="", max_length=4096)
+    dry_run: bool = False
+
+
+class KworkRegisterBatchRequest(KworkRegisterRequest):
+    """Multi-account registration through selected VPNTE slots."""
+
+    account_count: int = Field(default=1, ge=1, le=100)
+    vpnte_slots: list[Annotated[int, Field(ge=1)]] = Field(default_factory=list, max_length=1_000)
+    avoid_used_ips: bool = False
+
+
+class KworkRegistrationVerificationRequest(BaseModel):
+    """Resume activation polling in the server-side session of a registration."""
+
+    registration_id: str = Field(..., min_length=16, max_length=64)
+    mail_password: str = Field(default="", max_length=256)
+    firstmail_api_key: str = Field(default="", max_length=4096)
+
+
+class KworkRegistrationCredentialsRequest(BaseModel):
+    """Request generated credentials from the local encrypted account store."""
+
+    registration_id: str = Field(..., min_length=16, max_length=64)
+
+
+def _registration_management_error(exc: KworkRegistrationError) -> HTTPException:
+    """Map local registration inventory errors to stable API responses."""
+
+    status = {
+        "registration_id_required": 422,
+        "registration_not_found": 404,
+        "account_persistence_failed": 500,
+    }.get(exc.code, 502)
+    return HTTPException(status_code=status, detail={"code": exc.code, "message": str(exc), "payload": exc.payload})
 
 
 class KworkFormManifestRequest(BaseModel):
@@ -575,6 +631,201 @@ async def kwork_status():
         "session_hub_required": os.getenv("SESSION_HUB_REQUIRED", "false").lower() == "true",
         "state_parser": "window.stateData",
     }
+
+
+@router.post("/register")
+async def kwork_register(payload: KworkRegisterRequest) -> dict[str, Any]:
+    """Run the manual registration flow; never invoked by parsing loops."""
+
+    service = get_kwork_service()
+    try:
+        result = await service.register_account(
+            email=payload.email,
+            mail_password=payload.mail_password,
+            user_type=payload.user_type,
+            promo=payload.promo,
+            use_simple=payload.use_simple,
+            track_client_id=payload.track_client_id,
+            action_after=payload.action_after,
+            is_subscribed=payload.is_subscribed,
+            captcha_token=payload.captcha_token,
+            captcha_field=payload.captcha_field,
+            firstmail_api_key=payload.firstmail_api_key,
+            mail_provider=payload.mail_provider,
+            dry_run=payload.dry_run,
+        )
+        return result
+    except KworkRegistrationError as exc:
+        status = {
+            "invalid_email": 422,
+            "invalid_password": 422,
+            "invalid_mail_provider": 422,
+            "invalid_mail_credentials": 422,
+            "invalid_registration_timestamp": 422,
+            "invalid_user_type": 422,
+            "invalid_username": 422,
+            "forbidden_username": 422,
+            "email_exists": 409,
+            "email_stop_list": 409,
+            "email_rejected": 422,
+            "registration_disabled": 503,
+            "login_unavailable": 422,
+            "captcha_required": 428,
+            "activation_failed": 502,
+            "activation_pending": 202,
+            "unsafe_activation_link": 502,
+            "account_persistence_failed": 500,
+            "invalid_proxy": 422,
+        }.get(exc.code, 502)
+        raise HTTPException(
+            status_code=status,
+            detail={"code": exc.code, "message": str(exc), "payload": exc.payload},
+        ) from exc
+    except Exception as exc:
+        logger.exception("Kwork registration route failed")
+        raise HTTPException(status_code=502, detail=f"{type(exc).__name__}: {exc}") from exc
+
+
+@router.post("/register/batch")
+async def kwork_register_batch(payload: KworkRegisterBatchRequest) -> dict[str, Any]:
+    """Create accounts through live, unique VPNTE egress routes."""
+
+    service = get_kwork_service()
+    try:
+        return await service.register_accounts_batch(
+            account_count=payload.account_count,
+            vpnte_slots=payload.vpnte_slots,
+            email=payload.email,
+            mail_password=payload.mail_password,
+            user_type=payload.user_type,
+            promo=payload.promo,
+            use_simple=payload.use_simple,
+            track_client_id=payload.track_client_id,
+            action_after=payload.action_after,
+            is_subscribed=payload.is_subscribed,
+            captcha_token=payload.captcha_token,
+            captcha_field=payload.captcha_field,
+            firstmail_api_key=payload.firstmail_api_key,
+            mail_provider=payload.mail_provider,
+            avoid_used_ips=payload.avoid_used_ips,
+            dry_run=payload.dry_run,
+        )
+    except KworkRegistrationError as exc:
+        status = {
+            "invalid_account_count": 422,
+            "invalid_proxy": 422,
+            "vpnte_proxy_unavailable": 503,
+            "vpnte_slot_unavailable": 422,
+            "vpnte_capacity_insufficient": 503,
+            "batch_mail_provider_not_supported": 422,
+            "batch_email_not_supported": 422,
+            "invalid_mail_provider": 422,
+            "invalid_mail_credentials": 422,
+            "invalid_user_type": 422,
+        }.get(exc.code, 502)
+        raise HTTPException(
+            status_code=status,
+            detail={"code": exc.code, "message": str(exc), "payload": exc.payload},
+        ) from exc
+    except Exception as exc:
+        logger.exception("Kwork batch registration route failed")
+        raise HTTPException(status_code=502, detail=f"{type(exc).__name__}: {exc}") from exc
+
+
+@router.post("/register/verify")
+async def kwork_register_verify(payload: KworkRegistrationVerificationRequest) -> dict[str, Any]:
+    """Resume activation polling without submitting another Kwork signup."""
+
+    service = get_kwork_service()
+    try:
+        return await service.verify_registration_activation(
+            registration_id=payload.registration_id,
+            mail_password=payload.mail_password,
+            firstmail_api_key=payload.firstmail_api_key,
+        )
+    except KworkRegistrationError as exc:
+        status = {
+            "invalid_email": 422,
+            "invalid_password": 422,
+            "invalid_mail_provider": 422,
+            "invalid_mail_credentials": 422,
+            "invalid_registration_timestamp": 422,
+            "registration_id_required": 422,
+            "registration_not_found": 404,
+            "account_persistence_failed": 500,
+        }.get(exc.code, 502)
+        raise HTTPException(
+            status_code=status,
+            detail={"code": exc.code, "message": str(exc), "payload": exc.payload},
+        ) from exc
+    except Exception as exc:
+        logger.exception("Kwork registration verification route failed")
+        raise HTTPException(status_code=502, detail=f"{type(exc).__name__}: {exc}") from exc
+
+
+@router.post("/register/credentials")
+async def kwork_register_credentials(payload: KworkRegistrationCredentialsRequest) -> dict[str, str]:
+    """Return the generated login/password for one locally stored registration."""
+
+    service = get_kwork_service()
+    try:
+        return service.get_registration_credentials(payload.registration_id)
+    except KworkRegistrationError as exc:
+        status = {
+            "registration_id_required": 422,
+            "registration_not_found": 404,
+            "account_persistence_failed": 500,
+        }.get(exc.code, 502)
+        raise HTTPException(
+            status_code=status,
+            detail={"code": exc.code, "message": str(exc), "payload": exc.payload},
+        ) from exc
+    except Exception as exc:
+        logger.exception("Kwork registration credentials route failed")
+        raise HTTPException(status_code=502, detail=f"{type(exc).__name__}: {exc}") from exc
+
+
+@router.get("/register/accounts")
+async def kwork_registration_accounts() -> dict[str, Any]:
+    """List accounts saved by the local Kwork registration workflow."""
+
+    service = get_kwork_service()
+    try:
+        accounts = service.list_registration_accounts()
+        return {"accounts": accounts, "total": len(accounts)}
+    except KworkRegistrationError as exc:
+        raise _registration_management_error(exc) from exc
+    except Exception as exc:
+        logger.exception("Kwork registration accounts list failed")
+        raise HTTPException(status_code=502, detail=f"{type(exc).__name__}: {exc}") from exc
+
+
+@router.post("/register/accounts/{registration_id}/session-check")
+async def kwork_registration_account_session_check(registration_id: str) -> dict[str, Any]:
+    """Check a saved account's cookie session without submitting a signup."""
+
+    service = get_kwork_service()
+    try:
+        return await service.check_registration_account_session(registration_id)
+    except KworkRegistrationError as exc:
+        raise _registration_management_error(exc) from exc
+    except Exception as exc:
+        logger.exception("Kwork registration account session check failed")
+        raise HTTPException(status_code=502, detail=f"{type(exc).__name__}: {exc}") from exc
+
+
+@router.delete("/register/accounts/{registration_id}")
+async def kwork_registration_account_delete(registration_id: str) -> dict[str, Any]:
+    """Delete one local saved registration record; the Kwork account remains untouched."""
+
+    service = get_kwork_service()
+    try:
+        return service.delete_registration_account(registration_id)
+    except KworkRegistrationError as exc:
+        raise _registration_management_error(exc) from exc
+    except Exception as exc:
+        logger.exception("Kwork registration account delete failed")
+        raise HTTPException(status_code=502, detail=f"{type(exc).__name__}: {exc}") from exc
 
 
 @router.get("/market/categories")

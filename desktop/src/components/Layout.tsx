@@ -5,7 +5,7 @@ import {
   Search, Play, Square, ChevronDown, Globe2,
   Wallet, HeartPulse,
   AlertCircle, CheckCircle2, Loader2, Asterisk, Monitor, ShieldCheck,
-  Activity, MessageSquare, Ban, MessagesSquare, Package, Store
+  Activity, MessageSquare, Ban, MessagesSquare, Package, Store, UserPlus,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
@@ -58,6 +58,7 @@ interface KworkVerificationNotice {
 
 const NAV = [
   { to: '/kwork-market',  icon: Store,           label: 'Рынок Kwork' },
+  { to: '/kwork-registration', icon: UserPlus,   label: 'Регистрация Kwork' },
   { to: '/dashboard',     icon: LayoutDashboard, label: 'Панель' },
   { to: '/queue',         icon: ListChecks,      label: 'Очередь' },
   { to: '/skipped',       icon: Ban,             label: 'Пропуски' },

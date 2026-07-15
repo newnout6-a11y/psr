@@ -128,6 +128,53 @@ def test_scope_mapper_builds_only_classification_filter_candidates(scope: Market
     assert candidates[0].expected_count == 18261
 
 
+def test_scope_mapper_builds_disjoint_price_lanes_for_parallel_workers(scope: MarketScope):
+    candidates = ScopeMapper.parallel_partition_candidates(
+        scope,
+        attributes=None,
+        catalog_filters={"filters": {"priceLimits": {"min": 500, "max": 50_000}}},
+        max_candidates=4,
+    )
+
+    assert len(candidates) == 4
+    assert candidates[0].filters == {"price_to": 1625, "price_from": 500}
+    assert candidates[-1].filters == {"price_to": 5000, "price_from": 3878}
+    assert all(
+        int(left.filters["price_to"]) + 1 == int(right.filters["price_from"])
+        for left, right in zip(candidates, candidates[1:], strict=False)
+    )
+
+
+def test_scope_mapper_combines_independent_classifications_to_fill_worker_front(scope: MarketScope):
+    flat = []
+    for parent_id in (100, 200, 300):
+        flat.append({"id": parent_id, "path_ids": [parent_id], "raw": {"is_classification": True}})
+        for offset in range(5):
+            value_id = parent_id + offset + 1
+            flat.append(
+                {
+                    "id": value_id,
+                    "path_ids": [parent_id, value_id],
+                    "kworks_count": 100 - offset,
+                    "raw": {},
+                }
+            )
+
+    candidates = ScopeMapper.parallel_partition_candidates(
+        scope,
+        attributes={"flat": flat},
+        catalog_filters=None,
+        max_candidates=50,
+    )
+
+    assert len(candidates) == 50
+    assert sum(candidate.key.startswith("combo:") for candidate in candidates) == 35
+    assert all(
+        len([key for key in candidate.filters if str(key).startswith("attribute[")]) == 2
+        for candidate in candidates[15:]
+    )
+
+
 @pytest.mark.asyncio
 async def test_scope_mapper_persists_the_alias_validation(
     tmp_path,

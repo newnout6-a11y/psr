@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import asyncio
 import json
 
+import httpx
 import pytest
 
 from src.platforms.kwork_listing import (
     KworkWebListingClient,
+    _CLASSIFICATION_CACHE,
+    _CLASSIFICATION_INFLIGHT,
     form_pairs_to_structured_payload,
     is_kwork_manual_verification_page,
     manual_verification_response,
@@ -108,6 +112,52 @@ def test_parse_new_form_snapshot_extracts_hidden_fields():
     assert snapshot["csrftoken"] == "csrf-1"
     assert snapshot["draft_id"] == "777"
     assert snapshot["hidden_fields"]["lang"] == "ru"
+
+
+@pytest.mark.asyncio
+async def test_open_new_retries_transport_failure(monkeypatch):
+    attempts = 0
+
+    class FakeResponse:
+        status_code = 200
+        url = "https://kwork.ru/new"
+        text = (
+            '<form class="js-kwork-save-form" action="/save_kwork">'
+            '<input type="hidden" name="csrftoken" value="csrf-1">'
+            '<input type="hidden" name="draft_id" value="777">'
+            "</form>"
+        )
+
+        def raise_for_status(self):
+            return None
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+        async def get(self, *args, **kwargs):
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise httpx.RemoteProtocolError(
+                    "server disconnected",
+                    request=httpx.Request("GET", "https://kwork.ru/new"),
+                )
+            return FakeResponse()
+
+    monkeypatch.setattr("httpx.AsyncClient", FakeClient)
+    monkeypatch.setattr("src.platforms.kwork_listing.kwork_http_proxy_url", lambda **kwargs: None)
+
+    result = await KworkWebListingClient({"PHPSESSID": "abc"}).open_new()
+
+    assert result["ok"] is True
+    assert attempts == 2
 
 
 def test_parse_save_kwork_response_maps_success_and_errors():
@@ -221,23 +271,32 @@ def test_form_pairs_to_structured_payload_matches_kwork_save_shape():
             ("attribute[208]", "3587"),
             ("attribute[3610][]", "3612"),
             ("attribute[3610][]", "5273361"),
+            ("bundle_extra_standard_value[category][190]", "1"),
+            ("bundle_extra_standard_value[category][191]", "1"),
             ("faq[0][question]", "Что нужно?"),
             ("faq[0][answer]", "ТЗ и доступы."),
             ("first_photo_json", '{"success":true,"data":{"src":"https://cdn/cover.png","hash":"h1"}}'),
             ("first_photo_path", "https://cdn/cover.png"),
             ("first-kwork-photo", "null"),
             ("first-kwork-photo-size[]", '{"x":0,"y":0,"w":1200,"h":800}'),
+            (
+                "portfolio",
+                '[{"draftHash":1,"cover":{"idPortfolioMedia":77,"type":"image"},'
+                '"items":[{"id":77,"portfolio_type":"photo","position":0}]}]',
+            ),
         ]
     )
 
     assert payload["title"] == "Сделаю бота"
     assert payload["attribute"]["208"] == "3587"
     assert payload["attribute"]["3610"] == ["3612", "5273361"]
+    assert payload["bundle_extra_standard_value"]["category"] == {"190": "1", "191": "1"}
     assert payload["faq"][0]["question"] == "Что нужно?"
     assert payload["first_photo_json"]["data"]["src"] == "https://cdn/cover.png"
     assert payload["first_photo_path"] == "https://cdn/cover.png"
     assert payload["first-kwork-photo"] is None
     assert payload["first-kwork-photo-size"]["w"] == 1200
+    assert payload["portfolio"][0]["cover"]["idPortfolioMedia"] == 77
 
 
 @pytest.mark.asyncio
@@ -251,10 +310,12 @@ async def test_build_attribute_manifest_loads_selected_children(monkeypatch):
                 '<input type="radio" name="attribute[208]" id="bot" value="3587" data-has-child="1">'
                 '<label for="bot">Чат-боты</label>'
             )
-        else:
+        elif attribute_id == 3587:
             controls = parse_classification_html(
                 '<label><input type="checkbox" name="attribute[3610][]" value="3612">Telegram</label>'
             )
+        else:
+            controls = []
         return {
             "success": True,
             "category_id": category_id,
@@ -291,10 +352,12 @@ async def test_build_attribute_manifest_drops_stale_child_selection_after_parent
                 '<input type="radio" name="attribute[208]" id="other" value="9999">'
                 '<label for="other">Other</label>'
             )
-        else:
+        elif attribute_id == 3587:
             controls = parse_classification_html(
                 '<label><input type="checkbox" name="attribute[3610][]" value="3612">Telegram</label>'
             )
+        else:
+            controls = []
         return {
             "success": True,
             "category_id": category_id,
@@ -312,10 +375,47 @@ async def test_build_attribute_manifest_drops_stale_child_selection_after_parent
         selection={"attribute[208]": 9999, "attribute[3610][]": [3612]},
     )
 
-    assert calls == [None]
+    assert calls == [None, 9999]
     assert manifest["selected"] == {"attribute[208]": 9999}
     assert "attribute[3610][]" in manifest["selection_validation"]["issues"]["unknown_fields"]
     assert manifest["manifest_hash"].startswith("sha256:")
+
+
+@pytest.mark.asyncio
+async def test_build_attribute_manifest_probes_selected_option_without_has_child_marker(monkeypatch):
+    calls: list[int | None] = []
+
+    async def fake_load(self, category_id, attribute_id=None, lang="ru"):
+        calls.append(attribute_id)
+        if attribute_id is None:
+            controls = parse_classification_html(
+                '<input type="radio" name="attribute[1624]" id="branding" value="401976">'
+                '<label for="branding">Фирменный стиль</label>'
+            )
+        else:
+            controls = parse_classification_html(
+                '<input type="radio" name="attribute[401977]" id="guide" value="401989">'
+                '<label for="guide">Гайдлайн</label>'
+            )
+        return {
+            "success": True,
+            "category_id": category_id,
+            "attribute_id": attribute_id,
+            "controls": controls,
+            "count": len(controls),
+            "selectedCount": 0,
+            "raw_keys": [],
+        }
+
+    monkeypatch.setattr(KworkWebListingClient, "load_classification", fake_load)
+
+    manifest = await KworkWebListingClient().build_attribute_manifest(
+        25,
+        selection={"attribute[1624]": 401976},
+    )
+
+    assert calls == [None, 401976]
+    assert [item["name"] for item in manifest["controls"]] == ["attribute[1624]", "attribute[401977]"]
 
 
 @pytest.mark.asyncio
@@ -386,6 +486,42 @@ async def test_load_classification_returns_structured_non_json_error(monkeypatch
     assert result["ok"] is False
     assert result["code"] == "login_required"
     assert result["controls"] == []
+
+
+@pytest.mark.asyncio
+async def test_load_classification_deduplicates_inflight_and_caches_success(monkeypatch):
+    _CLASSIFICATION_CACHE.clear()
+    _CLASSIFICATION_INFLIGHT.clear()
+    calls = 0
+
+    async def fake_load(self, category_id, attribute_id=None, lang="ru"):
+        nonlocal calls
+        calls += 1
+        await asyncio.sleep(0.02)
+        return {
+            "success": True,
+            "category_id": category_id,
+            "attribute_id": attribute_id,
+            "lang": lang,
+            "controls": [{"name": "attribute[1]", "options": []}],
+            "raw_keys": [],
+        }
+
+    monkeypatch.setattr(KworkWebListingClient, "_load_classification_uncached", fake_load)
+    first_client = KworkWebListingClient()
+    second_client = KworkWebListingClient()
+
+    first, second = await asyncio.gather(
+        first_client.load_classification(25, attribute_id=401928),
+        second_client.load_classification(25, attribute_id=401928),
+    )
+    cached = await first_client.load_classification(25, attribute_id=401928)
+
+    assert calls == 1
+    assert first["cache_status"] == "miss"
+    assert second["cache_status"] == "miss"
+    assert cached["cache_status"] == "hit"
+    assert cached["controls"][0]["name"] == "attribute[1]"
 
 
 @pytest.mark.asyncio
@@ -514,7 +650,10 @@ async def test_upload_cover_accepts_nested_kwork_data_response(monkeypatch, tmp_
             return None
 
         def json(self):
-            return {"success": True, "data": {"id": 123, "name": "52/123.png", "src": "https://cdn/52/123.png", "hash": "h1"}}
+            return {
+                "success": True,
+                "data": {"id": 123, "name": "52/123.png", "src": "https://cdn/52/123.png", "hash": "h1"},
+            }
 
     class FakeClient:
         def __init__(self, *args, **kwargs):
@@ -537,6 +676,112 @@ async def test_upload_cover_accepts_nested_kwork_data_response(monkeypatch, tmp_
     assert result["first_photo_path"] == "https://cdn/52/123.png"
     assert result["first_photo_json"]["data"]["src"] == "https://cdn/52/123.png"
     assert result["first_photo_hash"] == "h1"
+
+
+@pytest.mark.asyncio
+async def test_upload_cover_retries_transport_failure(monkeypatch, tmp_path):
+    cover = tmp_path / "cover.png"
+    cover.write_bytes(b"\x89PNG\r\n\x1a\nfake")
+    attempts = 0
+
+    class FakeResponse:
+        status_code = 200
+        url = "https://kwork.ru/temp-image-upload"
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"success": True, "data": {"src": "https://cdn/cover.png", "hash": "h1"}}
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+        async def post(self, *args, **kwargs):
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise httpx.ReadError("connection dropped", request=httpx.Request("POST", self_url))
+            return FakeResponse()
+
+    self_url = "https://kwork.ru/temp-image-upload"
+    monkeypatch.setattr("httpx.AsyncClient", FakeClient)
+    monkeypatch.setattr("src.platforms.kwork_listing.kwork_http_proxy_url", lambda **kwargs: None)
+
+    result = await KworkWebListingClient({"PHPSESSID": "abc"}).upload_cover(cover, category_id=41)
+
+    assert result["ok"] is True
+    assert attempts == 2
+
+
+@pytest.mark.asyncio
+async def test_upload_portfolio_image_returns_media_contract(monkeypatch, tmp_path):
+    image = tmp_path / "work.png"
+    image.write_bytes(b"\x89PNG\r\n\x1a\nfake")
+    captured = {}
+
+    class FakeResponse:
+        status_code = 200
+        url = "https://kwork.ru/portfolio/upload_image"
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "success": True,
+                "data": {
+                    "id": 77,
+                    "hash": "portfolio-hash",
+                    "url": "https://cdn/work.jpg",
+                    "urlBig": "https://cdn/work-big.jpg",
+                    "type": "jpg",
+                },
+            }
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+        async def post(self, url, **kwargs):
+            captured["url"] = url
+            captured["data"] = kwargs["data"]
+            captured["files"] = kwargs["files"]
+            return FakeResponse()
+
+    monkeypatch.setattr("httpx.AsyncClient", FakeClient)
+
+    result = await KworkWebListingClient({"PHPSESSID": "abc"}).upload_portfolio_image(
+        image,
+        known_hashes=["cover-hash"],
+    )
+
+    assert result == {
+        "ok": True,
+        "raw": FakeResponse().json(),
+        "id": 77,
+        "hash": "portfolio-hash",
+        "url": "https://cdn/work.jpg",
+        "urlBig": "https://cdn/work-big.jpg",
+        "type": "jpg",
+        "crop": None,
+    }
+    assert captured["url"] == "/portfolio/upload_image"
+    assert captured["data"] == {"hashes[0]": "cover-hash"}
+    assert captured["files"]["file"][0] == "work.png"
 
 
 @pytest.mark.asyncio

@@ -44,11 +44,11 @@ from src.paths import DATA_DIR, ensure_layout
 from src.action.proposal_db import ProposalDB
 from src.platforms.kwork_supply.coordinator import MarketScanCoordinator
 from src.platforms.kwork_supply.executor import MarketOperationExecutor
+from src.platforms.kwork_supply.identity_pool import MarketIdentityPool
 from src.platforms.kwork_supply.repository import MarketJobRepository
 from src.platforms.kwork_supply.supervisor import MarketWorkerSupervisor
 from src.platforms.kwork_supply.transports.vpnte import VpnteTransportManager
 from src.utils.log_db import get_log_db
-from src.utils.vpnte_proxy import vpnte_proxy_enabled
 
 
 async def _market_web_cookies() -> dict[str, str]:
@@ -71,16 +71,23 @@ async def lifespan(app: FastAPI):
     get_log_db()
     market_repository = MarketJobRepository(DATA_DIR / "kwork_market_jobs.db")
     market_coordinator = MarketScanCoordinator(market_repository)
-    market_executor = MarketOperationExecutor(market_coordinator, web_cookie_provider=_market_web_cookies)
-    market_transports = VpnteTransportManager() if vpnte_proxy_enabled() else None
+    market_transports = VpnteTransportManager()
+    market_identity_pool = MarketIdentityPool(market_repository, market_transports)
+    market_executor = MarketOperationExecutor(
+        market_coordinator,
+        web_cookie_provider=_market_web_cookies,
+        identity_pool=market_identity_pool,
+    )
     market_supervisor = MarketWorkerSupervisor(
         market_coordinator,
         handlers=market_executor.handlers,
         transport_manager=market_transports,
+        identity_pool=market_identity_pool,
     )
     await market_supervisor.start()
     app.state.market_jobs = market_coordinator
     app.state.market_worker_supervisor = market_supervisor
+    app.state.market_identity_pool = market_identity_pool
     # Register loguru WebSocket sink
     logger.add(make_ws_sink(app_state), format="{time:HH:mm:ss} | {level} | {message}", level="DEBUG")
     logger.info("PSR API server started on port 7788")
@@ -92,6 +99,7 @@ async def lifespan(app: FastAPI):
         await market_repository.close()
         app.state.market_jobs = None
         app.state.market_worker_supervisor = None
+        app.state.market_identity_pool = None
         if app_state.cycle_task and not app_state.cycle_task.done():
             app_state.cycle_task.cancel()
         try:

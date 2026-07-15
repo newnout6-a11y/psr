@@ -69,7 +69,10 @@ async def test_mobile_first_page_only_completes_without_web_or_continuation(tmp_
         {
             "kworks_count": 900,
             "paging": {"page": 1, "total": 900},
-            "kworks": [{"id": 501, "title": "Mobile one"}, {"id": 502, "title": "Mobile two"}],
+            "kworks": [
+                {"id": 501, "title": "Mobile one", "price": 20_000},
+                {"id": 502, "title": "Mobile two", "price": 20_000},
+            ],
             "_request_params": {"categoryId": 38, "classifierId": 1271, "page": 1},
         }
     )

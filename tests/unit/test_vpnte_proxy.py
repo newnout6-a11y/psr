@@ -100,6 +100,91 @@ def test_rotate_reads_vpnte_endpoint_and_token(monkeypatch, tmp_path):
     assert seen[1]["url"] == "http://127.0.0.1:19001/instances"
 
 
+def test_rotate_waits_for_health_contract_before_returning(monkeypatch, fake_vpnte_control):
+    calls, responses = fake_vpnte_control
+    monkeypatch.setenv("VPNTE_CONTROL_URL", "http://127.0.0.1:19010")
+    monkeypatch.setenv("VPNTE_CONTROL_TOKEN", "fixture-token")
+    monkeypatch.setenv("VPNTE_PROXY_HEALTH_WARMUP", "0")
+    responses.extend(
+        [
+            {
+                "slot": 3,
+                "running": False,
+                "processRunning": True,
+                "health": "checking",
+                "proxyUrl": "http://127.0.0.1:17992",
+            },
+            {
+                "slot": 3,
+                "running": True,
+                "processRunning": True,
+                "health": "healthy",
+                "proxyUrl": "http://127.0.0.1:17992",
+                "egressIp": "203.0.113.3",
+            },
+        ]
+    )
+
+    status = VpnteProxyClient().rotate(slot=3)
+
+    assert status["health"] == "healthy"
+    assert status["egressIp"] == "203.0.113.3"
+    assert [call["url"] for call in calls] == [
+        "http://127.0.0.1:19010/rotate?slot=3",
+        "http://127.0.0.1:19010/healthcheck?slot=3",
+    ]
+    assert [call["method"] for call in calls] == ["POST", "POST"]
+    assert calls[1]["timeout"] == 20.0
+
+
+def test_rotate_surfaces_health_failure_detail(monkeypatch, fake_vpnte_control):
+    _calls, responses = fake_vpnte_control
+    monkeypatch.setenv("VPNTE_CONTROL_URL", "http://127.0.0.1:19011")
+    monkeypatch.setenv("VPNTE_CONTROL_TOKEN", "fixture-token")
+    monkeypatch.setenv("VPNTE_PROXY_HEALTH_WARMUP", "0")
+    responses.extend(
+        [
+            {
+                "slot": 4,
+                "running": False,
+                "processRunning": True,
+                "health": "checking",
+                "proxyUrl": "http://127.0.0.1:17993",
+            },
+            {
+                "slot": 4,
+                "running": False,
+                "processRunning": True,
+                "health": "unhealthy",
+                "proxyUrl": "http://127.0.0.1:17993",
+                "lastError": "ECONNRESET: read ECONNRESET",
+            },
+        ]
+    )
+
+    with pytest.raises(RuntimeError, match="ECONNRESET"):
+        VpnteProxyClient().rotate(slot=4)
+
+
+def test_proxy_rotator_does_not_rotate_on_next_by_default(monkeypatch):
+    from src.platforms.kwork_ext import ProxyRotator
+
+    calls: list[bool] = []
+    monkeypatch.setenv("VPNTE_PROXY_ENABLED", "true")
+    monkeypatch.delenv("VPNTE_PROXY_ROTATE_ON_NEXT", raising=False)
+    monkeypatch.setattr(
+        "src.platforms.kwork_ext.effective_proxy_url",
+        lambda *, rotate, fallback: calls.append(rotate) or "http://127.0.0.1:17990",
+    )
+
+    assert ProxyRotator().next() == "http://127.0.0.1:17990"
+    assert calls == [False]
+
+    monkeypatch.setenv("VPNTE_PROXY_ROTATE_ON_NEXT", "true")
+    assert ProxyRotator().next(rotate=False) == "http://127.0.0.1:17990"
+    assert calls == [False, False]
+
+
 def test_endpoint_file_supports_lowercase_registration_and_token_file(monkeypatch, tmp_path, fake_vpnte_control):
     calls, responses = fake_vpnte_control
     appdata = tmp_path / "AppData" / "Roaming"

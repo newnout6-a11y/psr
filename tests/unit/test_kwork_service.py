@@ -12,6 +12,8 @@ Tests cover:
 
 import json
 import time
+from http.cookies import SimpleCookie
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
@@ -109,6 +111,7 @@ class TestGetApiSessionHubPriority:
         assert kwork_cls.call_args.kwargs["proxy"] == "http://127.0.0.1:18100"
         failed_api.close.assert_awaited_once()
         assert replacement_api._psr_proxy_url == "http://127.0.0.1:18100"
+        rotator.next.assert_called_once_with(rotate=False)
 
     @pytest.mark.asyncio
     async def test_transport_recovery_preserves_session_hub_cookies(self, service, monkeypatch):
@@ -134,6 +137,7 @@ class TestGetApiSessionHubPriority:
         assert recovered is replacement_api
         service._apply_cookies_to_api.assert_called_once_with(replacement_api, {"PHPSESSID": "fresh"})
         assert replacement_api._psr_auth_mode == "cookie-only"
+        rotator.next.assert_called_once_with(rotate=False)
 
     @pytest.mark.asyncio
     async def test_session_hub_cookie_only_success(self, service, monkeypatch):
@@ -218,6 +222,30 @@ class TestGetApiSessionHubPriority:
         assert service._api is cookie_api
         assert service._token_api is token_api
         assert token_api._psr_auth_mode == "email+password"
+
+    @pytest.mark.asyncio
+    async def test_refresh_web_session_cookies_uses_mobile_auth_and_persists(self, service, monkeypatch):
+        monkeypatch.setenv("KWORK_COOKIE_USERID", "stale-user")
+        cookie = SimpleCookie()
+        cookie["slrememberme"] = "fresh-remember"
+        cookie["slrememberme"]["domain"] = "kwork.ru"
+        cookie["userId"] = "fresh-user"
+        cookie["userId"]["domain"] = ".kwork.ru"
+
+        api = MagicMock()
+        api.web.login_via_mobile_web_auth_token = AsyncMock(
+            return_value=SimpleNamespace(status=200, final_url="https://kwork.ru/new")
+        )
+        api.session.cookie_jar = list(cookie.values())
+        monkeypatch.setattr(service, "get_token_api", AsyncMock(return_value=api))
+        monkeypatch.setattr(service, "_persist_session_hub_cookies", AsyncMock())
+
+        result = await service.refresh_web_session_cookies()
+
+        assert result["slrememberme"] == "fresh-remember"
+        assert result["userId"] == "fresh-user"
+        api.web.login_via_mobile_web_auth_token.assert_awaited_once()
+        service._persist_session_hub_cookies.assert_awaited_once_with(result)
 
     def test_web_state_project_parser_repairs_cp1251_mojibake(self):
         title = "\u0421\u043a\u0440\u0438\u043f\u0442 \u043d\u0430 n8n, \u043b\u0438\u0431\u043e \u043b\u044e\u0431\u043e\u0439 \u0434\u0440\u0443\u0433\u043e\u0439 \u042f\u041f"
@@ -335,8 +363,16 @@ class TestGetApiSessionHubPriority:
 
         assert manual_kwork_web_cookies() == {"captcha_ok": "yes"}
 
+    def test_refreshed_web_cookies_are_persisted_for_restart(self, service, monkeypatch, tmp_path):
+        cookie_file = tmp_path / "kwork_manual_cookies.json"
+        monkeypatch.setattr("src.platforms.kwork.KWORK_MANUAL_COOKIES_FILE", cookie_file)
+
+        service._persist_manual_web_cookies({"PHPSESSID": "fresh-session", "userId": "42"})
+
+        assert manual_kwork_web_cookies() == {"PHPSESSID": "fresh-session", "userId": "42"}
+
     @pytest.mark.asyncio
-    async def test_mark_web_dialog_read_opens_dialog_and_uses_api_fallbacks(self, service, monkeypatch):
+    async def test_mark_web_dialog_read_opens_dialog_without_api_fallbacks(self, service, monkeypatch):
         calls: list[tuple[str, int]] = []
 
         async def fake_cookies():
@@ -381,7 +417,7 @@ class TestGetApiSessionHubPriority:
 
         assert result["ok"] is True
         assert result["web_opened"] is True
-        assert calls == [("message", 789), ("dialog", 456)]
+        assert calls == []
 
     @pytest.mark.asyncio
     async def test_mark_web_dialog_read_opens_username_when_chat_list_misses(self, service, monkeypatch):

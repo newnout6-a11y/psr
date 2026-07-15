@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -112,6 +113,26 @@ class DiscoveryClientFactory:
 
     def __call__(self, proxy_url: str | None) -> DiscoveryWebClient:
         client = DiscoveryWebClient(self.responses)
+        client.proxy_url = proxy_url
+        self.created.append(client)
+        return client
+
+
+class PriceDiscoveryWebClient(DiscoveryWebClient):
+    async def get_catalog_filters(self, category_id: int) -> Mapping[str, Any]:
+        return {
+            "category_id": category_id,
+            "filters": {"kworksCount": 5_000, "priceLimits": {"min": 500, "max": 50_000}},
+            "raw": {"success": True},
+        }
+
+    async def get_category_attributes(self, category_id: int) -> Mapping[str, Any]:
+        return {"category_id": category_id, "flat": [], "raw": {"success": True}}
+
+
+class PriceDiscoveryClientFactory(DiscoveryClientFactory):
+    def __call__(self, proxy_url: str | None) -> PriceDiscoveryWebClient:
+        client = PriceDiscoveryWebClient(self.responses)
         client.proxy_url = proxy_url
         self.created.append(client)
         return client
@@ -337,7 +358,7 @@ async def test_export_enqueue_uses_a_new_operation_for_a_new_checkpoint_after_re
 
 
 @pytest.mark.asyncio
-async def test_executor_probes_a_classification_partition_before_creating_a_large_job_shard(tmp_path: Path):
+async def test_executor_schedules_classification_partition_for_a_second_worker(tmp_path: Path):
     repository = MarketJobRepository(tmp_path / "market-jobs.sqlite3")
     coordinator = MarketScanCoordinator(repository)
     factory = DiscoveryClientFactory(
@@ -356,7 +377,7 @@ async def test_executor_probes_a_classification_partition_before_creating_a_larg
         MarketJobCreate(
             scope=MarketScope(category_id=38, canonical_alias="website-repair"),
             target_unique_cards=40,
-            desired_workers=1,
+            desired_workers=2,
             request_budget=2,
         ),
         job_id=worker.job_id,
@@ -372,7 +393,144 @@ async def test_executor_probes_a_classification_partition_before_creating_a_larg
     assert len(shards) == 2
     assert len(classification_shards) == 1
     assert checkpoints[0]["metrics"]["mapping"]["category_attribute_count"] == 2
-    assert checkpoints[0]["metrics"]["mapping"]["partition_probes"][0]["accepted"] is True
+    assert checkpoints[0]["metrics"]["mapping"]["partition_probes"][0]["accepted"] is None
+    assert checkpoints[0]["metrics"]["mapping"]["partition_probes"][0]["validation"] == "first worker fetch"
+    queued = await repository.list_operations(worker.job_id, state=OperationState.QUEUED)
+    assert len(queued) == 2
+    assert sum(operation["payload"].get("mapping_candidate") is True for operation in queued) == 1
+
+
+@pytest.mark.asyncio
+async def test_executor_queues_one_initial_fetch_per_configured_worker(tmp_path: Path):
+    repository = MarketJobRepository(tmp_path / "market-jobs.sqlite3")
+    coordinator = MarketScanCoordinator(repository)
+    factory = PriceDiscoveryClientFactory([raw_catalog([{"id": 1}, {"id": 2}])])
+    executor = MarketOperationExecutor(
+        coordinator,
+        client_factory=factory,
+        artifact_store=LocalArtifactStore(tmp_path / "artifacts"),
+    )
+    worker = FakeWorker()
+    await coordinator.create_job(
+        MarketJobCreate(
+            scope=MarketScope(category_id=38, canonical_alias="website-repair"),
+            target_unique_cards=96,
+            desired_workers=4,
+            request_budget=4,
+        ),
+        job_id=worker.job_id,
+    )
+    mapping = await repository.lease_operation(worker.worker_id, job_id=worker.job_id)
+    assert mapping is not None
+
+    await executor.handle_map_scope(worker, mapping)
+
+    shards = await repository.list_shards(worker.job_id)
+    queued = await repository.list_operations(worker.job_id, state=OperationState.QUEUED)
+    fetches = [operation for operation in queued if operation["kind"] == OperationKind.FETCH_BATCH.value]
+    assert len(shards) == 4
+    assert len(fetches) == 4
+    assert sum(operation["payload"].get("mapping_candidate") is True for operation in fetches) == 3
+    assert {operation["payload"].get("parallel_wave_size") for operation in fetches} == {4}
+    assert len({operation["payload"].get("parallel_wave_id") for operation in fetches}) == 1
+
+
+@pytest.mark.asyncio
+async def test_request_events_record_the_real_parallel_peak(tmp_path: Path):
+    repository = MarketJobRepository(tmp_path / "market-jobs.sqlite3")
+    coordinator = MarketScanCoordinator(repository)
+    executor = MarketOperationExecutor(coordinator, client_factory=ClientFactory([]))
+    await coordinator.create_job(
+        MarketJobCreate(
+            scope=MarketScope(category_id=38, canonical_alias="website-repair"),
+            desired_workers=4,
+        ),
+        job_id="job_parallel_peak",
+    )
+    gate = asyncio.Event()
+    entered = 0
+    entered_lock = asyncio.Lock()
+
+    async def fetch() -> dict[str, bool]:
+        nonlocal entered
+        async with entered_lock:
+            entered += 1
+            if entered == 4:
+                gate.set()
+        await gate.wait()
+        await asyncio.sleep(0)
+        return {"ok": True}
+
+    workers = []
+    for index in range(4):
+        worker = FakeWorker()
+        worker.job_id = "job_parallel_peak"
+        worker.worker_id = f"worker_parallel_{index}"
+        worker.transport_id = f"vpnte-slot-{index + 1}"
+        worker.account_registration_id = f"account_{index + 1}"
+        worker.current_operation_id = None
+        workers.append(worker)
+
+    await asyncio.gather(*(executor._tracked_source_fetch(worker, "web_catalog", fetch) for worker in workers))
+
+    events = await repository.list_recent_events("job_parallel_peak", limit=20)
+    starts = [event for event in events if event["event_type"] == "request.started"]
+    assert len(starts) == 4
+    assert max(int(event["payload"]["peak_requests"]) for event in starts) == 4
+
+
+@pytest.mark.asyncio
+async def test_initial_fetch_wave_waits_until_every_worker_is_ready(tmp_path: Path):
+    repository = MarketJobRepository(tmp_path / "market-jobs.sqlite3")
+    coordinator = MarketScanCoordinator(repository)
+    executor = MarketOperationExecutor(
+        coordinator,
+        client_factory=ClientFactory([]),
+        fetch_wave_timeout_seconds=1,
+    )
+    await coordinator.create_job(
+        MarketJobCreate(
+            scope=MarketScope(category_id=38, canonical_alias="website-repair"),
+            desired_workers=4,
+        ),
+        job_id="job_parallel_wave",
+    )
+    workers = []
+    for index in range(4):
+        worker = FakeWorker()
+        worker.job_id = "job_parallel_wave"
+        worker.worker_id = f"worker_wave_{index}"
+        workers.append(worker)
+    payload = {"parallel_wave_id": "wave-1", "parallel_wave_size": 4}
+    tasks = [
+        asyncio.create_task(
+            executor._await_parallel_fetch_wave(
+                worker,
+                {},
+                payload,
+            )
+        )
+        for index, worker in enumerate(workers[:3])
+    ]
+    await asyncio.sleep(0.05)
+    assert not any(task.done() for task in tasks)
+
+    tasks.append(
+        asyncio.create_task(
+            executor._await_parallel_fetch_wave(
+                workers[3],
+                {},
+                payload,
+            )
+        )
+    )
+    await asyncio.gather(*tasks)
+
+    events = await repository.list_recent_events("job_parallel_wave", limit=20)
+    released = [event for event in events if event["event_type"] == "request.wave_released"]
+    assert len(released) == 1
+    assert released[0]["payload"]["ready_workers"] == 4
+    assert released[0]["payload"]["reason"] == "all_workers_ready"
 
 
 @pytest.mark.asyncio

@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { marketJobsApi } from '../features/kwork-market/api'
 import { useMarketJobs, type MarketJobsLoadState } from '../features/kwork-market/hooks/useMarketJobs'
 import type { CreateMarketJobPayload, MarketNetworkPolicy, MarketSourcePolicy } from '../features/kwork-market/types'
+import { AccountTeamPicker } from '../features/kwork-market/components/AccountTeamPicker'
 import { MarketStateBadge, formatCount, formatTimestamp } from '../features/kwork-market/components/shared'
 import { useApi } from '../hooks/useApi'
 import { api, type KworkCatalogAlias, type KworkCategoryNode } from '../lib/api'
@@ -285,6 +286,8 @@ export default function KworkMarketWorkspace() {
     { schema_version: 1, items: [], total: 0 },
   )
   const [form, setForm] = useState<CreateMarketJobPayload>(DEFAULT_FORM)
+  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([])
+  const [accountCapacity, setAccountCapacity] = useState(0)
   const [creating, setCreating] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false)
@@ -310,6 +313,12 @@ export default function KworkMarketWorkspace() {
     () => categoryCatalogAliases.find((item) => item.alias === form.scope.canonical_alias) ?? null,
     [categoryCatalogAliases, form.scope.canonical_alias],
   )
+  const runnableTeamCapacity = selectedAccountIds.length
+    ? Math.min(selectedAccountIds.length, accountCapacity)
+    : 0
+  const selectedWorkerLimit = runnableTeamCapacity
+    ? Math.min(Math.max(1, form.desired_workers ?? 1), runnableTeamCapacity)
+    : 0
 
   useEffect(() => {
     if (!form.scope.category_id || form.scope.canonical_alias || !recommendedCatalogAlias) return
@@ -319,6 +328,15 @@ export default function KworkMarketWorkspace() {
         : current
     ))
   }, [form.scope.canonical_alias, form.scope.category_id, recommendedCatalogAlias])
+
+  useEffect(() => {
+    if (!runnableTeamCapacity) return
+    setForm((current) => (
+      current.desired_workers === runnableTeamCapacity
+        ? current
+        : { ...current, desired_workers: runnableTeamCapacity }
+    ))
+  }, [runnableTeamCapacity])
 
   function chooseCategory(category: CategoryChoice) {
     setForm((current) => ({
@@ -346,8 +364,12 @@ export default function KworkMarketWorkspace() {
       ...current,
       profile,
       target_unique_cards: preset?.targetUniqueCards ?? current.target_unique_cards,
-      desired_workers: preset?.desiredWorkers ?? current.desired_workers,
+      desired_workers: runnableTeamCapacity || preset?.desiredWorkers || current.desired_workers,
     }))
+  }
+
+  function chooseAccountTeam(accountIds: string[]) {
+    setSelectedAccountIds(accountIds)
   }
 
   async function createJob() {
@@ -359,11 +381,21 @@ export default function KworkMarketWorkspace() {
       setMessage('Выберите раздел веб-каталога для выбранной категории.')
       return
     }
+    if (!selectedAccountIds.length) {
+      setMessage('Выберите хотя бы один доступный аккаунт для команды.')
+      return
+    }
+    if (!selectedWorkerLimit) {
+      setMessage('Сначала подтвердите IP VPNTE кнопкой обновления рядом с командой аккаунтов.')
+      return
+    }
     setCreating(true)
     setMessage(null)
     try {
       const created = await marketJobsApi.createJob({
         ...form,
+        desired_workers: selectedWorkerLimit,
+        account_registration_ids: selectedAccountIds,
         scope: { ...form.scope, canonical_alias: form.scope.canonical_alias?.trim() || null },
       })
       navigate(`/kwork-market/jobs/${created.job_id}`)
@@ -393,13 +425,17 @@ export default function KworkMarketWorkspace() {
           <label><span className="label">Раздел веб-каталога</span><button type="button" className="input flex w-full items-center justify-between gap-2 text-left disabled:cursor-not-allowed" disabled={isMobileFirstPage || !form.scope.category_id || catalogAliasesLoading} onClick={() => setCatalogAliasPickerOpen(true)}><span className="min-w-0"><span className={selectedCatalogAlias || form.scope.canonical_alias ? 'block truncate text-zinc-100' : 'block truncate text-zinc-500'}>{isMobileFirstPage ? 'Не требуется' : catalogAliasesLoading ? 'Загрузка...' : selectedCatalogAlias?.label || form.scope.canonical_alias || 'Выберите из списка'}</span>{!isMobileFirstPage && (selectedCatalogAlias || form.scope.canonical_alias) && <span className="mt-0.5 block truncate font-mono text-[11px] text-zinc-500">{selectedCatalogAlias?.alias || form.scope.canonical_alias}</span>}</span><ChevronDown className="h-4 w-4 shrink-0 text-zinc-500" /></button></label>
           <label><span className="label">Профиль</span><select className="input" value={form.profile} onChange={(event) => chooseProfile(event.target.value)}><option value="working">Рабочий (60 / 2)</option><option value="deep">Глубокий (500 / 3)</option><option value="extended">Расширенный (2 000 / 4)</option><option value="custom">Пользовательский</option></select></label>
           <label><span className="label">Цель, уникальных карточек</span><input className="input" type="number" min="1" max="10000" value={form.target_unique_cards} onChange={(event) => setForm((current) => ({ ...current, target_unique_cards: Math.max(1, Number(event.target.value) || 1) }))} /></label>
-          <label><span className="label">Исполнители</span><input className="input" type="number" min="1" value={form.desired_workers} onChange={(event) => setForm((current) => ({ ...current, desired_workers: Math.max(1, Number(event.target.value) || 1) }))} /></label>
+          <label><span className="label">Workers параллельно</span><input className="input" type="number" min="1" max={runnableTeamCapacity || undefined} value={form.desired_workers} onChange={(event) => setForm((current) => ({ ...current, desired_workers: Math.max(1, Math.min(Number(event.target.value) || 1, runnableTeamCapacity || Number.MAX_SAFE_INTEGER)) }))} /></label>
           <label><span className="label">Маршрут сети</span><select className="input" value={form.network_policy} onChange={(event) => setForm((current) => ({ ...current, network_policy: event.target.value as MarketNetworkPolicy }))}><option value="prefer_vpnte">Предпочитать VPNTE</option><option value="vpnte_only">Только VPNTE</option><option value="direct_only">Только прямое подключение</option><option value="explicit_pool">Выбранный пул</option></select></label>
           <label><span className="label">Источник</span><select className="input" value={form.source_policy} onChange={(event) => setForm((current) => ({ ...current, source_policy: event.target.value as MarketSourcePolicy }))}><option value="validated_only">Проверенный веб-каталог</option><option value="mobile_first_page_only">Только первая мобильная страница</option></select></label>
           <label><span className="label">Лимит запросов</span><input className="input" type="number" min="1" placeholder="Автоматически" value={form.request_budget ?? ''} onChange={(event) => setForm((current) => ({ ...current, request_budget: event.target.value ? Math.max(1, Number(event.target.value)) : null }))} /></label>
           <label><span className="label">Лимит времени, с</span><input className="input" type="number" min="1" placeholder="Автоматически" value={form.time_budget_seconds ?? ''} onChange={(event) => setForm((current) => ({ ...current, time_budget_seconds: event.target.value ? Math.max(1, Number(event.target.value)) : null }))} /></label>
           <label className="flex h-full items-end gap-2 pb-2 text-xs text-zinc-400"><input type="checkbox" checked={form.include_ai ?? true} onChange={(event) => setForm((current) => ({ ...current, include_ai: event.target.checked }))} />Добавить AI-обоснование</label>
-          <div className="flex items-end"><button type="button" className="btn-primary w-full justify-center" disabled={creating} onClick={() => void createJob()}><Plus className="h-4 w-4" />{creating ? 'Создание...' : 'Создать задачу'}</button></div>
+        </div>
+        <AccountTeamPicker selectedIds={selectedAccountIds} onSelectedIdsChange={chooseAccountTeam} onCapacityChange={setAccountCapacity} />
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-surface-700/60 pt-4">
+          <p className="text-xs text-zinc-500">{selectedAccountIds.length && !selectedWorkerLimit ? 'Подтвердите IP VPNTE, чтобы рассчитать число workers.' : `Будет запущено до ${selectedWorkerLimit} workers из выбранной команды.`}</p>
+          <button type="button" className="btn-primary min-w-52 justify-center" disabled={creating} onClick={() => void createJob()}><Plus className="h-4 w-4" />{creating ? 'Создание...' : 'Создать задачу'}</button>
         </div>
         {message && <p className="mt-3 text-xs text-red-300">{message}</p>}
       </section>

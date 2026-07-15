@@ -65,6 +65,7 @@ export interface CreateMarketJobPayload {
   profile?: string
   target_unique_cards?: number
   desired_workers?: number
+  account_registration_ids?: string[]
   network_policy?: MarketNetworkPolicy
   source_policy?: MarketSourcePolicy
   include_ai?: boolean
@@ -87,6 +88,7 @@ export interface MarketJob {
   profile: string
   target_unique_cards: number
   desired_workers: number
+  account_registration_ids?: string[]
   network_policy: MarketNetworkPolicy
   source_policy: MarketSourcePolicy
   include_ai: boolean
@@ -250,6 +252,91 @@ export interface MarketResults {
   latest_checkpoint?: JsonRecord | null
   metrics?: JsonRecord
   analysis?: JsonRecord
+  execution?: JsonRecord
+}
+
+export interface MarketRecommendationCreatePayload {
+  category_id: number
+  classifier_id?: number | null
+  service_summary: string
+  price: number
+  work_time: number
+  source_cluster_id?: string | null
+  terra_result: Record<string, unknown>
+}
+
+export interface MarketRecommendation {
+  recommendation_id: string
+  job_id: string
+  source_cluster_id?: string | null
+  state: 'proposed' | 'recommendation_confirmed' | 'rejected' | string
+  category_id: number
+  classifier_id?: number | null
+  service_summary: string
+  price: number
+  work_time: number
+  evidence_ids: string[]
+  terra_result: Record<string, unknown>
+  content_hash: string
+  revision: number
+  created_at: string
+  updated_at: string
+}
+
+export interface MarketDraftHandoff {
+  handoff_id: string
+  job_id: string
+  recommendation_id: string
+  state: 'mapping' | 'fields_confirmed' | 'draft_generated' | string
+  category_id: number
+  classifier_id?: number | null
+  service_summary: string
+  price: number
+  work_time: number
+  attribute_manifest: Record<string, unknown>
+  attribute_manifest_hash?: string | null
+  attribute_selection: Record<string, unknown>
+  selection_hash?: string | null
+  validation: Record<string, unknown>
+  generator_request: Record<string, unknown>
+  draft: Record<string, any>
+  draft_hash?: string | null
+  revision: number
+  created_at: string
+  updated_at: string
+}
+
+export interface MarketPublishedListing {
+  published_listing_id: string
+  job_id: string
+  recommendation_id: string
+  handoff_id: string
+  source_cluster_id?: string | null
+  kwork_id?: string | null
+  draft_hash?: string | null
+  publish_result: Record<string, unknown>
+  feedback: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface MarketRecommendationTransitionResponse {
+  recommendation: MarketRecommendation
+  handoff: MarketDraftHandoff | null
+}
+
+export interface MarketHandoffDraftResponse {
+  handoff: MarketDraftHandoff
+  draft: Record<string, any>
+  image?: Record<string, any> | null
+  images?: Array<Record<string, any> | null>
+  variants?: Array<Record<string, any>>
+}
+
+export interface MarketHandoffPublishResponse {
+  handoff: MarketDraftHandoff
+  publish: Record<string, any>
+  published_listing: MarketPublishedListing | null
 }
 
 export interface MarketAssistantResponse {
@@ -267,17 +354,25 @@ export type MarketKnownEventType =
   | 'worker.registered'
   | 'worker.state_changed'
   | 'worker.heartbeat'
+  | 'worker.identity_bound'
   | 'worker.concurrency_recommended'
   | 'transport.state_changed'
+  | 'request.started'
+  | 'request.finished'
+  | 'request.wave_waiting'
+  | 'request.wave_released'
   | 'operation.queued'
   | 'operation.started'
   | 'operation.completed'
   | 'operation.failed'
   | 'operation.contract_violation'
+  | 'enrichment.queued'
+  | 'enrichment.completed'
   | 'shard.progress'
   | 'checkpoint.saved'
   | 'warning'
   | 'result.ready'
+  | 'publication.state_changed'
 
 export interface MarketJobEvent {
   schema_version: number
@@ -327,6 +422,7 @@ export interface MarketListingsQuery extends MarketPaginationParams {
 export interface MarketEventsQuery {
   after_seq?: number
   limit?: number
+  tail?: boolean
 }
 
 export interface StopMarketJobPayload {
@@ -346,6 +442,85 @@ export interface MarketWorkerCommand {
   error?: string | null
 }
 
+export interface MarketAccountPoolSummary {
+  accounts_total: number
+  accounts_eligible: number
+  accounts_selected?: number
+  account_selection_mode?: 'automatic' | 'manual'
+  accounts_active: number
+  routes_healthy: number
+  routes_verified: number
+  egress_ips_distinct: number
+  egress_ips_active: number
+  effective_capacity: number
+}
+
+export interface MarketAccountPoolAccount {
+  registration_id: string
+  username: string
+  email: string
+  status: string
+  market_enabled: boolean
+  session_cookie_count: number
+  signup_ip?: string | null
+  registration_slot?: number | null
+  registration_transport_id?: string | null
+  preferred_slot?: number | null
+  preferred_transport_id?: string | null
+  persona_id?: string | null
+  last_used_at?: string | null
+  last_error?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  selected_for_job?: boolean
+}
+
+export interface MarketAccountPoolBinding {
+  worker_id: string
+  job_id: string
+  registration_id: string
+  username?: string | null
+  transport_id?: string | null
+  slot?: number | null
+  proxy_url?: string | null
+  current_egress_ip?: string | null
+  egress_ip?: string | null
+  signup_ip?: string | null
+  preferred_slot?: number | null
+  persona_id?: string | null
+  binding_mode?: string | null
+  state: string
+  route_health?: string | null
+  lease_deadline?: string | null
+  assigned_at?: string | null
+  released_at?: string | null
+  last_error?: string | null
+}
+
+export interface MarketAccountPoolRoute {
+  transport_id: string
+  slot?: number | null
+  proxy_url?: string | null
+  egress_ip?: string | null
+  health?: string | null
+  profile_id?: string | null
+  profile_name?: string | null
+  country?: string | null
+  lease_owner?: string | null
+}
+
+export interface MarketAccountPoolSnapshot {
+  job_id?: string | null
+  summary: MarketAccountPoolSummary
+  accounts: MarketAccountPoolAccount[]
+  bindings: MarketAccountPoolBinding[]
+  routes: MarketAccountPoolRoute[]
+}
+
+export interface MarketAccountEnabledPayload {
+  enabled: boolean
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -359,17 +534,25 @@ function isKnownEventType(value: unknown): value is MarketKnownEventType {
     'worker.registered',
     'worker.state_changed',
     'worker.heartbeat',
+    'worker.identity_bound',
     'worker.concurrency_recommended',
     'transport.state_changed',
+    'request.started',
+    'request.finished',
+    'request.wave_waiting',
+    'request.wave_released',
     'operation.queued',
     'operation.started',
     'operation.completed',
     'operation.failed',
     'operation.contract_violation',
+    'enrichment.queued',
+    'enrichment.completed',
     'shard.progress',
     'checkpoint.saved',
     'warning',
     'result.ready',
+    'publication.state_changed',
   ].includes(value as MarketKnownEventType)
 }
 

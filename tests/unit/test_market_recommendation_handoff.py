@@ -9,6 +9,18 @@ from src.platforms.kwork_supply.models import MarketJobCreate, MarketScope, Oper
 from src.platforms.kwork_supply.repository import MarketJobRepository, MarketJobRepositoryError
 
 
+def test_published_kwork_id_falls_back_to_verified_url():
+    result = {
+        "verify_result": {
+            "url": "https://kwork.ru/logo/53548662/adaptiruyu-logotip-i-shrift-pod-kirillitsu",
+            "checked": [],
+        },
+        "save_result": {"raw": {"redirectUrl": "https://kwork.ru/logo/53548662/example"}},
+    }
+
+    assert MarketRecommendationHandoffService._published_kwork_id(result) == "53548662"
+
+
 async def _job_with_dossier(repository: MarketJobRepository) -> int:
     await repository.create_job(
         MarketJobCreate(
@@ -36,7 +48,16 @@ async def _job_with_dossier(repository: MarketJobRepository) -> int:
         shard_id="shard_handoff",
         operation_id="fetch_handoff",
         attempt_id=leased["attempt_id"],
-        listings=[{"id": 1001, "gtitle": "Telegram lead bot", "price": 4900, "userName": "alice"}],
+        listings=[
+            {
+                "id": 1001,
+                "gtitle": "Telegram lead bot",
+                "price": 4900,
+                "userName": "alice",
+                "photo": "17/1001-cover.jpg",
+                "portfolios": ["17/1001-work-a.jpg", "17/1001-work-b.jpg"],
+            }
+        ],
         source="web_catalog",
         idempotency_key="handoff-listing",
     )
@@ -86,21 +107,34 @@ class _DraftService:
 
     async def generate_draft(self, request: dict[str, Any]) -> dict[str, Any]:
         self.requests.append(request)
+        draft = {
+            "category_id": request["category_id"],
+            "title": (
+                f"{request['service_summary']} #{int(request.get('variant_index') or 0) + 1}"
+                if int(request.get("variant_count") or 1) > 1
+                else request["service_summary"]
+            ),
+            "description": "Draft description",
+            "price": request["price"],
+            "work_time": request["work_time"],
+        }
+        if len(self.requests) == 1:
+            draft.update(
+                {
+                    "cover_image_path": "C:/tmp/preserved-cover.png",
+                    "cover_image": {"path": "C:/tmp/preserved-cover.png"},
+                    "portfolio_assets": [{"path": "C:/tmp/work-01.png"}],
+                }
+            )
         return {
             "ok": True,
-            "draft": {
-                "category_id": request["category_id"],
-                "title": request["service_summary"],
-                "description": "Draft description",
-                "price": request["price"],
-                "work_time": request["work_time"],
-            },
+            "draft": draft,
             "image": None,
         }
 
     @staticmethod
-    def draft_hash(_draft: dict[str, Any]) -> str:
-        return "test-draft-hash"
+    def draft_hash(draft: dict[str, Any]) -> str:
+        return f"test-draft-hash-{int(draft.get('variant_index') or 0)}"
 
     async def publish_draft(self, draft: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         self.publish_requests.append({"draft": draft, **kwargs})
@@ -147,7 +181,13 @@ async def test_recommendation_handoff_requires_confirmed_fields_and_keeps_server
                     ],
                 }
             )
-        return {"success": True, "category_id": category_id, "classifier_id": classifier_id, "lang": lang, "controls": controls}
+        return {
+            "success": True,
+            "category_id": category_id,
+            "classifier_id": classifier_id,
+            "lang": lang,
+            "controls": controls,
+        }
 
     draft_service = _DraftService()
     service = MarketRecommendationHandoffService(
@@ -209,18 +249,64 @@ async def test_recommendation_handoff_requires_confirmed_fields_and_keeps_server
     assert generated["handoff"]["state"] == "draft_generated"
     assert generated["draft"]["attribute_selection"] == confirmed_fields["attribute_selection"]
     assert draft_service.requests[0]["attribute_selection"] == confirmed_fields["attribute_selection"]
+    assert draft_service.requests[0]["category_name"] == "scripts-bots"
+    competitor = draft_service.requests[0]["market_context"]["competitors"][0]
+    assert competitor["image_url"].startswith("https://cdn-edge.kwork.ru/pics/t3/")
+    assert len(competitor["portfolio_images"]) == 3
+
+    refreshed_generated = await service.refresh_manifest(confirmed_fields["handoff_id"])
+    assert refreshed_generated["state"] == "draft_generated"
+    assert refreshed_generated["draft"]["title"] == "Telegram lead bot for requests"
+
+    regenerated = await service.generate_draft(
+        confirmed_fields["handoff_id"],
+        generation_options={"use_llm": False, "cover_text": "Новый вариант"},
+    )
+    assert regenerated["handoff"]["state"] == "draft_generated"
+    assert regenerated["draft"]["cover_image_path"] == "C:/tmp/preserved-cover.png"
+    assert regenerated["draft"]["portfolio_assets"] == [{"path": "C:/tmp/work-01.png"}]
+    assert len(draft_service.requests) == 2
+    assert draft_service.requests[1]["cover_text"] == "Новый вариант"
+
+    generated_variants = await service.generate_draft(
+        confirmed_fields["handoff_id"],
+        generation_options={
+            "use_llm": False,
+            "generate_image": False,
+            "variant_count": 3,
+            "use_competitor_image_analysis": False,
+        },
+    )
+    assert generated_variants["draft"]["variant_count"] == 3
+    assert generated_variants["draft"]["generation_options"] == {
+        "variant_count": 3,
+        "use_competitor_image_analysis": False,
+    }
+    assert [item["variant_index"] for item in generated_variants["variants"]] == [0, 1, 2]
+    assert [item["title"] for item in generated_variants["variants"]] == [
+        "Telegram lead bot for requests #1",
+        "Telegram lead bot for requests #2",
+        "Telegram lead bot for requests #3",
+    ]
+    assert [item["variant_index"] for item in draft_service.requests[-3:]] == [0, 1, 2]
 
     published = await service.publish_draft(
         confirmed_fields["handoff_id"],
         dry_run=False,
         confirm_token="fresh-token",
         confirmation="PUBLISH",
+        variant_index=2,
     )
     assert published["publish"]["ok"] is True
     assert published["published_listing"]["kwork_id"] == "9001"
     assert published["published_listing"]["source_cluster_id"] == "cluster_bot"
+    assert published["published_listing"]["draft_hash"] == "test-draft-hash-2"
+    assert published["publish"]["variant_index"] == 2
     assert draft_service.publish_requests[0]["draft"]["handoff_id"] == confirmed_fields["handoff_id"]
-    assert (await repository.list_published_listings("job_handoff"))[0]["published_listing_id"] == published["published_listing"]["published_listing_id"]
+    assert draft_service.publish_requests[0]["draft"]["title"].endswith("#3")
+    assert (await repository.list_published_listings("job_handoff"))[0]["published_listing_id"] == published[
+        "published_listing"
+    ]["published_listing_id"]
 
     with pytest.raises(MarketJobRepositoryError):
         await service.update_selection(
@@ -237,7 +323,11 @@ async def test_recommendation_handoff_requires_confirmed_fields_and_keeps_server
     )
     assert changed["state"] == "fields_confirmed"
     assert changed["attribute_selection"] == {"attribute[208]": 9999}
-    assert changed["draft"] == {}
+    assert changed["draft"] == {
+        "cover_image_path": "C:/tmp/preserved-cover.png",
+        "cover_image": {"path": "C:/tmp/preserved-cover.png"},
+        "portfolio_assets": [{"path": "C:/tmp/work-01.png"}],
+    }
 
 
 @pytest.mark.asyncio

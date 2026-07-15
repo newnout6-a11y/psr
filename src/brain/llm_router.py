@@ -227,15 +227,37 @@ class OpenAICompatibleClient:
     ) -> str:
         if not image_urls:
             return await self.generate(prompt, model, temperature, max_tokens, system_prompt)
-        payload: dict[str, Any] = {
-            "model": model,
-            "messages": self._vision_messages(prompt, image_urls, system_prompt),
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
+
+        if self.wire_api == "responses":
+            content: list[dict[str, Any]] = [{"type": "input_text", "text": prompt}]
+            content.extend(
+                {"type": "input_image", "image_url": url, "detail": "auto"} for url in image_urls if url
+            )
+            response_input: list[dict[str, Any]] = []
+            if system_prompt:
+                response_input.append(
+                    {"role": "system", "content": [{"type": "input_text", "text": system_prompt}]}
+                )
+            response_input.append({"role": "user", "content": content})
+            payload: dict[str, Any] = {
+                "model": model,
+                "input": response_input,
+                "temperature": temperature,
+                "max_output_tokens": max_tokens,
+                "store": not self.disable_response_storage,
+            }
+            endpoint = "responses"
+        else:
+            payload = {
+                "model": model,
+                "messages": self._vision_messages(prompt, image_urls, system_prompt),
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            endpoint = "chat/completions"
 
         async with httpx.AsyncClient(timeout=LLM_REQUEST_TIMEOUT, trust_env=False) as client:
-            response = await client.post(self._url("chat/completions"), headers=self._headers(), json=payload)
+            response = await client.post(self._url(endpoint), headers=self._headers(), json=payload)
             self._raise_for_status(response)
             return self._extract_text(response.json())
 

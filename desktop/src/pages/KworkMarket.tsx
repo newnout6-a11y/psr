@@ -932,11 +932,18 @@ function controlLabel(control: KworkFormControl) {
 function CompetitorCard({ item }: { item: KworkCompetitor }) {
   const description = competitorDescription(item)
   const serviceSize = competitorServiceSize(item)
+  const [imageFailed, setImageFailed] = useState(false)
   return (
     <article className="overflow-hidden rounded-md border border-surface-700 bg-surface-900/40">
       <div className="aspect-[3/2] bg-surface-950">
-        {item.image_url ? (
-          <img src={item.image_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+        {item.image_url && !imageFailed ? (
+          <img
+            src={item.image_url}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+            onError={() => setImageFailed(true)}
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-zinc-700">
             <ImageIcon className="h-8 w-8" />
@@ -1153,6 +1160,7 @@ export default function KworkMarket() {
   const selectedRoot = topCategories.find((item) => item.id === selectedRootId)
   const rootChildren = selectedRoot?.children || []
   const selectedCategory = flatCategories.find((item) => item.id === selectedCategoryId)
+  const debouncedFieldCategoryId = useDebouncedValue(selectedCategoryId, 320)
 
   const {
     data: attributesData,
@@ -1161,20 +1169,21 @@ export default function KworkMarket() {
     refetch: refetchAttributes,
   } = useApi(
     () =>
-      selectedCategoryId
-        ? api.getKworkCategoryAttributes(selectedCategoryId)
+      debouncedFieldCategoryId
+        ? api.getKworkCategoryAttributes(debouncedFieldCategoryId)
         : Promise.resolve({ category_id: 0, attributes: [], flat: [] }),
-    [selectedCategoryId],
+    [debouncedFieldCategoryId],
   )
 
+  const debouncedPriceCategoryId = useDebouncedValue(selectedCategoryId, 700)
   const {
     data: pricesData,
     loading: pricesLoading,
     error: pricesError,
     refetch: refetchPrices,
   } = useApi<KworkPriceRules>(
-    () => (selectedCategoryId ? api.getKworkCategoryPrices(selectedCategoryId) : Promise.resolve({})),
-    [selectedCategoryId],
+    () => (debouncedPriceCategoryId ? api.getKworkCategoryPrices(debouncedPriceCategoryId) : Promise.resolve({})),
+    [debouncedPriceCategoryId],
   )
 
   const manifestControls = useMemo(() => formManifest?.controls || [], [formManifest])
@@ -1182,8 +1191,8 @@ export default function KworkMarket() {
     () => manifestControls.filter((control) => hasSelectableOptions(control)).slice(0, 8),
     [manifestControls],
   )
-  const debouncedAttributeSelection = useDebouncedValue(attributeSelection, 900, selectedCategoryId)
-  const debouncedManifestControls = useDebouncedValue(manifestControls, 900, selectedCategoryId)
+  const debouncedAttributeSelection = useDebouncedValue(attributeSelection, 220, selectedCategoryId)
+  const debouncedManifestControls = useDebouncedValue(manifestControls, 220, selectedCategoryId)
   const attributeSelectionSignature = useMemo(() => JSON.stringify(debouncedAttributeSelection), [debouncedAttributeSelection])
   const manifestControlsSignature = useMemo(
     () =>
@@ -1247,8 +1256,8 @@ export default function KworkMarket() {
   }, [metrics])
 
   const requiredAttributes: KworkAttributeFlat[] = useMemo(
-    () => (attributesData?.flat || []).filter((item) => item.required),
-    [attributesData],
+    () => (attributesData?.category_id === selectedCategoryId ? attributesData.flat || [] : []).filter((item) => item.required),
+    [attributesData, selectedCategoryId],
   )
 
   const priceGradation = useMemo(() => getPriceSteps(pricesData?.prices), [pricesData])
@@ -1320,8 +1329,15 @@ export default function KworkMarket() {
   }, [marketInsights?.search_queries, marketInsightClassifiers, marketInsightTerms])
   const wideClassifierRows = marketInsightClassifiers.slice(0, 3)
   const narrowClassifierRows = [...marketInsightClassifiers].reverse().slice(0, 3)
-  const loading = categoriesLoading || attributesLoading || pricesLoading || metricsLoading
-  const anyError = categoriesError || attributesError || pricesError || metricsError
+  const loading = categoriesLoading || metricsLoading
+  const anyError = categoriesError || metricsError
+  const priceRulesNotice = pricesError ||
+    (pricesData?.status === 'unavailable'
+      ? String(pricesData.detail || 'Ценовой справочник Kwork временно недоступен.')
+      : pricesData?.status === 'stale'
+        ? 'Показаны последние сохранённые ценовые ограничения.'
+        : null)
+  const priceRulesPending = pricesLoading && !pricesData
   const coverVisionImagesSeen = Number(draftResult?.image?.competitor_images_seen || 0)
   const hasCoverVisionAnalysis =
     draftResult?.image?.visual_analysis_status === 'analyzed' && coverVisionImagesSeen > 0
@@ -1406,7 +1422,7 @@ export default function KworkMarket() {
   const scheduleFormManifest = (
     selection: Record<string, unknown>,
     classifierId: number | undefined = selectedClassifierId,
-    delayMs = 800,
+    delayMs = 180,
   ) => {
     if (manifestTimerRef.current) window.clearTimeout(manifestTimerRef.current)
     setManifestLoading(true)
@@ -1440,7 +1456,7 @@ export default function KworkMarket() {
       skipInitialManifestReloadRef.current = false
       return
     }
-    loadFormManifest({}, undefined)
+    scheduleFormManifest({}, undefined, 320)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategoryId])
 
@@ -2038,6 +2054,17 @@ export default function KworkMarket() {
         <div className="flex items-center gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{anyError}</span>
+        </div>
+      )}
+
+      {(priceRulesPending || priceRulesNotice) && (
+        <div className="flex items-center gap-2 rounded-md border border-amber-500/25 bg-amber-500/8 px-3 py-2 text-xs text-amber-100/80">
+          <Info className="h-4 w-4 shrink-0 text-amber-300" />
+          <span>
+            {priceRulesPending
+              ? 'Ценовой справочник загружается отдельно; конкуренты и метрики уже доступны.'
+              : `Ценовой справочник не блокирует анализ. ${priceRulesNotice}`}
+          </span>
         </div>
       )}
 
@@ -3596,7 +3623,11 @@ export default function KworkMarket() {
               <summary className="cursor-pointer text-sm font-medium text-zinc-300">
                 Диагностика categoryAttributes ({requiredAttributes.length})
               </summary>
-              {attributesLoading ? (
+              {attributesError ? (
+                <div className="mt-3 rounded-md border border-amber-500/25 bg-amber-500/8 px-3 py-2 text-xs text-amber-100/80">
+                  Поля рубрики временно недоступны и не блокируют анализ: {attributesError}
+                </div>
+              ) : attributesLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-5 w-5 animate-spin text-zinc-600" />
                 </div>

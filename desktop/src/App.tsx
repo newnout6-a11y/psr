@@ -12,6 +12,7 @@ import Health from './pages/Health'
 import Chat from './pages/Chat'
 import Conversations from './pages/Conversations'
 import Orders from './pages/Orders'
+import KworkRegistration from './pages/KworkRegistration'
 
 const KworkMarket = lazy(() => import('./pages/KworkMarket'))
 const KworkMarketWorkspace = lazy(() => import('./pages/KworkMarketWorkspace'))
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="kwork-market" element={<Suspense fallback={marketFallback}><KworkMarketWorkspace /></Suspense>} />
         <Route path="kwork-market/jobs/:jobId" element={<Suspense fallback={marketFallback}><KworkMarketJob /></Suspense>} />
         <Route path="kwork-market/legacy" element={<Suspense fallback={marketFallback}><KworkMarket /></Suspense>} />
+        <Route path="kwork-registration" element={<KworkRegistration />} />
         <Route path="earnings" element={<Earnings />} />
         <Route path="health" element={<Health />} />
         <Route path="chat" element={<Chat />} />

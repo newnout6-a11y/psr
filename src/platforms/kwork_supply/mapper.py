@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from enum import StrEnum
+import math
 from typing import Any, Iterable, Mapping
 
 from .contracts import BatchResult, ContractState, ContractVerdict, ProtectionStatus
@@ -194,7 +195,7 @@ class ScopeMapper:
         scope: MarketScope,
         attributes: Mapping[str, Any] | None,
         *,
-        max_candidates: int = 5,
+        max_candidates: int = 100,
     ) -> tuple[ScopePartition, ...]:
         """Build conservative web-filter candidates from classification values.
 
@@ -264,6 +265,130 @@ class ScopeMapper:
                 )
             )
         candidates.sort(key=lambda item: (-item.priority, item.key))
+        return tuple(candidates[:max_candidates])
+
+    @classmethod
+    def parallel_partition_candidates(
+        cls,
+        scope: MarketScope,
+        attributes: Mapping[str, Any] | None,
+        catalog_filters: Mapping[str, Any] | None,
+        *,
+        max_candidates: int = 100,
+    ) -> tuple[ScopePartition, ...]:
+        """Build independent candidate lanes for a worker-sized first wave.
+
+        Price bands are preferred because they are mutually exclusive when the
+        upstream filter is honored. Classification values remain a fallback
+        for categories that do not report usable price limits. Every candidate
+        still passes the normal source contract on its first worker request.
+        """
+
+        if max_candidates <= 0:
+            return ()
+
+        candidates: list[ScopePartition] = []
+        filters_payload = catalog_filters.get("filters") if isinstance(catalog_filters, Mapping) else None
+        limits: Mapping[str, Any] | None = None
+        if isinstance(filters_payload, Mapping):
+            for key in ("priceLimits", "priceFilterBounds", "price_limits", "price_filter_bounds"):
+                value = filters_payload.get(key)
+                if isinstance(value, Mapping):
+                    limits = value
+                    break
+
+        if limits is not None:
+            reported_min = _as_nonnegative_int(limits.get("min") or limits.get("from") or limits.get("price_from"))
+            reported_max = _as_nonnegative_int(limits.get("max") or limits.get("to") or limits.get("price_to"))
+            selected_min = _as_nonnegative_int(scope.filters.get("price_from"))
+            selected_max = _as_nonnegative_int(scope.filters.get("price_to"))
+            lower = max(reported_min or 1, selected_min or 1, 1)
+            upper_candidates = [value for value in (reported_max, selected_max) if value is not None]
+            upper = min(upper_candidates) if upper_candidates else None
+            if upper is not None and upper >= lower:
+                span = upper - lower + 1
+                lane_count = min(max_candidates, span)
+                width = max(1, math.ceil(span / lane_count))
+                for index in range(lane_count):
+                    price_from = lower + index * width
+                    if price_from > upper:
+                        break
+                    price_to = min(upper, price_from + width - 1)
+                    filters = dict(scope.filters)
+                    filters.update({"price_from": price_from, "price_to": price_to})
+                    candidates.append(
+                        ScopePartition(
+                            key=f"price:{price_from}:{price_to}",
+                            filters=filters,
+                            priority=-(index + 1),
+                            source="web_catalog",
+                            alias=scope.canonical_alias,
+                        )
+                    )
+
+        classification = cls.classification_partition_candidates(
+            scope,
+            attributes,
+            max_candidates=max_candidates,
+        )
+        seen = {
+            tuple(sorted((str(key), str(value)) for key, value in candidate.filters.items()))
+            for candidate in candidates
+        }
+        for index, candidate in enumerate(classification, start=1):
+            signature = tuple(sorted((str(key), str(value)) for key, value in candidate.filters.items()))
+            if signature in seen:
+                continue
+            seen.add(signature)
+            candidates.append(
+                ScopePartition(
+                    key=candidate.key,
+                    filters=candidate.filters,
+                    expected_count=candidate.expected_count,
+                    priority=-(max_candidates + index),
+                    source=candidate.source,
+                    alias=candidate.alias,
+                )
+            )
+            if len(candidates) >= max_candidates:
+                break
+
+        if len(candidates) < max_candidates and len(classification) > 1:
+            combination_index = 0
+            scope_filter_keys = {str(key) for key in scope.filters}
+            for left_index, left in enumerate(classification):
+                left_keys = {str(key) for key in left.filters if str(key) not in scope_filter_keys}
+                if not left_keys:
+                    continue
+                for right in classification[left_index + 1 :]:
+                    right_keys = {str(key) for key in right.filters if str(key) not in scope_filter_keys}
+                    if not right_keys or left_keys & right_keys:
+                        continue
+                    filters = dict(scope.filters)
+                    filters.update(left.filters)
+                    filters.update(right.filters)
+                    signature = tuple(sorted((str(key), str(value)) for key, value in filters.items()))
+                    if signature in seen:
+                        continue
+                    seen.add(signature)
+                    combination_index += 1
+                    expected_values = [
+                        value
+                        for value in (left.expected_count, right.expected_count)
+                        if value is not None
+                    ]
+                    candidates.append(
+                        ScopePartition(
+                            key=f"combo:{left.key}+{right.key}",
+                            filters=filters,
+                            expected_count=min(expected_values) if expected_values else None,
+                            priority=-(max_candidates * 2 + combination_index),
+                            source="web_catalog",
+                            alias=scope.canonical_alias,
+                        )
+                    )
+                    if len(candidates) >= max_candidates:
+                        return tuple(candidates)
         return tuple(candidates[:max_candidates])
 
     @staticmethod

@@ -13,6 +13,7 @@ const BOOL_KEYS = new Set([
   'PROPOSAL_IMAGE_ENABLED', 'KWORK_IMAGE_ATTACH_CONFIRMED',
   'KWORK_AUTO_APPROVE_ORDERS', 'KWORK_FAST_INBOX_POLLING',
   'KWORK_AUTO_REVIEW', 'KWORK_AUTO_PAUSE_KWORKS',
+  'SCRAPE_COMPETITOR_PRICES',
   'KWORK_PACING', 'KWORK_TLS_IMPERSONATE',
   'KWORK_MARKET_USE_PROXY', 'KWORK_MARKET_PROXY_STRICT',
   'VPNTE_PROXY_ENABLED', 'VPNTE_PROXY_ROTATE_ON_NEXT', 'VPNTE_PROXY_STRICT',
@@ -70,9 +71,12 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
   },
   platforms: {
     label: 'Платформы / auth',
-    keys: ['KWORK_EMAIL', 'KWORK_PASSWORD', 'KWORK_JWT_TOKEN',
+    keys: ['KWORK_EMAIL', 'KWORK_PASSWORD', 'KWORK_PHONE', 'KWORK_JWT_TOKEN',
            'KWORK_COOKIE_REMEMBERME', 'KWORK_COOKIE_USERID', 'KWORK_COOKIE_PHPSESSID',
            'KWORK_COOKIE_CSRF', 'KWORK_CSRF_TOKEN',
+           'CATCHMAIL_DOMAIN', 'CATCHMAIL_API_BASE_URL', 'FIRSTMAIL_API_KEY',
+           'KWORK_REGISTRATION_MAIL_TIMEOUT', 'KWORK_REGISTRATION_MAIL_POLL_INTERVAL',
+           'KWORK_REGISTRATION_MAIL_INITIAL_DELAY',
            'FREELANCE_RU_COOKIES_JSON', 'FREELANCE_RU_COOKIE_SESSION',
            'FREELANCE_RU_COOKIE_DUID', 'FREELANCE_RU_COOKIE_REMEMBER',
            'FL_RU_COOKIE_ID', 'FL_RU_COOKIE_PWD', 'FL_RU_COOKIE_SESSION', 'FL_RU_XSRF_TOKEN',
@@ -90,7 +94,8 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
     keys: ['PROXY_URL',
            'VPNTE_PROXY_ENABLED', 'VPNTE_PROXY_ROTATE_ON_NEXT', 'VPNTE_PROXY_STRICT',
            'VPNTE_PROXY_COUNTRY', 'VPNTE_PROXY_PROFILE_ID', 'VPNTE_PROXY_SLOT', 'VPNTE_PROXY_PORT',
-           'VPNTE_PROXY_TIMEOUT', 'VPNTE_PROXY_CACHE_TTL',
+           'VPNTE_PROXY_TIMEOUT', 'VPNTE_PROXY_HEALTH_TIMEOUT', 'VPNTE_PROXY_HEALTH_WARMUP', 'VPNTE_PROXY_CACHE_TTL',
+           'KWORK_REGISTRATION_ROUTE_TIMEOUT', 'KWORK_REGISTRATION_ROUTE_CONCURRENCY',
            'VPNTE_CONTROL_URL', 'VPNTE_CONTROL_TOKEN',
            'SESSION_HUB_URL', 'SESSION_HUB_REQUIRED', 'KWORK_SESSION_HUB_COOKIE_TTL',
             'KWORK_PACING', 'KWORK_PACE_MIN', 'KWORK_PACE_MAX',
@@ -111,20 +116,8 @@ const ENV_GROUPS: Record<Tab, { label: string; keys: string[] }> = {
            'TELEGRAM_DIGEST_ENABLED', 'DIGEST_INTERVAL_MIN', 'TELEGRAM_QUEUE_PAGE_SIZE'],
   },
   kwork: {
-    label: 'Kwork Inspector',
-    keys: ['KWORK_EMAIL', 'KWORK_PASSWORD', 'KWORK_PHONE',
-           'KWORK_AUTO_APPROVE_ORDERS', 'KWORK_FAST_INBOX_POLLING',
-           'KWORK_INBOX_POLL_INTERVAL', 'KWORK_RESPONSE_TIME_ALERT_HOURS',
-           'KWORK_SUCCESS_RATE_WARN', 'KWORK_SUCCESS_RATE_BLOCK',
-           'KWORK_BUSY_THRESHOLD', 'KWORK_AUTO_PAUSE_KWORKS',
-           'KWORK_AUTO_REVIEW', 'KWORK_AUTO_REVIEW_RATING', 'KWORK_AUTO_REVIEW_TEXT',
-            'KWORK_CONNECTS_WARN', 'KWORK_CONNECTS_BLOCK',
-            'KWORK_PACING', 'KWORK_PACE_MIN', 'KWORK_PACE_MAX',
-            'KWORK_BURST_LIMIT', 'KWORK_BURST_WINDOW',
-            'KWORK_MARKET_USE_PROXY', 'KWORK_MARKET_PROXY_STRICT',
-            'KWORK_MARKET_API_TIMEOUT', 'KWORK_MARKET_SEED_DISCOVERY_TIMEOUT',
-            'KWORK_PROXY_LIST', 'KWORK_TLS_IMPERSONATE', 'KWORK_TLS_BROWSER',
-           'SCRAPE_COMPETITOR_PRICES'],
+    label: 'Kwork',
+    keys: [],
   },
   osint_keys: {
     label: 'Client Signals / API',
@@ -673,12 +666,16 @@ function NetworkTab({
   function applyKworkSafeMode() {
     const updates: Record<string, string> = {
       VPNTE_PROXY_ENABLED: 'true',
-      VPNTE_PROXY_ROTATE_ON_NEXT: 'true',
+      VPNTE_PROXY_ROTATE_ON_NEXT: 'false',
       VPNTE_PROXY_STRICT: 'true',
       VPNTE_PROXY_SLOT: values.VPNTE_PROXY_SLOT || '',
       VPNTE_PROXY_PORT: values.VPNTE_PROXY_PORT || '17990',
       VPNTE_PROXY_CACHE_TTL: values.VPNTE_PROXY_CACHE_TTL || '60',
       VPNTE_PROXY_TIMEOUT: values.VPNTE_PROXY_TIMEOUT || '10',
+      VPNTE_PROXY_HEALTH_TIMEOUT: values.VPNTE_PROXY_HEALTH_TIMEOUT || '20',
+      VPNTE_PROXY_HEALTH_WARMUP: values.VPNTE_PROXY_HEALTH_WARMUP || '1',
+      KWORK_REGISTRATION_ROUTE_TIMEOUT: values.KWORK_REGISTRATION_ROUTE_TIMEOUT || '10',
+      KWORK_REGISTRATION_ROUTE_CONCURRENCY: values.KWORK_REGISTRATION_ROUTE_CONCURRENCY || '12',
       KWORK_PACING: 'true',
       KWORK_PACE_MIN: '4',
       KWORK_PACE_MAX: '9',
@@ -761,12 +758,24 @@ function NetworkTab({
   const networkKeys = [
     'VPNTE_PROXY_ENABLED', 'VPNTE_PROXY_ROTATE_ON_NEXT', 'VPNTE_PROXY_STRICT',
     'VPNTE_PROXY_COUNTRY', 'VPNTE_PROXY_PROFILE_ID', 'VPNTE_PROXY_SLOT', 'VPNTE_PROXY_PORT',
-    'VPNTE_PROXY_TIMEOUT', 'VPNTE_PROXY_CACHE_TTL',
+    'VPNTE_PROXY_TIMEOUT', 'VPNTE_PROXY_HEALTH_TIMEOUT', 'VPNTE_PROXY_HEALTH_WARMUP', 'VPNTE_PROXY_CACHE_TTL',
+    'KWORK_REGISTRATION_ROUTE_TIMEOUT', 'KWORK_REGISTRATION_ROUTE_CONCURRENCY',
     'VPNTE_CONTROL_URL', 'VPNTE_CONTROL_TOKEN', 'PROXY_URL',
   ]
   const sessionKeys = ['SESSION_HUB_URL', 'SESSION_HUB_REQUIRED', 'KWORK_SESSION_HUB_COOKIE_TTL']
-  const pacingKeys = ['KWORK_PACING', 'KWORK_PACE_MIN', 'KWORK_PACE_MAX', 'KWORK_BURST_LIMIT', 'KWORK_BURST_WINDOW', 'KWORK_PROXY_LIST']
+  const pacingKeys = [
+    'KWORK_PACING', 'KWORK_PACE_MIN', 'KWORK_PACE_MAX',
+    'KWORK_REGISTRATION_PACE_MIN', 'KWORK_REGISTRATION_PACE_MAX', 'KWORK_REGISTRATION_BURST_LIMIT',
+    'KWORK_BURST_LIMIT', 'KWORK_BURST_WINDOW', 'KWORK_PROXY_LIST',
+  ]
   const marketKeys = ['KWORK_MARKET_USE_PROXY', 'KWORK_MARKET_PROXY_STRICT', 'KWORK_MARKET_API_TIMEOUT', 'KWORK_MARKET_SEED_DISCOVERY_TIMEOUT']
+  const marketSupplyKeys = ['KWORK_MARKET_SUPPLY_MIN_CARDS', 'KWORK_MARKET_SUPPLY_MAX_REQUESTS', 'KWORK_MARKET_SUPPLY_PROXY_PORTS']
+  const marketAssistantKeys = [
+    'KWORK_MARKET_ASSISTANT_MAP_CHARS', 'KWORK_MARKET_ASSISTANT_MAP_CONCURRENCY',
+    'KWORK_MARKET_ASSISTANT_MAP_ATTEMPTS', 'KWORK_MARKET_ASSISTANT_LLM_TIMEOUT_SECONDS',
+    'KWORK_MARKET_ASSISTANT_MAP_MODEL', 'KWORK_MARKET_ASSISTANT_REDUCE_MODEL',
+    'KWORK_MARKET_ASSISTANT_MAP_REASONING', 'KWORK_MARKET_ASSISTANT_REDUCE_REASONING',
+  ]
 
   const renderEnv = (key: string) => BOOL_KEYS.has(key) ? (
     <BoolField key={key} envKey={key} value={values[key] ?? 'false'} onChange={onChange} />
@@ -920,11 +929,37 @@ function NetworkTab({
         <h3 className="mb-3 text-sm font-semibold text-white">Kwork Market</h3>
         <div className="space-y-3">{marketKeys.map(renderEnv)}</div>
       </section>
+
+      <section className="factory-panel p-4">
+        <h3 className="mb-3 text-sm font-semibold text-white">Market supply scan</h3>
+        <div className="space-y-3">{marketSupplyKeys.map(renderEnv)}</div>
+      </section>
+
+      <section className="factory-panel p-4">
+        <h3 className="mb-3 text-sm font-semibold text-white">Market assistant</h3>
+        <div className="space-y-3">{marketAssistantKeys.map(renderEnv)}</div>
+      </section>
     </div>
   )
 }
 
-function KworkTab() {
+function KworkTab({
+  values,
+  secretKeys,
+  onChange,
+  onReveal,
+  onSave,
+  saving,
+  dirty,
+}: {
+  values: Record<string, string>
+  secretKeys: Set<string>
+  onChange: (key: string, value: string) => void
+  onReveal: (key: string) => Promise<void>
+  onSave: () => Promise<void>
+  saving: boolean
+  dirty: boolean
+}) {
   const [projectId, setProjectId] = useState('')
   const [status, setStatus] = useState<{
     configured: boolean
@@ -975,6 +1010,32 @@ function KworkTab() {
 
   const platformData = inspect?.project?.platform_data ?? {}
   const files = Array.isArray(platformData.files) ? platformData.files : []
+  const automationKeys = [
+    'KWORK_AUTO_APPROVE_ORDERS', 'KWORK_FAST_INBOX_POLLING', 'KWORK_INBOX_POLL_INTERVAL',
+    'KWORK_RESPONSE_TIME_ALERT_HOURS', 'KWORK_SUCCESS_RATE_WARN', 'KWORK_SUCCESS_RATE_BLOCK',
+    'KWORK_BUSY_THRESHOLD', 'KWORK_AUTO_PAUSE_KWORKS', 'KWORK_AUTO_REVIEW',
+    'KWORK_AUTO_REVIEW_RATING', 'KWORK_AUTO_REVIEW_TEXT', 'KWORK_CONNECTS_WARN',
+    'KWORK_CONNECTS_BLOCK', 'SCRAPE_COMPETITOR_PRICES',
+  ]
+  const coverImageKeys = [
+    'KWORK_COVER_IMAGE_API_KEY', 'KWORK_COVER_IMAGE_BASE_URL', 'KWORK_COVER_IMAGE_API_PREFIX',
+    'KWORK_COVER_IMAGE_CONN', 'KWORK_COVER_IMAGE_MODEL', 'KWORK_COVER_IMAGE_SIZE',
+    'KWORK_COVER_IMAGE_QUALITY', 'KWORK_COVER_IMAGE_TIMEOUT', 'KWORK_COVER_VISION_PROVIDER',
+    'KWORK_COVER_VISION_MODEL', 'KWORK_COVER_VISION_MAX_TOKENS', 'KWORK_COVER_PROMPT_PROVIDER',
+    'KWORK_COVER_PROMPT_MODEL',
+  ]
+  const renderEnv = (key: string) => BOOL_KEYS.has(key) ? (
+    <BoolField key={key} envKey={key} value={values[key] ?? 'false'} onChange={onChange} />
+  ) : (
+    <EnvField
+      key={key}
+      envKey={key}
+      value={values[key] ?? ''}
+      isSecret={secretKeys.has(key)}
+      onChange={onChange}
+      onReveal={onReveal}
+    />
+  )
 
   return (
     <div className="space-y-5">
@@ -1004,6 +1065,28 @@ function KworkTab() {
           </div>
         </div>
       </div>
+
+      <section className="factory-panel p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="page-kicker">kwork controls</div>
+            <h3 className="text-sm font-semibold text-white">Automation and account health</h3>
+          </div>
+          <button onClick={onSave} disabled={saving || !dirty} className="btn btn-primary">
+            {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Save
+          </button>
+        </div>
+        <div className="space-y-3">{automationKeys.map(renderEnv)}</div>
+      </section>
+
+      <section className="factory-panel p-4">
+        <div className="mb-3">
+          <div className="page-kicker">cover image</div>
+          <h3 className="text-sm font-semibold text-white">Kwork cover generation</h3>
+        </div>
+        <div className="space-y-3">{coverImageKeys.map(renderEnv)}</div>
+      </section>
 
       <div className="factory-panel p-4">
         <div className="mb-3">
@@ -1148,7 +1231,15 @@ export default function Settings() {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-2xl space-y-4">
           {activeTab === 'kwork' ? (
-            <KworkTab />
+            <KworkTab
+              values={envValues}
+              secretKeys={secretKeys}
+              onChange={(k, v) => setEnvDraft((prev) => ({ ...prev, [k]: v }))}
+              onReveal={handleReveal}
+              onSave={handleSaveEnv}
+              saving={saving}
+              dirty={Object.keys(envDraft).length > 0}
+            />
           ) : activeTab === 'network' ? (
             <NetworkTab
               values={envValues}

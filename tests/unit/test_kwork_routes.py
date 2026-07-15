@@ -5,6 +5,83 @@ import pytest
 from src.api.routes import kwork
 
 
+@pytest.mark.asyncio
+async def test_kwork_register_verify_uses_server_side_registration_id(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class Service:
+        async def verify_registration_activation(self, **kwargs):
+            captured.update(kwargs)
+            return {"ok": False, "status": "activation_pending", "registration_id": kwargs["registration_id"]}
+
+    monkeypatch.setattr(kwork, "get_kwork_service", lambda: Service())
+    payload = kwork.KworkRegistrationVerificationRequest(registration_id="a" * 32)
+
+    result = await kwork.kwork_register_verify(payload)
+
+    assert result["registration_id"] == "a" * 32
+    assert captured == {"registration_id": "a" * 32, "mail_password": "", "firstmail_api_key": ""}
+
+
+@pytest.mark.asyncio
+async def test_kwork_register_batch_passes_count_and_vpnte_slots(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class Service:
+        async def register_accounts_batch(self, **kwargs):
+            captured.update(kwargs)
+            return {"ok": True, "requested_count": kwargs["account_count"], "results": []}
+
+    monkeypatch.setattr(kwork, "get_kwork_service", lambda: Service())
+    payload = kwork.KworkRegisterBatchRequest(
+        account_count=3,
+        vpnte_slots=[12, 14],
+    )
+
+    result = await kwork.kwork_register_batch(payload)
+
+    assert result["requested_count"] == 3
+    assert captured["vpnte_slots"] == [12, 14]
+    assert captured["avoid_used_ips"] is False
+
+
+def test_kwork_register_batch_accepts_more_slots_than_accounts():
+    payload = kwork.KworkRegisterBatchRequest(
+        account_count=100,
+        vpnte_slots=list(range(1, 122)),
+    )
+
+    assert payload.account_count == 100
+    assert payload.vpnte_slots == list(range(1, 122))
+
+
+def test_kwork_register_request_ignores_external_kwork_password():
+    payload = kwork.KworkRegisterRequest.model_validate({"kwork_password": "external-password"})
+
+    assert "kwork_password" not in payload.model_dump()
+
+
+@pytest.mark.asyncio
+async def test_kwork_registration_credentials_route_returns_saved_credentials(monkeypatch):
+    class Service:
+        def get_registration_credentials(self, registration_id):
+            assert registration_id == "b" * 32
+            return {
+                "registration_id": registration_id,
+                "email": "saved@catchmail.io",
+                "username": "saveduser",
+                "password": "PsrSavedPasswordA1",
+            }
+
+    monkeypatch.setattr(kwork, "get_kwork_service", lambda: Service())
+
+    result = await kwork.kwork_register_credentials(
+        kwork.KworkRegistrationCredentialsRequest(registration_id="b" * 32)
+    )
+
+    assert result["password"] == "PsrSavedPasswordA1"
+
+
 class _SessionHubOnlyService:
     async def _fetch_session_hub_cookies(self):
         return {"slrememberme": "present", "uad": "present"}

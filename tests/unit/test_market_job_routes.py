@@ -9,7 +9,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api.routes.kwork_market_jobs import router
+from src.api.routes.kwork_market_jobs import _emit_publication_state, router
 from src.platforms.kwork_supply.coordinator import MarketScanCoordinator
 from src.platforms.kwork_supply.events import MarketEventHub
 from src.platforms.kwork_supply.models import (
@@ -63,12 +63,45 @@ def _create_job(coordinator: MarketScanCoordinator, job_id: str) -> dict[str, ob
     )
 
 
+def test_publication_transition_is_written_to_durable_job_events(market_app: tuple[FastAPI, MarketScanCoordinator]):
+    _, coordinator = market_app
+    _create_job(coordinator, "job_publication_event")
+
+    asyncio.run(
+        _emit_publication_state(
+            coordinator,
+            "job_publication_event",
+            "proposed",
+            recommendation={
+                "recommendation_id": "recommendation-1",
+                "source_cluster_id": "cluster-1",
+                "service_summary": "Адаптация логотипа под кириллицу",
+                "evidence_ids": ["listing_1001"],
+                "revision": 1,
+            },
+        )
+    )
+
+    events = asyncio.run(coordinator.replay_events("job_publication_event"))
+    publication = [event for event in events if event["type"] == "publication.state_changed"]
+    assert publication[-1]["payload"] == {
+        "stage": "proposed",
+        "recommendation_id": "recommendation-1",
+        "source_cluster_id": "cluster-1",
+        "service_summary": "Адаптация логотипа под кириллицу",
+        "evidence_ids": ["listing_1001"],
+        "revision": 1,
+    }
+
+
 def test_create_list_snapshot_and_websocket_replay(market_app: tuple[FastAPI, MarketScanCoordinator]):
     app, _ = market_app
 
     with TestClient(app) as client:
         started = time.perf_counter()
-        response = client.post("/api/kwork/market/jobs", json=_create_payload())
+        payload = _create_payload()
+        payload["account_registration_ids"] = ["account-a", "account-b", "account-a"]
+        response = client.post("/api/kwork/market/jobs", json=payload)
 
         assert response.status_code == 202
         assert time.perf_counter() - started < 1
@@ -86,6 +119,7 @@ def test_create_list_snapshot_and_websocket_replay(market_app: tuple[FastAPI, Ma
         snapshot = client.get(accepted["status_url"])
         assert snapshot.status_code == 200
         assert snapshot.json()["job"]["scope"]["canonical_alias"] == "website-repair"
+        assert snapshot.json()["job"]["account_registration_ids"] == ["account-a", "account-b"]
         assert snapshot.json()["last_event_sequence"] == 2
 
         replay = client.get(f"/api/kwork/market/jobs/{job_id}/events?after_seq=0")
@@ -228,6 +262,13 @@ def test_operational_views_and_worker_commands(market_app: tuple[FastAPI, Market
         assert results.json()["metrics"]["observed_cards"]["observed_listing_count"] == 0
         assert results.json()["metrics"]["price_distribution"]["p50"] is None
         assert results.json()["analysis"] == {}
+        assert results.json()["execution"]["configured_workers"] == 2
+        assert results.json()["execution"]["peak_parallel_requests"] == 0
+
+        tail = client.get("/api/kwork/market/jobs/job_routes_control/events?tail=true&limit=2")
+        assert tail.status_code == 200
+        assert len(tail.json()["items"]) == 2
+        assert tail.json()["items"][0]["seq"] < tail.json()["items"][-1]["seq"]
 
 
 def test_control_updates_and_domain_error_mapping(market_app: tuple[FastAPI, MarketScanCoordinator]):
@@ -274,6 +315,41 @@ def test_control_updates_and_domain_error_mapping(market_app: tuple[FastAPI, Mar
         assert invalid.status_code == 422
 
 
+def test_results_prefer_completed_export_checkpoint_over_late_analysis(
+    market_app: tuple[FastAPI, MarketScanCoordinator],
+):
+    app, coordinator = market_app
+    job_id = "job_export_checkpoint"
+    _create_job(coordinator, job_id)
+    export_checkpoint = asyncio.run(
+        coordinator.repository.create_checkpoint(
+            job_id,
+            frontier={"phase": "export"},
+            metrics={
+                "ai_verdict": {"status": "ok", "market_verdict": "mixed"},
+                "semantic_analysis": {"cluster_count": 2, "clusters": []},
+                "export": {"summary": {"relative_path": "summary.json"}},
+            },
+        )
+    )
+    asyncio.run(
+        coordinator.repository.create_checkpoint(
+            job_id,
+            frontier={"phase": "analyze"},
+            metrics={"ai_verdict": {"status": "ok", "market_verdict": "late"}},
+        )
+    )
+
+    with TestClient(app) as client:
+        response = client.get(f"/api/kwork/market/jobs/{job_id}/results")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["latest_checkpoint"]["checkpoint_id"] == export_checkpoint["checkpoint_id"]
+    assert payload["analysis"]["ai_verdict"]["market_verdict"] == "mixed"
+    assert payload["analysis"]["export"]["summary"]["relative_path"] == "summary.json"
+
+
 def test_routes_report_unavailable_runtime():
     app = FastAPI()
     app.include_router(router)
@@ -282,6 +358,33 @@ def test_routes_report_unavailable_runtime():
         response = client.get("/api/kwork/market/jobs")
 
     assert response.status_code == 503
+
+
+def test_account_pool_load_uses_cache_and_sync_explicitly_probes_routes(
+    market_app: tuple[FastAPI, MarketScanCoordinator],
+):
+    app, _ = market_app
+
+    class IdentityPool:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        async def snapshot(self, **kwargs: object) -> dict[str, object]:
+            self.calls.append(kwargs)
+            return {"refresh_routes": kwargs.get("refresh_routes")}
+
+    pool = IdentityPool()
+    app.state.market_identity_pool = pool
+
+    with TestClient(app) as client:
+        cached = client.get("/api/kwork/market/account-pool")
+        refreshed = client.post("/api/kwork/market/account-pool/sync")
+
+    assert cached.status_code == 200
+    assert cached.json() == {"refresh_routes": False}
+    assert refreshed.status_code == 200
+    assert refreshed.json() == {"refresh_routes": True}
+    assert pool.calls == [{"refresh_routes": False}, {"refresh_routes": True}]
 
 
 def test_job_scoped_assistant_uses_the_current_durable_snapshot(
