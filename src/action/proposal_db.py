@@ -1144,10 +1144,16 @@ class ProposalDB:
             return int(row["conversation_id"])
 
     def add_conversation_message(
-        self, conversation_id: int, *, sender: str, message_text: str, platform_message_id: str | None = None
+        self,
+        conversation_id: int,
+        *,
+        sender: str,
+        message_text: str,
+        platform_message_id: str | None = None,
+        created_at: str | None = None,
     ) -> bool:
         """Добавить сообщение в диалог. Возвращает True если новое, False если дубликат."""
-        now = _now()
+        now = created_at or _now()
         with self._connect() as conn:
             if platform_message_id:
                 existing = conn.execute(

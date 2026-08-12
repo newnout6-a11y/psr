@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -175,6 +176,91 @@ def _dialog_sync_status(dialog: Any, username: str = "") -> str:
     return "awaiting_reply" if _dialog_unread_count(dialog) > 0 else "read"
 
 
+def _history_message_value(message: Any, *names: str, default: Any = "") -> Any:
+    return _dialog_value(message, *names, default=default)
+
+
+def _history_message_created_at(message: Any) -> str | None:
+    value = _history_message_value(message, "created_at", "sent_at", "date", "time", default=None)
+    if value in (None, ""):
+        return None
+    if isinstance(value, (int, float)) or (isinstance(value, str) and value.isdigit()):
+        return datetime.fromtimestamp(int(value), tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    text = str(value).strip()
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return text
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+    return parsed.strftime("%Y-%m-%d %H:%M:%S")
+
+
+async def _sync_kwork_dialog_history(project_id: str) -> int:
+    """Fetch and persist the complete Kwork history for one desktop conversation."""
+    from src.action.proposal_db import ProposalDB
+    from src.platforms.kwork import get_kwork_service
+
+    db = ProposalDB()
+    conv = db.get_conversation(project_id, "kwork") or {}
+    service = get_kwork_service()
+    dialogs = await service.get_web_dialogs(100) if hasattr(service, "get_web_dialogs") else []
+    project_key = project_id.strip().casefold()
+    dialog = next(
+        (
+            item
+            for item in dialogs
+            if project_key
+            in {
+                str(_dialog_value(item, "project_id", default="")).strip().casefold(),
+                str(_dialog_value(item, "user_id", default="")).strip().casefold(),
+                str(_dialog_value(item, "username", default="")).strip().casefold(),
+            }
+        ),
+        None,
+    )
+    username = str(_dialog_value(dialog, "username", default="") or conv.get("project_title") or "").strip()
+    if not username or not hasattr(service, "get_dialog_history"):
+        return 0
+
+    messages = await service.get_dialog_history(username)
+    if not messages:
+        return 0
+
+    conversation_id = int(
+        conv.get("conversation_id")
+        or db.get_or_create_conversation(project_id, "kwork", project_title=username)
+    )
+    member_id = str(_dialog_value(dialog, "member_id", default="") or "").strip()
+    imported = 0
+    for message in messages:
+        message_id = str(
+            _history_message_value(message, "MID", "message_id", "inbox_message_id", "id", default="") or ""
+        ).strip()
+        text = str(_history_message_value(message, "message", "text", "body", "content", default="") or "")
+        sender_id = str(_history_message_value(message, "MSGFROM", "sender_id", "from_id", default="") or "").strip()
+        direction = str(_history_message_value(message, "direction", default="") or "").casefold()
+        sender = "freelancer" if direction == "outgoing" or (member_id and sender_id == member_id) else "customer"
+        if not text and not message_id:
+            continue
+        if db.add_conversation_message(
+            conversation_id,
+            sender=sender,
+            message_text=text,
+            platform_message_id=message_id or None,
+            created_at=_history_message_created_at(message),
+        ):
+            imported += 1
+    return imported
+
+
+async def _sync_kwork_dialog_history_safe(project_id: str, timeout: float = 12.0) -> None:
+    try:
+        await asyncio.wait_for(_sync_kwork_dialog_history(project_id), timeout=timeout)
+    except Exception as exc:
+        logger.debug(f"Dashboard: failed to sync Kwork dialog history for {project_id}: {exc}")
+
+
 async def _sync_kwork_dialogs(limit: int) -> None:
     """Best-effort read-only sync so the desktop page sees live Kwork dialogs."""
     try:
@@ -303,7 +389,7 @@ async def conversations(limit: int = Query(20, ge=1, le=100)):
 async def conversation_history_route(project_id: str, platform: str):
     read_state: dict[str, Any] | None = None
     if platform == "kwork":
-        _schedule_kwork_dialog_sync(100)
+        await _sync_kwork_dialog_history_safe(project_id)
         _schedule_kwork_dialog_read(project_id)
         read_state = {"ok": None, "pending": True}
     return {"messages": q.conversation_history(project_id, platform), "username": "", "read_state": read_state}

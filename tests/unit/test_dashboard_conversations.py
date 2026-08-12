@@ -10,13 +10,58 @@ async def test_conversation_history_route_wraps_messages(monkeypatch):
     rows = [{"message_id": 1, "sender": "customer", "message_text": "hello", "created_at": "2026-01-01 10:00:00"}]
     monkeypatch.setattr(dashboard.q, "conversation_history", lambda project_id, platform: rows)
     calls: list[tuple[str, str | int]] = []
-    monkeypatch.setattr(dashboard, "_schedule_kwork_dialog_sync", lambda limit: calls.append(("sync", limit)))
+    async def sync_history(project_id):
+        calls.append(("sync", project_id))
+
+    monkeypatch.setattr(dashboard, "_sync_kwork_dialog_history_safe", sync_history)
     monkeypatch.setattr(dashboard, "_schedule_kwork_dialog_read", lambda project_id: calls.append(("read", project_id)))
 
     result = await dashboard.conversation_history_route("project-1", "kwork")
 
     assert result == {"messages": rows, "username": "", "read_state": {"ok": None, "pending": True}}
-    assert calls == [("sync", 100), ("read", "project-1")]
+    assert calls == [("sync", "project-1"), ("read", "project-1")]
+
+
+@pytest.mark.asyncio
+async def test_sync_kwork_dialog_history_imports_both_sides_with_remote_times(monkeypatch):
+    added = []
+
+    class FakeDB:
+        def get_conversation(self, project_id, platform):
+            return {"conversation_id": 77, "project_title": "client_name"}
+
+        def add_conversation_message(self, conversation_id, **kwargs):
+            added.append((conversation_id, kwargs))
+            return True
+
+    class FakeService:
+        async def get_web_dialogs(self, limit):
+            assert limit == 100
+            return [{"user_id": "12345", "username": "client_name", "member_id": "worker-id"}]
+
+        async def get_dialog_history(self, username):
+            assert username == "client_name"
+            return [
+                {"MID": "m1", "MSGFROM": "client-id", "message": "Incoming", "time": 1786532400},
+                {"MID": "m2", "MSGFROM": "worker-id", "message": "Outgoing", "time": 1786532460},
+            ]
+
+    monkeypatch.setattr("src.action.proposal_db.ProposalDB", FakeDB)
+    monkeypatch.setattr("src.platforms.kwork.get_kwork_service", lambda: FakeService())
+
+    imported = await dashboard._sync_kwork_dialog_history("12345")
+
+    assert imported == 2
+    assert [(item[1]["sender"], item[1]["message_text"]) for item in added] == [
+        ("customer", "Incoming"),
+        ("freelancer", "Outgoing"),
+    ]
+    assert [item[1]["platform_message_id"] for item in added] == ["m1", "m2"]
+    assert all(item[1]["created_at"] for item in added)
+
+
+def test_history_message_created_at_normalizes_iso_timestamp_for_sqlite_ordering():
+    assert dashboard._history_message_created_at({"time": "2026-08-13T12:34:56Z"}) == "2026-08-13 12:34:56"
 
 
 @pytest.mark.asyncio

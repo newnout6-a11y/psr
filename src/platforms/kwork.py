@@ -903,6 +903,7 @@ class KworkService:
             "last_message_at": last_message_at,
             "updated_at": last_message_at,
             "sender": sender,
+            "member_id": actor_id,
         }
 
     async def get_web_dialogs(self, limit: int = 100) -> list[dict[str, Any]]:
