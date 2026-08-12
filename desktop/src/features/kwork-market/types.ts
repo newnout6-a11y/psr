@@ -449,6 +449,7 @@ export interface MarketAccountPoolSummary {
   account_selection_mode?: 'automatic' | 'manual'
   accounts_active: number
   routes_healthy: number
+  provider_profiles_total?: number | null
   routes_verified: number
   egress_ips_distinct: number
   egress_ips_active: number

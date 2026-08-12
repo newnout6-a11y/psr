@@ -28,9 +28,9 @@ _EVIDENCE_LISTING_RE = re.compile(r"(?:^|_)listing_(\d+)$", re.I)
 _KWORK_URL_ID_RE = re.compile(r"(?:https?://(?:www\.)?kwork\.ru)?/[^/?#]+/(\d+)(?:[/?#]|$)", re.I)
 _KWORK_CDN = "https://cdn-edge.kwork.ru"
 _VARIANT_DIRECTIONS = (
-    "Show a credible before-and-after transformation with the finished deliverable as the dominant subject.",
-    "Show the finished deliverable in realistic use: a real page, application, code editor, identity system, or production-ready asset that matches the service.",
-    "Show a compact portfolio spread of two or three concrete results with distinct composition and no abstract filler.",
+    "Artifact-first: show one complete finished deliverable edge to edge as the single dominant subject.",
+    "Process-proof: show the real specialist, tools, materials, or interaction that produces this exact service.",
+    "Outcome-in-use: show a real client or user naturally using the finished result in its intended context.",
 )
 
 
@@ -274,9 +274,6 @@ class MarketRecommendationHandoffService:
                 "use_llm",
                 "generate_image",
                 "image_context",
-                "cover_text",
-                "cover_subtitle",
-                "cover_text_overlay",
                 "use_competitor_image_analysis",
                 "use_cover_prompt_llm",
                 "cover_prompt_provider",
@@ -314,8 +311,6 @@ class MarketRecommendationHandoffService:
             "market_context": market_context,
             **allowed_options,
         }
-        previous_draft = handoff.get("draft") if isinstance(handoff.get("draft"), Mapping) else {}
-        previous_variants = _draft_variants(previous_draft)
         ensure_portfolio_assets = getattr(self.autopublish_service, "ensure_portfolio_assets", None)
         variants: list[dict[str, Any]] = []
         images: list[dict[str, Any] | None] = []
@@ -333,10 +328,6 @@ class MarketRecommendationHandoffService:
             if not isinstance(draft, Mapping):
                 raise MarketJobRepositoryError(f"draft generator returned no draft for variant {variant_index + 1}")
             durable_variant = dict(draft)
-            previous_variant = previous_variants[variant_index] if variant_index < len(previous_variants) else {}
-            for key in ("cover_image_path", "cover_image", "cover_text", "cover_subtitle", "portfolio_assets"):
-                if key not in durable_variant and previous_variant.get(key) not in (None, "", []):
-                    durable_variant[key] = previous_variant[key]
             if callable(ensure_portfolio_assets) and not durable_variant.get("portfolio_assets"):
                 durable_variant["portfolio_assets"] = ensure_portfolio_assets(durable_variant)
             durable_variant.update(

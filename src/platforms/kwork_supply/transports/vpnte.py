@@ -113,6 +113,23 @@ class VpnteTransportManager:
     def __init__(self, provider: VpnteTransportProvider | None = None) -> None:
         self._provider: VpnteTransportProvider = provider or VpnteProxyClient()
         self._snapshots: dict[str, TransportSnapshot] = {}
+        self._profile_count: int | None = None
+
+    def profile_count(self, *, refresh: bool = False) -> int | None:
+        """Return provider profiles from ``/list``, separate from live slots."""
+
+        if not refresh:
+            return self._profile_count
+        list_profiles = getattr(self._provider, "list", None)
+        if not callable(list_profiles):
+            return self._profile_count
+        try:
+            profiles = list_profiles()
+        except Exception:
+            return self._profile_count
+        if isinstance(profiles, list):
+            self._profile_count = len(profiles)
+        return self._profile_count
 
     def refresh(self) -> list[TransportSnapshot]:
         """Poll ``/instances`` and preserve local generation and lease state."""

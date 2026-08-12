@@ -31,6 +31,19 @@ yarn-error.log*
 # Runtime and debug artifacts live under data/ and should not pollute git.
 /data/runtime/
 /data/debug/
+/*.png
+/output/
+/.commandcode/
+/.kimchi/
+/.playwright-cli/
+/desktop/.playwright-cli/
+/data/*.db
+/data/*.db-*
+/data/*.log
+/data/*.pid
+/data/*.id
+/data/*_exports/
+/docs/psr-logs-*.txt
 
 # Reference data stays versioned.
 !/data/reference/

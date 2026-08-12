@@ -1,8 +1,11 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, session } = require('electron')
+const { app, BrowserWindow, ipcMain, shell, dialog, session, screen } = require('electron')
 const path = require('path')
 const { spawn, exec, execSync } = require('child_process')
 const http = require('http')
 const fs = require('fs')
+
+const gotSingleInstanceLock = app.requestSingleInstanceLock()
+if (!gotSingleInstanceLock) app.quit()
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
 const BACKEND_HOST = '127.0.0.1'
@@ -96,6 +99,62 @@ let pythonProcess = null
 let mainWindow = null
 let kworkVerifyWindow = null
 let kworkVerifySaveTimer = null
+let windowStateSaveTimer = null
+
+function windowStatePath() {
+  return path.join(app.getPath('userData'), 'window-state.json')
+}
+
+function readWindowState() {
+  try {
+    const value = JSON.parse(fs.readFileSync(windowStatePath(), 'utf8'))
+    if (!value || typeof value !== 'object') return {}
+    const bounds = value.bounds
+    if (!bounds || !Number.isFinite(bounds.x) || !Number.isFinite(bounds.y) || !Number.isFinite(bounds.width) || !Number.isFinite(bounds.height)) return { lastRoute: value.lastRoute }
+    const visible = screen.getAllDisplays().some(({ workArea }) => {
+      const overlapX = Math.max(0, Math.min(bounds.x + bounds.width, workArea.x + workArea.width) - Math.max(bounds.x, workArea.x))
+      const overlapY = Math.max(0, Math.min(bounds.y + bounds.height, workArea.y + workArea.height) - Math.max(bounds.y, workArea.y))
+      return overlapX >= 100 && overlapY >= 80
+    })
+    return visible ? value : { lastRoute: value.lastRoute }
+  } catch (_) {
+    return {}
+  }
+}
+
+function writeWindowState(next) {
+  try {
+    const target = windowStatePath()
+    const temporary = `${target}.tmp`
+    fs.mkdirSync(path.dirname(target), { recursive: true })
+    fs.writeFileSync(temporary, JSON.stringify(next, null, 2), 'utf8')
+    fs.renameSync(temporary, target)
+  } catch (error) {
+    console.warn('[Electron] Failed to persist window state:', error.message)
+  }
+}
+
+function currentWindowState() {
+  const stored = readWindowState()
+  if (!mainWindow || mainWindow.isDestroyed()) return stored
+  return {
+    ...stored,
+    bounds: mainWindow.isMaximized() ? mainWindow.getNormalBounds() : mainWindow.getBounds(),
+    maximized: mainWindow.isMaximized(),
+  }
+}
+
+function scheduleWindowStateSave() {
+  if (windowStateSaveTimer) clearTimeout(windowStateSaveTimer)
+  windowStateSaveTimer = setTimeout(() => writeWindowState(currentWindowState()), 250)
+}
+
+app.on('second-instance', () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.show()
+  mainWindow.focus()
+})
 
 function runtimeDir() {
   if (usesPackagedBackend()) return path.join(app.getPath('userData'), 'data', 'runtime')
@@ -433,17 +492,22 @@ function createWindow() {
     ? path.join(__dirname, '..', 'public', 'icon.png')
     : path.join(__dirname, '..', 'dist', 'icon.png')
 
+  const savedWindowState = readWindowState()
+  const savedBounds = savedWindowState.bounds || {}
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
+    width: savedBounds.width || 1400,
+    height: savedBounds.height || 900,
+    ...(Number.isFinite(savedBounds.x) ? { x: savedBounds.x } : {}),
+    ...(Number.isFinite(savedBounds.y) ? { y: savedBounds.y } : {}),
     minWidth: 1100,
     minHeight: 700,
-    backgroundColor: '#030303',
+    backgroundColor: '#eef2f5',
+    ...(process.platform === 'win32' ? { backgroundMaterial: 'mica' } : {}),
     titleBarStyle: 'hidden',
     titleBarOverlay: {
-      color: '#030303',
-      symbolColor: '#a8a29e',
-      height: 36,
+      color: '#eef2f5',
+      symbolColor: '#29332f',
+      height: 42,
     },
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -455,8 +519,18 @@ function createWindow() {
   })
 
   mainWindow.once('ready-to-show', () => {
+    if (savedWindowState.maximized) mainWindow.maximize()
     mainWindow.show()
   })
+
+  if (process.platform === 'win32' && typeof mainWindow.setBackgroundMaterial === 'function') {
+    try { mainWindow.setBackgroundMaterial('mica') } catch (_) { /* Opaque fallback is already configured. */ }
+  }
+  mainWindow.on('move', scheduleWindowStateSave)
+  mainWindow.on('resize', scheduleWindowStateSave)
+  mainWindow.on('maximize', scheduleWindowStateSave)
+  mainWindow.on('unmaximize', scheduleWindowStateSave)
+  mainWindow.on('close', () => writeWindowState(currentWindowState()))
 
   // Open external links in browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -472,7 +546,7 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(async () => {
+if (gotSingleInstanceLock) app.whenReady().then(async () => {
   // Проверяем, запущен ли Session Hub
   const hubAlreadyRunning = await isSessionHubRunning()
   console.log('[Electron] Session Hub running:', hubAlreadyRunning)
@@ -557,3 +631,9 @@ ipcMain.handle('get-psr-root', () => PSR_ROOT)
 ipcMain.handle('open-external', (_, url) => shell.openExternal(url))
 ipcMain.handle('open-kwork-verification', (_, url) => openKworkVerificationWindow(url))
 ipcMain.handle('kwork-verification-status', () => kworkVerificationStatus())
+ipcMain.handle('get-shell-state', () => readWindowState())
+ipcMain.handle('set-shell-route', (_, route) => {
+  const safeRoute = typeof route === 'string' && route.startsWith('/') ? route.slice(0, 2048) : '/dashboard'
+  writeWindowState({ ...currentWindowState(), lastRoute: safeRoute })
+  return safeRoute
+})

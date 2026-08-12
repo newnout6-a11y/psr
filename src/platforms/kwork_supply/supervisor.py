@@ -9,7 +9,7 @@ from typing import Any
 
 from .coordinator import MarketScanCoordinator
 from .identity_pool import MarketIdentityPool
-from .models import JobState, NetworkPolicy, OperationKind, TransportHealth
+from .models import JobKind, JobState, NetworkPolicy, OperationKind, TransportHealth
 from .rate_control import (
     ConcurrencyPolicy,
     ConcurrencySignals,
@@ -44,7 +44,7 @@ class MarketWorkerSupervisor:
         transport_manager: TransportManager | None = None,
         identity_pool: MarketIdentityPool | None = None,
         reconcile_interval_seconds: float = 1.0,
-        worker_poll_interval_seconds: float = 0.25,
+        worker_poll_interval_seconds: float = 2.0,
         concurrency_policy: ConcurrencyPolicy | None = None,
         concurrency_window_attempts: int = 50,
     ) -> None:
@@ -102,17 +102,34 @@ class MarketWorkerSupervisor:
 
         await self.coordinator.repository.recover_expired_operations()
         await self._refresh_transports()
-        jobs = await self.coordinator.repository.list_jobs(states=_ACTIVE_STATES, limit=500)
-        active_job_ids = {str(job["job_id"]) for job in jobs}
+        active_jobs = await self.coordinator.repository.list_jobs(states=_ACTIVE_STATES, limit=500)
+        # Buyer Search creates a Market job only as a durable account/VPNTE
+        # lease container. Its read workers are owned by BuyerDiscoverySupervisor;
+        # starting a supply worker for it steals the same routes from Buyer Search.
+        jobs = [
+            job
+            for job in active_jobs
+            if str(job.get("job_kind") or JobKind.SUPPLY.value) != JobKind.BUYER_SEARCH.value
+        ]
+        active_job_ids = {str(job["job_id"]) for job in active_jobs}
         for job in jobs:
             await self._reconcile_job(job)
         for worker_id, worker in tuple(self._workers.items()):
-            if worker.job_id not in active_job_ids:
-                worker.request_drain()
             task = self._tasks.get(worker_id)
+            if worker.job_id not in active_job_ids:
+                worker.request_terminal_stop()
+                if (
+                    worker.current_operation_id is None
+                    and task is not None
+                    and not task.done()
+                    and task.cancelling() == 0
+                ):
+                    task.cancel()
             if task is not None and task.done():
                 self._tasks.pop(worker_id, None)
                 self._workers.pop(worker_id, None)
+        if self.identity_pool is not None:
+            await self.identity_pool.release_inactive_job_bindings(active_job_ids)
 
     async def _reconcile_job(self, job: Mapping[str, Any]) -> None:
         job_id = str(job["job_id"])
@@ -270,7 +287,7 @@ class MarketWorkerSupervisor:
         if self.transport_manager is None:
             return
         try:
-            snapshots = self.transport_manager.refresh()
+            snapshots = await asyncio.to_thread(self.transport_manager.refresh)
         except Exception:
             return
         for snapshot in snapshots:

@@ -781,3 +781,59 @@ async def test_nonlatest_checkpoint_preserves_the_previous_result_pointer(reposi
         mapping_checkpoint["checkpoint_id"],
         result_checkpoint["checkpoint_id"],
     ]
+
+
+@pytest.mark.asyncio
+async def test_stale_fenced_batch_commit_cannot_write_after_lease_recovery(repository: MarketJobRepository):
+    await create_job(repository)
+    await repository.create_shard(
+        ShardSpec(shard_id="shard_fenced", job_id="job_test", source="web_catalog", alias="website-repair")
+    )
+    await repository.enqueue_operation(
+        Operation(
+            operation_id="op_fenced",
+            job_id="job_test",
+            shard_id="shard_fenced",
+            kind=OperationKind.FETCH_BATCH,
+            state=OperationState.QUEUED,
+        )
+    )
+
+    first = await repository.lease_operation(
+        "worker_a",
+        job_id="job_test",
+        lease_seconds=1,
+        now="2026-07-11T10:00:00Z",
+    )
+    assert first is not None
+    assert first["lease_fence"] == 1
+
+    assert await repository.recover_expired_operations(now="2026-07-11T10:00:02Z") == 1
+    second = await repository.lease_operation(
+        "worker_b",
+        job_id="job_test",
+        lease_seconds=10,
+        now="2026-07-11T10:00:03Z",
+    )
+    assert second is not None
+    assert second["lease_fence"] == 2
+
+    with pytest.raises(MarketOperationLeaseError):
+        await repository.commit_accepted_batch(
+            job_id="job_test",
+            shard_id="shard_fenced",
+            operation_id="op_fenced",
+            worker_id="worker_a",
+            attempt_id=first["attempt_id"],
+            lease_fence=first["lease_fence"],
+            idempotency_key="stale-fenced-page",
+            source="web_catalog",
+            listings=[{"id": "stale-project", "title": "Must not persist"}],
+            now="2026-07-11T10:00:04Z",
+        )
+
+    assert await repository.list_listings("job_test") == []
+    current = await repository.get_operation("op_fenced")
+    assert current is not None
+    assert current["lease_owner"] == "worker_b"
+    assert current["lease_fence"] == second["lease_fence"]

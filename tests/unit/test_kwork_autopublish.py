@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import hashlib
+import base64
+from io import BytesIO
 from pathlib import Path
 
 import pytest
@@ -10,15 +11,24 @@ from src.platforms.kwork_autopublish import (
     KworkAutopublishService,
     PUBLISH_CONFIRMATION_PHRASE,
     _competitor_cover_items,
-    _cover_text_from_draft,
     _extract_json_object,
     _image_api_key,
+    _image_model,
     _image_api_url,
+    _portfolio_image_specs,
     _portfolio_payload,
-    _render_portfolio_assets,
     _sanitize_kwork_text,
-    _should_overlay_cover_text,
+    _scene_subject_constraints,
+    _visual_strategy,
 )
+
+
+def _png_b64(width: int = 768, height: int = 512) -> str:
+    from PIL import Image
+
+    output = BytesIO()
+    Image.new("RGB", (width, height), (30, 60, 90)).save(output, "PNG")
+    return base64.b64encode(output.getvalue()).decode("ascii")
 
 
 def test_extract_json_object_from_wrapped_text():
@@ -42,7 +52,7 @@ def test_image_connection_uses_newapi_channel_conn(monkeypatch):
     )
 
 
-def test_fallback_cover_prompt_includes_competitor_images():
+def test_fallback_cover_prompt_is_literal_and_has_no_promotional_text():
     service = KworkAutopublishService()
 
     prompt = service._fallback_cover_prompt(
@@ -57,35 +67,37 @@ def test_fallback_cover_prompt_includes_competitor_images():
         },
     )
 
-    assert "https://cdn-edge.kwork.ru/pics/t3/demo.jpg" in prompt
-    assert "Add large readable Russian text" in prompt
-    assert "No extra readable text" in prompt
-    assert "preferably left or upper-left" not in prompt
+    assert "already-shipped website, application screen" in prompt
+    assert "never add a cover headline" in prompt
+    assert "presentation board" in prompt
+    assert "https://cdn-edge.kwork.ru" not in prompt
+    assert "Add large readable Russian text" not in prompt
 
 
-def test_cover_prompt_brief_requires_image_text():
+def test_cover_prompt_brief_routes_web_without_external_cover_text():
     service = KworkAutopublishService()
 
     brief = service._cover_prompt_brief(
         {"title": "Сделаю Telegram-бота", "description": "Описание"},
-        {"audience": "малого бизнеса", "cover_text": "Telegram-бот под ключ"},
+        {"audience": "малого бизнеса", "category_name": "Разработка и IT"},
     )
 
-    assert brief["required_cover_text"]["title"] == "Telegram-бот под ключ"
-    assert "include the required Russian offer text directly inside the generated image" in brief["requirements"]
+    assert brief["visual_strategy"]["domain"] == "web_software"
+    assert "never add a cover headline, caption, title, subtitle, label, or promotional typography" in brief["requirements"]
+    assert "required_cover_text" not in brief
 
 
-def test_cover_prompt_brief_reserves_text_area_for_deterministic_overlay():
+def test_cover_prompt_brief_non_text_domain_uses_full_canvas_without_overlay():
     service = KworkAutopublishService()
 
     brief = service._cover_prompt_brief(
-        {"title": "Адаптация логотипа"},
-        {"cover_text": "Логотип на русском", "cover_text_overlay": True},
+        {"title": "Смонтирую рекламный ролик"},
+        {"category_name": "Аудио и видео"},
     )
 
     requirements = " ".join(brief["requirements"])
-    assert "do not render any readable text" in requirements
-    assert "lower third visually calm" in requirements
+    assert "do not render readable words" in requirements
+    assert "do not reserve space for a later text overlay" in requirements
 
 
 def test_competitor_cover_items_include_portfolio_examples_without_duplicates():
@@ -131,8 +143,8 @@ def test_cover_prompt_brief_includes_visual_analysis():
         visual_analysis={"status": "analyzed", "brief": "Use a clean blue dashboard style."},
     )
 
-    assert brief["competitor_visual_analysis"]["status"] == "analyzed"
-    assert "clean blue dashboard" in brief["competitor_visual_analysis"]["brief"]
+    assert brief["competitor_negative_evidence"]["status"] == "analyzed"
+    assert "clean blue dashboard" in brief["competitor_negative_evidence"]["brief"]
     assert brief["selected_market_slice"]["filter_scope"]["selected"][0]["labels"] == ["Telegram"]
     assert brief["selected_market_slice"]["demand"]["wants_count"] == 12
 
@@ -151,8 +163,10 @@ def test_cover_prompt_brief_requires_concrete_deliverable_for_variant():
     )
 
     requirements = " ".join(brief["requirements"])
-    assert "finished landing page" in requirements
-    assert "generic icons or glowing geometry" in requirements
+    assert "literal visual proof" in requirements
+    assert "floating cubes" in requirements
+    assert "email address" in requirements
+    assert brief["visual_strategy"]["domain"] == "web_software"
     assert brief["variant"] == {
         "index": 2,
         "count": 3,
@@ -161,7 +175,7 @@ def test_cover_prompt_brief_requires_concrete_deliverable_for_variant():
 
 
 @pytest.mark.asyncio
-async def test_build_cover_prompt_uses_competitor_images_and_recent_history(monkeypatch, tmp_path):
+async def test_build_cover_prompt_does_not_reuse_old_images_as_style_references(monkeypatch, tmp_path):
     service = KworkAutopublishService()
     root = tmp_path / "assets"
     cover_dir = root / "kwork_autopublish"
@@ -194,34 +208,42 @@ async def test_build_cover_prompt_uses_competitor_images_and_recent_history(monk
         }
 
     class FakeRouter:
-        async def generate_with_images(self, **kwargs):
+        async def generate(self, **kwargs):
             captured.update(kwargs)
-            return "Create a warmer editorial 3:2 cover with the required Russian text on a natural high-contrast area."
+            return "Create one coherent warmer editorial 3:2 scene showing the finished forum product edge to edge."
 
     monkeypatch.setattr(kwork_autopublish, "PROPOSAL_ASSETS_DIR", root)
     monkeypatch.setattr(service, "analyze_competitor_covers", fake_analyze)
     monkeypatch.setattr("src.brain.llm_router.get_llm_router", lambda: FakeRouter())
+    monkeypatch.setenv("KWORK_COVER_PROMPT_PROVIDER", "openai")
+    monkeypatch.setenv("KWORK_COVER_PROMPT_MODEL", "gpt-5.6-terra")
 
     prompt, source = await service.build_cover_prompt(
         {"title": "Forum setup", "description": "Forum service"},
-        {"cover_text": "Создам форум", "market_context": {"competitors": []}},
+        {"market_context": {"competitors": []}},
     )
 
-    assert source == "llm_vision"
+    assert source == "llm_text_no_images"
     assert "warmer editorial" in prompt
-    assert captured["image_urls"] == ["data:image/jpeg;base64,competitor", "data:image/png;base64,b2xkLWltYWdl"]
+    assert "image_urls" not in captured
     assert "recent_generated_cover_history" in str(captured["prompt"])
-    assert "avoid repeating" in str(captured["prompt"])
+    assert "competitor_negative_evidence" in str(captured["prompt"])
+    assert "visual_strategy" in str(captured["prompt"])
     assert "selected_market_slice" in str(captured["prompt"])
+    assert captured["provider"] == "openai"
+    assert captured["model"] == "gpt-5.6-terra"
+    assert captured["allow_fallback"] is False
     request_context = captured["request"]["_cover_prompt_context"]
-    assert request_context["prompt_writer_route"] == "llm_vision"
-    assert request_context["prompt_images_sent"] == 2
-    assert request_context["competitor_images_sent"] == 1
-    assert request_context["history_images_sent"] == 1
+    assert request_context["prompt_writer_route"] == "llm_text_no_images"
+    assert request_context["prompt_images_sent"] == 0
+    assert request_context["competitor_images_sent"] == 0
+    assert request_context["history_images_sent"] == 0
+    assert request_context["prompt_writer_provider"] == "openai"
+    assert request_context["prompt_writer_model"] == "gpt-5.6-terra"
 
 
 @pytest.mark.asyncio
-async def test_build_cover_prompt_marks_text_retry_after_vision_failure(monkeypatch):
+async def test_build_cover_prompt_never_sends_reference_images(monkeypatch):
     service = KworkAutopublishService()
 
     async def fake_analyze(draft, request):
@@ -235,37 +257,55 @@ async def test_build_cover_prompt_marks_text_retry_after_vision_failure(monkeypa
 
     class FakeRouter:
         async def generate_with_images(self, **kwargs):
-            raise RuntimeError("vision down")
+            raise AssertionError("prompt writer must never receive reference images")
 
         async def generate(self, **kwargs):
-            return "Create a bright editorial cover with a distinct diagonal layout and readable Russian offer text."
+            return "Create a bright editorial scene with one real finished forum product and no external headline."
 
     monkeypatch.setattr(service, "analyze_competitor_covers", fake_analyze)
     monkeypatch.setattr("src.brain.llm_router.get_llm_router", lambda: FakeRouter())
+    monkeypatch.setenv("KWORK_COVER_PROMPT_PROVIDER", "openai")
+    monkeypatch.setenv("KWORK_COVER_PROMPT_MODEL", "gpt-5.6-terra")
 
-    request = {"cover_text": "Forum cover", "market_context": {"competitors": []}}
+    request = {"market_context": {"competitors": []}}
     prompt, source = await service.build_cover_prompt({"title": "Forum setup"}, request)
 
-    assert source == "llm_text_after_vision_failure"
-    assert "diagonal layout" in prompt
-    assert request["_cover_prompt_context"]["prompt_writer_route"] == "llm_text_after_vision_failure"
-    assert "vision down" in request["_cover_prompt_context"]["warning"]
+    assert source == "llm_text_no_images"
+    assert "finished forum product" in prompt
+    assert request["_cover_prompt_context"]["prompt_writer_route"] == "llm_text_no_images"
+    assert request["_cover_prompt_context"]["prompt_images_sent"] == 0
 
 
-def test_recent_cover_history_includes_orphan_png(monkeypatch, tmp_path):
+def test_recent_cover_history_filters_category_and_non_generated_assets(monkeypatch, tmp_path):
     service = KworkAutopublishService()
     cover_dir = tmp_path / "kwork_autopublish"
     cover_dir.mkdir(parents=True)
-    orphan = cover_dir / "orphan.png"
-    orphan.write_bytes(b"orphan-image")
+    for name in ("same", "other", "fallback", "orphan"):
+        (cover_dir / f"{name}.png").write_bytes(f"{name}-image".encode())
+    (cover_dir / "same.json").write_text(
+        '{"asset_kind":"cover","visual_pipeline_version":"gpt-image-2-concrete-v3","status":"generated","path":"same.png","title":"Same","category":"Разработка и IT","image_generation":{"requested_model":"gpt-image-2"}}',
+        encoding="utf-8",
+    )
+    (cover_dir / "other.json").write_text(
+        '{"asset_kind":"cover","visual_pipeline_version":"gpt-image-2-concrete-v3","status":"generated","path":"other.png","title":"Other","category":"Дизайн","image_generation":{"requested_model":"gpt-image-2"}}',
+        encoding="utf-8",
+    )
+    (cover_dir / "fallback.json").write_text(
+        '{"asset_kind":"cover","status":"generated_local_fallback","path":"fallback.png","title":"Fallback","category":"Разработка и IT"}',
+        encoding="utf-8",
+    )
 
     monkeypatch.setattr(kwork_autopublish, "PROPOSAL_ASSETS_DIR", tmp_path)
 
-    history = service._recent_cover_history(limit=2)
+    history = service._recent_cover_history(
+        {"category_name": "Разработка и IT"},
+        {"category_name": "Разработка и IT"},
+        limit=4,
+    )
 
-    assert history[0]["status"] == "orphan_png"
-    assert history[0]["path"] == str(orphan)
-    assert history[0]["data_url"].startswith("data:image/")
+    assert [item["title"] for item in history] == ["Same"]
+    assert "data_url" not in history[0]
+    assert "prompt" not in history[0]
 
 
 @pytest.mark.asyncio
@@ -339,24 +379,114 @@ async def test_build_cover_prompt_reuses_precomputed_competitor_analysis(monkeyp
     assert "Real product screenshots" in prompt
 
 
-def test_cover_text_is_short_offer():
-    title, subtitle = _cover_text_from_draft(
-        {"title": "Сделаю Telegram-бота или скрипт автоматизации"},
-        {"audience": "малого бизнеса"},
+@pytest.mark.parametrize(
+    ("title", "category", "domain"),
+    [
+        ("Минималистичный сайт программиста", "Разработка и IT", "web_software"),
+        ("Дизайн упаковки косметики", "Дизайн", "branding_design"),
+        ("Юридическая проверка договора", "Бизнес", "legal_finance_business"),
+        ("Фуд-фотосъёмка нового блюда", "Фото", "food_hospitality"),
+        ("Онлайн-уроки английского", "Обучение", "education"),
+        ("Монтаж рекламного видео", "Аудио и видео", "video_audio"),
+        ("Смонтирую видео и сделаю моушн-дизайн", "Дизайн", "video_audio"),
+        ("Персональная фитнес-тренировка", "Стиль жизни", "fitness_health"),
+        ("Керамическая кружка ручной работы", "Хендмейд", "craft_product"),
+    ],
+)
+def test_visual_strategy_routes_multiple_categories(title, category, domain):
+    strategy = _visual_strategy({"title": title}, {"category_name": category})
+
+    assert strategy["domain"] == domain
+    assert strategy["visual_proof"]
+    assert strategy["style"]
+
+
+@pytest.mark.parametrize(
+    ("service", "category", "domain"),
+    [
+        ("Фотосъёмка готового блюда", "Фото", "food_hospitality"),
+        ("Маникюр с дизайном", "Стиль жизни", "beauty_wellness"),
+    ],
+)
+def test_visual_strategy_ignores_generic_fallback_description(service, category, domain):
+    autopublish = KworkAutopublishService()
+    request = {"service_summary": service, "category_name": category}
+    draft = autopublish._fallback_draft(request)
+
+    assert _visual_strategy(draft, request)["domain"] == domain
+
+
+def test_visual_strategy_matches_short_latin_keywords_as_tokens():
+    strategy = _visual_strategy(
+        {"title": "Build beautiful menu photography"},
+        {"category_name": "Photography"},
     )
 
-    assert title == "Telegram-бот или скрипт"
-    assert subtitle == "для малого бизнеса"
+    assert strategy["domain"] == "food_hospitality"
 
 
-def test_cover_text_ignores_question_mark_corruption():
-    title, subtitle = _cover_text_from_draft(
-        {"title": "Адаптирую логотип и шрифт под кириллицу", "auditory": "для брендов"},
-        {"cover_text": "??????? ?? ???????", "cover_subtitle": "????????? ?????"},
+def test_web_artifact_mode_forbids_people_devices_and_lifestyle_props():
+    strategy = _visual_strategy(
+        {"title": "Минималистичный сайт программиста"},
+        {"category_name": "Разработка и IT", "scene_mode": "artifact"},
     )
 
-    assert title == "Логотип на русском"
-    assert subtitle == "для брендов"
+    constraint = _scene_subject_constraints(strategy)
+    assert "Do not show a person" in constraint
+    assert "monitor" in constraint
+    assert "coffee" in constraint
+    assert "direct screenshot-like interface" in constraint
+
+
+def test_portfolio_specs_are_service_specific_and_never_case_study_boards():
+    specs = _portfolio_image_specs(
+        {"title": "Минималистичный сайт программиста"},
+        {"category_name": "Разработка и IT"},
+        cover_prompt="One coherent shipped developer portfolio website.",
+    )
+
+    assert len(specs) == 5
+    prompts = " ".join(item["prompt"] for item in specs)
+    assert "Минималистичный сайт программиста" in prompts
+    assert "No presentation board" in prompts
+    assert "Кириллица для логотипа" not in prompts
+    assert "BRAND / БРЕНД" not in prompts
+
+
+def test_portfolio_specs_cover_requested_counts_up_to_ten():
+    specs = _portfolio_image_specs(
+        {"title": "Юридическая проверка договора"},
+        {"category_name": "Бизнес"},
+        count=10,
+    )
+
+    assert len(specs) == 10
+    assert len({item["title"] for item in specs}) == 10
+
+
+def test_portfolio_reuse_accepts_only_current_gpt_image_2_assets(tmp_path):
+    service = KworkAutopublishService()
+    legacy_path = tmp_path / "legacy.png"
+    current_path = tmp_path / "current.png"
+    legacy_path.write_bytes(b"legacy")
+    current_path.write_bytes(b"current")
+    draft = {
+        "portfolio_required_count": 2,
+        "portfolio_assets": [
+            {
+                "path": str(legacy_path),
+                "image_generation": {"requested_model": "gpt-image-1"},
+            },
+            {
+                "path": str(current_path),
+                "image_generation": {"requested_model": "gpt-image-2"},
+                "quality_gate": {"status": "passed", "ok": True, "score": 9, "issues": []},
+                "visual_pipeline_version": kwork_autopublish.KWORK_VISUAL_PIPELINE_VERSION,
+            },
+        ],
+    }
+
+    assert service.ensure_portfolio_assets(draft) == [draft["portfolio_assets"][1]]
 
 
 def test_sanitize_kwork_text_removes_preorder_contact_phrases():
@@ -366,12 +496,13 @@ def test_sanitize_kwork_text_removes_preorder_contact_phrases():
     assert "уточнить в рамках заказа" in text
 
 
-def test_manual_cover_overlay_requires_explicit_request(monkeypatch):
-    monkeypatch.setenv("KWORK_COVER_TEXT_OVERLAY", "true")
+def test_cover_image_model_is_locked_to_gpt_image_2(monkeypatch):
+    monkeypatch.setenv("KWORK_COVER_IMAGE_MODEL", "gpt-image-2")
+    assert _image_model() == "gpt-image-2"
 
-    assert _should_overlay_cover_text({}) is False
-    assert _should_overlay_cover_text({"cover_text_overlay": False}) is False
-    assert _should_overlay_cover_text({"cover_text_overlay": True}) is True
+    monkeypatch.setenv("KWORK_COVER_IMAGE_MODEL", "gpt-image-1")
+    with pytest.raises(ValueError, match="must be gpt-image-2"):
+        _image_model()
 
 
 def test_build_form_payload_preserves_repeated_checkbox_fields():
@@ -416,22 +547,368 @@ def test_build_form_payload_preserves_repeated_checkbox_fields():
     assert any(name == "portfolio" and '"idPortfolioMedia": 77' in value for name, value in pairs)
 
 
-def test_render_portfolio_assets_creates_five_distinct_boards(monkeypatch, tmp_path):
-    monkeypatch.setattr(kwork_autopublish, "PROPOSAL_ASSETS_DIR", tmp_path)
+@pytest.mark.asyncio
+async def test_generate_image_file_sends_only_gpt_image_2(monkeypatch, tmp_path):
+    service = KworkAutopublishService()
+    captured: list[dict[str, object]] = []
 
-    assets = _render_portfolio_assets(
+    class FakeResponse:
+        status_code = 200
+        text = "ok"
+        headers = {"x-request-id": "req-image-2"}
+
+        @staticmethod
+        def json():
+            return {"data": [{"b64_json": _png_b64()}]}
+
+    class FakeClient:
+        def __init__(self, **_kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def post(self, _url, *, headers, json):
+            assert headers["Authorization"] == "Bearer test-image-key"
+            captured.append(json)
+            return FakeResponse()
+
+    monkeypatch.setenv("KWORK_COVER_IMAGE_API_KEY", "test-image-key")
+    monkeypatch.setenv("KWORK_COVER_IMAGE_BASE_URL", "https://images.example")
+    monkeypatch.setenv("KWORK_COVER_IMAGE_API_PREFIX", "/v1")
+    monkeypatch.setenv("KWORK_COVER_IMAGE_CONN", "")
+    monkeypatch.setenv("KWORK_COVER_IMAGE_MODEL", "gpt-image-2")
+    monkeypatch.setenv("KWORK_COVER_IMAGE_SIZE", "1536x1024")
+    monkeypatch.setenv("KWORK_COVER_IMAGE_QUALITY", "high")
+    monkeypatch.setattr(kwork_autopublish.httpx, "AsyncClient", FakeClient)
+
+    metadata = await service._generate_image_file(tmp_path / "cover.png", "one coherent website", purpose="cover")
+
+    assert captured == [
         {
-            "category_id": 25,
-            "title": "Адаптирую логотип под кириллицу",
-            "cover_text": "Логотип на русском",
+            "model": "gpt-image-2",
+            "size": "1536x1024",
+            "quality": "high",
+            "prompt": "one coherent website",
         }
+    ]
+    assert metadata["requested_model"] == "gpt-image-2"
+    assert metadata["served_model"] == ""
+    assert metadata["model_verification"] == "request_only"
+    assert metadata["request_id"] == "req-image-2"
+    assert metadata["visual_pipeline_version"] == kwork_autopublish.KWORK_VISUAL_PIPELINE_VERSION
+
+
+@pytest.mark.asyncio
+async def test_visual_qa_uses_configured_gpt_5_6_terra(monkeypatch, tmp_path):
+    from PIL import Image
+
+    service = KworkAutopublishService()
+    image_path = tmp_path / "cover.png"
+    Image.new("RGB", (768, 512), (20, 40, 60)).save(image_path, "PNG")
+    captured: dict[str, object] = {}
+
+    class FakeResponse:
+        status_code = 200
+        text = "ok"
+        headers = {"x-request-id": "req-qa"}
+
+        @staticmethod
+        def json():
+            return {
+                "model": "gpt-5.6-terra",
+                "output": [
+                    {
+                        "content": [
+                            {
+                                "type": "output_text",
+                                "text": '{"ok":true,"score":9,"issues":[],"correction":""}',
+                            }
+                        ]
+                    }
+                ],
+            }
+
+    class FakeClient:
+        def __init__(self, **_kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def post(self, url, *, headers, json):
+            captured.update({"url": url, "headers": headers, "payload": json})
+            return FakeResponse()
+
+    monkeypatch.setenv("KWORK_COVER_QA_ENABLED", "true")
+    monkeypatch.setenv("KWORK_COVER_QA_PROVIDER", "openai")
+    monkeypatch.setenv("KWORK_COVER_QA_MODEL", "gpt-5.6-terra")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-terra-key")
+    monkeypatch.setenv("OPENAI_API_KEYS", "")
+    monkeypatch.setenv("OPENAI_BASE_URL", "https://llm.example")
+    monkeypatch.setenv("OPENAI_API_PREFIX", "/v1")
+    monkeypatch.setattr(kwork_autopublish.httpx, "AsyncClient", FakeClient)
+
+    result = await service.validate_generated_cover(
+        image_path,
+        {"title": "Минималистичный сайт программиста"},
+        {"category_name": "Разработка и IT"},
+    )
+
+    assert result["status"] == "passed"
+    assert result["review_provider"] == "openai"
+    assert result["review_model_requested"] == "gpt-5.6-terra"
+    assert captured["url"] == "https://llm.example/v1/responses"
+    assert captured["headers"]["Authorization"] == "Bearer test-terra-key"
+    payload = captured["payload"]
+    assert isinstance(payload, dict)
+    assert payload["model"] == "gpt-5.6-terra"
+    assert payload["input"][0]["content"][1]["image_url"].startswith("data:image/")
+    assert "web/software artifact mode contains any person" in payload["input"][0]["content"][0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_visual_qa_rejects_malformed_boolean_response(monkeypatch, tmp_path):
+    from PIL import Image
+
+    service = KworkAutopublishService()
+    image_path = tmp_path / "cover.png"
+    Image.new("RGB", (768, 512), (20, 40, 60)).save(image_path, "PNG")
+
+    class FakeResponse:
+        status_code = 200
+        text = "ok"
+        headers: dict[str, str] = {}
+
+        @staticmethod
+        def json():
+            return {
+                "model": "gpt-5.6-terra",
+                "output": [
+                    {
+                        "content": [
+                            {
+                                "type": "output_text",
+                                "text": '{"ok":"false","score":9,"issues":[],"correction":""}',
+                            }
+                        ]
+                    }
+                ],
+            }
+
+    class FakeClient:
+        def __init__(self, **_kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def post(self, _url, *, headers, json):
+            return FakeResponse()
+
+    monkeypatch.setenv("KWORK_COVER_QA_ENABLED", "true")
+    monkeypatch.setenv("KWORK_COVER_QA_PROVIDER", "openai")
+    monkeypatch.setenv("KWORK_COVER_QA_MODEL", "gpt-5.6-terra")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-terra-key")
+    monkeypatch.setenv("OPENAI_API_KEYS", "")
+    monkeypatch.setattr(kwork_autopublish.httpx, "AsyncClient", FakeClient)
+
+    result = await service.validate_generated_cover(
+        image_path,
+        {"title": "Минималистичный сайт программиста"},
+        {"category_name": "Разработка и IT"},
+    )
+
+    assert result["status"] == "unavailable"
+    assert result["ok"] is False
+    assert "must be boolean" in result["detail"]
+
+
+@pytest.mark.asyncio
+async def test_generate_cover_failure_returns_error_without_local_art(monkeypatch):
+    service = KworkAutopublishService()
+
+    async def fake_prompt(_draft, _request):
+        return "one coherent finished product", "test"
+
+    async def fail_image(*_args, **_kwargs):
+        raise RuntimeError("gateway unavailable")
+
+    monkeypatch.setenv("KWORK_COVER_IMAGE_MODEL", "gpt-image-2")
+    monkeypatch.setattr(service, "build_cover_prompt", fake_prompt)
+    monkeypatch.setattr(service, "_generate_image_file", fail_image)
+
+    result = await service.generate_cover(
+        {"title": "Минималистичный сайт"},
+        {"category_name": "Разработка и IT"},
+    )
+
+    assert result["status"] == "error"
+    assert result["code"] == "gpt_image_2_generation_failed"
+    assert result["requested_image_model"] == "gpt-image-2"
+    assert "path" not in result
+    assert "generated_local_fallback" not in str(result)
+
+
+@pytest.mark.asyncio
+async def test_generate_cover_retries_once_after_visual_qa_rejection(monkeypatch, tmp_path):
+    from PIL import Image
+
+    service = KworkAutopublishService()
+    monkeypatch.setattr(kwork_autopublish, "PROPOSAL_ASSETS_DIR", tmp_path)
+    prompts: list[str] = []
+    gates = [
+        {"status": "rejected", "ok": False, "score": 4, "issues": ["generic abstract poster"], "correction": "show one real shipped website"},
+        {"status": "passed", "ok": True, "score": 9, "issues": [], "correction": ""},
+    ]
+
+    async def fake_prompt(_draft, request):
+        request["_cover_visual_strategy"] = _visual_strategy(
+            {"title": "Минималистичный сайт программиста"},
+            {"category_name": "Разработка и IT"},
+        )
+        return "one finished developer website", "test"
+
+    async def fake_generate(path, prompt, *, purpose):
+        assert purpose == "cover"
+        prompts.append(prompt)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (768, 512), (20, 40, 60)).save(path, "PNG")
+        return {
+            "requested_model": "gpt-image-2",
+            "served_model": "",
+            "model_verification": "request_only",
+            "size": "1536x1024",
+            "quality": "high",
+        }
+
+    async def fake_validate(_path, _draft, _request):
+        return gates.pop(0)
+
+    monkeypatch.setattr(service, "build_cover_prompt", fake_prompt)
+    monkeypatch.setattr(service, "_generate_image_file", fake_generate)
+    monkeypatch.setattr(service, "validate_generated_cover", fake_validate)
+
+    result = await service.generate_cover(
+        {"title": "Минималистичный сайт программиста", "description": "Портфолио"},
+        {"category_name": "Разработка и IT"},
+    )
+
+    assert result["status"] == "generated"
+    assert result["quality_gate"]["status"] == "passed"
+    assert result["prompt_source"] == "test+qa_retry"
+    assert len(prompts) == 2
+    assert "show one real shipped website" in prompts[1]
+    assert result["image_generation"]["qa_retry"] is True
+
+
+@pytest.mark.asyncio
+async def test_generate_cover_does_not_rerender_when_visual_qa_is_unavailable(monkeypatch, tmp_path):
+    from PIL import Image
+
+    service = KworkAutopublishService()
+    monkeypatch.setattr(kwork_autopublish, "PROPOSAL_ASSETS_DIR", tmp_path)
+    generated_paths: list[Path] = []
+
+    async def fake_prompt(_draft, _request):
+        return "one direct finished website", "test"
+
+    async def fake_generate(path, _prompt, *, purpose):
+        assert purpose == "cover"
+        generated_paths.append(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (768, 512), (20, 40, 60)).save(path, "PNG")
+        return {
+            "requested_model": "gpt-image-2",
+            "served_model": "",
+            "model_verification": "request_only",
+            "size": "1536x1024",
+            "quality": "high",
+            "visual_pipeline_version": kwork_autopublish.KWORK_VISUAL_PIPELINE_VERSION,
+        }
+
+    async def fake_validate(_path, _draft, _request):
+        return {
+            "status": "unavailable",
+            "ok": False,
+            "score": None,
+            "issues": ["visual QA provider is unavailable"],
+        }
+
+    monkeypatch.setattr(service, "build_cover_prompt", fake_prompt)
+    monkeypatch.setattr(service, "_generate_image_file", fake_generate)
+    monkeypatch.setattr(service, "validate_generated_cover", fake_validate)
+
+    result = await service.generate_cover(
+        {"title": "Минималистичный сайт"},
+        {"category_name": "Разработка и IT"},
+    )
+
+    assert result["status"] == "error"
+    assert result["code"] == "cover_quality_gate_unavailable"
+    assert len(generated_paths) == 1
+    assert not generated_paths[0].exists()
+
+
+@pytest.mark.asyncio
+async def test_generate_portfolio_assets_uses_service_specific_gpt_image_prompts(monkeypatch, tmp_path):
+    from PIL import Image
+
+    service = KworkAutopublishService()
+    monkeypatch.setattr(kwork_autopublish, "PROPOSAL_ASSETS_DIR", tmp_path)
+    captured_prompts: list[str] = []
+    qa_prompts: list[str] = []
+    qa_modes: list[str] = []
+
+    async def fake_generate(path, prompt, *, purpose):
+        captured_prompts.append(prompt)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (768, 512), (20, 40, 60)).save(path, "PNG")
+        return {
+            "requested_model": "gpt-image-2",
+            "served_model": "gpt-image-2",
+            "model_verification": "response_reported",
+            "size": "1536x1024",
+            "quality": "high",
+        }
+
+    async def fake_validate(_path, _draft, _request, *, purpose="cover", expected_prompt=""):
+        assert purpose == "portfolio"
+        qa_prompts.append(expected_prompt)
+        qa_modes.append(str(_request["_cover_visual_strategy"]["scene_mode"]))
+        return {"status": "passed", "ok": True, "score": 9, "issues": []}
+
+    monkeypatch.setattr(service, "_generate_image_file", fake_generate)
+    monkeypatch.setattr(service, "validate_generated_cover", fake_validate)
+    assets = await service.generate_portfolio_assets(
+        {"category_id": 25, "title": "Минималистичный сайт программиста"},
+        {"category_name": "Разработка и IT", "service_summary": "сайт-портфолио программиста"},
+        cover_prompt="One polished shipped developer portfolio website.",
     )
 
     assert len(assets) == 5
-    paths = [Path(item["path"]) for item in assets]
-    assert all(path.is_file() and path.stat().st_size > 30_000 for path in paths)
-    assert len({hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}) == 5
-    assert all(item["asset_url"].endswith(Path(item["path"]).name) for item in assets)
+    assert len(captured_prompts) == 5
+    assert len(qa_prompts) == 5
+    assert qa_modes == ["artifact", "artifact", "outcome", "process", "artifact"]
+    assert all(Path(item["path"]).is_file() for item in assets)
+    assert all(item["image_generation"]["requested_model"] == "gpt-image-2" for item in assets)
+    assert all(item["quality_gate"]["status"] == "passed" for item in assets)
+    assert all(
+        item["visual_pipeline_version"] == kwork_autopublish.KWORK_VISUAL_PIPELINE_VERSION
+        for item in assets
+    )
+    assert all("Минималистичный сайт программиста" in prompt for prompt in captured_prompts)
+    assert all("No presentation board" in prompt for prompt in captured_prompts)
+    assert all("Кириллица для логотипа" not in prompt for prompt in captured_prompts)
 
 
 def test_portfolio_payload_matches_kwork_browser_shape():
@@ -606,6 +1083,12 @@ async def test_publish_draft_live_uploads_cover_and_adds_crop(monkeypatch, tmp_p
         "attribute_manifest": {"controls": [{"name": "attribute[208]"}], "unresolved_required": []},
         "attribute_selection": {"attribute[208]": 3587},
         "cover_image_path": str(cover),
+        "cover_image": {
+            "path": str(cover),
+            "requested_image_model": "gpt-image-2",
+            "visual_pipeline_version": kwork_autopublish.KWORK_VISUAL_PIPELINE_VERSION,
+            "quality_gate": {"status": "passed", "ok": True, "score": 9, "issues": []},
+        },
     }
     token = service.issue_publish_token(draft)["token"]
 
@@ -651,6 +1134,19 @@ async def test_publish_design_draft_uploads_required_portfolio(monkeypatch, tmp_
 
     monkeypatch.setattr(service, "_web_cookies", lambda: _fake_cookies_async())
     monkeypatch.setattr("src.platforms.kwork_autopublish.KworkWebListingClient", FakeListingClient)
+    portfolio_assets = []
+    for index in range(5):
+        path = tmp_path / f"portfolio-{index + 1}.png"
+        path.write_bytes(base64.b64decode(_png_b64()))
+        portfolio_assets.append(
+            {
+                "title": f"Работа {index + 1}",
+                "path": str(path),
+                "image_generation": {"requested_model": "gpt-image-2"},
+                "quality_gate": {"status": "passed", "ok": True, "score": 9, "issues": []},
+                "visual_pipeline_version": kwork_autopublish.KWORK_VISUAL_PIPELINE_VERSION,
+            }
+        )
 
     draft = {
         "category_id": 25,
@@ -660,6 +1156,7 @@ async def test_publish_design_draft_uploads_required_portfolio(monkeypatch, tmp_
         "work_time": 3,
         "attribute_manifest": {"controls": [{"name": "attribute[1624]"}], "unresolved_required": []},
         "attribute_selection": {"attribute[1624]": 401928},
+        "portfolio_assets": portfolio_assets,
         "cover_upload": {
             "first_photo_json": {"image_path": "/tmp/kwork-cover.png", "hash": "cover-hash"},
             "first_photo_path": "/tmp/kwork-cover.png",
@@ -812,6 +1309,48 @@ async def test_publish_draft_live_blocks_without_cover_before_network(monkeypatc
     assert result["ok"] is False
     assert result["code"] == "live_preflight_failed"
     assert "cover" in result["preflight"]["missing"]
+
+
+def test_live_preflight_blocks_legacy_generated_cover(monkeypatch):
+    service = KworkAutopublishService()
+    monkeypatch.setenv("KWORK_COVER_QA_ENABLED", "true")
+
+    result = service.live_preflight(
+        {
+            "category_id": 41,
+            "title": "Сделаю сайт",
+            "description": "Описание",
+            "attribute_manifest": {"controls": [{"name": "attribute[208]"}], "unresolved_required": []},
+            "attribute_selection": {"attribute[208]": 3587},
+            "cover_image_path": "C:/tmp/legacy-cover.png",
+            "cover_image": {
+                "path": "C:/tmp/legacy-cover.png",
+                "requested_image_model": "gpt-image-1",
+            },
+        }
+    )
+
+    assert result["ok"] is False
+    assert "cover_visual_outdated" in result["missing"]
+
+
+def test_live_preflight_blocks_path_only_cover_without_provenance(monkeypatch):
+    service = KworkAutopublishService()
+    monkeypatch.setenv("KWORK_COVER_QA_ENABLED", "true")
+
+    result = service.live_preflight(
+        {
+            "category_id": 41,
+            "title": "Сделаю сайт",
+            "description": "Описание",
+            "attribute_manifest": {"controls": [{"name": "attribute[208]"}], "unresolved_required": []},
+            "attribute_selection": {"attribute[208]": 3587},
+            "cover_image_path": "C:/tmp/path-only-cover.png",
+        }
+    )
+
+    assert result["ok"] is False
+    assert "cover_visual_outdated" in result["missing"]
 
 
 def test_autopublish_routes_issue_token_and_require_confirmation():

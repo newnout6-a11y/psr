@@ -62,10 +62,17 @@ _ENV_KEYS = [
     "KWORK_COVER_IMAGE_MODEL",
     "KWORK_COVER_IMAGE_SIZE",
     "KWORK_COVER_IMAGE_QUALITY",
+    "KWORK_PORTFOLIO_IMAGE_SIZE",
+    "KWORK_PORTFOLIO_IMAGE_QUALITY",
+    "KWORK_PORTFOLIO_IMAGE_CONCURRENCY",
     "KWORK_COVER_IMAGE_TIMEOUT",
     "KWORK_COVER_VISION_PROVIDER",
     "KWORK_COVER_VISION_MODEL",
     "KWORK_COVER_VISION_MAX_TOKENS",
+    "KWORK_COVER_QA_ENABLED",
+    "KWORK_COVER_QA_PROVIDER",
+    "KWORK_COVER_QA_MODEL",
+    "KWORK_COVER_QA_MIN_SCORE",
     "KWORK_COVER_PROMPT_PROVIDER",
     "KWORK_COVER_PROMPT_MODEL",
     "ATTACHMENT_CONTEXT_ENABLED",
@@ -325,6 +332,8 @@ def update_env(req: EnvUpdateRequest):
     safe = {k: v for k, v in req.values.items() if k in _ENV_KEYS and not (k in _SECRET_KEYS and v == SECRET_MASK)}
     if not safe:
         return {"ok": True, "updated": []}
+    if "KWORK_COVER_IMAGE_MODEL" in safe and safe["KWORK_COVER_IMAGE_MODEL"].strip() != "gpt-image-2":
+        raise HTTPException(status_code=422, detail="KWORK_COVER_IMAGE_MODEL is locked to gpt-image-2")
     try:
         _write_env_file(safe)
         # Also update current process env (override=True semantics)

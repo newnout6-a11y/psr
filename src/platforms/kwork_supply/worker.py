@@ -6,6 +6,7 @@ import asyncio
 from contextlib import suppress
 from collections.abc import Awaitable, Callable, Mapping
 from datetime import UTC, datetime, timedelta
+from time import monotonic
 from typing import Any
 
 from .coordinator import MarketScanCoordinator
@@ -22,7 +23,7 @@ from .models import (
     WorkerState,
     utc_now,
 )
-from .repository import MarketJobRevisionConflictError
+from .repository import MarketJobRevisionConflictError, MarketOperationLeaseError
 from .transports.base import TransportManager
 
 
@@ -53,7 +54,7 @@ class MarketWorker:
         transport_manager: TransportManager | None = None,
         identity_pool: MarketIdentityPool | None = None,
         lease_seconds: int = 60,
-        poll_interval_seconds: float = 0.25,
+        poll_interval_seconds: float = 2.0,
     ) -> None:
         if not job_id.strip() or not worker_id.strip():
             raise ValueError("job_id and worker_id are required")
@@ -83,6 +84,9 @@ class MarketWorker:
         self._direct_fallback_reported = False
         self._last_heartbeat_at: str | None = None
         self._last_emitted_state_signature: tuple[str, str, str | None, str | None, str | None] | None = None
+        self._last_persisted_state_signature: tuple[str, str, str | None, str | None, str | None] | None = None
+        self._last_state_write_monotonic: float | None = None
+        self._idle_heartbeat_seconds = 10.0
 
     @property
     def actual_state(self) -> WorkerState:
@@ -150,6 +154,12 @@ class MarketWorker:
         self._stop_requested = True
         self._drain_requested = True
 
+    def request_terminal_stop(self) -> None:
+        """Stop a worker whose job reached a durable terminal state."""
+
+        self._desired_state = WorkerDesiredState.STOPPED
+        self.request_stop()
+
     async def run(self) -> None:
         """Persist lifecycle and process operations until drained or cancelled."""
 
@@ -213,8 +223,17 @@ class MarketWorker:
         except asyncio.CancelledError:
             raise
         finally:
-            await self._release_transport()
-            await self._persist_state(WorkerState.STOPPED)
+            release_error: str | None = None
+            try:
+                await self._release_transport()
+            except Exception as exc:  # noqa: BLE001 - terminal cleanup must remain best-effort.
+                release_error = f"transport release failed: {type(exc).__name__}: {exc}"
+                with suppress(Exception):
+                    await self.coordinator.repository.release_market_identity_binding(
+                        self.worker_id,
+                        reason="worker_terminal_cleanup",
+                    )
+            await self._persist_state(WorkerState.STOPPED, last_error=release_error)
 
     async def _execute(self, operation: Mapping[str, Any]) -> None:
         operation_id = str(operation["operation_id"])
@@ -228,17 +247,32 @@ class MarketWorker:
             operation_id=operation_id,
         )
         lease_heartbeat = asyncio.create_task(
-            self._renew_operation_lease(operation_id),
+            self._renew_operation_lease(operation),
             name=f"market-operation-lease-{operation_id}",
         )
+        handler_task: asyncio.Task[None] | None = None
         try:
             handler = self.handlers.get(str(operation["kind"]))
             if handler is None:
                 raise RuntimeError(f"no handler registered for {operation['kind']!r}")
-            await handler(self, operation)
+            handler_task = asyncio.create_task(handler(self, operation), name=f"market-handler-{operation_id}")
+            done, _ = await asyncio.wait({handler_task, lease_heartbeat}, return_when=asyncio.FIRST_COMPLETED)
+            if lease_heartbeat in done:
+                heartbeat_error = lease_heartbeat.exception()
+                if heartbeat_error is not None:
+                    handler_task.cancel()
+                    with suppress(asyncio.CancelledError):
+                        await handler_task
+                    raise heartbeat_error
+            await handler_task
             current = await self.coordinator.repository.get_operation(operation_id)
             if current is not None and current["state"] in {OperationState.LEASED.value, OperationState.RUNNING.value}:
-                completed = await self.coordinator.repository.complete_operation(operation_id, self.worker_id)
+                completed = await self.coordinator.repository.complete_operation(
+                    operation_id,
+                    self.worker_id,
+                    attempt_id=(str(operation["attempt_id"]) if operation.get("attempt_id") else None),
+                    lease_fence=(int(operation["lease_fence"]) if operation.get("lease_fence") is not None else None),
+                )
                 await self.coordinator.emit(
                     self.job_id,
                     "operation.completed",
@@ -254,6 +288,10 @@ class MarketWorker:
         except Exception as exc:  # noqa: BLE001 - handlers are isolated durable operations.
             await self._fail_operation(operation, str(exc), failure_kind="handler_error")
         finally:
+            if handler_task is not None and not handler_task.done():
+                handler_task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await handler_task
             lease_heartbeat.cancel()
             with suppress(asyncio.CancelledError):
                 await lease_heartbeat
@@ -261,18 +299,22 @@ class MarketWorker:
             if not self._drain_requested:
                 await self._persist_state(WorkerState.IDLE)
 
-    async def _renew_operation_lease(self, operation_id: str) -> None:
-        interval = max(min(self.lease_seconds / 3, 20.0), 0.25)
+    async def _renew_operation_lease(self, operation: Mapping[str, Any]) -> None:
+        operation_id = str(operation["operation_id"])
+        attempt_id = str(operation["attempt_id"]) if operation.get("attempt_id") else None
+        lease_fence = int(operation["lease_fence"]) if operation.get("lease_fence") is not None else None
+        interval = max(min(self.lease_seconds / 3, 10.0), 0.25)
         while True:
             await asyncio.sleep(interval)
-            try:
-                await self.coordinator.repository.renew_operation_lease(
-                    operation_id,
-                    self.worker_id,
-                    lease_seconds=self.lease_seconds,
-                )
-            except Exception:
-                return
+            await self.coordinator.repository.renew_operation_lease(
+                operation_id,
+                self.worker_id,
+                lease_seconds=self.lease_seconds,
+                attempt_id=attempt_id,
+                lease_fence=lease_fence,
+            )
+            if self.identity_pool is not None and not await self.identity_pool.renew(self.worker_id):
+                raise MarketOperationLeaseError(f"identity lease lost for worker {self.worker_id}")
 
     async def _fail_operation(
         self,
@@ -290,6 +332,8 @@ class MarketWorker:
                 error,
                 retry_at=retry_at,
                 failure_kind=failure_kind,
+                attempt_id=(str(operation["attempt_id"]) if operation.get("attempt_id") else None),
+                lease_fence=(int(operation["lease_fence"]) if operation.get("lease_fence") is not None else None),
             )
         except Exception:  # The lease may have been atomically completed by a handler.
             return
@@ -462,9 +506,11 @@ class MarketWorker:
 
     async def _release_transport(self) -> None:
         if self.identity_pool is not None:
-            await self.identity_pool.release(self.worker_id, reason="worker_released")
-            self._identity_lease = None
-            self._transport_id = None
+            try:
+                await self.identity_pool.release(self.worker_id, reason="worker_released")
+            finally:
+                self._identity_lease = None
+                self._transport_id = None
             return
         if self.transport_manager is None or self._transport_id is None:
             self._transport_id = None
@@ -481,9 +527,24 @@ class MarketWorker:
     async def _persist_state(self, actual: WorkerState, *, last_error: str | None = None) -> None:
         previous_actual = self._actual_state
         self._actual_state = actual
+        write_signature = (
+            actual.value,
+            self._desired_state.value,
+            self._transport_id,
+            self._current_operation_id,
+            last_error,
+        )
+        now_monotonic = monotonic()
+        if (
+            actual in {WorkerState.LEASING, WorkerState.IDLE}
+            and write_signature == self._last_persisted_state_signature
+            and self._last_state_write_monotonic is not None
+            and now_monotonic - self._last_state_write_monotonic < self._idle_heartbeat_seconds
+        ):
+            return
         heartbeat = utc_now()
         self._last_heartbeat_at = heartbeat
-        if self.identity_pool is not None:
+        if self.identity_pool is not None and actual is not WorkerState.STOPPED:
             await self.identity_pool.renew(self.worker_id)
         record = await self.coordinator.repository.upsert_worker(
             {
@@ -499,6 +560,8 @@ class MarketWorker:
             },
             job_id=self.job_id,
         )
+        self._last_persisted_state_signature = write_signature
+        self._last_state_write_monotonic = now_monotonic
         state_signature = (
             str(record["actual_state"]),
             str(record["desired_state"]),

@@ -11,6 +11,7 @@ from src.platforms.kwork_account_store import KworkAccountStore
 from src.platforms.kwork_supply.coordinator import MarketScanCoordinator
 from src.platforms.kwork_supply.identity_pool import MarketIdentityPool
 from src.platforms.kwork_supply.models import (
+    JobKind,
     MarketJobCreate,
     MarketScope,
     TransportHealth,
@@ -30,6 +31,9 @@ class FakeVpnteProvider:
     def instances(self) -> list[dict[str, Any]]:
         self.instances_calls += 1
         return deepcopy(self.instances_data)
+
+    def list(self) -> list[dict[str, Any]]:
+        return [{"profileId": f"profile-{index}"} for index in range(160)]
 
     def status(self, slot: int) -> dict[str, Any]:
         return deepcopy(next(item for item in self.instances_data if item["slot"] == slot))
@@ -98,6 +102,7 @@ async def _pool(
     egress: dict[int, str],
     on_rotate=None,
     account_registration_ids: tuple[str, ...] = (),
+    job_kind: JobKind = JobKind.SUPPLY,
 ) -> tuple[MarketIdentityPool, MarketJobRepository, str, KworkAccountStore, VpnteTransportManager]:
     store = KworkAccountStore(db_path=tmp_path / "accounts.sqlite3", key_path=tmp_path / "unused.key")
     repository = MarketJobRepository(tmp_path / "market.sqlite3")
@@ -106,6 +111,7 @@ async def _pool(
         MarketJobCreate(
             scope=MarketScope(category_id=1),
             account_registration_ids=account_registration_ids,
+            job_kind=job_kind,
         ),
         job_id="identity-job",
     )
@@ -146,6 +152,25 @@ async def test_pool_assigns_one_account_and_one_distinct_ip_to_each_parallel_wor
 
 
 @pytest.mark.asyncio
+async def test_pool_creates_a_durable_worker_row_for_a_buyer_identity_lease(tmp_path: Path):
+    pool, repository, job_id, store, _manager = await _pool(
+        tmp_path,
+        slots=[1],
+        egress={1: "203.0.113.1"},
+        job_kind=JobKind.BUYER_SEARCH,
+    )
+    _save_account(store, index=1, signup_ip="203.0.113.1", slot=1)
+
+    lease = await pool.acquire("buyer-discovery-worker", job_id)
+
+    assert lease is not None
+    worker = await repository.get_worker("buyer-discovery-worker")
+    assert worker is not None
+    assert worker["job_id"] == job_id
+    assert worker["runtime_kind"] == "identity_lease"
+
+
+@pytest.mark.asyncio
 async def test_pool_reuses_route_inventory_and_persists_release(tmp_path: Path):
     pool, repository, job_id, store, manager = await _pool(
         tmp_path,
@@ -175,6 +200,65 @@ async def test_pool_reuses_route_inventory_and_persists_release(tmp_path: Path):
     transports = await repository.list_transports(limit=10)
     released = next(item for item in transports if item["transport_id"] == first.transport_id)
     assert released["lease_owner"] is None
+
+
+@pytest.mark.asyncio
+async def test_pool_reconciles_bindings_for_terminal_jobs(tmp_path: Path):
+    pool, repository, job_id, store, _manager = await _pool(
+        tmp_path,
+        slots=[1],
+        egress={1: "203.0.113.1"},
+    )
+    _save_account(store, index=1, signup_ip="203.0.113.1", slot=1)
+    await _worker(repository, job_id, "worker-1")
+    lease = await pool.acquire("worker-1", job_id)
+    assert lease is not None
+
+    released_count = await pool.release_inactive_job_bindings(set())
+
+    binding = await repository.get_market_identity_binding("worker-1")
+    transport = next(
+        item for item in await repository.list_transports(limit=10) if item["transport_id"] == lease.transport_id
+    )
+    assert released_count == 1
+    assert binding is not None and binding["state"] == "released"
+    assert transport["lease_owner"] is None
+
+
+@pytest.mark.asyncio
+async def test_pool_reclaims_orphaned_buyer_bindings_for_a_restarted_runtime(tmp_path: Path):
+    pool, repository, job_id, store, manager = await _pool(
+        tmp_path,
+        slots=[1],
+        egress={1: "203.0.113.1"},
+        job_kind=JobKind.BUYER_SEARCH,
+    )
+    _save_account(store, index=1, signup_ip="203.0.113.1", slot=1)
+    await _worker(repository, job_id, "old-buyer-worker")
+    old_lease = await pool.acquire("old-buyer-worker", job_id)
+    assert old_lease is not None
+
+    provider = manager._provider
+    assert isinstance(provider, FakeVpnteProvider)
+
+    async def probe(_proxy_url: str) -> str:
+        return "203.0.113.1"
+
+    restarted_pool = MarketIdentityPool(
+        repository,
+        VpnteTransportManager(provider),
+        account_store=store,
+        exit_ip_probe=probe,
+    )
+
+    assert await restarted_pool.reclaim_unowned_buyer_bindings() == 1
+    binding = await repository.get_market_identity_binding("old-buyer-worker")
+    assert binding is not None and binding["state"] == "released"
+
+    await _worker(repository, job_id, "new-buyer-worker")
+    new_lease = await restarted_pool.acquire("new-buyer-worker", job_id)
+    assert new_lease is not None
+    assert new_lease.registration_id == old_lease.registration_id
 
 
 @pytest.mark.asyncio
@@ -277,6 +361,38 @@ async def test_snapshot_reads_accounts_and_cached_routes_without_refreshing_vpnt
     assert [account["registration_id"] for account in snapshot["accounts"]] == ["registration-1"]
     assert snapshot["summary"]["effective_capacity"] == 1
     assert snapshot["routes"][0]["egress_ip"] == "203.0.113.1"
+
+
+@pytest.mark.asyncio
+async def test_live_snapshot_stops_durable_routes_missing_from_vpnte(tmp_path: Path):
+    pool, repository, _job_id, store, _manager = await _pool(
+        tmp_path,
+        slots=[1],
+        egress={1: "203.0.113.1"},
+    )
+    _save_account(store, index=1, signup_ip="203.0.113.1", slot=1)
+    await repository.upsert_transport(
+        TransportSnapshot(
+            transport_id="vpnte-slot-2",
+            kind=TransportKind.VPNTE,
+            health=TransportHealth.HEALTHY,
+            slot=2,
+            proxy_url="http://127.0.0.1:19002",
+            egress_ip="203.0.113.2",
+        )
+    )
+
+    live = await pool.snapshot(refresh_routes=True)
+    cached = await pool.snapshot(refresh_routes=False)
+
+    durable = {item["transport_id"]: item for item in await repository.list_transports(limit=10)}
+    assert live["summary"]["routes_healthy"] == 1
+    assert live["summary"]["provider_profiles_total"] == 160
+    assert live["summary"]["egress_ips_distinct"] == 1
+    assert cached["summary"]["routes_healthy"] == 1
+    assert cached["summary"]["egress_ips_distinct"] == 1
+    assert durable["vpnte-slot-2"]["health"] == "stopped"
+    assert durable["vpnte-slot-2"]["proxy_url"] is None
 
 
 @pytest.mark.asyncio

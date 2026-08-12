@@ -1148,8 +1148,6 @@ export interface KworkDraftRequest {
   use_llm?: boolean
   generate_image?: boolean
   image_context?: string
-  cover_text?: string
-  cover_subtitle?: string
   use_cover_prompt_llm?: boolean
   cover_prompt_provider?: string
   cover_prompt_model?: string
@@ -1172,7 +1170,17 @@ export interface KworkCoverImageResult {
   detail?: string
   prompt?: string
   prompt_source?: string
-  text_overlay?: boolean
+  requested_image_model?: string
+  served_image_model?: string
+  image_model_verification?: 'response_reported' | 'request_only' | string
+  image_size?: string
+  image_quality?: string
+  image_request_id?: string
+  image_latency_ms?: number
+  visual_pipeline_version?: string
+  image_generation?: Record<string, unknown>
+  visual_strategy?: Record<string, unknown>
+  quality_gate?: Record<string, unknown>
   visual_analysis_status?: 'analyzed' | 'empty' | 'failed' | 'disabled' | 'no_images' | 'download_failed' | string
   competitor_images_seen?: number
   visual_style_brief?: string

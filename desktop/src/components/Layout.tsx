@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, ListChecks, Settings, ScrollText,
   Search, Play, Square, ChevronDown, Globe2,
@@ -15,6 +15,7 @@ import {
   notifyKworkVerificationNeeded,
   openKworkVerificationWindow,
 } from '../lib/kworkVerification'
+import RouteErrorBoundary from './RouteErrorBoundary'
 
 type PlatformId = 'kwork' | 'freelance_ru' | 'hh_ru'
 
@@ -58,6 +59,7 @@ interface KworkVerificationNotice {
 
 const NAV = [
   { to: '/kwork-market',  icon: Store,           label: 'Рынок Kwork' },
+  { to: '/buyer-search',  icon: Search,          label: 'Поиск покупателей' },
   { to: '/kwork-registration', icon: UserPlus,   label: 'Регистрация Kwork' },
   { to: '/dashboard',     icon: LayoutDashboard, label: 'Панель' },
   { to: '/queue',         icon: ListChecks,      label: 'Очередь' },
@@ -235,6 +237,10 @@ function ToggleButton({
 }
 
 export default function Layout() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const shellRestoredRef = useRef(false)
+  const isBuyerSearch = location.pathname.startsWith('/buyer-search')
   const [status, setStatus] = useState<OrchestratorStatus>({
     cycle_running: false,
     execution_mode: 'semi_auto',
@@ -258,6 +264,26 @@ export default function Layout() {
     seenAt: 0,
   })
   const kworkVerificationNotifiedRef = useRef(0)
+
+  useEffect(() => {
+    const electronApi = (window as Window & { electronAPI?: { getShellState?: () => Promise<{ lastRoute?: string }> } }).electronAPI
+    if (!electronApi?.getShellState) {
+      shellRestoredRef.current = true
+      return
+    }
+    electronApi.getShellState()
+      .then((saved) => {
+        shellRestoredRef.current = true
+        if (saved?.lastRoute && saved.lastRoute !== location.pathname) navigate(saved.lastRoute, { replace: true })
+      })
+      .catch(() => { shellRestoredRef.current = true })
+  }, [])
+
+  useEffect(() => {
+    if (!shellRestoredRef.current) return
+    const electronApi = (window as Window & { electronAPI?: { setShellRoute?: (route: string) => Promise<string> } }).electronAPI
+    void electronApi?.setShellRoute?.(`${location.pathname}${location.search}${location.hash}`)
+  }, [location.hash, location.pathname, location.search])
 
   const refreshStatus = useCallback(async () => {
     try {
@@ -443,12 +469,15 @@ export default function Layout() {
   const lastStats = status.last_cycle_stats ?? {}
 
   return (
-    <div className="app-shell flex h-screen w-screen overflow-hidden bg-surface-900 max-lg:flex-col">
+    <div className={cn(
+      'app-shell modern-shell flex h-screen w-screen overflow-hidden bg-surface-900 max-lg:flex-col',
+      isBuyerSearch ? 'buyer-shell-route' : 'legacy-shell-route',
+    )}>
       {/* Sidebar */}
-      <aside className="chrome-rail flex w-80 shrink-0 flex-col max-lg:h-[48vh] max-lg:w-full max-lg:border-b max-lg:border-r-0">
+      <aside className="chrome-rail flex w-56 shrink-0 flex-col max-lg:h-auto max-lg:w-full max-lg:border-b max-lg:border-r-0">
         {/* Logo area — also acts as drag region */}
         <div
-          className="flex items-center gap-3 px-4 h-14 border-b border-white/10 select-none"
+          className="flex h-14 items-center gap-3 border-b border-white/10 px-4 select-none max-lg:h-11 max-lg:px-3"
           style={{ WebkitAppRegion: 'drag' } as CSSProperties}
         >
           <span className="factory-mark">
@@ -456,34 +485,36 @@ export default function Layout() {
           </span>
           <div className="min-w-0">
             <div className="font-semibold text-sm tracking-wide text-white">PSR Desktop</div>
-            <div className="mono-label leading-none">агент откликов</div>
+            <div className="mono-label leading-none max-lg:hidden">агент откликов</div>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {/* Navigation */}
-          <nav className="px-2 py-3 space-y-1">
+          <nav className="space-y-1 px-2 py-3 max-lg:flex max-lg:min-w-max max-lg:items-center max-lg:gap-1 max-lg:space-y-0 max-lg:py-2">
             {NAV.map(({ to, icon: Icon, label }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
+                    'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors max-lg:h-9 max-lg:w-10 max-lg:justify-center max-lg:px-0',
                     isActive
                       ? 'bg-stone-100 text-black font-medium'
                       : 'text-zinc-400 hover:text-white hover:bg-surface-700'
                   )
                 }
+                title={label}
+                aria-label={label}
               >
                 <Icon className="w-4 h-4 shrink-0" />
-                {label}
+                <span className="max-lg:hidden">{label}</span>
               </NavLink>
             ))}
           </nav>
 
           {/* Control Panel */}
-          <div className="p-3 border-t border-white/10 space-y-3">
+          <div className={cn('space-y-3 border-t border-white/10 p-3 max-lg:hidden', isBuyerSearch && 'hidden')}>
             <div className="flex items-center justify-between">
               <span className="page-kicker">управление</span>
               <span className="mono-label">{dryRun ? 'тестовый' : 'боевой'}</span>
@@ -772,7 +803,7 @@ export default function Layout() {
             </span>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto max-lg:flex-none max-lg:overflow-x-auto max-lg:overflow-y-auto">
           {kworkVerification.needed && !kworkVerification.dismissed && (
             <div className="mx-4 mt-3 rounded-md border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-xs text-amber-100 shadow-lg shadow-black/20">
               <div className="flex items-start gap-3">
@@ -814,7 +845,9 @@ export default function Layout() {
               </div>
             </div>
           )}
-          <Outlet />
+          <RouteErrorBoundary resetKey={`${location.pathname}${location.search}`}>
+            <Outlet />
+          </RouteErrorBoundary>
         </div>
       </main>
 

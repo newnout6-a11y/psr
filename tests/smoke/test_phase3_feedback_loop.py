@@ -82,8 +82,11 @@ def _make_db() -> tuple[ProposalDB, Path]:
 def test_schema_migration_adds_phase3_columns():
     db, db_path = _make_db()
     try:
-        with sqlite3.connect(db.db_path) as conn:
+        conn = sqlite3.connect(db.db_path)
+        try:
             cols = {row[1] for row in conn.execute("PRAGMA table_info(candidates)").fetchall()}
+        finally:
+            conn.close()
         for required in [
             "client_username",
             "replied_at",
@@ -99,6 +102,7 @@ def test_schema_migration_adds_phase3_columns():
         # Идемпотентность: повторное создание ProposalDB не должно падать
         db2 = ProposalDB(db_path=str(db_path))
         assert db2 is not None
+        del db2
     finally:
         del db
         gc.collect()

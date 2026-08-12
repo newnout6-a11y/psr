@@ -171,6 +171,8 @@ class ProposalDB:
                     candidate_id INTEGER,
                     project_id TEXT NOT NULL,
                     platform TEXT NOT NULL,
+                    account_registration_id TEXT NOT NULL DEFAULT '',
+                    remote_dialog_id TEXT,
                     project_title TEXT,
                     status TEXT DEFAULT 'new',
                     last_message_at TEXT,
@@ -178,12 +180,6 @@ class ProposalDB:
                     updated_at TEXT NOT NULL,
                     FOREIGN KEY(candidate_id) REFERENCES candidates(candidate_id)
                 )
-                """
-            )
-            conn.execute(
-                """
-                CREATE UNIQUE INDEX IF NOT EXISTS idx_conv_project_platform
-                ON conversations(project_id, platform)
                 """
             )
             conn.execute(
@@ -261,9 +257,20 @@ class ProposalDB:
                 ("offers_count", "INTEGER DEFAULT 0"),
                 ("client_hired_percent", "INTEGER DEFAULT 0"),
                 ("client_username", "TEXT"),
+                ("replied_at", "TEXT"),
+                ("reply_text", "TEXT"),
+                ("reply_classification", "TEXT"),
+                ("reply_classified_at", "TEXT"),
+                ("won", "INTEGER DEFAULT 0"),
+                ("revenue", "REAL"),
                 ("prompt_variant", "TEXT"),
             ]:
                 self._ensure_column(conn, "candidates", column, ddl)
+
+            self._ensure_column(conn, "conversations", "account_registration_id", "TEXT NOT NULL DEFAULT ''")
+            self._ensure_column(conn, "conversations", "remote_dialog_id", "TEXT")
+            conn.execute("UPDATE conversations SET account_registration_id = '' WHERE account_registration_id IS NULL")
+            conn.execute("DROP INDEX IF EXISTS idx_conv_project_platform")
 
             conn.commit()
 
@@ -451,6 +458,180 @@ class ProposalDB:
                 (candidate_id,),
             ).fetchone()
             return self._row_to_candidate(row) if row else None
+
+    def find_candidate_for_reply(
+        self,
+        platform: str,
+        username: str,
+        *,
+        project_id: Optional[str] = None,
+    ) -> Optional[dict[str, Any]]:
+        """Return the best sent candidate matching an inbox reply.
+
+        Kwork inbox payloads do not always contain a project identifier.  A
+        project match is therefore preferred when present, with a stable
+        username-only fallback ordered by most recently sent candidate.
+        """
+        normalized_platform = platform.strip()
+        normalized_username = username.strip()
+        if not normalized_platform or not normalized_username:
+            return None
+
+        with self._connect() as conn:
+            if project_id:
+                row = conn.execute(
+                    """
+                    SELECT * FROM candidates
+                    WHERE platform = ?
+                      AND project_id = ?
+                      AND lower(coalesce(client_username, '')) = lower(?)
+                    ORDER BY candidate_id DESC
+                    LIMIT 1
+                    """,
+                    (normalized_platform, project_id, normalized_username),
+                ).fetchone()
+                if row:
+                    return self._row_to_candidate(row)
+
+            row = conn.execute(
+                """
+                SELECT * FROM candidates
+                WHERE platform = ?
+                  AND lower(coalesce(client_username, '')) = lower(?)
+                ORDER BY
+                    CASE WHEN sent_at IS NULL OR sent_at = '' THEN 1 ELSE 0 END,
+                    datetime(sent_at) DESC,
+                    candidate_id DESC
+                LIMIT 1
+                """,
+                (normalized_platform, normalized_username),
+            ).fetchone()
+            return self._row_to_candidate(row) if row else None
+
+    def link_reply_to_candidate(
+        self,
+        candidate_id: int,
+        *,
+        reply_text: str,
+        replied_at: Optional[str] = None,
+        actor: str = "inbox_monitor",
+        overwrite: bool = False,
+    ) -> bool:
+        """Persist the first inbound reply for a candidate exactly once."""
+        text = reply_text.strip()
+        if not text:
+            return False
+
+        timestamp = replied_at or _now()
+        with self._connect() as conn:
+            where = "candidate_id = ?"
+            if not overwrite:
+                where += " AND (reply_text IS NULL OR trim(reply_text) = '')"
+            cursor = conn.execute(
+                f"""
+                UPDATE candidates
+                SET replied_at = ?, reply_text = ?, updated_at = ?
+                WHERE {where}
+                """,
+                (timestamp, text, _now(), candidate_id),
+            )
+            if cursor.rowcount != 1:
+                return False
+            conn.execute(
+                """
+                INSERT INTO candidate_actions (candidate_id, action, actor, payload, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    candidate_id,
+                    "reply_linked",
+                    actor,
+                    _to_json({"reply_text": text[:200], "replied_at": timestamp}),
+                    _now(),
+                ),
+            )
+            conn.commit()
+        return True
+
+    def set_reply_classification(
+        self,
+        candidate_id: int,
+        classification: str,
+        *,
+        actor: str = "reply_classifier",
+    ) -> bool:
+        """Store a classifier result and retain an audit event."""
+        value = classification.strip()
+        if not value:
+            return False
+
+        with self._connect() as conn:
+            cursor = conn.execute(
+                """
+                UPDATE candidates
+                SET reply_classification = ?, reply_classified_at = ?, updated_at = ?
+                WHERE candidate_id = ?
+                """,
+                (value, _now(), _now(), candidate_id),
+            )
+            if cursor.rowcount != 1:
+                return False
+            conn.execute(
+                """
+                INSERT INTO candidate_actions (candidate_id, action, actor, payload, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (candidate_id, "reply_classified", actor, _to_json({"classification": value}), _now()),
+            )
+            conn.commit()
+        return True
+
+    def set_candidate_outcome(
+        self,
+        candidate_id: int,
+        *,
+        won: Optional[bool] = None,
+        revenue: Optional[float] = None,
+        actor: str = "operator",
+    ) -> bool:
+        """Persist an optional win/loss outcome without changing send state."""
+        if won is None and revenue is None:
+            return False
+
+        assignments: list[str] = []
+        values: list[Any] = []
+        if won is not None:
+            assignments.append("won = ?")
+            values.append(int(won))
+        if revenue is not None:
+            assignments.append("revenue = ?")
+            values.append(float(revenue))
+        assignments.append("updated_at = ?")
+        values.append(_now())
+        values.append(candidate_id)
+
+        with self._connect() as conn:
+            cursor = conn.execute(
+                f"UPDATE candidates SET {', '.join(assignments)} WHERE candidate_id = ?",
+                tuple(values),
+            )
+            if cursor.rowcount != 1:
+                return False
+            conn.execute(
+                """
+                INSERT INTO candidate_actions (candidate_id, action, actor, payload, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    candidate_id,
+                    "outcome_recorded",
+                    actor,
+                    _to_json({"won": won, "revenue": revenue}),
+                    _now(),
+                ),
+            )
+            conn.commit()
+        return True
 
     def get_candidate_by_project(self, project_id: str, platform: str) -> Optional[dict[str, Any]]:
         with self._connect() as conn:
@@ -902,28 +1083,64 @@ class ProposalDB:
     # ------------------------------------------------------------------
 
     def get_or_create_conversation(
-        self, project_id: str, platform: str, *, candidate_id: int | None = None, project_title: str = ""
+        self,
+        project_id: str,
+        platform: str,
+        *,
+        candidate_id: int | None = None,
+        project_title: str = "",
+        account_registration_id: str | None = None,
+        remote_dialog_id: str | None = None,
     ) -> int:
+        """Get one account-bound conversation or create it idempotently."""
+        account_scope = (account_registration_id or "").strip()
+        dialog_scope = (remote_dialog_id or "").strip() or None
         with self._connect() as conn:
-            row = conn.execute(
-                "SELECT conversation_id FROM conversations WHERE project_id = ? AND platform = ?",
-                (project_id, platform),
-            ).fetchone()
+            if dialog_scope is not None:
+                row = conn.execute(
+                    """
+                    SELECT conversation_id FROM conversations
+                    WHERE platform = ? AND account_registration_id = ? AND remote_dialog_id = ?
+                    """,
+                    (platform, account_scope, dialog_scope),
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    """
+                    SELECT conversation_id FROM conversations
+                    WHERE project_id = ? AND platform = ? AND account_registration_id = ?
+                    """,
+                    (project_id, platform, account_scope),
+                ).fetchone()
             if row:
                 return int(row["conversation_id"])
             now = _now()
             conn.execute(
                 """
-                INSERT OR IGNORE INTO conversations (candidate_id, project_id, platform, project_title, status, created_at, updated_at)
-                VALUES (?, ?, ?, ?, 'new', ?, ?)
+                INSERT OR IGNORE INTO conversations (
+                    candidate_id, project_id, platform, account_registration_id, remote_dialog_id,
+                    project_title, status, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, 'new', ?, ?)
                 """,
-                (candidate_id, project_id, platform, project_title, now, now),
+                (candidate_id, project_id, platform, account_scope, dialog_scope, project_title, now, now),
             )
             conn.commit()
-            row = conn.execute(
-                "SELECT conversation_id FROM conversations WHERE project_id = ? AND platform = ?",
-                (project_id, platform),
-            ).fetchone()
+            if dialog_scope is not None:
+                row = conn.execute(
+                    """
+                    SELECT conversation_id FROM conversations
+                    WHERE platform = ? AND account_registration_id = ? AND remote_dialog_id = ?
+                    """,
+                    (platform, account_scope, dialog_scope),
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    """
+                    SELECT conversation_id FROM conversations
+                    WHERE project_id = ? AND platform = ? AND account_registration_id = ?
+                    """,
+                    (project_id, platform, account_scope),
+                ).fetchone()
             return int(row["conversation_id"])
 
     def add_conversation_message(
@@ -977,11 +1194,21 @@ class ProposalDB:
             )
             conn.commit()
 
-    def get_conversation(self, project_id: str, platform: str) -> Optional[dict[str, Any]]:
+    def get_conversation(
+        self,
+        project_id: str,
+        platform: str,
+        *,
+        account_registration_id: str | None = None,
+    ) -> Optional[dict[str, Any]]:
+        account_scope = (account_registration_id or "").strip()
         with self._connect() as conn:
             row = conn.execute(
-                "SELECT * FROM conversations WHERE project_id = ? AND platform = ?",
-                (project_id, platform),
+                """
+                SELECT * FROM conversations
+                WHERE project_id = ? AND platform = ? AND account_registration_id = ?
+                """,
+                (project_id, platform, account_scope),
             ).fetchone()
             if not row:
                 return None
@@ -991,6 +1218,31 @@ class ProposalDB:
                 (conv["conversation_id"],),
             ).fetchall()
             conv["messages"] = [dict(m) for m in msgs]
+            return conv
+
+    def get_conversation_by_remote_dialog(
+        self,
+        platform: str,
+        account_registration_id: str,
+        remote_dialog_id: str,
+    ) -> Optional[dict[str, Any]]:
+        """Return one conversation using its account-scoped remote identity."""
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT * FROM conversations
+                WHERE platform = ? AND account_registration_id = ? AND remote_dialog_id = ?
+                """,
+                (platform, account_registration_id.strip(), remote_dialog_id.strip()),
+            ).fetchone()
+            if row is None:
+                return None
+            conv = dict(row)
+            messages = conn.execute(
+                "SELECT * FROM conversation_messages WHERE conversation_id = ? ORDER BY created_at ASC",
+                (conv["conversation_id"],),
+            ).fetchall()
+            conv["messages"] = [dict(message) for message in messages]
             return conv
 
     def get_active_conversations(self, limit: int = 20) -> list[dict[str, Any]]:
@@ -1187,4 +1439,5 @@ class ProposalDB:
         item["auto_eligible"] = bool(item.get("auto_eligible", 0))
         item["vet_passed"] = bool(item.get("vet_passed", 0))
         item["dry_run"] = bool(item.get("dry_run", 0))
+        item["won"] = bool(item.get("won", 0))
         return item

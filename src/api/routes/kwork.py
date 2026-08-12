@@ -120,9 +120,6 @@ class KworkDraftRequest(BaseModel):
     use_llm: bool = True
     generate_image: bool = False
     image_context: str = ""
-    cover_text: str = ""
-    cover_subtitle: str = ""
-    cover_text_overlay: bool | None = None
     use_cover_prompt_llm: bool = True
     cover_prompt_provider: str | None = None
     cover_prompt_model: str | None = None
@@ -1151,7 +1148,11 @@ async def kwork_market_intelligence_snapshot(payload: KworkMarketIntelligenceReq
         await client.close()
 
 
-@router.post("/market/buyer-scout")
+@router.post(
+    "/market/buyer-scout",
+    deprecated=True,
+    summary="Legacy buyer scout compatibility route",
+)
 async def kwork_market_buyer_scout(payload: KworkBuyerScoutRequest) -> dict[str, Any]:
     client = KworkMarketClient()
     try:

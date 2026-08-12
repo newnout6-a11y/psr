@@ -7,14 +7,14 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 import ipaddress
 import time
-from typing import Any, Awaitable, Callable, Mapping
+from typing import Any, Awaitable, Callable, Mapping, Sequence
 from uuid import uuid4
 
 import httpx
 
 from src.platforms.kwork_account_store import KworkAccountStore, StoredKworkAccount
 
-from .models import TransportHealth, TransportKind, TransportSnapshot, utc_now
+from .models import JobKind, TransportHealth, TransportKind, TransportSnapshot, utc_now
 from .repository import MarketJobRepository, MarketJobRepositoryError
 from .transports.vpnte import VpnteTransportManager
 
@@ -163,6 +163,7 @@ class MarketIdentityPool:
         """Lease an account and route, preferring the account's registration IP and slot."""
 
         async with self._lock:
+            await self._ensure_worker_record(worker_id, job_id)
             inventory = await self.sync_inventory()
             routes = await self._refresh_routes()
             selected_account_ids = await self._selected_account_ids(job_id)
@@ -249,6 +250,64 @@ class MarketIdentityPool:
             await self._release_worker_transports(worker_id)
             self._contexts.pop(worker_id, None)
             self._leases.pop(worker_id, None)
+
+    async def reclaim_unowned_job_bindings(self, job_id: str) -> int:
+        """Release durable bindings left by an older process for one Buyer job.
+
+        Buyer discovery owns its own in-process workers.  On an API restart,
+        those worker objects no longer exist, while their short-lived durable
+        identity leases may still be marked active.  Keeping them would make
+        the next Buyer fleet look as if every account and VPNTE route were
+        already occupied.
+        """
+
+        normalized_job_id = str(job_id or "").strip()
+        if not normalized_job_id:
+            raise ValueError("job_id is required")
+
+        async with self._lock:
+            bindings = await self.repository.list_market_identity_bindings(
+                job_id=normalized_job_id,
+                active_only=True,
+            )
+            return await self._release_unowned_bindings(bindings)
+
+    async def reclaim_unowned_buyer_bindings(self) -> int:
+        """Release all orphaned Buyer Search bindings after an API restart.
+
+        Buyer backing jobs intentionally stay active as lease containers, so a
+        generic active-job cleanup cannot identify their stale workers.  Limit
+        this recovery to the Buyer job kind and preserve every local lease that
+        was already re-created by the current process.
+        """
+
+        async with self._lock:
+            active_bindings = await self.repository.list_market_identity_bindings(active_only=True)
+            job_kinds: dict[str, str] = {}
+            buyer_bindings: list[Mapping[str, Any]] = []
+            for binding in active_bindings:
+                job_id = str(binding.get("job_id") or "").strip()
+                if not job_id:
+                    continue
+                if job_id not in job_kinds:
+                    job = await self.repository.get_job(job_id)
+                    job_kinds[job_id] = str(job.get("job_kind") or JobKind.SUPPLY.value) if job else JobKind.SUPPLY.value
+                if job_kinds[job_id] == JobKind.BUYER_SEARCH.value:
+                    buyer_bindings.append(binding)
+            return await self._release_unowned_bindings(buyer_bindings)
+
+    async def release_inactive_job_bindings(self, active_job_ids: set[str]) -> int:
+        """Release durable leases left behind by paused, terminal, or deleted jobs."""
+
+        bindings = await self.repository.list_market_identity_bindings(active_only=True)
+        stale_worker_ids = sorted(
+            str(binding["worker_id"])
+            for binding in bindings
+            if str(binding["job_id"]) not in active_job_ids
+        )
+        for worker_id in stale_worker_ids:
+            await self.release(worker_id, reason="inactive_job_reconcile")
+        return len(stale_worker_ids)
 
     async def rebind(self, worker_id: str, job_id: str, *, reason: str | None = None) -> MarketIdentityLease | None:
         """Keep the account exclusive while returning the old route and choosing a free one."""
@@ -350,12 +409,12 @@ class MarketIdentityPool:
                 self._leases.pop(worker_id, None)
         return await self.acquire(worker_id, job_id)
 
-    async def renew(self, worker_id: str) -> None:
+    async def renew(self, worker_id: str) -> bool:
         """Refresh the lease deadline while a worker emits its heartbeat."""
 
         lease = self._leases.get(worker_id)
         if lease is None:
-            return
+            return False
         deadline = self._deadline()
         renewed = await self.repository.renew_market_identity_binding(
             worker_id,
@@ -365,8 +424,9 @@ class MarketIdentityPool:
         if renewed is None or renewed.get("state") != "active":
             self._leases.pop(worker_id, None)
             self._contexts.pop(worker_id, None)
-            return
+            return False
         self._leases[worker_id] = replace(lease, lease_deadline=deadline)
+        return True
 
     async def context_for_worker(self, worker_id: str) -> MarketAccountContext | None:
         """Return private account session data only to the local operation executor."""
@@ -401,6 +461,10 @@ class MarketIdentityPool:
         async with self._lock:
             inventory = await self.sync_inventory()
             routes = await self._refresh_routes(force=True) if refresh_routes else await self._cached_routes()
+            provider_profiles_total = await asyncio.to_thread(
+                self.transport_manager.profile_count,
+                refresh=refresh_routes,
+            )
             selected_account_ids = await self._selected_account_ids(job_id) if job_id else frozenset()
         selection_is_manual = bool(selected_account_ids)
         rendered_accounts = [
@@ -459,7 +523,11 @@ class MarketIdentityPool:
         ]
         active_account_ids = {str(item["registration_id"]) for item in active}
         active_ips = {str(item["current_egress_ip"]) for item in active if item.get("current_egress_ip")}
-        verified_ips = {str(route.egress_ip) for route in routes.values() if route.egress_ip}
+        verified_ips = {
+            str(route.egress_ip)
+            for route in routes.values()
+            if route.health is TransportHealth.HEALTHY and route.egress_ip
+        }
         healthy_ips = {
             str(route.egress_ip)
             for route in routes.values()
@@ -474,7 +542,11 @@ class MarketIdentityPool:
                 "account_selection_mode": "manual" if selection_is_manual else "automatic",
                 "accounts_active": len(active_account_ids),
                 "routes_healthy": sum(route.health is TransportHealth.HEALTHY for route in routes.values()),
-                "routes_verified": sum(bool(route.egress_ip) for route in routes.values()),
+                "provider_profiles_total": provider_profiles_total,
+                "routes_verified": sum(
+                    route.health is TransportHealth.HEALTHY and bool(route.egress_ip)
+                    for route in routes.values()
+                ),
                 "egress_ips_distinct": len(verified_ips),
                 "egress_ips_active": len(active_ips),
                 "effective_capacity": min(len(eligible_accounts), len(healthy_ips)),
@@ -721,6 +793,7 @@ class MarketIdentityPool:
                 and now_monotonic - self._route_snapshot_cached_at < self.route_refresh_cache_seconds
             ):
                 return dict(self._route_snapshot_cache)
+            durable_routes = await self._cached_routes()
             try:
                 snapshots = await asyncio.to_thread(self.transport_manager.refresh)
             except Exception:
@@ -756,7 +829,12 @@ class MarketIdentityPool:
                     return snapshot
                 cached = self._route_ip_cache.get(snapshot.proxy_url)
                 checked_at = time.monotonic()
-                if cached is not None and checked_at - cached[1] < self.probe_cache_seconds:
+                cache_ttl = (
+                    self.probe_cache_seconds
+                    if cached is not None and cached[0]
+                    else min(8.0, self.probe_cache_seconds)
+                )
+                if cached is not None and checked_at - cached[1] < cache_ttl:
                     egress_ip = cached[0]
                 elif snapshot.egress_ip:
                     egress_ip = snapshot.egress_ip
@@ -782,27 +860,48 @@ class MarketIdentityPool:
 
             enriched = await asyncio.gather(*(enrich(snapshot) for snapshot in snapshots))
             result = {snapshot.transport_id: snapshot for snapshot in enriched}
+            for transport_id, durable in durable_routes.items():
+                if transport_id in result or durable.health is TransportHealth.STOPPED:
+                    continue
+                await self.repository.upsert_transport(
+                    replace(
+                        durable,
+                        health=TransportHealth.STOPPED,
+                        proxy_url=None,
+                        lease_owner=None,
+                    )
+                )
             self._route_snapshot_cache = result
             self._route_snapshot_cached_at = time.monotonic()
             return dict(result)
 
     @staticmethod
     async def _probe_exit_ip(proxy_url: str) -> str | None:
-        try:
-            async with httpx.AsyncClient(
-                proxy=proxy_url,
-                timeout=4.0,
-                trust_env=False,
-                follow_redirects=True,
-            ) as client:
-                response = await client.get("https://api.ipify.org", params={"format": "json"})
-            if not response.is_success:
-                return None
-            payload = response.json()
-            candidate = str(payload.get("ip") or "") if isinstance(payload, Mapping) else ""
-            return str(ipaddress.ip_address(candidate)) if candidate else None
-        except Exception:
-            return None
+        endpoints = (
+            ("https://api.ipify.org", {"format": "json"}, True),
+            ("https://checkip.amazonaws.com", None, False),
+        )
+        async with httpx.AsyncClient(
+            proxy=proxy_url,
+            timeout=6.0,
+            trust_env=False,
+            follow_redirects=True,
+        ) as client:
+            for url, params, is_json in endpoints:
+                try:
+                    response = await client.get(url, params=params)
+                    if not response.is_success:
+                        continue
+                    if is_json:
+                        payload = response.json()
+                        candidate = str(payload.get("ip") or "") if isinstance(payload, Mapping) else ""
+                    else:
+                        candidate = response.text.strip()
+                    if candidate:
+                        return str(ipaddress.ip_address(candidate))
+                except Exception:
+                    continue
+        return None
 
     def _deadline(self) -> str:
         return (
@@ -828,3 +927,46 @@ class MarketIdentityPool:
         lease = self._leases.get(worker_id)
         if lease is not None:
             await self._release_transport(lease.transport_id, worker_id)
+
+    async def _ensure_worker_record(self, worker_id: str, job_id: str) -> None:
+        """Create the durable worker row required by an identity binding.
+
+        Supply workers persist themselves before obtaining an identity. Buyer
+        discovery workers intentionally bypass the supply supervisor, so they
+        need this minimal row before SQLite can accept their foreign-key-bound
+        account/route lease.
+        """
+
+        existing = await self.repository.get_worker(worker_id)
+        if existing is not None:
+            return
+        await self.repository.upsert_worker(
+            {
+                "worker_id": worker_id,
+                "generation": 1,
+                "desired_state": "running",
+                "actual_state": "starting",
+                "runtime_kind": "identity_lease",
+            },
+            job_id=job_id,
+        )
+
+    async def _release_unowned_bindings(self, bindings: Sequence[Mapping[str, Any]]) -> int:
+        """Release binding rows that are not owned by this process anymore."""
+
+        released_count = 0
+        for binding in bindings:
+            worker_id = str(binding.get("worker_id") or "").strip()
+            if not worker_id or worker_id in self._leases:
+                continue
+            released = await self.repository.release_market_identity_binding(
+                worker_id,
+                reason="buyer_runtime_recovery",
+            )
+            if released is None or released.get("state") != "released":
+                continue
+            await self._release_worker_transports(worker_id)
+            self._contexts.pop(worker_id, None)
+            self._leases.pop(worker_id, None)
+            released_count += 1
+        return released_count

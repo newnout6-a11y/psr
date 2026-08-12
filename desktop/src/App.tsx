@@ -17,6 +17,7 @@ import KworkRegistration from './pages/KworkRegistration'
 const KworkMarket = lazy(() => import('./pages/KworkMarket'))
 const KworkMarketWorkspace = lazy(() => import('./pages/KworkMarketWorkspace'))
 const KworkMarketJob = lazy(() => import('./pages/KworkMarketJob'))
+const BuyerSearch = lazy(() => import('./pages/BuyerSearchWorkspace'))
 
 const marketFallback = <div className="p-5 text-sm text-zinc-500">Загрузка рабочего пространства рынка...</div>
 
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="kwork-market" element={<Suspense fallback={marketFallback}><KworkMarketWorkspace /></Suspense>} />
         <Route path="kwork-market/jobs/:jobId" element={<Suspense fallback={marketFallback}><KworkMarketJob /></Suspense>} />
         <Route path="kwork-market/legacy" element={<Suspense fallback={marketFallback}><KworkMarket /></Suspense>} />
+        <Route path="buyer-search" element={<Suspense fallback={marketFallback}><BuyerSearch /></Suspense>} />
         <Route path="kwork-registration" element={<KworkRegistration />} />
         <Route path="earnings" element={<Earnings />} />
         <Route path="health" element={<Health />} />

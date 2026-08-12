@@ -122,7 +122,12 @@ class _DraftService:
             draft.update(
                 {
                     "cover_image_path": "C:/tmp/preserved-cover.png",
-                    "cover_image": {"path": "C:/tmp/preserved-cover.png"},
+                    "cover_image": {
+                        "path": "C:/tmp/preserved-cover.png",
+                        "requested_image_model": "gpt-image-2",
+                        "visual_pipeline_version": "gpt-image-2-concrete-v3",
+                        "quality_gate": {"status": "passed", "ok": True},
+                    },
                     "portfolio_assets": [{"path": "C:/tmp/work-01.png"}],
                 }
             )
@@ -260,13 +265,14 @@ async def test_recommendation_handoff_requires_confirmed_fields_and_keeps_server
 
     regenerated = await service.generate_draft(
         confirmed_fields["handoff_id"],
-        generation_options={"use_llm": False, "cover_text": "Новый вариант"},
+        generation_options={"use_llm": False, "image_context": "Новый визуальный ракурс"},
     )
     assert regenerated["handoff"]["state"] == "draft_generated"
-    assert regenerated["draft"]["cover_image_path"] == "C:/tmp/preserved-cover.png"
-    assert regenerated["draft"]["portfolio_assets"] == [{"path": "C:/tmp/work-01.png"}]
+    assert "cover_image_path" not in regenerated["draft"]
+    assert "cover_image" not in regenerated["draft"]
+    assert "portfolio_assets" not in regenerated["draft"]
     assert len(draft_service.requests) == 2
-    assert draft_service.requests[1]["cover_text"] == "Новый вариант"
+    assert draft_service.requests[1]["image_context"] == "Новый визуальный ракурс"
 
     generated_variants = await service.generate_draft(
         confirmed_fields["handoff_id"],
@@ -323,11 +329,7 @@ async def test_recommendation_handoff_requires_confirmed_fields_and_keeps_server
     )
     assert changed["state"] == "fields_confirmed"
     assert changed["attribute_selection"] == {"attribute[208]": 9999}
-    assert changed["draft"] == {
-        "cover_image_path": "C:/tmp/preserved-cover.png",
-        "cover_image": {"path": "C:/tmp/preserved-cover.png"},
-        "portfolio_assets": [{"path": "C:/tmp/work-01.png"}],
-    }
+    assert changed["draft"] == {}
 
 
 @pytest.mark.asyncio

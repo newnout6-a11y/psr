@@ -61,6 +61,10 @@ class MarketOperationLeaseError(MarketJobRepositoryError):
     """Raised when a worker tries to finish an operation it does not lease."""
 
 
+class MarketOperationLeaseLostError(MarketOperationLeaseError):
+    """Raised when a stale attempt tries to use a superseded lease fence."""
+
+
 class MarketCommitConflictError(MarketJobRepositoryError):
     """Raised when a batch commit key belongs to another operation."""
 
@@ -92,6 +96,8 @@ CREATE TABLE IF NOT EXISTS market_jobs (
     target_unique_cards INTEGER NOT NULL,
     desired_workers INTEGER NOT NULL,
     account_registration_ids_json TEXT NOT NULL DEFAULT '[]',
+    job_kind TEXT NOT NULL DEFAULT 'supply',
+    config_json TEXT NOT NULL DEFAULT '{}',
     network_policy TEXT NOT NULL,
     source_policy TEXT NOT NULL,
     include_ai INTEGER NOT NULL,
@@ -160,6 +166,8 @@ CREATE TABLE IF NOT EXISTS market_operations (
     not_before TEXT,
     lease_owner TEXT,
     lease_deadline TEXT,
+    lease_fence INTEGER NOT NULL DEFAULT 0,
+    leased_attempt_id TEXT,
     current_attempt INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
@@ -910,6 +918,8 @@ class MarketJobRepository:
         worker_id: str,
         *,
         lease_seconds: int = 60,
+        attempt_id: str | None = None,
+        lease_fence: int | None = None,
         now: str | datetime | None = None,
     ) -> JsonDict:
         """Extend a worker-owned lease and return the refreshed operation."""
@@ -919,6 +929,8 @@ class MarketJobRepository:
             operation_id,
             worker_id,
             lease_seconds,
+            _optional_text(attempt_id),
+            lease_fence,
             _timestamp(now),
         )
 
@@ -927,6 +939,8 @@ class MarketJobRepository:
         operation_id: str,
         worker_id: str,
         *,
+        attempt_id: str | None = None,
+        lease_fence: int | None = None,
         now: str | datetime | None = None,
     ) -> JsonDict:
         """Complete a generic worker operation owned by ``worker_id``."""
@@ -935,6 +949,8 @@ class MarketJobRepository:
             self._complete_operation_sync,
             operation_id,
             worker_id,
+            _optional_text(attempt_id),
+            lease_fence,
             _timestamp(now),
         )
 
@@ -946,6 +962,8 @@ class MarketJobRepository:
         *,
         retry_at: str | datetime | None = None,
         failure_kind: str | None = None,
+        attempt_id: str | None = None,
+        lease_fence: int | None = None,
         now: str | datetime | None = None,
     ) -> JsonDict:
         """Fail a lease-owned operation, optionally putting it into retry wait."""
@@ -959,6 +977,8 @@ class MarketJobRepository:
             error,
             _timestamp(retry_at) if retry_at is not None else None,
             failure_kind,
+            _optional_text(attempt_id),
+            lease_fence,
             _timestamp(now),
         )
 
@@ -1037,6 +1057,8 @@ class MarketJobRepository:
         source: str | None = None,
         idempotency_key: str | None = None,
         attempt_id: str | None = None,
+        worker_id: str | None = None,
+        lease_fence: int | None = None,
         requested_cursor: Mapping[str, Any] | None = None,
         reported_cursor: Mapping[str, Any] | None = None,
         next_cursor: Mapping[str, Any] | None = None,
@@ -1072,6 +1094,8 @@ class MarketJobRepository:
             source,
             idempotency_key or f"accepted:{operation_id}",
             attempt_id,
+            _optional_text(worker_id),
+            lease_fence,
             requested_cursor,
             reported_cursor,
             next_cursor,
@@ -1684,6 +1708,15 @@ class MarketJobRepository:
             connection.execute(
                 "ALTER TABLE market_jobs ADD COLUMN account_registration_ids_json TEXT NOT NULL DEFAULT '[]'"
             )
+        if "job_kind" not in job_columns:
+            connection.execute("ALTER TABLE market_jobs ADD COLUMN job_kind TEXT NOT NULL DEFAULT 'supply'")
+        if "config_json" not in job_columns:
+            connection.execute("ALTER TABLE market_jobs ADD COLUMN config_json TEXT NOT NULL DEFAULT '{}'")
+        operation_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_operations)")}
+        if "lease_fence" not in operation_columns:
+            connection.execute("ALTER TABLE market_operations ADD COLUMN lease_fence INTEGER NOT NULL DEFAULT 0")
+        if "leased_attempt_id" not in operation_columns:
+            connection.execute("ALTER TABLE market_operations ADD COLUMN leased_attempt_id TEXT")
         worker_columns = {row["name"] for row in connection.execute("PRAGMA table_info(market_workers)")}
         if "job_id" not in worker_columns:
             connection.execute(
@@ -1756,11 +1789,11 @@ class MarketJobRepository:
                     """
                     INSERT INTO market_jobs (
                         job_id, category_id, category_name, classifier_id, classifier_name, canonical_alias,
-                        scope_filters_json, profile, target_unique_cards, desired_workers, network_policy,
+                        scope_filters_json, profile, target_unique_cards, desired_workers, job_kind, config_json, network_policy,
                         account_registration_ids_json, source_policy, include_ai, state, phase, revision, request_budget, time_budget_seconds,
                         counters_json, created_at, started_at, finished_at, latest_checkpoint_id, last_error,
                         last_warning, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, '{}', ?, NULL, NULL, NULL, NULL, NULL, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, '{}', ?, NULL, NULL, NULL, NULL, NULL, ?)
                     """,
                     (
                         identifier,
@@ -1773,6 +1806,8 @@ class MarketJobRepository:
                         create.profile,
                         create.target_unique_cards,
                         create.desired_workers,
+                        _enum_value(create.job_kind),
+                        _dump_json(create.workflow_config),
                         _enum_value(create.network_policy),
                         _dump_json(list(create.account_registration_ids)),
                         _enum_value(create.source_policy),
@@ -2276,13 +2311,15 @@ class MarketJobRepository:
                 connection.execute(
                     """
                     UPDATE market_operations
-                    SET state = ?, lease_owner = ?, lease_deadline = ?, current_attempt = ?, updated_at = ?
+                    SET state = ?, lease_owner = ?, lease_deadline = ?, lease_fence = lease_fence + 1,
+                        leased_attempt_id = ?, current_attempt = ?, updated_at = ?
                     WHERE operation_id = ?
                     """,
                     (
                         OperationState.LEASED.value,
                         worker_id,
                         deadline,
+                        attempt_id,
                         attempt_number,
                         now,
                         operation["operation_id"],
@@ -2333,6 +2370,8 @@ class MarketJobRepository:
         operation_id: str,
         worker_id: str,
         lease_seconds: int,
+        attempt_id: str | None,
+        lease_fence: int | None,
         now: str,
     ) -> JsonDict:
         self._ensure_initialized()
@@ -2345,6 +2384,8 @@ class MarketJobRepository:
                     UPDATE market_operations
                     SET lease_deadline = ?, updated_at = ?
                     WHERE operation_id = ? AND lease_owner = ? AND state IN (?, ?)
+                      AND (? IS NULL OR leased_attempt_id = ?)
+                      AND (? IS NULL OR lease_fence = ?)
                     """,
                     (
                         deadline,
@@ -2353,6 +2394,10 @@ class MarketJobRepository:
                         worker_id,
                         OperationState.LEASED.value,
                         OperationState.RUNNING.value,
+                        attempt_id,
+                        attempt_id,
+                        lease_fence,
+                        lease_fence,
                     ),
                 ).rowcount
                 if not updated:
@@ -2364,7 +2409,14 @@ class MarketJobRepository:
                 raise
         return self._operation_record(row)
 
-    def _complete_operation_sync(self, operation_id: str, worker_id: str, now: str) -> JsonDict:
+    def _complete_operation_sync(
+        self,
+        operation_id: str,
+        worker_id: str,
+        attempt_id: str | None,
+        lease_fence: int | None,
+        now: str,
+    ) -> JsonDict:
         self._ensure_initialized()
         if not _optional_text(worker_id):
             raise ValueError("worker_id is required")
@@ -2372,11 +2424,17 @@ class MarketJobRepository:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 operation = self._require_operation_row(connection, operation_id)
-                self._require_lease_owner(operation, worker_id, now)
+                self._require_lease_owner(
+                    operation,
+                    worker_id,
+                    now,
+                    attempt_id=attempt_id,
+                    lease_fence=lease_fence,
+                )
                 connection.execute(
                     """
                     UPDATE market_operations
-                    SET state = ?, lease_owner = NULL, lease_deadline = NULL, completed_at = ?,
+                    SET state = ?, lease_owner = NULL, lease_deadline = NULL, leased_attempt_id = NULL, completed_at = ?,
                         updated_at = ?, last_error = NULL
                     WHERE operation_id = ?
                     """,
@@ -2407,6 +2465,8 @@ class MarketJobRepository:
         error: str,
         retry_at: str | None,
         failure_kind: str | None,
+        attempt_id: str | None,
+        lease_fence: int | None,
         now: str,
     ) -> JsonDict:
         self._ensure_initialized()
@@ -2417,11 +2477,17 @@ class MarketJobRepository:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 operation = self._require_operation_row(connection, operation_id)
-                self._require_lease_owner(operation, worker_id, now)
+                self._require_lease_owner(
+                    operation,
+                    worker_id,
+                    now,
+                    attempt_id=attempt_id,
+                    lease_fence=lease_fence,
+                )
                 connection.execute(
                     """
                     UPDATE market_operations
-                    SET state = ?, not_before = ?, lease_owner = NULL, lease_deadline = NULL,
+                    SET state = ?, not_before = ?, lease_owner = NULL, lease_deadline = NULL, leased_attempt_id = NULL,
                         completed_at = ?, updated_at = ?, last_error = ?
                     WHERE operation_id = ?
                     """,
@@ -2675,6 +2741,8 @@ class MarketJobRepository:
         source: str | None,
         idempotency_key: str,
         attempt_id: str | None,
+        worker_id: str | None,
+        lease_fence: int | None,
         requested_cursor: Mapping[str, Any] | None,
         reported_cursor: Mapping[str, Any] | None,
         next_cursor: Mapping[str, Any] | None,
@@ -2721,7 +2789,15 @@ class MarketJobRepository:
                     )
 
                 effective_source = source or shard["source"]
-                effective_attempt_id = attempt_id or self._latest_attempt_id(connection, operation_id)
+                effective_attempt_id = attempt_id or operation["leased_attempt_id"] or self._latest_attempt_id(connection, operation_id)
+                if worker_id is not None:
+                    self._require_lease_owner(
+                        operation,
+                        worker_id,
+                        now,
+                        attempt_id=effective_attempt_id,
+                        lease_fence=lease_fence,
+                    )
                 new_listings = 0
                 observations = 0
                 requested_json = _dump_json(requested_cursor) if requested_cursor is not None else None
@@ -2825,7 +2901,8 @@ class MarketJobRepository:
                 connection.execute(
                     """
                     UPDATE market_operations
-                    SET state = ?, lease_owner = NULL, lease_deadline = NULL, completed_at = ?, updated_at = ?
+                    SET state = ?, lease_owner = NULL, lease_deadline = NULL, leased_attempt_id = NULL,
+                        completed_at = ?, updated_at = ?
                     WHERE operation_id = ?
                     """,
                     (OperationState.SUCCEEDED.value, now, now, operation_id),
@@ -4458,19 +4535,7 @@ class MarketJobRepository:
                     generator_request = "{}"
                 draft_json = row["draft_json"]
                 if clear_draft:
-                    previous_draft = _load_json(row["draft_json"], {})
-                    preserved_assets = {
-                        key: previous_draft[key]
-                        for key in (
-                            "cover_image_path",
-                            "cover_image",
-                            "cover_text",
-                            "cover_subtitle",
-                            "portfolio_assets",
-                        )
-                        if previous_draft.get(key) not in (None, "", [])
-                    }
-                    draft_json = _dump_json(preserved_assets)
+                    draft_json = "{}"
                 connection.execute(
                     """
                     UPDATE market_draft_handoffs
@@ -4972,7 +5037,7 @@ class MarketJobRepository:
         connection.execute(
             f"""
             UPDATE market_operations
-            SET state = ?, lease_owner = NULL, lease_deadline = NULL, updated_at = ?
+            SET state = ?, lease_owner = NULL, lease_deadline = NULL, leased_attempt_id = NULL, updated_at = ?
             WHERE operation_id IN ({placeholders})
             """,
             (OperationState.QUEUED.value, now, *operation_ids),
@@ -5098,16 +5163,25 @@ class MarketJobRepository:
         return row
 
     @staticmethod
-    def _require_lease_owner(operation: sqlite3.Row, worker_id: str, now: str) -> None:
+    def _require_lease_owner(
+        operation: sqlite3.Row,
+        worker_id: str,
+        now: str,
+        *,
+        attempt_id: str | None = None,
+        lease_fence: int | None = None,
+    ) -> None:
         deadline = operation["lease_deadline"]
         if (
             operation["lease_owner"] != worker_id
             or operation["state"] not in {OperationState.LEASED.value, OperationState.RUNNING.value}
             or deadline is None
             or deadline <= now
+            or (attempt_id is not None and operation["leased_attempt_id"] != attempt_id)
+            or (lease_fence is not None and int(operation["lease_fence"]) != lease_fence)
         ):
-            raise MarketOperationLeaseError(
-                f"worker {worker_id} does not own an active lease for operation {operation['operation_id']}"
+            raise MarketOperationLeaseLostError(
+                f"worker {worker_id} does not own the current fenced lease for operation {operation['operation_id']}"
             )
 
     @staticmethod
@@ -5279,6 +5353,8 @@ class MarketJobRepository:
             "target_unique_cards": int(row["target_unique_cards"]),
             "desired_workers": int(row["desired_workers"]),
             "account_registration_ids": account_registration_ids,
+            "job_kind": row["job_kind"],
+            "workflow_config": _load_json(row["config_json"], {}),
             "network_policy": row["network_policy"],
             "source_policy": row["source_policy"],
             "include_ai": bool(row["include_ai"]),
@@ -5410,6 +5486,8 @@ class MarketJobRepository:
             "not_before": row["not_before"],
             "lease_owner": row["lease_owner"],
             "lease_deadline": row["lease_deadline"],
+            "lease_fence": int(row["lease_fence"]),
+            "leased_attempt_id": row["leased_attempt_id"],
             "current_attempt": int(row["current_attempt"]),
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],

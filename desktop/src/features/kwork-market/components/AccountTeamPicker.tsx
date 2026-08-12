@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckSquare, RefreshCw, Square, Users, Wifi } from 'lucide-react'
 
 import { marketJobsApi } from '../api'
@@ -20,7 +20,7 @@ function accountAvailability(account: MarketAccountPoolAccount, binding?: Market
   if (!account.market_enabled) return 'отключён в пуле'
   if (account.status !== 'activated') return account.status || 'не активирован'
   if (account.session_cookie_count < 1) return 'нет cookies'
-  return 'доступен'
+  return 'готов к назначению'
 }
 
 function isEligible(account: MarketAccountPoolAccount, binding?: MarketAccountPoolBinding): boolean {
@@ -91,24 +91,44 @@ function AccountTeamRow({
 export function AccountTeamPicker({ selectedIds, onSelectedIdsChange, onCapacityChange }: AccountTeamPickerProps) {
   const [snapshot, setSnapshot] = useState<MarketAccountPoolSnapshot | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const refreshInFlight = useRef(false)
 
-  const loadPool = useCallback(async (refreshRoutes = false) => {
-    setLoading(true)
+  const loadPool = useCallback(async (refreshRoutes = true, background = false) => {
+    if (refreshInFlight.current) return
+    refreshInFlight.current = true
+    if (background) setRefreshing(true)
+    else setLoading(true)
     try {
       const result = refreshRoutes
         ? await marketJobsApi.syncAccountPool()
         : await marketJobsApi.getAccountPool()
       setSnapshot(result)
+      setLastUpdatedAt(Date.now())
       setError(null)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason))
     } finally {
-      setLoading(false)
+      if (background) setRefreshing(false)
+      else setLoading(false)
+      refreshInFlight.current = false
     }
   }, [])
 
-  useEffect(() => { void loadPool() }, [loadPool])
+  useEffect(() => {
+    void loadPool(true)
+    const refreshVisiblePool = () => {
+      if (document.visibilityState === 'visible') void loadPool(true, true)
+    }
+    const timer = window.setInterval(refreshVisiblePool, 15_000)
+    document.addEventListener('visibilitychange', refreshVisiblePool)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', refreshVisiblePool)
+    }
+  }, [loadPool])
 
   const activeBindings = useMemo(() => {
     const bindings = new Map<string, MarketAccountPoolBinding>()
@@ -131,7 +151,7 @@ export function AccountTeamPicker({ selectedIds, onSelectedIdsChange, onCapacity
   const capacity = snapshot?.summary.effective_capacity ?? 0
   const reserveCount = Math.max(selectedEligibleIds.length - capacity, 0)
   const runnableCount = Math.min(selectedEligibleIds.length, capacity)
-  const routesNeedVerification = Boolean(snapshot && eligibleAccounts.length && snapshot.summary.routes_verified === 0)
+  const routesNeedVerification = Boolean(snapshot && eligibleAccounts.length && snapshot.summary.routes_healthy === 0)
   const signupIpCounts = useMemo(() => {
     const counts = new Map<string, number>()
     for (const account of snapshot?.accounts ?? []) {
@@ -165,19 +185,24 @@ export function AccountTeamPicker({ selectedIds, onSelectedIdsChange, onCapacity
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2"><Users className="h-4 w-4 text-sky-300" /><h3 className="text-sm font-medium text-white">Команда аккаунтов</h3></div>
-          <p className="mt-1 text-xs text-zinc-500">Отметьте аккаунты, которые разрешены для этой задачи. Занятый аккаунт нельзя назначить второй раз.</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            Локальная готовность по cookies и живые VPNTE. Сессия Kwork проверяется воркером после назначения.
+            {lastUpdatedAt && <span className="ml-2">Обновлено {new Date(lastUpdatedAt).toLocaleTimeString('ru-RU')}.</span>}
+          </p>
         </div>
-        <button type="button" title="Сверить VPNTE IP" aria-label="Сверить VPNTE IP" className="btn btn-ghost h-8 w-8 justify-center px-0" disabled={loading} onClick={() => void loadPool(true)}>
-          <RefreshCw className="h-4 w-4" />
+        <button type="button" title="Сверить живые VPNTE" aria-label="Сверить живые VPNTE" className="btn btn-ghost h-8 w-8 justify-center px-0" disabled={loading || refreshing} onClick={() => void loadPool(true)}>
+          <RefreshCw className={refreshing ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-5 gap-px overflow-hidden border border-surface-700/60 bg-surface-700/60 max-lg:grid-cols-2">
+      <div className="mt-3 grid grid-cols-7 gap-px overflow-hidden border border-surface-700/60 bg-surface-700/60 max-xl:grid-cols-4 max-lg:grid-cols-2">
         {[
           ['Выбрано', formatCount(selectedEligibleIds.length)],
           ['Запустится сейчас', formatCount(runnableCount)],
           ['Резерв', formatCount(reserveCount)],
-          ['Доступно', formatCount(eligibleAccounts.length)],
+          ['Кандидаты', formatCount(eligibleAccounts.length)],
+          ['Пул профилей', formatCount(snapshot?.summary.provider_profiles_total ?? 0)],
+          ['VPNTE сейчас', formatCount(snapshot?.summary.routes_healthy ?? 0)],
           ['Уникальные IP', formatCount(snapshot?.summary.egress_ips_distinct ?? 0)],
         ].map(([label, value]) => <div key={label} className="bg-surface-900/90 px-3 py-2"><div className="text-[10px] uppercase tracking-wide text-zinc-500">{label}</div><div className="mt-1 font-mono text-sm text-zinc-200">{value}</div></div>)}
       </div>
@@ -185,21 +210,21 @@ export function AccountTeamPicker({ selectedIds, onSelectedIdsChange, onCapacity
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <div className={reserveCount ? 'text-xs text-amber-300' : 'text-xs text-zinc-500'}>
           {routesNeedVerification
-            ? 'IP VPNTE ещё не проверены. Нажмите обновление справа, чтобы подтвердить маршруты.'
+            ? 'Сейчас нет ни одного живого VPNTE-маршрута. Аккаунты не запустятся.'
             : reserveCount
             ? `Одновременно пойдут ${runnableCount}; ещё ${reserveCount} останется в резерве до освобождения уникального IP.`
-            : 'Каждый выбранный аккаунт может получить отдельный подтверждённый IP.'}
+            : `Локально готовы ${eligibleAccounts.length} аккаунтов; сейчас можно запустить до ${capacity} по числу уникальных VPNTE IP.`}
         </div>
         <button type="button" className="btn btn-ghost h-8 px-2 text-xs" disabled={loading || !eligibleAccounts.length} onClick={toggleAll}>
           {allEligibleSelected ? <Square className="h-3.5 w-3.5" /> : <CheckSquare className="h-3.5 w-3.5" />}
-          {allEligibleSelected ? 'Снять выбор' : 'Выбрать доступные'}
+          {allEligibleSelected ? 'Снять выбор' : 'Выбрать кандидатов'}
         </button>
       </div>
 
       {error && <div className="mt-3 flex items-center gap-2 border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200"><Wifi className="h-3.5 w-3.5 shrink-0" />Не удалось загрузить пул: {error}</div>}
       <div className="mt-3 overflow-x-auto border border-surface-700/60">
         <table className="w-full min-w-[860px] text-left text-xs">
-          <thead className="bg-surface-900 text-zinc-500"><tr><th className="w-11 px-3 py-2 text-center font-medium">Выбор</th><th className="px-3 py-2 font-medium">Аккаунт</th><th className="px-3 py-2 font-medium">Состояние</th><th className="px-3 py-2 font-medium">IP регистрации / slot</th><th className="px-3 py-2 font-medium">Persona / доступность</th></tr></thead>
+          <thead className="bg-surface-900 text-zinc-500"><tr><th className="w-11 px-3 py-2 text-center font-medium">Выбор</th><th className="px-3 py-2 font-medium">Аккаунт</th><th className="px-3 py-2 font-medium">Локальное состояние</th><th className="px-3 py-2 font-medium">IP регистрации / slot</th><th className="px-3 py-2 font-medium">Persona / назначение</th></tr></thead>
           <tbody>
             {!loading && (snapshot?.accounts ?? []).map((account) => <AccountTeamRow key={account.registration_id} account={account} binding={activeBindings.get(account.registration_id)} selected={selectedSet.has(account.registration_id)} sharedSignupIpCount={account.signup_ip ? signupIpCounts.get(account.signup_ip) ?? 0 : 0} onToggle={toggleAccount} />)}
             {loading && <tr><td colSpan={5} className="px-3 py-7 text-center text-zinc-500">Загружаем сохранённые аккаунты...</td></tr>}

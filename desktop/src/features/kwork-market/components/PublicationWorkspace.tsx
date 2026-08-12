@@ -46,25 +46,6 @@ function handoffStep(handoff: MarketDraftHandoff | null, published: boolean): nu
   return 0
 }
 
-function suggestedCoverTitle(value: string): string {
-  const text = value.trim()
-  const lower = text.toLocaleLowerCase('ru-RU')
-  if (lower.includes('логотип') && (lower.includes('кирил') || lower.includes('русск'))) return 'Логотип на русском'
-  if (lower.includes('шрифт') && (lower.includes('кирил') || lower.includes('русск'))) return 'Шрифт под кириллицу'
-  return text
-    .replace(/^(сделаю|разработаю|создам|настрою|адаптирую)\s+/i, '')
-    .replace(/\s+(для|под)\s+.{24,}$/i, '')
-    .slice(0, 38)
-    .trim()
-}
-
-function suggestedCoverSubtitle(value: string): string {
-  const lower = value.toLocaleLowerCase('ru-RU')
-  if (lower.includes('логотип')) return 'Адаптация знака и шрифта'
-  if (lower.includes('шрифт')) return 'Шрифт для кириллицы'
-  return 'Покажу результат до и после'
-}
-
 function resolveAssetUrl(value: unknown): string {
   const url = String(value || '').trim()
   if (!url) return ''
@@ -112,8 +93,6 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
   const [useCompetitorImageAnalysis, setUseCompetitorImageAnalysis] = useState(true)
   const [variantCount, setVariantCount] = useState(1)
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0)
-  const [coverTitle, setCoverTitle] = useState('')
-  const [coverSubtitle, setCoverSubtitle] = useState('')
   const [imageResult, setImageResult] = useState<Record<string, any> | null>(null)
   const [publishResult, setPublishResult] = useState<Record<string, any> | null>(null)
   const [preflight, setPreflight] = useState<KworkPublishPreflightResult | null>(null)
@@ -153,9 +132,18 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
   const activeDraft = draftVariants[selectedVariantIndex] || handoff?.draft || {}
   const durableImage = asRecord(activeDraft.cover_image)
   const displayedImage = imageResult || durableImage || null
+  const displayedGeneration = asRecord(displayedImage?.image_generation)
+  const displayedModel = String(displayedImage?.requested_image_model || displayedGeneration?.requested_model || '')
+  const displayedQuality = String(displayedImage?.image_quality || displayedGeneration?.quality || '')
+  const displayedVerification = String(displayedImage?.image_model_verification || displayedGeneration?.model_verification || '')
+  const qualityGate = asRecord(displayedImage?.quality_gate)
   const coverAssetUrl = resolveAssetUrl(displayedImage?.asset_url || activeDraft.cover_image_path)
   const portfolioAssets = Array.isArray(activeDraft.portfolio_assets)
     ? activeDraft.portfolio_assets.map(asRecord).filter((item): item is JsonRecord => Boolean(item))
+    : []
+  const portfolioModel = String(asRecord(portfolioAssets[0]?.image_generation)?.requested_model || '')
+  const portfolioErrors = Array.isArray(activeDraft.portfolio_generation_errors)
+    ? activeDraft.portfolio_generation_errors.map(asRecord).filter((item): item is JsonRecord => Boolean(item))
     : []
 
   const loadDurableState = useCallback(async () => {
@@ -178,8 +166,6 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
     setServiceSummary(label)
     setAudience(`Клиенты, которым нужна услуга: ${label.toLocaleLowerCase('ru-RU')}`)
     setPrice(Math.max(1, Math.round(suggestedPrice || 500)))
-    setCoverTitle(suggestedCoverTitle(label))
-    setCoverSubtitle(suggestedCoverSubtitle(label))
     setHandoff(null)
     setSelection({})
     setImageResult(null)
@@ -218,9 +204,6 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
 
   useEffect(() => {
     if (!Object.keys(activeDraft).length) return
-    if (activeDraft.cover_text) setCoverTitle(String(activeDraft.cover_text))
-    else if (activeDraft.title) setCoverTitle(suggestedCoverTitle(String(activeDraft.title)))
-    if (activeDraft.cover_subtitle) setCoverSubtitle(String(activeDraft.cover_subtitle))
     setImageResult(asRecord(activeDraft.cover_image) || null)
     setPreflight(null)
     setConfirmationInput('')
@@ -277,8 +260,6 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
     setAudience(`Клиенты, которым нужна услуга: ${recommendation.service_summary.toLocaleLowerCase('ru-RU')}`)
     setPrice(recommendation.price)
     setWorkTime(recommendation.work_time)
-    setCoverTitle(suggestedCoverTitle(recommendation.service_summary))
-    setCoverSubtitle(suggestedCoverSubtitle(recommendation.service_summary))
     const confirmed = await run('open', () => marketJobsApi.confirmRecommendation(job.job_id, recommendation.recommendation_id, undefined, true))
     if (!confirmed?.handoff) return
     setHandoff(confirmed.handoff)
@@ -375,9 +356,6 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
       audience,
       use_llm: true,
       generate_image: generateImage,
-      cover_text: coverTitle || suggestedCoverTitle(serviceSummary),
-      cover_subtitle: coverSubtitle,
-      cover_text_overlay: true,
       use_competitor_image_analysis: useCompetitorImageAnalysis,
       variant_count: variantCount,
       cover_prompt_provider: 'openai',
@@ -526,12 +504,6 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
                     <label className={`market-inline-toggle ${generateImage ? 'is-on' : ''}`}><input type="checkbox" checked={generateImage} onChange={(event) => setGenerateImage(event.target.checked)} />Обложка</label>
                   </div>
                 </div>
-                {generateImage && (
-                  <div className="market-cover-controls">
-                    <label><span>Заголовок на обложке</span><input value={coverTitle} maxLength={38} onChange={(event) => setCoverTitle(event.target.value)} /></label>
-                    <label><span>Короткий подзаголовок</span><input value={coverSubtitle} maxLength={46} onChange={(event) => setCoverSubtitle(event.target.value)} /></label>
-                  </div>
-                )}
                 <div className="market-publication-actions"><button type="button" className="market-primary-action h-9" disabled={busy !== null} onClick={() => void generateDraft()}>{busy === 'draft' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}Сгенерировать {variantCount} {variantCount === 1 ? 'карточку' : 'карточки'}</button></div>
               </div>
             )}
@@ -550,14 +522,24 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
                   </div>
                 )}
                 <div className="market-draft-preview">
-                  <div className="market-draft-cover">
-                    {coverAssetUrl ? <img src={coverAssetUrl} alt="Обложка карточки" /> : <div><ImageIcon className="h-7 w-7" /><span>{generateImage ? 'Обложка сохранена в durable draft' : 'Без обложки'}</span></div>}
+                  <div className="market-draft-cover-column">
+                    <div className="market-draft-cover">
+                      {coverAssetUrl ? <img src={coverAssetUrl} alt="Обложка карточки" /> : <div><ImageIcon className="h-7 w-7" /><span>{displayedImage?.status === 'error' ? String(displayedImage.detail || 'Генерация обложки завершилась ошибкой') : generateImage ? 'Обложка ещё не создана' : 'Без обложки'}</span></div>}
+                    </div>
+                    {displayedImage && (
+                      <div className={`market-image-meta ${displayedImage.status === 'error' ? 'is-error' : ''}`}>
+                        <span>{displayedModel || 'model unknown/legacy'}</span>
+                        <span>{displayedQuality || 'quality unknown'}</span>
+                        <span>{displayedVerification === 'response_reported' ? 'gateway reported' : displayedVerification === 'request_only' ? 'request logged' : 'unverified'}</span>
+                        {qualityGate && <span>QA {String(qualityGate.status || 'unknown')} {qualityGate.score == null ? '' : `${String(qualityGate.score)}/10`} {qualityGate.review_model_requested ? `· ${String(qualityGate.review_model_requested)}` : ''}</span>}
+                      </div>
+                    )}
                   </div>
                   <div className="min-w-0"><span className="market-section-label">Название</span><h5>{String(activeDraft.title || handoff.service_summary)}</h5><span className="market-section-label mt-4">Описание</span><p>{String(activeDraft.description || '')}</p></div>
                 </div>
                 {!!portfolioAssets.length && (
                   <div className="market-portfolio-preview">
-                    <div className="market-portfolio-preview-head"><span>Портфолио для Kwork</span><strong>{portfolioAssets.length} работ готовы к загрузке</strong></div>
+                    <div className="market-portfolio-preview-head"><span>Портфолио для Kwork</span><strong>{portfolioAssets.length} работ · {portfolioModel || 'model unknown/legacy'}</strong></div>
                     <div className="market-portfolio-preview-grid">
                       {portfolioAssets.map((asset, index) => {
                         const url = resolveAssetUrl(asset.asset_url || asset.path)
@@ -566,6 +548,7 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
                     </div>
                   </div>
                 )}
+                {!!portfolioErrors.length && <div className="market-error-banner">Не удалось создать все обязательные изображения портфолио: {portfolioErrors.map((item) => String(item.detail || '')).filter(Boolean).join(' · ')}</div>}
                 <div className="market-cover-regenerate">
                   <div className="market-generation-options">
                     <div className="market-variant-picker" aria-label="Количество карточек при перегенерации">
@@ -574,10 +557,6 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
                       ))}
                     </div>
                     <label className={`market-inline-toggle ${useCompetitorImageAnalysis ? 'is-on' : ''}`}><input type="checkbox" checked={useCompetitorImageAnalysis} onChange={(event) => setUseCompetitorImageAnalysis(event.target.checked)} />Анализ конкурентов</label>
-                  </div>
-                  <div className="market-cover-controls">
-                    <label><span>Заголовок на обложке</span><input value={coverTitle} maxLength={38} onChange={(event) => setCoverTitle(event.target.value)} /></label>
-                    <label><span>Короткий подзаголовок</span><input value={coverSubtitle} maxLength={46} onChange={(event) => setCoverSubtitle(event.target.value)} /></label>
                   </div>
                   <button type="button" className="market-compact-action" disabled={busy !== null} onClick={() => void generateDraft()}>{busy === 'draft' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}Перегенерировать обложку и текст</button>
                 </div>

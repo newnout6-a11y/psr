@@ -1757,8 +1757,6 @@ export default function KworkMarket() {
         work_time: workTime,
         use_llm: useLlm,
         generate_image: generateImage,
-        cover_text: serviceSummary,
-        cover_subtitle: cleanAudience,
         use_cover_prompt_llm: true,
         use_competitor_image_analysis: generateImage,
         market_context: marketContext,
@@ -2389,7 +2387,7 @@ export default function KworkMarket() {
       )}
 
       {buyerScoutResult && (
-        <div className="rounded-md border border-brand-500/30 bg-brand-600/10 px-3 py-2 text-xs text-brand-100">
+        <div className="market-buyer-scout rounded-md border border-brand-500/30 bg-brand-600/10 px-3 py-2 text-xs text-brand-100">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <div>
               <div className="font-medium text-white">
@@ -3524,9 +3522,10 @@ export default function KworkMarket() {
                       <img src={draftResult.image.asset_url} alt="" className="aspect-[3/2] w-full rounded-md object-cover" />
                       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-zinc-500">
                         <span>
-                          {draftResult.image.status === 'generated_local_fallback' ? 'локальная fallback-обложка' : draftResult.image.status}
+                          {draftResult.image.status}
                           {draftResult.image.prompt_source ? ` · промпт: ${draftResult.image.prompt_source}` : ''}
-                          {draftResult.image.text_overlay ? ' · текст наложен' : ''}
+                          {draftResult.image.requested_image_model ? ` · ${draftResult.image.requested_image_model}` : ''}
+                          {draftResult.image.image_quality ? ` · ${draftResult.image.image_quality}` : ''}
                         </span>
                         {hasCoverVisionAnalysis && (
                           <span

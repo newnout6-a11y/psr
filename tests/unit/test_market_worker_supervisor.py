@@ -5,7 +5,7 @@ import asyncio
 import pytest
 
 from src.platforms.kwork_supply.coordinator import MarketScanCoordinator
-from src.platforms.kwork_supply.models import MarketJobCreate, MarketScope, NetworkPolicy, OperationKind, OperationState, TransportHealth, TransportKind, TransportSnapshot, WorkerState
+from src.platforms.kwork_supply.models import JobKind, MarketJobCreate, MarketScope, NetworkPolicy, OperationKind, OperationState, TransportHealth, TransportKind, TransportSnapshot, WorkerState
 from src.platforms.kwork_supply.repository import MarketJobRepository
 from src.platforms.kwork_supply.supervisor import MarketWorkerSupervisor
 from src.platforms.kwork_supply.worker import MarketWorker
@@ -58,6 +58,37 @@ async def test_supervisor_runs_stable_worker_and_recovers_initial_mapping_operat
 
 
 @pytest.mark.asyncio
+async def test_market_supervisor_does_not_start_supply_workers_for_buyer_lease_jobs(tmp_path):
+    coordinator = make_coordinator(tmp_path)
+    handled: list[str] = []
+
+    async def handle_mapping(_worker, operation) -> None:
+        handled.append(operation["operation_id"])
+
+    await coordinator.create_job(
+        MarketJobCreate(
+            scope=MarketScope(category_id=80),
+            desired_workers=2,
+            job_kind=JobKind.BUYER_SEARCH,
+        ),
+        job_id="buyer-lease-job",
+    )
+    supervisor = MarketWorkerSupervisor(
+        coordinator,
+        handlers={OperationKind.MAP_SCOPE: handle_mapping},
+        reconcile_interval_seconds=0.01,
+        worker_poll_interval_seconds=0.01,
+    )
+    await supervisor.start()
+    try:
+        await asyncio.sleep(0.03)
+        assert supervisor.worker_ids == ()
+        assert handled == []
+    finally:
+        await supervisor.close()
+
+
+@pytest.mark.asyncio
 async def test_pause_drains_workers_without_leasing_new_work(tmp_path):
     coordinator = make_coordinator(tmp_path)
 
@@ -86,6 +117,81 @@ async def test_pause_drains_workers_without_leasing_new_work(tmp_path):
         assert operation["state"] == OperationState.QUEUED.value
     finally:
         await supervisor.close()
+
+
+@pytest.mark.asyncio
+async def test_terminal_job_cancels_idle_worker_and_persists_stopped_state(tmp_path):
+    coordinator = make_coordinator(tmp_path)
+    await coordinator.create_job(
+        MarketJobCreate(scope=MarketScope(category_id=38, canonical_alias="website-repair"), desired_workers=1),
+        job_id="job_terminal_cleanup",
+    )
+    supervisor = MarketWorkerSupervisor(coordinator, handlers={})
+    worker = MarketWorker(
+        coordinator,
+        job_id="job_terminal_cleanup",
+        worker_id="worker-job_terminal_cleanup-01",
+        generation=1,
+        handlers={},
+    )
+    started = asyncio.Event()
+
+    async def idle_forever() -> None:
+        await worker._persist_state(WorkerState.IDLE)
+        started.set()
+        try:
+            await asyncio.Event().wait()
+        finally:
+            await worker._persist_state(WorkerState.STOPPED)
+
+    task = asyncio.create_task(idle_forever())
+    supervisor._workers[worker.worker_id] = worker
+    supervisor._tasks[worker.worker_id] = task
+    await started.wait()
+    await coordinator.repository.update_job_state("job_terminal_cleanup", "completed", phase="export")
+
+    await supervisor.reconcile_once()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    record = await coordinator.repository.get_worker(worker.worker_id)
+    assert record is not None
+    assert record["desired_state"] == "stopped"
+    assert record["actual_state"] == "stopped"
+
+
+@pytest.mark.asyncio
+async def test_worker_terminal_cleanup_survives_identity_release_error(tmp_path):
+    coordinator = make_coordinator(tmp_path)
+    await coordinator.create_job(
+        MarketJobCreate(scope=MarketScope(category_id=38, canonical_alias="website-repair"), desired_workers=1),
+        job_id="job_release_error",
+    )
+    await coordinator.repository.update_job_state("job_release_error", "completed", phase="export")
+
+    class FailingIdentityPool:
+        async def renew(self, worker_id: str) -> None:
+            return None
+
+        async def release(self, worker_id: str, *, reason: str | None = None) -> None:
+            raise RuntimeError("release exploded")
+
+    worker = MarketWorker(
+        coordinator,
+        job_id="job_release_error",
+        worker_id="worker-job_release_error-01",
+        generation=1,
+        handlers={},
+        identity_pool=FailingIdentityPool(),
+    )
+
+    await worker.run()
+
+    record = await coordinator.repository.get_worker(worker.worker_id)
+    assert record is not None
+    assert record["desired_state"] == "stopped"
+    assert record["actual_state"] == "stopped"
+    assert record["last_error"] == "transport release failed: RuntimeError: release exploded"
 
 
 @pytest.mark.asyncio
@@ -164,3 +270,34 @@ async def test_idle_worker_polls_do_not_flood_durable_events(tmp_path):
     assert state_events[0]["payload"]["previous_actual_state"] == WorkerState.IDLE.value
     assert state_events[0]["payload"]["generation"] == 1
     assert state_events[0]["payload"]["last_error"] is None
+
+
+@pytest.mark.asyncio
+async def test_repeated_idle_heartbeats_coalesce_durable_worker_writes(tmp_path, monkeypatch):
+    coordinator = make_coordinator(tmp_path)
+    await coordinator.create_job(
+        MarketJobCreate(scope=MarketScope(category_id=38, canonical_alias="website-repair"), desired_workers=1),
+        job_id="job_worker_coalesce",
+    )
+    worker = MarketWorker(
+        coordinator,
+        job_id="job_worker_coalesce",
+        worker_id="worker-job_worker_coalesce-01",
+        generation=1,
+        handlers={},
+    )
+    calls = 0
+    original_upsert = coordinator.repository.upsert_worker
+
+    async def counted_upsert(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return await original_upsert(*args, **kwargs)
+
+    monkeypatch.setattr(coordinator.repository, "upsert_worker", counted_upsert)
+    await worker._persist_state(WorkerState.IDLE)
+    await worker._persist_state(WorkerState.IDLE)
+    await worker._persist_state(WorkerState.LEASING)
+    await worker._persist_state(WorkerState.LEASING)
+
+    assert calls == 2

@@ -35,6 +35,13 @@ class JobState(StrEnum):
     FAILED = "failed"
 
 
+class JobKind(StrEnum):
+    """Durable workflow namespace sharing the market control plane."""
+
+    SUPPLY = "supply"
+    BUYER_SEARCH = "buyer_search"
+
+
 class JobPhase(StrEnum):
     PREPARE = "prepare"
     MAP = "map"
@@ -155,6 +162,8 @@ class MarketJobCreate:
     include_ai: bool = True
     request_budget: int | None = None
     time_budget_seconds: int | None = None
+    job_kind: JobKind = JobKind.SUPPLY
+    workflow_config: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.target_unique_cards <= 0 or self.target_unique_cards > 10_000:
@@ -179,6 +188,14 @@ class MarketJobCreate:
             raise ValueError("request_budget must be positive")
         if self.time_budget_seconds is not None and self.time_budget_seconds <= 0:
             raise ValueError("time_budget_seconds must be positive")
+        try:
+            job_kind = JobKind(self.job_kind)
+        except ValueError as exc:
+            raise ValueError(f"unsupported job_kind: {self.job_kind!r}") from exc
+        if not isinstance(self.workflow_config, Mapping):
+            raise TypeError("workflow_config must be a mapping")
+        object.__setattr__(self, "job_kind", job_kind)
+        object.__setattr__(self, "workflow_config", dict(self.workflow_config))
 
 
 @dataclass(frozen=True, slots=True)
@@ -204,6 +221,8 @@ class MarketJob:
     latest_checkpoint_id: str | None = None
     last_error: str | None = None
     last_warning: str | None = None
+    job_kind: JobKind = JobKind.SUPPLY
+    workflow_config: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
