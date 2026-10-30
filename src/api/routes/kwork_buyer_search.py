@@ -673,6 +673,11 @@ async def stream_run_events(websocket: WebSocket, run_id: str, after_seq: int = 
             for event in events:
                 sequence = max(sequence, int(event.get("seq") or sequence))
                 await websocket.send_json({"type": "event", "event": event})
+            # A full page means there may be more durable events waiting.
+            # Drain backlog immediately; the idle receive timeout is only
+            # appropriate after a short (or empty) replay batch.
+            if len(events) == 1_000:
+                continue
             try:
                 message = await asyncio.wait_for(websocket.receive_text(), timeout=0.75)
             except TimeoutError:

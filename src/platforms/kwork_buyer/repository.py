@@ -1116,6 +1116,10 @@ class BuyerSearchRepository:
             connection.execute("PRAGMA journal_mode = WAL")
             connection.execute("PRAGMA busy_timeout = 5000")
             connection.executescript(_SCHEMA)
+            # Migration for pre-assignment Buyer Search databases. Query
+            # metadata is stored in buyer_queries, not buyer_run_projects.
+            self._ensure_column(connection, "buyer_queries", "worker_index", "INTEGER")
+            self._ensure_column(connection, "buyer_queries", "assignment_order", "INTEGER")
             self._ensure_column(connection, "buyer_runs", "counters_json", "TEXT NOT NULL DEFAULT '{}'")
             self._ensure_column(connection, "buyer_runs", "last_error", "TEXT")
             self._ensure_column(connection, "buyer_runs", "last_failure_kind", "TEXT")

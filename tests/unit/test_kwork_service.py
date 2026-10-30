@@ -40,6 +40,10 @@ def service():
 @pytest.fixture(autouse=True)
 def clean_env(monkeypatch):
     """Ensure clean environment for each test."""
+    # These tests exercise plain Kwork session fallback unless they explicitly
+    # opt into VPNTE. A developer's .env must not access a real proxy daemon.
+    for key in ("VPNTE_PROXY_ENABLED", "VPNTE_PROXY", "VPNTE_EXTERNAL_PROXY", "VPNTE_PROXY_STRICT"):
+        monkeypatch.setenv(key, "false")
     monkeypatch.delenv("SESSION_HUB_URL", raising=False)
     monkeypatch.delenv("SESSION_HUB_REQUIRED", raising=False)
     monkeypatch.delenv("KWORK_EMAIL", raising=False)

@@ -247,6 +247,9 @@ class TestAllProvidersFail:
     @pytest.mark.asyncio
     async def test_explicit_model_does_not_leak_to_fallback_provider(self, router, monkeypatch):
         """Provider-specific model aliases should not be reused for fallback providers."""
+        # Verify the built-in fallback, not the operator's task-model override.
+        for key in ("OPENAI_MODEL_PROPOSAL_WRITING", "PROPOSAL_WRITING_MODEL_OPENAI", "OPENAI_MODEL", "PROPOSAL_WRITING_MODEL"):
+            monkeypatch.delenv(key, raising=False)
         router.providers = {"deepseek": "fake_deepseek", "openai": "fake_openai"}
         router.health = {"deepseek": ProviderHealth(), "openai": ProviderHealth()}
         calls = []

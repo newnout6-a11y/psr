@@ -44,6 +44,37 @@ async def _run_with_queries(repository: BuyerSearchRepository) -> None:
 
 
 @pytest.mark.asyncio
+async def test_legacy_query_table_migrates_assignment_columns(tmp_path):
+    """Upgrade an installed database missing query-assignment columns."""
+    path = tmp_path / "legacy.sqlite3"
+    repo = BuyerSearchRepository(path)
+    await repo.initialize()
+    with sqlite3.connect(path) as connection:
+        connection.execute("ALTER TABLE buyer_queries RENAME TO buyer_queries_previous")
+        previous = connection.execute("PRAGMA table_info(buyer_queries_previous)").fetchall()
+        definitions = []
+        for _, name, field_type, not_null, default, primary_key in previous:
+            if name in {"worker_index", "assignment_order"}:
+                continue
+            definition = f'"{name}" {field_type}'
+            if primary_key:
+                definition += " PRIMARY KEY"
+            if not_null:
+                definition += " NOT NULL"
+            if default is not None:
+                definition += f" DEFAULT {default}"
+            definitions.append(definition)
+        connection.execute(f"CREATE TABLE buyer_queries ({', '.join(definitions)})")
+        connection.execute("DROP TABLE buyer_queries_previous")
+    upgraded = BuyerSearchRepository(path)
+    await upgraded.initialize()
+    await _run_with_queries(upgraded)
+    with sqlite3.connect(path) as connection:
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(buyer_queries)")}
+    assert {"worker_index", "assignment_order"} <= columns
+
+
+@pytest.mark.asyncio
 async def test_run_record_decodes_json_fields_for_typed_api(repository: BuyerSearchRepository):
     await _run_with_queries(repository)
 

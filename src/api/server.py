@@ -19,7 +19,9 @@ if str(ROOT) not in sys.path:
 
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
+# Deployment/process environment takes precedence over local .env defaults.
+# Overriding it on import also makes offline tests accidentally use live VPNTE.
+load_dotenv(override=False)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
