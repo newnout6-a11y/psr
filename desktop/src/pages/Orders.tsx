@@ -32,7 +32,7 @@ function statusBadgeClass(status: string): string {
 
 export default function Orders() {
   const [tab, setTab] = useState<StatusTab>('all')
-  const { data, loading, error, refetch } = useApi<{ orders: KworkOrder[] }>(() => (api as any).getKworkOrders(tab), [tab])
+  const { data, loading, error, refetch } = useApi<{ orders: KworkOrder[] }>(() => api.getKworkOrders(tab), [tab])
 
   const orders: KworkOrder[] = data?.orders || []
 
