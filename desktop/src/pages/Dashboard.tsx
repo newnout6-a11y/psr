@@ -65,6 +65,102 @@ interface CandidateDiscoverySnapshot {
   items: PersistedCandidateRow[]
 }
 
+interface DurableCandidateEvent {
+  seq: number
+  candidate_id: number
+  platform: string
+  project_id: string
+  event_type: string
+  candidate_status: string | null
+  delivery_status: string | null
+  occurred_at: string
+}
+
+interface CandidateEventsResponse {
+  status: 'ready' | 'unavailable' | 'reset_required'
+  reason: string | null
+  stream_id: string | null
+  latest_seq: number
+  next_after_seq: number
+  has_more: boolean
+  recent: DurableCandidateEvent[]
+  items: DurableCandidateEvent[]
+  outbox_status_counts: Record<string, number>
+}
+
+type CandidateCursor = { stream_id: string; after_seq: number }
+const CANDIDATE_CURSOR_KEY = 'psr.dashboard.candidate-events.cursor.v1'
+
+function readCandidateCursor(): CandidateCursor | null {
+  try {
+    const saved: unknown = JSON.parse(localStorage.getItem(CANDIDATE_CURSOR_KEY) || 'null')
+    if (!saved || typeof saved !== 'object') return null
+    if (!('stream_id' in saved) || typeof saved.stream_id !== 'string') return null
+    if (!('after_seq' in saved) || typeof saved.after_seq !== 'number' ||
+      !Number.isSafeInteger(saved.after_seq) || saved.after_seq < 0) return null
+    return { stream_id: saved.stream_id, after_seq: saved.after_seq }
+  } catch {
+    return null
+  }
+}
+
+function saveCandidateCursor(cursor: CandidateCursor | null) {
+  try {
+    if (cursor) localStorage.setItem(CANDIDATE_CURSOR_KEY, JSON.stringify(cursor))
+    else localStorage.removeItem(CANDIDATE_CURSOR_KEY)
+  } catch {
+    // REST replay continues for the active window even when storage is disabled.
+  }
+}
+
+function isDurableCandidateEvent(value: unknown): value is DurableCandidateEvent {
+  if (!value || typeof value !== 'object') return false
+  return 'seq' in value && typeof value.seq === 'number' && Number.isSafeInteger(value.seq) &&
+    'candidate_id' in value && typeof value.candidate_id === 'number' &&
+    'platform' in value && typeof value.platform === 'string' &&
+    'project_id' in value && typeof value.project_id === 'string' &&
+    'event_type' in value && typeof value.event_type === 'string' &&
+    'candidate_status' in value && (value.candidate_status === null || typeof value.candidate_status === 'string') &&
+    'delivery_status' in value && (value.delivery_status === null || typeof value.delivery_status === 'string') &&
+    'occurred_at' in value && typeof value.occurred_at === 'string'
+}
+
+function isCandidateEventsResponse(value: unknown): value is CandidateEventsResponse {
+  if (!value || typeof value !== 'object') return false
+  return 'status' in value && ['ready', 'unavailable', 'reset_required'].includes(String(value.status)) &&
+    'stream_id' in value && (value.stream_id === null || typeof value.stream_id === 'string') &&
+    'next_after_seq' in value && typeof value.next_after_seq === 'number' &&
+    'latest_seq' in value && typeof value.latest_seq === 'number' &&
+    'has_more' in value && typeof value.has_more === 'boolean' &&
+    'items' in value && Array.isArray(value.items) && value.items.every(isDurableCandidateEvent) &&
+    'recent' in value && Array.isArray(value.recent) && value.recent.every(isDurableCandidateEvent) &&
+    'outbox_status_counts' in value && typeof value.outbox_status_counts === 'object' &&
+    value.outbox_status_counts !== null && !Array.isArray(value.outbox_status_counts)
+}
+
+function candidateEventLabel(event: DurableCandidateEvent): string {
+  const labels: Record<string, string> = {
+    'candidate.discovered': 'Обнаружено и сохранено (без оценки)',
+    'candidate.status_changed': 'Обновлён статус кандидата',
+    'notification.pending': 'Уведомление ожидает отправки',
+    'notification.leased': 'Уведомление обрабатывается',
+    'notification.retry': 'Запланирована повторная попытка уведомления',
+    'notification.provider_accepted': 'Провайдер принял отправку',
+    'notification.failed': 'Доставка не подтверждена',
+    'notification.dead': 'Попытки доставки исчерпаны',
+    'notification.cancelled': 'Уведомление отменено',
+  }
+  return labels[event.event_type] || event.event_type
+}
+
+const DELIVERY_LABELS: Record<string, string> = {
+  pending: 'Ожидают отправки',
+  leased: 'Обрабатываются',
+  delivered: 'Приняты провайдером',
+  dead: 'Попытки исчерпаны',
+  cancelled: 'Отменены',
+}
+
 function isDiscoverySnapshot(value: unknown): value is CandidateDiscoverySnapshot {
   return typeof value === 'object' && value !== null &&
     'status' in value && (value.status === 'ready' || value.status === 'unavailable') &&
@@ -79,6 +175,15 @@ function isDiscoverySnapshot(value: unknown): value is CandidateDiscoverySnapsho
 
 export default function Dashboard() {
   const [days, setDays] = useState(14)
+  const [candidateEvents, setCandidateEvents] = useState<CandidateEventsResponse | null>(null)
+  const [candidateEventError, setCandidateEventError] = useState<string | null>(null)
+  const [candidateEventsChecked, setCandidateEventsChecked] = useState<number | null>(null)
+  const [candidateEventRows, setCandidateEventRows] = useState<DurableCandidateEvent[]>([])
+  const [candidateEventResetReason, setCandidateEventResetReason] = useState<string | null>(null)
+  const candidateEventsCursor = useRef<CandidateCursor | null>(null)
+  const candidateReplayPausedRef = useRef(false)
+  const pollCandidateEventsNowRef = useRef<() => void>(() => {})
+  const resetCandidateEventsRef = useRef<() => void>(() => {})
   const [candidateFeed, setCandidateFeed] = useState<CandidateDiscoverySnapshot | null>(null)
   const [candidateFeedError, setCandidateFeedError] = useState<string | null>(null)
   const [candidateFeedChecked, setCandidateFeedChecked] = useState<number | null>(null)
@@ -86,6 +191,92 @@ export default function Dashboard() {
   const [newCandidateTotal, setNewCandidateTotal] = useState(0)
   const discoveryCursor = useRef<number | null>(null)
   const pollNowRef = useRef<() => void>(() => {})
+
+  useEffect(() => {
+    let active = true
+    let inFlight = false
+    candidateEventsCursor.current = readCandidateCursor()
+    const controller = new AbortController()
+    const check = async () => {
+      if (!active || inFlight || candidateReplayPausedRef.current) return
+      inFlight = true
+      try {
+        for (let page = 0; page < 5 && active; page += 1) {
+          const cursor = candidateEventsCursor.current
+          const params = new URLSearchParams({ limit: '200' })
+          if (cursor) {
+            params.set('stream_id', cursor.stream_id)
+            params.set('after_seq', String(cursor.after_seq))
+          }
+          const response = await fetch(`${API_BASE}/api/dashboard/candidate-events?${params}`, { signal: controller.signal })
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText || 'Ошибка API'}`)
+          const data: unknown = await response.json()
+          if (!isCandidateEventsResponse(data)) throw new Error('Некорректная структура журнала событий')
+          if (!active) return
+          setCandidateEvents(data)
+          setCandidateEventsChecked(Date.now())
+          setCandidateEventError(null)
+          if (data.status === 'unavailable') break
+          if (data.status === 'reset_required') {
+            candidateReplayPausedRef.current = true
+            setCandidateEventResetReason(data.reason || 'Нарушена последовательность журнала событий')
+            break
+          }
+          if (!data.stream_id) throw new Error('Отсутствует идентификатор журнала событий')
+          if (cursor && data.stream_id !== cursor.stream_id) {
+            candidateReplayPausedRef.current = true
+            setCandidateEventResetReason('Файл базы заменён. Для воспроизведения событий требуется новая точка отсчёта.')
+            break
+          }
+          if (cursor && data.items.length) {
+            setCandidateEventRows((existing) => [
+              ...data.items.slice().reverse(),
+              ...existing,
+            ].slice(0, 30))
+          } else if (!cursor) {
+            // Historical snapshot is visible, but never counted as newly
+            // discovered or newly delivered notifications.
+            setCandidateEventRows(data.recent.slice().reverse())
+          } else if (data.recent.length) {
+            setCandidateEventRows((existing) => existing.length ? existing : data.recent.slice().reverse())
+          }
+          const next = { stream_id: data.stream_id, after_seq: data.next_after_seq }
+          candidateEventsCursor.current = next
+          saveCandidateCursor(next)
+          if (!data.has_more || next.after_seq === cursor?.after_seq) break
+        }
+      } catch (reason) {
+        if (active && !controller.signal.aborted) {
+          setCandidateEventError(reason instanceof Error ? reason.message : String(reason))
+        }
+      } finally {
+        inFlight = false
+      }
+    }
+    pollCandidateEventsNowRef.current = () => void check()
+    resetCandidateEventsRef.current = () => {
+      candidateEventsCursor.current = null
+      candidateReplayPausedRef.current = false
+      saveCandidateCursor(null)
+      setCandidateEventResetReason(null)
+      setCandidateEventRows([])
+      // A subsequent check will establish a new baseline. Explicitly
+      // acknowledging a DB reset avoids silently interpreting old IDs.
+      void check()
+    }
+    void check()
+    const timer = window.setInterval(() => void check(), 10_000)
+    const onFocus = () => void check()
+    window.addEventListener('focus', onFocus)
+    return () => {
+      active = false
+      controller.abort()
+      window.clearInterval(timer)
+      window.removeEventListener('focus', onFocus)
+      pollCandidateEventsNowRef.current = () => {}
+      resetCandidateEventsRef.current = () => {}
+    }
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -208,6 +399,69 @@ export default function Dashboard() {
           ))}
         </div>
       )}
+
+      <section className="card" aria-label="Журнал кандидатов и уведомлений">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-medium text-zinc-200">Журнал состояний кандидатов и доставки</h2>
+            <p className="mt-1 text-xs text-zinc-500">Сохранённые события Kwork / Freelance.ru / HH.ru; независимо от Buyer Search. Это REST-воспроизведение, не push-уведомления.</p>
+          </div>
+          <button type="button" className="btn btn-ghost py-1 text-xs" onClick={() => pollCandidateEventsNowRef.current()} disabled={Boolean(candidateEventResetReason)}>
+            <RefreshCw className="h-3.5 w-3.5" /> Проверить журнал
+          </button>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-zinc-400">
+          <span>{candidateEventResetReason ? 'Нужна новая точка отсчёта'
+            : candidateEvents?.status === 'ready' ? 'Журнал доступен'
+            : candidateEvents?.status === 'unavailable' ? 'Журнал пока недоступен'
+              : candidateEvents?.status === 'reset_required' ? 'Нужна новая точка отсчёта'
+                : 'Подключение…'}</span>
+          <span>Последний seq: {candidateEvents?.latest_seq ?? '—'}</span>
+          <span>Проверено: {candidateEventsChecked ? new Date(candidateEventsChecked).toLocaleTimeString('ru-RU') : '—'}</span>
+          <span>REST-опрос каждые 10 с — не задержка обнаружения</span>
+          {candidateEvents?.has_more && <span className="text-amber-300">Есть ещё сохранённые события для воспроизведения</span>}
+        </div>
+        {candidateEvents?.status === 'ready' && (
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-zinc-300">
+            {Object.entries(DELIVERY_LABELS).map(([key, label]) => <span key={key}>
+              {label}: <strong>{candidateEvents.outbox_status_counts[key] ?? 0}</strong>
+            </span>)}
+          </div>
+        )}
+        {candidateEvents?.status === 'unavailable' && <p className="mt-2 text-xs text-amber-300">{candidateEvents.reason || 'Схема outbox ещё не создана'}. Данные не заменяются выдуманными счётчиками.</p>}
+        {candidateEventError && <p className="mt-2 text-xs text-red-300" role="alert">
+          Ошибка чтения событий: {candidateEventError}. Проверьте локальный FastAPI.
+        </p>}
+        {candidateEventResetReason && <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-amber-300" role="alert">
+          <span>{candidateEventResetReason} История до сброса не подтверждена.</span>
+          <button type="button" className="btn btn-ghost py-1 text-xs" onClick={() => resetCandidateEventsRef.current()}>
+            Подтвердить сброс и начать с текущих событий
+          </button>
+        </div>}
+        <div className="mt-3 space-y-1">
+          {candidateEventRows.length ? candidateEventRows.map((event) => (
+            <div key={event.seq} className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 py-1.5 text-xs">
+              <span className="min-w-0 text-zinc-300">
+                #{event.seq} · {event.platform} · кандидат #{event.candidate_id} · {candidateEventLabel(event)}
+              </span>
+              <span className="text-zinc-500">
+                {event.candidate_status ? `Статус: ${STATUS_LABEL[event.candidate_status] ?? event.candidate_status}` : ''}
+                {event.delivery_status ? ` · доставка: ${event.delivery_status === 'provider_accepted' ? 'принято провайдером' : event.delivery_status}` : ''}
+                {' · '}{event.occurred_at ? fmtTs(event.occurred_at) : 'время не указано'}
+              </span>
+            </div>
+          )) : <p className="text-xs text-zinc-500">
+            {candidateEvents?.status === 'ready'
+              ? 'Событий пока нет. Это не означает, что сервисы обнаружения выключены.'
+              : 'Нет подтверждённых событий для отображения.'}
+          </p>}
+        </div>
+        <p className="mt-2 text-xs text-zinc-500">
+          «parsed» — лишь первичное сохранение, не подтверждение релевантности.
+          «Принято провайдером» не означает, что получатель прочитал сообщение.
+          Исторические строки при первой загрузке не считаются новыми уведомлениями.
+        </p>
+      </section>
 
       {/* Read-only observations of orchestrator DB insertions. This is not a
           push notification, a buyer-search event, or end-to-end latency. */}

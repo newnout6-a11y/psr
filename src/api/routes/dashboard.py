@@ -94,6 +94,16 @@ def candidate_discovery(
     return q.candidate_discovery_snapshot(after_id=after_id, limit=limit)
 
 
+@router.get("/candidate-events")
+def candidate_events(
+    after_seq: int | None = Query(default=None, ge=0),
+    stream_id: str | None = Query(default=None, min_length=1, max_length=128),
+    limit: int = Query(default=100, ge=1, le=200),
+):
+    """Durable, read-only candidate/outbox journal replay (not Buyer Search WS)."""
+    return q.candidate_event_snapshot(after_seq=after_seq, stream_id=stream_id, limit=limit)
+
+
 @router.get("/proposals-by-hour")
 def proposals_by_hour():
     df = q.proposals_by_hour()

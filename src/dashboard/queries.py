@@ -111,6 +111,140 @@ def candidate_discovery_snapshot(*, after_id: int | None = None, limit: int = 50
         return {**missing, "reason": "Не удалось прочитать базу кандидатов; проверьте доступность SQLite"}
 
 
+def candidate_event_snapshot(
+    *, after_seq: int | None = None, stream_id: str | None = None, limit: int = 100,
+) -> dict[str, Any]:
+    """Read-only replay of the orchestrator's *committed* status/delivery journal.
+
+    The journal has its own sequence and database generation; the Buyer Search
+    WebSocket and its independent repository are deliberately not consulted.
+    A delivery outcome is reported only when the outbox journal persisted it.
+    """
+    unavailable: dict[str, Any] = {
+        "status": "unavailable",
+        "reason": "Журнал событий кандидатов недоступен",
+        "stream_id": None,
+        "latest_seq": 0,
+        "next_after_seq": after_seq if after_seq is not None else 0,
+        "has_more": False,
+        "recent": [],
+        "items": [],
+        "outbox_status_counts": {},
+    }
+    db_path = Path(PROPOSALS_DB)
+    if not db_path.is_file():
+        return {**unavailable, "reason": "База кандидатов ещё не создана"}
+
+    def project_event(row: sqlite3.Row) -> dict[str, Any]:
+        event_kind = str(row["event_kind"])
+        delivery_status = row["delivery_status"]
+        if event_kind == "notification" and isinstance(delivery_status, str):
+            event_type = f"notification.{delivery_status}"
+        elif event_kind == "candidate_status":
+            event_type = "candidate.status_changed"
+        else:
+            event_type = event_kind
+        return {
+            "seq": int(row["seq"]),
+            "candidate_id": int(row["candidate_id"]),
+            "platform": str(row["platform"] or "unknown"),
+            "project_id": str(row["project_id"] or ""),
+            "event_type": event_type,
+            "candidate_status": row["candidate_status"],
+            "delivery_status": delivery_status,
+            "occurred_at": str(row["created_at"]),
+        }
+
+    try:
+        # Read-only URI is intentional: no implicit migrations or notification
+        # deliveries should be triggered by opening the Dashboard.
+        with closing(sqlite3.connect(db_path.resolve().as_uri() + "?mode=ro", uri=True, timeout=1)) as conn:
+            conn.row_factory = sqlite3.Row
+            tables = {
+                row["name"] for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'"
+                )
+            }
+            if not {"candidate_event_journal", "candidate_notification_outbox", "runtime_state", "candidates"}.issubset(tables):
+                return {**unavailable, "reason": "Журнал событий ещё не инициализирован"}
+            required_columns = {
+                "seq", "stream_id", "candidate_id", "event_id", "event_kind",
+                "candidate_status", "delivery_status", "created_at",
+            }
+            columns = {
+                row["name"] for row in conn.execute("PRAGMA table_info(candidate_event_journal)")
+            }
+            if not required_columns.issubset(columns):
+                return {**unavailable, "reason": "Таблица журнала имеет несовместимую схему"}
+            stream_row = conn.execute(
+                "SELECT state_value FROM runtime_state WHERE state_key = 'candidate_events.stream_id'"
+            ).fetchone()
+            current_stream_id = str(stream_row["state_value"] or "") if stream_row else ""
+            if not current_stream_id:
+                return {**unavailable, "reason": "Идентификатор потока событий ещё не создан"}
+            latest_seq = int(conn.execute(
+                "SELECT COALESCE(MAX(seq), 0) AS latest_seq FROM candidate_event_journal"
+            ).fetchone()["latest_seq"])
+            counts = {
+                str(row["status"]): int(row["total"])
+                for row in conn.execute(
+                    "SELECT status, COUNT(*) AS total FROM candidate_notification_outbox GROUP BY status"
+                )
+            }
+            summary: dict[str, Any] = {
+                **unavailable,
+                "status": "ready",
+                "reason": None,
+                "stream_id": current_stream_id,
+                "latest_seq": latest_seq,
+                "next_after_seq": latest_seq if after_seq is None else after_seq,
+                "outbox_status_counts": counts,
+            }
+            join = """
+                SELECT j.seq, j.candidate_id, j.event_kind, j.candidate_status,
+                       j.delivery_status, j.created_at, c.platform, c.project_id
+                FROM candidate_event_journal j
+                LEFT JOIN candidates c ON c.candidate_id = j.candidate_id
+            """
+            recent_rows = conn.execute(join + " ORDER BY j.seq DESC LIMIT 10").fetchall()
+            summary["recent"] = [project_event(row) for row in reversed(recent_rows)]
+            if after_seq is None:
+                # Initial snapshot of existing journal, not new notifications.
+                return summary
+
+            if (stream_id is not None and stream_id != current_stream_id) or after_seq > latest_seq:
+                return {
+                    **summary,
+                    "status": "reset_required",
+                    "reason": "Поток событий изменился или последовательность больше недоступна. Нужна новая базовая точка.",
+                    "next_after_seq": latest_seq,
+                }
+
+            rows = conn.execute(
+                join + " WHERE j.seq > ? ORDER BY j.seq LIMIT ?",
+                (after_seq, limit),
+            ).fetchall()
+            sequences = [int(row["seq"]) for row in rows]
+            contiguous = not sequences or all(
+                seq == previous + 1
+                for previous, seq in zip([after_seq, *sequences[:-1]], sequences, strict=True)
+            )
+            if not contiguous or (not rows and latest_seq > after_seq):
+                return {
+                    **summary,
+                    "status": "reset_required",
+                    "reason": "В журнале обнаружен пропуск событий. Нельзя гарантировать полное воспроизведение.",
+                    "next_after_seq": latest_seq,
+                }
+            summary["items"] = [project_event(row) for row in rows]
+            if rows:
+                summary["next_after_seq"] = int(rows[-1]["seq"])
+            summary["has_more"] = latest_seq > summary["next_after_seq"]
+            return summary
+    except sqlite3.Error:
+        return {**unavailable, "reason": "Не удалось прочитать журнал событий SQLite"}
+
+
 def overview_metrics(days: int = 7) -> dict[str, Any]:
     metrics = {
         "parsed": 0,
