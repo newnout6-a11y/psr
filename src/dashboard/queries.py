@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +32,83 @@ def _read_sql(db_path: str, query: str, params: tuple = ()) -> pd.DataFrame:
             return pd.read_sql_query(query, conn, params=params)
     except (sqlite3.OperationalError, pd.errors.DatabaseError):
         return pd.DataFrame()
+
+
+def candidate_discovery_snapshot(*, after_id: int | None = None, limit: int = 50) -> dict[str, Any]:
+    """Read the orchestrator's persisted candidate insertions without sending notifications.
+
+    The monotonically increasing candidate_id tracks *new rows*, not page
+    discoveries, suitability decisions, or state changes to existing rows.
+    The separate Buyer Search repository is intentionally not included.
+    """
+    missing = {
+        "status": "unavailable",
+        "reason": "База кандидатов ещё не создана",
+        "latest_id": 0,
+        "next_after_id": after_id if after_id is not None else 0,
+        "has_more": False,
+        "total": 0,
+        "by_platform": [],
+        "recent": [],
+        "items": [],
+    }
+    db_path = Path(PROPOSALS_DB)
+    if not db_path.is_file():
+        return missing
+    try:
+        # Opening read-only prevents a monitoring request from creating or
+        # migrating the live proposal database.
+        with closing(sqlite3.connect(db_path.resolve().as_uri() + "?mode=ro", uri=True, timeout=1)) as connection:
+            connection.row_factory = sqlite3.Row
+            columns = {row["name"] for row in connection.execute("PRAGMA table_info(candidates)")}
+            required = {"candidate_id", "project_id", "platform", "title", "status", "updated_at"}
+            if not required.issubset(columns):
+                return {**missing, "reason": "Таблица кандидатов или необходимые поля пока недоступны"}
+            summary = connection.execute(
+                "SELECT COALESCE(MAX(candidate_id), 0) AS latest_id, COUNT(*) AS total FROM candidates"
+            ).fetchone()
+            latest_id = int(summary["latest_id"])
+            total = int(summary["total"])
+            by_platform = [
+                {"platform": str(row["platform"] or "unknown"), "total": int(row["total"])}
+                for row in connection.execute(
+                    "SELECT platform, COUNT(*) AS total FROM candidates GROUP BY platform ORDER BY total DESC, platform"
+                )
+            ]
+            fields = "candidate_id, project_id, platform, title, status, updated_at"
+            recent = [
+                dict(row)
+                for row in connection.execute(
+                    f"SELECT {fields} FROM candidates ORDER BY candidate_id DESC LIMIT 10"
+                )
+            ]
+            # The first request is a baseline. Historical rows appear as
+            # 'recent' but are never reported as newly detected notifications.
+            next_after_id = latest_id if after_id is None else after_id
+            items: list[dict[str, Any]] = []
+            if after_id is not None:
+                items = [
+                    dict(row)
+                    for row in connection.execute(
+                        f"SELECT {fields} FROM candidates WHERE candidate_id > ? ORDER BY candidate_id LIMIT ?",
+                        (after_id, limit),
+                    )
+                ]
+                if items:
+                    next_after_id = int(items[-1]["candidate_id"])
+            return {
+                "status": "ready",
+                "reason": None,
+                "latest_id": latest_id,
+                "next_after_id": next_after_id,
+                "has_more": latest_id > next_after_id,
+                "total": total,
+                "by_platform": by_platform,
+                "recent": recent,
+                "items": items,
+            }
+    except sqlite3.Error:
+        return {**missing, "reason": "Не удалось прочитать базу кандидатов; проверьте доступность SQLite"}
 
 
 def overview_metrics(days: int = 7) -> dict[str, Any]:

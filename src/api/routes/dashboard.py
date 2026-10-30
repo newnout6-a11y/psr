@@ -85,6 +85,15 @@ def activity():
     return q.last_activity()
 
 
+@router.get("/candidate-discovery")
+def candidate_discovery(
+    after_id: int | None = Query(default=None, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+):
+    """Read-only insertion cursor for orchestrator candidates, not a push/alert feed."""
+    return q.candidate_discovery_snapshot(after_id=after_id, limit=limit)
+
+
 @router.get("/proposals-by-hour")
 def proposals_by_hour():
     df = q.proposals_by_hour()

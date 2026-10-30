@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, Legend
 } from 'recharts'
 import { RefreshCw, TrendingUp, AlertTriangle, Bell } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
-import { api, TimelineItem, StatusRow } from '../lib/api'
+import { api, API_BASE, TimelineItem, StatusRow } from '../lib/api'
 import { fmtTs, fmtNum, STATUS_LABEL } from '../lib/utils'
 import { cn } from '../lib/utils'
 
@@ -44,8 +44,96 @@ const ACTIVITY_LABELS: Record<string, string> = {
   responses: 'последний ответ',
 }
 
+interface PersistedCandidateRow {
+  candidate_id: number
+  project_id: string
+  platform: string
+  title: string
+  status: string
+  updated_at: string
+}
+
+interface CandidateDiscoverySnapshot {
+  status: 'ready' | 'unavailable'
+  reason: string | null
+  latest_id: number
+  next_after_id: number
+  has_more: boolean
+  total: number
+  by_platform: Array<{ platform: string; total: number }>
+  recent: PersistedCandidateRow[]
+  items: PersistedCandidateRow[]
+}
+
+function isDiscoverySnapshot(value: unknown): value is CandidateDiscoverySnapshot {
+  return typeof value === 'object' && value !== null &&
+    'status' in value && (value.status === 'ready' || value.status === 'unavailable') &&
+    'next_after_id' in value && typeof value.next_after_id === 'number' &&
+    'latest_id' in value && typeof value.latest_id === 'number' &&
+    'total' in value && typeof value.total === 'number' &&
+    'by_platform' in value && Array.isArray(value.by_platform) &&
+    'recent' in value && Array.isArray(value.recent) &&
+    'items' in value && Array.isArray(value.items) &&
+    'has_more' in value && typeof value.has_more === 'boolean'
+}
+
 export default function Dashboard() {
   const [days, setDays] = useState(14)
+  const [candidateFeed, setCandidateFeed] = useState<CandidateDiscoverySnapshot | null>(null)
+  const [candidateFeedError, setCandidateFeedError] = useState<string | null>(null)
+  const [candidateFeedChecked, setCandidateFeedChecked] = useState<number | null>(null)
+  const [newCandidateRows, setNewCandidateRows] = useState<PersistedCandidateRow[]>([])
+  const [newCandidateTotal, setNewCandidateTotal] = useState(0)
+  const discoveryCursor = useRef<number | null>(null)
+  const pollNowRef = useRef<() => void>(() => {})
+
+  useEffect(() => {
+    const controller = new AbortController()
+    let inFlight = false
+    const poll = async () => {
+      if (inFlight || controller.signal.aborted) return
+      inFlight = true
+      try {
+        // Cursor is candidate_id, not updated_at or remote project creation
+        // time; reprocessing an existing candidate must not count as a new one.
+        for (let page = 0; page < 5; page += 1) {
+          const currentCursor = discoveryCursor.current
+          const params = new URLSearchParams({ limit: '200' })
+          if (currentCursor !== null) params.set('after_id', String(currentCursor))
+          const response = await fetch(`${API_BASE}/api/dashboard/candidate-discovery?${params}`, { signal: controller.signal })
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText || 'Ошибка API'}`)
+          const payload: unknown = await response.json()
+          if (!isDiscoverySnapshot(payload)) throw new Error('Неожиданный формат ответа наблюдения кандидатов')
+          if (controller.signal.aborted) return
+          setCandidateFeed(payload)
+          setCandidateFeedChecked(Date.now())
+          setCandidateFeedError(null)
+          if (payload.status !== 'ready') return
+          if (currentCursor !== null && payload.items.length) {
+            setNewCandidateTotal((value) => value + payload.items.length)
+            setNewCandidateRows((existing) => [...payload.items.slice().reverse(), ...existing].slice(0, 8))
+          }
+          discoveryCursor.current = payload.next_after_id
+          if (!payload.has_more || payload.next_after_id === currentCursor) break
+        }
+      } catch (reason) {
+        if (!controller.signal.aborted) setCandidateFeedError(reason instanceof Error ? reason.message : String(reason))
+      } finally {
+        inFlight = false
+      }
+    }
+    pollNowRef.current = () => { void poll() }
+    void poll()
+    const timer = window.setInterval(() => void poll(), 15_000)
+    const onFocus = () => void poll()
+    window.addEventListener('focus', onFocus)
+    return () => {
+      controller.abort()
+      window.clearInterval(timer)
+      window.removeEventListener('focus', onFocus)
+      pollNowRef.current = () => {}
+    }
+  }, [])
 
   const { data: overview, loading: ovLoading, refetch: refetchOv } = useApi(
     () => api.getOverview(days), [days]
@@ -120,6 +208,43 @@ export default function Dashboard() {
           ))}
         </div>
       )}
+
+      {/* Read-only observations of orchestrator DB insertions. This is not a
+          push notification, a buyer-search event, or end-to-end latency. */}
+      <section className="card" aria-label="Новые сохранённые кандидаты">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-medium text-zinc-200">Кандидаты оркестратора · сохранённые записи</h2>
+            <p className="mt-1 text-xs text-zinc-500">Kwork / Freelance.ru / HH.ru — только то, что уже записано в общую БД кандидатов. Buyer Search хранится отдельно.</p>
+          </div>
+          <button className="btn btn-ghost py-1 text-xs" type="button" onClick={() => pollNowRef.current()}><RefreshCw className="h-3.5 w-3.5" />Проверить БД</button>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs">
+          <span className="text-zinc-300">Состояние: {candidateFeed?.status === 'ready' ? 'SQLite доступна' : candidateFeed?.status === 'unavailable' ? 'База недоступна' : 'Ожидание первой проверки'}</span>
+          {candidateFeed?.status === 'ready' && <span className="text-zinc-300">Всего записей: {candidateFeed.total}</span>}
+          <span className="text-zinc-300">Новых ID с открытия экрана: {newCandidateTotal}</span>
+          <span className="text-zinc-500">Последняя проверка: {candidateFeedChecked ? new Date(candidateFeedChecked).toLocaleTimeString('ru-RU') : '—'}</span>
+          <span className="text-zinc-500">Опрос раз в 15 с; это не задержка обнаружения на площадке</span>
+        </div>
+        {candidateFeed?.status === 'ready' && <p className="mt-2 text-xs text-zinc-400">Записано по платформам (за всё время): {candidateFeed.by_platform.length ? candidateFeed.by_platform.map((row) => `${row.platform}: ${row.total}`).join(' · ') : 'пока нет кандидатов'}</p>}
+        {candidateFeed?.status === 'unavailable' && <p role="status" className="mt-2 text-xs text-amber-300">{candidateFeed.reason || 'База кандидатов недоступна'}.</p>}
+        {candidateFeedError && <p role="alert" className="mt-2 text-xs text-red-300">Не удалось проверить сохранённые кандидаты: {candidateFeedError}. Проверьте FastAPI и повторите запрос.</p>}
+        {newCandidateRows.length > 0 ? (
+          <div className="mt-3 space-y-1">
+            <p className="text-xs text-emerald-300">В этой сессии появились новые записи (не означает готовность к отклику или доставку уведомлений):</p>
+            {newCandidateRows.map((row) => <div key={row.candidate_id} className="flex flex-wrap justify-between gap-2 border-t border-white/5 pt-1.5 text-xs">
+              <span className="min-w-0 text-zinc-300">#{row.candidate_id} · {row.platform} · {row.title || row.project_id}</span>
+              <span className="text-zinc-500">{STATUS_LABEL[row.status] ?? row.status}</span>
+            </div>)}
+          </div>
+        ) : candidateFeed?.status === 'ready' && (
+          <div className="mt-3 text-xs text-zinc-500">
+            Новых ID после открытия экрана пока нет. Последние сохранённые: {candidateFeed.recent.length
+              ? candidateFeed.recent.map((row) => `${row.platform} #${row.candidate_id}`).join(' · ')
+              : 'записей нет'}.
+          </div>
+        )}
+      </section>
 
       {/* Metric cards */}
       <div className="grid grid-cols-7 gap-3 max-2xl:grid-cols-4 max-lg:grid-cols-2">
