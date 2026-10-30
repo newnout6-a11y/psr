@@ -338,6 +338,88 @@ async def test_stale_task_fence_cannot_commit_new_observations(repository: Buyer
 
 
 @pytest.mark.asyncio
+async def test_expired_lease_rejects_commit_even_when_observed_at_is_older(repository: BuyerSearchRepository):
+    await _run_with_queries(repository)
+    await repository.enqueue_query_task(
+        "run_1", {"task_id": "task_expired", "query_id": "query_1", "source": "mobile_projects", "page": 1}
+    )
+    lease = await repository.lease_query_task("run_1", "worker_1")
+    assert lease is not None
+
+    with sqlite3.connect(repository.db_path) as connection:
+        connection.execute(
+            "UPDATE buyer_query_tasks SET lease_deadline = '2000-01-02T00:00:00.000Z' WHERE task_id = ?",
+            ("task_expired",),
+        )
+
+    with pytest.raises(BuyerQueryTaskLeaseLostError):
+        await repository.commit_observed_page(
+            task_id="task_expired",
+            worker_id="worker_1",
+            attempt_id=lease["attempt_id"],
+            lease_fence=lease["lease_fence"],
+            observed_at="2000-01-01T00:00:00.000Z",
+            projects=[{"id": "must_not_commit", "title": "Expired lease"}],
+        )
+
+    assert (await repository.list_run_projects("run_1"))["items"] == []
+
+
+@pytest.mark.asyncio
+async def test_first_seen_and_remote_updated_sorts_ignore_repeat_observation(repository: BuyerSearchRepository):
+    await _run_with_queries(repository)
+
+    async def commit(task_id: str, query_id: str, page: int, observed_at: str, projects: list[dict]) -> None:
+        await repository.enqueue_query_task(
+            "run_1", {"task_id": task_id, "query_id": query_id, "source": "mobile_projects", "page": page}
+        )
+        lease = await repository.lease_query_task("run_1", "worker_1")
+        assert lease is not None and lease["task_id"] == task_id
+        await repository.commit_observed_page(
+            task_id=task_id,
+            worker_id="worker_1",
+            attempt_id=lease["attempt_id"],
+            lease_fence=lease["lease_fence"],
+            observed_at=observed_at,
+            projects=projects,
+        )
+
+    await commit(
+        "task_old", "query_1", 1, "2026-04-01T10:00:00Z",
+        [
+            {"id": "old", "title": "Older project", "remote_updated_at": "2026-01-02T02:00:00+03:00"},
+            {"id": "unknown", "title": "Unknown remote date"},
+        ],
+    )
+    await commit(
+        "task_new", "query_2", 1, "2026-04-02T10:00:00Z",
+        [{"id": "new", "title": "Newer project", "remote_updated_at": "2026-01-02T00:30:00Z"}],
+    )
+    await commit(
+        "task_repeat", "query_1", 2, "2026-04-03T10:00:00Z",
+        [{"id": "old", "title": "Older project", "remote_updated_at": "2026-01-02T02:00:00+03:00"}],
+    )
+
+    assert (await repository.list_run_projects("run_1"))["items"][0]["remote_project_id"] == "new"
+    assert (await repository.list_run_projects("run_1", sort="updated_desc"))["items"][0]["remote_project_id"] == "old"
+    remote_items = (await repository.list_run_projects("run_1", sort="remote_updated_desc"))["items"]
+    assert [item["remote_project_id"] for item in remote_items] == ["new", "old", "unknown"]
+
+    for sort in ("first_seen_desc", "remote_updated_desc"):
+        cursor = None
+        project_ids: list[str] = []
+        while True:
+            batch = await repository.list_run_projects("run_1", sort=sort, limit=1, cursor=cursor)
+            project_ids.extend(item["remote_project_id"] for item in batch["items"])
+            cursor = batch["next_cursor"]
+            if cursor is None:
+                break
+        assert len(project_ids) == 3
+        assert set(project_ids) == {"new", "old", "unknown"}
+        assert project_ids[0] == "new"
+
+
+@pytest.mark.asyncio
 async def test_restart_requeues_tasks_and_invalidates_an_inflight_lease(repository: BuyerSearchRepository):
     await _run_with_queries(repository)
     await repository.enqueue_query_task(

@@ -971,7 +971,7 @@ class BuyerSearchRepository:
         *,
         cursor: str | None = None,
         limit: int = 100,
-        sort: str = "updated_desc",
+        sort: str = "first_seen_desc",
         filters: Mapping[str, Any] | None = None,
     ) -> JsonDict:
         return await self._call(
@@ -2372,7 +2372,7 @@ class BuyerSearchRepository:
                     or task["attempt_id"] != attempt_id
                     or task["lease_fence"] != lease_fence
                     or not task["lease_deadline"]
-                    or str(task["lease_deadline"]) <= observed_at
+                    or str(task["lease_deadline"]) <= _now()
                 ):
                     raise BuyerQueryTaskLeaseLostError(task_id)
 
@@ -2559,6 +2559,8 @@ class BuyerSearchRepository:
     def _list_run_projects_sync(self, run_id: str, cursor: str | None, limit: int, sort: str | None, filters: JsonDict) -> JsonDict:
         sort_specs = {
             "updated_desc": ("rp.updated_at", "DESC"),
+            "first_seen_desc": ("p.first_seen_at", "DESC"),
+            "remote_updated_desc": ("COALESCE(julianday(p.latest_remote_updated_at), -1.0e308)", "DESC"),
             "score_desc": ("COALESCE(rp.final_score, rp.preliminary_score, -1.0e308)", "DESC"),
             "preliminary_score_desc": ("COALESCE(rp.preliminary_score, -1.0e308)", "DESC"),
             "final_score_desc": ("COALESCE(rp.final_score, -1.0e308)", "DESC"),
@@ -2569,7 +2571,7 @@ class BuyerSearchRepository:
             "matched_queries_desc": ("rp.matched_query_count", "DESC"),
             "project_id_asc": ("rp.project_id", "ASC"),
         }
-        sort = sort or "updated_desc"
+        sort = sort or "first_seen_desc"
         if sort not in sort_specs:
             raise BuyerRepositoryValidationError(f"unsupported project sort: {sort}")
         sort_expr, direction = sort_specs[sort]

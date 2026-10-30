@@ -65,6 +65,7 @@ export default function BuyerSearchWorkspace() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const loadRequestRef = useRef(0)
+  const fetchAbortRef = useRef<AbortController | null>(null)
 
   const selectedRun = useMemo(() => runs.find((run) => run.run_id === view.selected_run_id) ?? null, [runs, view.selected_run_id])
   const filters = useMemo(() => filtersFromRecord(view.project_filters), [view.project_filters])
@@ -102,13 +103,16 @@ export default function BuyerSearchWorkspace() {
 
   const loadRunData = useCallback(async () => {
     if (!view.selected_run_id) return
+    fetchAbortRef.current?.abort()
+    const controller = new AbortController()
+    fetchAbortRef.current = controller
     const request = ++loadRequestRef.current
     setLoading(true)
     try {
       const [projectPage, queryPage, fleetState] = await Promise.all([
-        buyerSearchApi.listProjects(view.selected_run_id, projectOptions),
-        buyerSearchApi.listQueries(view.selected_run_id),
-        buyerSearchApi.getFleet(view.selected_run_id),
+        buyerSearchApi.listProjects(view.selected_run_id, { ...projectOptions, signal: controller.signal }),
+        buyerSearchApi.listQueries(view.selected_run_id, undefined, { signal: controller.signal }),
+        buyerSearchApi.getFleet(view.selected_run_id, controller.signal),
       ])
       if (request !== loadRequestRef.current) return
       setProjects(projectPage.items)
@@ -119,6 +123,7 @@ export default function BuyerSearchWorkspace() {
       setFleet(fleetState)
       setError(null)
     } catch (nextError) {
+      if (controller.signal.aborted) return
       if (request === loadRequestRef.current) setError(nextError instanceof Error ? nextError.message : 'Не удалось загрузить данные поиска')
     } finally {
       if (request === loadRequestRef.current) setLoading(false)
@@ -187,6 +192,7 @@ export default function BuyerSearchWorkspace() {
       if (reconcileTimer !== null) window.clearTimeout(reconcileTimer)
       if (reconnectTimer !== null) window.clearTimeout(reconnectTimer)
       socket?.close()
+      fetchAbortRef.current?.abort()
       // Invalidate requests made for a different run before they can render.
       loadRequestRef.current += 1
     }
@@ -326,7 +332,7 @@ export default function BuyerSearchWorkspace() {
             <div className={`buyer-results-layout ${view.inspector_open ? 'has-inspector' : ''}`}>
               <ProjectFilters value={filters} onChange={(next) => updateView({ project_filters: { ...next }, cursor: null, cursor_history: [] })} />
               <main className="buyer-results-main">
-                <div className="buyer-results-toolbar"><div><strong>{section === 'shortlist' ? 'Избранные проекты' : section === 'outreach' ? 'Работа с откликами' : 'Найденные проекты'}</strong><span>{projects.length} на странице{projectPageTotal != null ? ` · ${projectPageTotal} после фильтра` : ''}{projectRunTotal != null ? ` · ${projectRunTotal} в запуске` : ''}</span></div><div><select value={view.project_sort} onChange={(event) => updateView({ project_sort: event.target.value as typeof view.project_sort, cursor: null, cursor_history: [] })}><option value="score_desc">По оценке</option><option value="updated_desc">Недавно обнаружены</option><option value="budget_desc">Бюджет выше</option><option value="offers_asc">Меньше откликов</option><option value="matched_queries_desc">Больше совпадений</option></select><button type="button" title="Обновить" onClick={() => void loadRunData()}><RefreshCw /></button><button type="button" title="Экспорт всей выдачи" onClick={exportProjects}><Download /></button></div></div>
+                <div className="buyer-results-toolbar"><div><strong>{section === 'shortlist' ? 'Избранные проекты' : section === 'outreach' ? 'Работа с откликами' : 'Найденные проекты'}</strong><span>{projects.length} на странице{projectPageTotal != null ? ` · ${projectPageTotal} после фильтра` : ''}{projectRunTotal != null ? ` · ${projectRunTotal} в запуске` : ''}</span></div><div><select value={view.project_sort} onChange={(event) => updateView({ project_sort: event.target.value as typeof view.project_sort, cursor: null, cursor_history: [] })}><option value="score_desc">По оценке</option><option value="first_seen_desc">Недавно обнаружены</option><option value="remote_updated_desc">Обновлены на Kwork</option><option value="updated_desc">Недавно перепроверены</option><option value="budget_desc">Бюджет выше</option><option value="offers_asc">Меньше откликов</option><option value="matched_queries_desc">Больше совпадений</option></select><button type="button" title="Обновить" onClick={() => void loadRunData()}><RefreshCw /></button><button type="button" title="Экспорт всей выдачи" onClick={exportProjects}><Download /></button></div></div>
                 {section !== 'outreach' && view.selected_project_ids.length > 0 && <div className="buyer-bulkbar"><strong>{view.selected_project_ids.length} выбрано</strong><input value={view.shortlist_tags} onChange={(event) => updateView({ shortlist_tags: event.target.value })} placeholder="Метки через запятую" /><input value={view.shortlist_note} onChange={(event) => updateView({ shortlist_note: event.target.value })} placeholder="Заметка" /><label><input type="checkbox" checked={view.include_attachments} onChange={(event) => updateView({ include_attachments: event.target.checked })} /> вложения</label><button type="button" onClick={bulkFavorite}><Heart />В избранное</button><button type="button" onClick={exportProjects}><Download />Экспорт</button></div>}
                 <ProjectFeed mode={section} items={projects} selectedId={view.selected_project_id} checkedIds={view.selected_project_ids} loading={loading} onOpen={(project) => updateView({ selected_project_id: project.project_id, inspector_open: true, inspector_tab: section === 'outreach' ? 'proposal' : view.inspector_tab })} onToggle={(projectId) => updateView({ selected_project_ids: view.selected_project_ids.includes(projectId) ? view.selected_project_ids.filter((id) => id !== projectId) : [...view.selected_project_ids, projectId] })} onFavorite={(project) => void favorite(project)} />
                 <div className="buyer-pagination"><button type="button" disabled={!view.cursor_history.length} onClick={() => { const history = [...view.cursor_history]; const cursor = history.pop() || null; updateView({ cursor, cursor_history: history }) }}>Назад</button><button type="button" disabled={!nextCursor} onClick={() => updateView({ cursor_history: [...view.cursor_history, view.cursor || ''], cursor: nextCursor })}>Следующая</button></div>

@@ -350,6 +350,8 @@ export interface BuyerSearchFleet {
 
 export type BuyerSearchProjectSort =
   | 'updated_desc'
+  | 'first_seen_desc'
+  | 'remote_updated_desc'
   | 'score_desc'
   | 'preliminary_score_desc'
   | 'final_score_desc'
