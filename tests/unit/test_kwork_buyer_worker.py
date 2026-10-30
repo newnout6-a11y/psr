@@ -170,12 +170,12 @@ async def test_refresh_page_does_not_schedule_a_second_page(refresh_marker: str)
 
 
 @pytest.mark.asyncio
-async def test_category_browse_first_page_fans_out_all_explicit_remaining_pages() -> None:
+async def test_category_browse_queues_one_continuation_instead_of_all_pages() -> None:
     repository = FakeRepository([task(query_origin="category_browse")])
     source = FakeSource(
         {
             "response": [{"id": "101", "title": "Fresh project"}],
-            "paging": {"page": 1, "pages": 4, "total": 37},
+            "paging": {"page": 1, "pages": 100_000, "total": 999_999},
         }
     )
 
@@ -183,8 +183,21 @@ async def test_category_browse_first_page_fans_out_all_explicit_remaining_pages(
 
     assert result.outcome is BuyerDiscoveryOutcome.COMMITTED
     continuations = repository.commits[0][1]["next_tasks"]
-    assert [continuation["page"] for continuation in continuations] == [2, 3, 4]
-    assert all(continuation["cursor"] == {"pagination_fanout": True} for continuation in continuations)
+    assert [continuation["page"] for continuation in continuations] == [2]
+    assert all("pagination_fanout" not in continuation for continuation in continuations)
+
+
+@pytest.mark.asyncio
+async def test_category_browse_following_page_continues_until_last_page() -> None:
+    page_two = task(query_origin="category_browse")
+    page_two["page"] = 2
+    repository = FakeRepository([page_two])
+    source = FakeSource({"response": [{"id": "202", "title": "Next project"}], "paging": {"page": 2, "pages": 3}})
+
+    result = await worker(repository, source).run_once()
+
+    assert result.outcome is BuyerDiscoveryOutcome.COMMITTED
+    assert [continuation["page"] for continuation in repository.commits[0][1]["next_tasks"]] == [3]
 
 
 @pytest.mark.asyncio

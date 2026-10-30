@@ -614,6 +614,8 @@ def _next_page_tasks(task: Mapping[str, Any], response: Mapping[str, Any]) -> tu
     if isinstance(cursor, Mapping) and ("refresh_cycle" in cursor or "refresh_epoch" in cursor):
         return ()
     if isinstance(cursor, Mapping) and cursor.get("pagination_fanout") is True:
+        # Legacy runs may still contain pages from an earlier all-pages
+        # fanout. Their child tasks must not duplicate page continuations.
         return ()
     current_page = _task_page(task)
     paging = response.get("paging") if isinstance(response.get("paging"), Mapping) else {}
@@ -644,19 +646,9 @@ def _next_page_tasks(task: Mapping[str, Any], response: Mapping[str, Any]) -> tu
     if total_pages is not None and next_page > total_pages:
         return ()
 
-    origin = str(task.get("query_origin") or "").strip().casefold()
-    if origin == "category_browse" and current_page == 1 and total_pages is not None:
-        return tuple(
-            {
-                "source": _task_source(task),
-                "endpoint": _task_endpoint(task),
-                "page": page,
-                "priority": task.get("priority"),
-                "cursor": {"pagination_fanout": True},
-            }
-            for page in range(next_page, total_pages + 1)
-        )
-
+    # Even a category with tens of thousands of pages schedules just its next
+    # page. The durable queue stays bounded and other queries can be leased
+    # before a long category crawl fills every worker slot.
     continuation: dict[str, Any] = {
         "source": _task_source(task),
         "endpoint": _task_endpoint(task),

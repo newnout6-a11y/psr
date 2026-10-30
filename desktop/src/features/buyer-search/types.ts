@@ -525,6 +525,7 @@ export interface CreateBuyerSearchRunPayload {
   target_unique_projects?: number
   enrichment_policy?: Record<string, unknown>
   scoring_profile_id?: string
+  account_registration_ids?: string[]
   queries?: Array<{
     text: string
     rationale?: string

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Archive, ChevronDown, Download, Heart, Loader2, Plus, RefreshCw, Search, Send, SlidersHorizontal } from 'lucide-react'
 
 import { buyerSearchApi } from '../features/buyer-search/api'
@@ -16,9 +16,11 @@ import type {
   BuyerSearchQuery,
   BuyerSearchRun,
   BuyerSearchWorkspaceSection,
+  BuyerSearchWebSocketMessage,
   CreateBuyerSearchRunPayload,
 } from '../features/buyer-search/types'
 import { useBuyerWorkspace } from '../features/buyer-search/useBuyerWorkspace'
+import { api, type KworkRegistrationAccount } from '../lib/api'
 
 const SECTIONS: Array<{ id: BuyerSearchWorkspaceSection; label: string; icon: typeof Search }> = [
   { id: 'projects', label: 'Проекты', icon: Search },
@@ -51,6 +53,7 @@ export default function BuyerSearchWorkspace() {
   const { state, ready, saveState, updateBuilder, updateView } = useBuyerWorkspace()
   const { builder, view } = state
   const [runs, setRuns] = useState<BuyerSearchRun[]>([])
+  const [accounts, setAccounts] = useState<KworkRegistrationAccount[]>([])
   const [projects, setProjects] = useState<BuyerSearchProject[]>([])
   const [projectDetail, setProjectDetail] = useState<BuyerSearchProjectDetail | null>(null)
   const [queries, setQueries] = useState<BuyerSearchQuery[]>([])
@@ -61,6 +64,7 @@ export default function BuyerSearchWorkspace() {
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const loadRequestRef = useRef(0)
 
   const selectedRun = useMemo(() => runs.find((run) => run.run_id === view.selected_run_id) ?? null, [runs, view.selected_run_id])
   const filters = useMemo(() => filtersFromRecord(view.project_filters), [view.project_filters])
@@ -98,6 +102,7 @@ export default function BuyerSearchWorkspace() {
 
   const loadRunData = useCallback(async () => {
     if (!view.selected_run_id) return
+    const request = ++loadRequestRef.current
     setLoading(true)
     try {
       const [projectPage, queryPage, fleetState] = await Promise.all([
@@ -105,6 +110,7 @@ export default function BuyerSearchWorkspace() {
         buyerSearchApi.listQueries(view.selected_run_id),
         buyerSearchApi.getFleet(view.selected_run_id),
       ])
+      if (request !== loadRequestRef.current) return
       setProjects(projectPage.items)
       setNextCursor(projectPage.next_cursor)
       setProjectPageTotal(typeof projectPage.total === 'number' ? projectPage.total : null)
@@ -113,13 +119,86 @@ export default function BuyerSearchWorkspace() {
       setFleet(fleetState)
       setError(null)
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Не удалось загрузить данные поиска')
+      if (request === loadRequestRef.current) setError(nextError instanceof Error ? nextError.message : 'Не удалось загрузить данные поиска')
     } finally {
-      setLoading(false)
+      if (request === loadRequestRef.current) setLoading(false)
     }
   }, [projectOptions, view.selected_run_id])
 
+  // The active workspace must follow the durable run event stream, including
+  // discoveries made while the operator is reading a project or monitoring.
+  // Keep a stable socket when filters change, but reconcile with the newest
+  // filter callback so slow responses cannot replace a newer selection.
+  const loadRunsRef = useRef(loadRuns)
+  const loadRunDataRef = useRef(loadRunData)
+  const sectionRef = useRef(view.active_section)
+  loadRunsRef.current = loadRuns
+  loadRunDataRef.current = loadRunData
+  sectionRef.current = view.active_section
+
+  useEffect(() => {
+    if (!ready || !view.selected_run_id) return
+    const runId = view.selected_run_id
+    let disposed = false
+    let afterSeq = 0
+    let attempt = 0
+    let socket: WebSocket | null = null
+    let reconcileTimer: number | null = null
+    let reconnectTimer: number | null = null
+
+    const reconcile = () => {
+      if (reconcileTimer !== null) return
+      // One refresh per burst, even when the backend produces many page events.
+      reconcileTimer = window.setTimeout(() => {
+        reconcileTimer = null
+        if (disposed) return
+        void loadRunsRef.current()
+        if (sectionRef.current !== 'setup') void loadRunDataRef.current()
+      }, 800)
+    }
+    const connect = () => {
+      if (disposed) return
+      socket = new WebSocket(buyerSearchApi.runEventsUrl(runId, afterSeq))
+      socket.onopen = () => { attempt = 0 }
+      socket.onmessage = (message) => {
+        let payload: BuyerSearchWebSocketMessage
+        try { payload = JSON.parse(String(message.data)) as BuyerSearchWebSocketMessage } catch { return }
+        if (payload.type === 'snapshot') {
+          afterSeq = Math.max(afterSeq, payload.after_seq || 0)
+          setRuns((current) => [payload.run, ...current.filter((run) => run.run_id !== payload.run.run_id)])
+          reconcile()
+        } else if (payload.type === 'event') {
+          afterSeq = Math.max(afterSeq, payload.event.seq || 0)
+          reconcile()
+        }
+      }
+      socket.onclose = () => {
+        if (disposed || reconnectTimer !== null) return
+        reconnectTimer = window.setTimeout(() => {
+          reconnectTimer = null
+          connect()
+        }, Math.min(10_000, 1_000 * 2 ** attempt++))
+      }
+      socket.onerror = () => socket?.close()
+    }
+    connect()
+    return () => {
+      disposed = true
+      if (reconcileTimer !== null) window.clearTimeout(reconcileTimer)
+      if (reconnectTimer !== null) window.clearTimeout(reconnectTimer)
+      socket?.close()
+      // Invalidate requests made for a different run before they can render.
+      loadRequestRef.current += 1
+    }
+  }, [ready, view.selected_run_id])
+
   useEffect(() => { if (ready) void loadRuns() }, [loadRuns, ready])
+  useEffect(() => {
+    if (!ready) return
+    void api.listKworkRegistrationAccounts()
+      .then((result) => setAccounts(result.accounts))
+      .catch(() => setAccounts([]))
+  }, [ready])
   useEffect(() => { if (ready && view.selected_run_id && view.active_section !== 'setup') void loadRunData() }, [loadRunData, ready, view.active_section, view.selected_run_id])
 
   useEffect(() => {
@@ -162,6 +241,7 @@ export default function BuyerSearchWorkspace() {
         ? { enabled: true, selection: 'manual' }
         : { enabled: false },
       scoring_profile_id: builder.scoring_profile_id.trim() || undefined,
+      account_registration_ids: builder.account_registration_ids,
       queries: preview.map((text) => ({ text, rationale: 'Подтверждено оператором' })),
     }
     setBusy(true)
@@ -239,14 +319,14 @@ export default function BuyerSearchWorkspace() {
 
       {error && <div className="buyer-error-banner"><span>{error}</span><button type="button" onClick={() => setError(null)}>Закрыть</button></div>}
 
-      {section === 'setup' ? <SearchBuilder value={builder} busy={busy} onChange={updateBuilder} onCreate={createRun} /> : (
+      {section === 'setup' ? <SearchBuilder value={builder} accounts={accounts} busy={busy} onChange={updateBuilder} onCreate={createRun} /> : (
         <>
           <nav className="buyer-work-tabs">{SECTIONS.map(({ id, label, icon: Icon }) => <button type="button" key={id} className={section === id ? 'is-active' : ''} onClick={() => updateView({ active_section: id, cursor: null, cursor_history: [] })}><Icon />{label}</button>)}</nav>
           {showProjects && (
             <div className={`buyer-results-layout ${view.inspector_open ? 'has-inspector' : ''}`}>
               <ProjectFilters value={filters} onChange={(next) => updateView({ project_filters: { ...next }, cursor: null, cursor_history: [] })} />
               <main className="buyer-results-main">
-                <div className="buyer-results-toolbar"><div><strong>{section === 'shortlist' ? 'Избранные проекты' : section === 'outreach' ? 'Работа с откликами' : 'Найденные проекты'}</strong><span>{projects.length} на странице{projectPageTotal != null ? ` · ${projectPageTotal} после фильтра` : ''}{projectRunTotal != null ? ` · ${projectRunTotal} в запуске` : ''}</span></div><div><select value={view.project_sort} onChange={(event) => updateView({ project_sort: event.target.value as typeof view.project_sort, cursor: null, cursor_history: [] })}><option value="score_desc">По оценке</option><option value="updated_desc">Сначала новые</option><option value="budget_desc">Бюджет выше</option><option value="offers_asc">Меньше откликов</option><option value="matched_queries_desc">Больше совпадений</option></select><button type="button" title="Обновить" onClick={() => void loadRunData()}><RefreshCw /></button><button type="button" title="Экспорт всей выдачи" onClick={exportProjects}><Download /></button></div></div>
+                <div className="buyer-results-toolbar"><div><strong>{section === 'shortlist' ? 'Избранные проекты' : section === 'outreach' ? 'Работа с откликами' : 'Найденные проекты'}</strong><span>{projects.length} на странице{projectPageTotal != null ? ` · ${projectPageTotal} после фильтра` : ''}{projectRunTotal != null ? ` · ${projectRunTotal} в запуске` : ''}</span></div><div><select value={view.project_sort} onChange={(event) => updateView({ project_sort: event.target.value as typeof view.project_sort, cursor: null, cursor_history: [] })}><option value="score_desc">По оценке</option><option value="updated_desc">Недавно обнаружены</option><option value="budget_desc">Бюджет выше</option><option value="offers_asc">Меньше откликов</option><option value="matched_queries_desc">Больше совпадений</option></select><button type="button" title="Обновить" onClick={() => void loadRunData()}><RefreshCw /></button><button type="button" title="Экспорт всей выдачи" onClick={exportProjects}><Download /></button></div></div>
                 {section !== 'outreach' && view.selected_project_ids.length > 0 && <div className="buyer-bulkbar"><strong>{view.selected_project_ids.length} выбрано</strong><input value={view.shortlist_tags} onChange={(event) => updateView({ shortlist_tags: event.target.value })} placeholder="Метки через запятую" /><input value={view.shortlist_note} onChange={(event) => updateView({ shortlist_note: event.target.value })} placeholder="Заметка" /><label><input type="checkbox" checked={view.include_attachments} onChange={(event) => updateView({ include_attachments: event.target.checked })} /> вложения</label><button type="button" onClick={bulkFavorite}><Heart />В избранное</button><button type="button" onClick={exportProjects}><Download />Экспорт</button></div>}
                 <ProjectFeed mode={section} items={projects} selectedId={view.selected_project_id} checkedIds={view.selected_project_ids} loading={loading} onOpen={(project) => updateView({ selected_project_id: project.project_id, inspector_open: true, inspector_tab: section === 'outreach' ? 'proposal' : view.inspector_tab })} onToggle={(projectId) => updateView({ selected_project_ids: view.selected_project_ids.includes(projectId) ? view.selected_project_ids.filter((id) => id !== projectId) : [...view.selected_project_ids, projectId] })} onFavorite={(project) => void favorite(project)} />
                 <div className="buyer-pagination"><button type="button" disabled={!view.cursor_history.length} onClick={() => { const history = [...view.cursor_history]; const cursor = history.pop() || null; updateView({ cursor, cursor_history: history }) }}>Назад</button><button type="button" disabled={!nextCursor} onClick={() => updateView({ cursor_history: [...view.cursor_history, view.cursor || ''], cursor: nextCursor })}>Следующая</button></div>

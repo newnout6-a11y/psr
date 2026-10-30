@@ -32,7 +32,7 @@ function statusBadgeClass(status: string): string {
 
 export default function Orders() {
   const [tab, setTab] = useState<StatusTab>('all')
-  const { data, loading, refetch } = useApi(() => (api as any).getKworkOrders(tab), [tab])
+  const { data, loading, error, refetch } = useApi<{ orders: KworkOrder[] }>(() => (api as any).getKworkOrders(tab), [tab])
 
   const orders: KworkOrder[] = data?.orders || []
 
@@ -67,6 +67,11 @@ export default function Orders() {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
+        </div>
+      ) : error ? (
+        <div role="alert" className="card flex flex-col items-center justify-center gap-3 py-12 text-center">
+          <p className="text-sm text-rose-300">Не удалось получить заказы: {error}</p>
+          <button type="button" className="btn btn-ghost" onClick={refetch}><RefreshCw className="h-4 w-4" /> Повторить</button>
         </div>
       ) : orders.length === 0 ? (
         <div className="card flex flex-col items-center justify-center py-16 text-center">

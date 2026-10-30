@@ -3,10 +3,12 @@ import { ChevronDown, Loader2, Play, Sparkles, X } from 'lucide-react'
 import { BuyerTaxonomyPlanner } from '../BuyerTaxonomyPlanner'
 import type { BuyerTaxonomySelection } from '../taxonomy-types'
 import type { BuyerSearchWorkspaceBuilder } from '../types'
+import type { KworkRegistrationAccount } from '../../../lib/api'
 
 interface Props {
   value: BuyerSearchWorkspaceBuilder
   busy: boolean
+  accounts: KworkRegistrationAccount[]
   onChange(patch: Partial<BuyerSearchWorkspaceBuilder>): void
   onCreate(): void
 }
@@ -31,7 +33,7 @@ function queryCandidates(value: BuyerSearchWorkspaceBuilder) {
   })
 }
 
-export function SearchBuilder({ value, busy, onChange, onCreate }: Props) {
+export function SearchBuilder({ value, busy, accounts, onChange, onCreate }: Props) {
   const categories = value.taxonomy_selections
 
   const handleTaxonomy = (selections: BuyerTaxonomySelection[]) => {
@@ -93,6 +95,22 @@ export function SearchBuilder({ value, busy, onChange, onCreate }: Props) {
             )}
             <BuyerTaxonomyPlanner onSelect={handleTaxonomy} disabled={busy} className="buyer-taxonomy" />
           </div>
+
+          <label className="buyer-field buyer-field-wide">
+            <span>Аккаунт Kwork для откликов и диалогов</span>
+            <select
+              value={value.account_registration_ids[0] || ''}
+              onChange={(event) => onChange({ account_registration_ids: event.target.value ? [event.target.value] : [] })}
+            >
+              <option value="">Выберите аккаунт</option>
+              {accounts.map((account) => (
+                <option key={account.registration_id} value={account.registration_id}>
+                  {account.username || account.email} · {account.status}
+                </option>
+              ))}
+            </select>
+            {accounts.length === 0 && <small>Нет зарегистрированных аккаунтов. Добавьте аккаунт Kwork, чтобы работать с перепиской.</small>}
+          </label>
 
           <div className="buyer-field-grid">
             <label className="buyer-field"><span>Бюджет от, ₽</span><input inputMode="numeric" value={value.min_budget} onChange={(event) => onChange({ min_budget: event.target.value })} placeholder="Любой" /></label>

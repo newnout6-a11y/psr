@@ -5,6 +5,7 @@ Fallback на curl_cffi если браузер недоступен.
 """
 
 from typing import Optional, Dict, Any, List
+from contextlib import suppress
 from bs4 import BeautifulSoup
 from .base_parser import BaseParser, ProjectItem
 from src.browser.browser_manager import BrowserManager

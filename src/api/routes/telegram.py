@@ -25,15 +25,15 @@ class TelegramTestRequest(BaseModel):
 @router.get("/status")
 async def telegram_status():
     try:
-        bot_api = await bot_api_get_me()
+        bot_api_status = (await bot_api_get_me()).to_dict()
     except Exception as e:
-        bot_api = type("BotAPIStatus", (), {"to_dict": lambda self: {"ok": False, "detail": str(e)}})()
+        bot_api_status = {"ok": False, "detail": str(e)}
     return {
         "configured": bool(os.getenv("TELEGRAM_TOKEN") and os.getenv("ADMIN_CHAT_ID")),
         "admin_chat_id_set": bool(os.getenv("ADMIN_CHAT_ID")),
         "transport": os.getenv("TELEGRAM_TRANSPORT", "auto"),
         "bot_api_base": os.getenv("TELEGRAM_BOT_API_BASE") or "https://api.telegram.org",
-        "bot_api": bot_api.to_dict(),
+        "bot_api": bot_api_status,
         "mtproto_configured": mtproto_configured(),
     }
 
