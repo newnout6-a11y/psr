@@ -36,24 +36,35 @@ export default function Conversations() {
   const [notice, setNotice] = useState('')
   const seenRef = useRef<Record<string, string>>({})
   const initializedRef = useRef(false)
+  const messageRequestRef = useRef(0)
+  const openedConversationRef = useRef<string | null>(null)
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(
+    () => ('Notification' in window ? Notification.permission : 'unsupported'),
+  )
 
   const loadMessages = useCallback(async (conv: ConversationRow, withSpinner = false) => {
+    const key = `${conv.platform}:${conv.project_id}`
+    const request = ++messageRequestRef.current
     if (withSpinner) setLoadingMsgs(true)
     setError('')
     try {
       const result = await api.getConversationHistory(conv.project_id, conv.platform)
+      if (request !== messageRequestRef.current || openedConversationRef.current !== key) return
       setMessages(result.messages || [])
       if (withSpinner && conv.platform === 'kwork' && result.read_state && result.read_state.ok === false) {
         setNotice('Kwork не подтвердил отметку «прочитано»: Session Hub без cookies или авторизация устарела')
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка загрузки')
+      if (request === messageRequestRef.current && openedConversationRef.current === key) {
+        setError(e instanceof Error ? e.message : 'Ошибка загрузки')
+      }
     } finally {
-      if (withSpinner) setLoadingMsgs(false)
+      if (withSpinner && request === messageRequestRef.current) setLoadingMsgs(false)
     }
   }, [])
 
   const openConversation = useCallback(async (conv: ConversationRow) => {
+    openedConversationRef.current = `${conv.platform}:${conv.project_id}`
     setSelected(conv)
     setMessages([])
     await loadMessages(conv, true)
@@ -112,7 +123,10 @@ export default function Conversations() {
     let incoming: ConversationRow | null = null
     for (const conv of convs) {
       const key = `${conv.platform}:${conv.project_id}`
-      const signature = `${conv.updated_at || ''}|${conv.last_message_at || ''}|${conv.status}|${conv.message_count || 0}`
+      // Updating the conversation's local status or opening it can change
+      // updated_at without any new customer message. Only message changes
+      // should produce a desktop notification.
+      const signature = `${conv.last_message_at || ''}|${conv.message_count || 0}`
       next[key] = signature
       if (
         initializedRef.current &&
@@ -134,10 +148,6 @@ export default function Conversations() {
       if ('Notification' in window) {
         if (Notification.permission === 'granted') {
           new Notification('PSR: новое сообщение', { body: title })
-        } else if (Notification.permission === 'default') {
-          Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') new Notification('PSR: новое сообщение', { body: title })
-          })
         }
       }
     }
@@ -148,7 +158,7 @@ export default function Conversations() {
       <div className="flex h-full flex-col">
         <div className="shrink-0 border-b border-white/10 p-4">
           <button
-            onClick={() => setSelected(null)}
+            onClick={() => { openedConversationRef.current = null; messageRequestRef.current += 1; setSelected(null) }}
             className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -237,6 +247,12 @@ export default function Conversations() {
       <div>
         <div className="page-kicker">client chats</div>
         <h1 className="text-xl font-semibold text-white">Диалоги с клиентами</h1>
+        {notificationPermission === 'default' && (
+          <button type="button" className="mt-2 text-xs text-brand-300 underline" onClick={() => {
+            void Notification.requestPermission().then(setNotificationPermission)
+          }}>Включить уведомления о новых сообщениях</button>
+        )}
+        {notificationPermission === 'denied' && <p className="mt-2 text-xs text-amber-400">Уведомления заблокированы настройками приложения или системы.</p>}
       </div>
 
       {notice && (

@@ -64,6 +64,8 @@ export default function BuyerSearchWorkspace() {
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [streamState, setStreamState] = useState<'disconnected' | 'connecting' | 'live' | 'reconnecting'>('disconnected')
+  const [lastStreamEventAt, setLastStreamEventAt] = useState<number | null>(null)
   const loadRequestRef = useRef(0)
   const fetchAbortRef = useRef<AbortController | null>(null)
 
@@ -142,7 +144,10 @@ export default function BuyerSearchWorkspace() {
   sectionRef.current = view.active_section
 
   useEffect(() => {
-    if (!ready || !view.selected_run_id) return
+    if (!ready || !view.selected_run_id) {
+      setStreamState('disconnected')
+      return
+    }
     const runId = view.selected_run_id
     let disposed = false
     let afterSeq = 0
@@ -163,11 +168,22 @@ export default function BuyerSearchWorkspace() {
     }
     const connect = () => {
       if (disposed) return
-      socket = new WebSocket(buyerSearchApi.runEventsUrl(runId, afterSeq))
-      socket.onopen = () => { attempt = 0 }
-      socket.onmessage = (message) => {
+      setStreamState(attempt ? 'reconnecting' : 'connecting')
+      const nextSocket = new WebSocket(buyerSearchApi.runEventsUrl(runId, afterSeq))
+      socket = nextSocket
+      nextSocket.onopen = () => {
+        if (disposed || socket !== nextSocket) return
+        attempt = 0
+        setStreamState('live')
+        // An idle socket is not proof that no results were missed while
+        // disconnected. Reconcile once on every successful connection.
+        reconcile()
+      }
+      nextSocket.onmessage = (message) => {
+        if (disposed || socket !== nextSocket) return
         let payload: BuyerSearchWebSocketMessage
         try { payload = JSON.parse(String(message.data)) as BuyerSearchWebSocketMessage } catch { return }
+        setLastStreamEventAt(Date.now())
         if (payload.type === 'snapshot') {
           afterSeq = Math.max(afterSeq, payload.after_seq || 0)
           setRuns((current) => [payload.run, ...current.filter((run) => run.run_id !== payload.run.run_id)])
@@ -177,14 +193,15 @@ export default function BuyerSearchWorkspace() {
           reconcile()
         }
       }
-      socket.onclose = () => {
-        if (disposed || reconnectTimer !== null) return
+      nextSocket.onclose = () => {
+        if (disposed || socket !== nextSocket || reconnectTimer !== null) return
+        setStreamState('reconnecting')
         reconnectTimer = window.setTimeout(() => {
           reconnectTimer = null
           connect()
         }, Math.min(10_000, 1_000 * 2 ** attempt++))
       }
-      socket.onerror = () => socket?.close()
+      nextSocket.onerror = () => nextSocket.close()
     }
     connect()
     return () => {
@@ -192,6 +209,7 @@ export default function BuyerSearchWorkspace() {
       if (reconcileTimer !== null) window.clearTimeout(reconcileTimer)
       if (reconnectTimer !== null) window.clearTimeout(reconnectTimer)
       socket?.close()
+      setStreamState('disconnected')
       fetchAbortRef.current?.abort()
       // Invalidate requests made for a different run before they can render.
       loadRequestRef.current += 1
@@ -254,10 +272,15 @@ export default function BuyerSearchWorkspace() {
     try {
       const created = await buyerSearchApi.createRun(payload)
       let active = created
-      try { active = await buyerSearchApi.patchRun(created.run_id, { state: 'running' }) } catch { /* The run remains reviewable when capacity is unavailable. */ }
+      let startWarning: string | null = null
+      try {
+        active = await buyerSearchApi.patchRun(created.run_id, { state: 'running' })
+      } catch (startError) {
+        startWarning = `Поиск создан, но не запущен: ${startError instanceof Error ? startError.message : String(startError)}. Проверьте мониторинг и запустите вручную.`
+      }
       setRuns((current) => [active, ...current.filter((run) => run.run_id !== active.run_id)])
       updateView({ active_section: 'projects', selected_run_id: active.run_id, selected_project_id: null, cursor: null, cursor_history: [] })
-      setError(null)
+      setError(startWarning)
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Не удалось создать поиск')
     } finally {
@@ -320,6 +343,7 @@ export default function BuyerSearchWorkspace() {
       <div className="buyer-commandbar">
         <div className="buyer-run-picker"><span className={`buyer-status-dot is-${selectedRun?.state || 'idle'}`} /><select value={view.selected_run_id || ''} onChange={(event) => selectRun(event.target.value)}><option value="">Новый поиск</option>{runs.map((run) => <option key={run.run_id} value={run.run_id}>{run.name} · {run.state}</option>)}</select><ChevronDown /></div>
         <div className="buyer-save-status">{saveState === 'saving' ? 'Сохраняем…' : saveState === 'offline' ? 'Нет связи · сохранение ожидает' : 'Все изменения сохранены'}</div>
+        {view.selected_run_id && <div className="buyer-save-status" role="status" aria-live="polite" title={lastStreamEventAt ? `Последнее событие: ${new Date(lastStreamEventAt).toLocaleTimeString('ru-RU')}` : 'Ожидание первого события'}>{streamState === 'live' ? 'События: подключено' : streamState === 'connecting' ? 'События: подключаемся…' : streamState === 'reconnecting' ? 'События: восстанавливаем связь…' : 'События: отключено'}</div>}
         <button type="button" className="buyer-new-button" onClick={() => updateView({ active_section: 'setup', selected_project_id: null })}><Plus />Новый поиск</button>
       </div>
 

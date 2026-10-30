@@ -59,6 +59,7 @@ export function useBuyerWorkspace() {
   const [state, setState] = useState<BuyerSearchWorkspaceState>(DEFAULT_BUYER_WORKSPACE)
   const [ready, setReady] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'offline'>('idle')
+  const [saveRetryCount, setSaveRetryCount] = useState(0)
   const latestRef = useRef(state)
   const hydratedRef = useRef(false)
   const revisionRef = useRef(0)
@@ -72,24 +73,43 @@ export function useBuyerWorkspace() {
       if (revision !== revisionRef.current) return
       try {
         await buyerSearchApi.putWorkspace(snapshot, { keepalive })
-        if (revision === revisionRef.current) setSaveState('saved')
+        if (revision === revisionRef.current) {
+          setSaveRetryCount(0)
+          setSaveState('saved')
+        }
       } catch {
-        if (revision === revisionRef.current) setSaveState('offline')
+        if (revision === revisionRef.current) {
+          setSaveState('offline')
+          setSaveRetryCount((count) => count + 1)
+        }
       }
     })
   }, [])
 
   useEffect(() => {
     const controller = new AbortController()
-    buyerSearchApi.getWorkspace(controller.signal)
-      .then((snapshot) => {
+    let retryTimer: number | null = null
+    let failures = 0
+    const restore = async () => {
+      try {
+        const snapshot = await buyerSearchApi.getWorkspace(controller.signal)
         if (controller.signal.aborted) return
         hydratedRef.current = true
         setState(normalizeWorkspace(snapshot.state))
-      })
-      .catch(() => { if (!controller.signal.aborted) setSaveState('offline') })
-      .finally(() => { if (!controller.signal.aborted) setReady(true) })
-    return () => controller.abort()
+        setReady(true)
+      } catch {
+        if (controller.signal.aborted) return
+        setSaveState('offline')
+        // Never replace a persisted workspace with an empty default state
+        // when startup failed. Retry GET until the authoritative state loads.
+        retryTimer = window.setTimeout(restore, Math.min(30_000, 1_000 * 2 ** Math.min(failures++, 5)))
+      }
+    }
+    void restore()
+    return () => {
+      controller.abort()
+      if (retryTimer !== null) window.clearTimeout(retryTimer)
+    }
   }, [])
 
   useEffect(() => {
@@ -101,6 +121,14 @@ export function useBuyerWorkspace() {
     }, 450)
     return () => window.clearTimeout(timer)
   }, [ready, state, queueSave])
+
+  useEffect(() => {
+    if (!ready || !hydratedRef.current || saveState !== 'offline') return
+    const timer = window.setTimeout(() => {
+      queueSave(revisionRef.current, latestRef.current)
+    }, Math.min(30_000, 2_000 * 2 ** Math.min(saveRetryCount, 4)))
+    return () => window.clearTimeout(timer)
+  }, [queueSave, ready, saveRetryCount, saveState])
 
   useEffect(() => {
     const flush = () => {
