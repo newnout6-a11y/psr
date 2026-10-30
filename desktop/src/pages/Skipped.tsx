@@ -52,7 +52,7 @@ function reasonColor(reason: string): string {
 }
 
 export default function Skipped() {
-  const { data, loading, refetch } = useApi(() => (api as any).getSkipped(200), [])
+  const { data, loading, refetch } = useApi(() => api.getSkipped(200), [])
   const [reasonFilter, setReasonFilter] = useState<string>('')
   const [search, setSearch] = useState('')
 

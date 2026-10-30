@@ -4,10 +4,10 @@ import { HeartPulse, AlertTriangle, CheckCircle2, XCircle, Activity, Bell, Shiel
 import { cn } from '../lib/utils'
 
 export default function Health() {
-  const { data, loading, refetch } = useApi(() => (api as any).getHealth(), [])
-  const { data: connectsCheck } = useApi(() => (api as any).getConnectsCheck(), [])
+  const { data, loading, refetch } = useApi(() => api.getHealth(), [])
+  const { data: connectsCheck } = useApi(() => api.getConnectsCheck(), [])
   const { data: breakerData } = useApi(() => api.getBreaker(), [])
-  const { data: alertsData } = useApi(() => (api as any).getAlerts(), [])
+  const { data: alertsData } = useApi(() => api.getAlerts(), [])
   const {
     data: verificationStatus,
     loading: verificationLoading,
@@ -248,13 +248,13 @@ export default function Health() {
       </div>
 
       {/* Follow-up alerts */}
-      {alertsData?.count > 0 && alertsData?.alerts && (
+      {(alertsData?.count ?? 0) > 0 && alertsData?.alerts && (
         <div className="card p-4">
           <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-400" /> Follow-up алерты
           </h3>
           <div className="space-y-2">
-            {alertsData.alerts.map((alert: any, i: number) => (
+            {alertsData.alerts.map((alert, i) => (
               <div
                 key={i}
                 className={cn(

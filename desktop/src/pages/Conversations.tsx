@@ -25,7 +25,7 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 export default function Conversations() {
-  const { data: conversations, loading, refetch } = useApi(() => (api as any).getConversations(100), [])
+  const { data: conversations, loading, refetch } = useApi(() => api.getConversations(100), [])
   const [selected, setSelected] = useState<ConversationRow | null>(null)
   const [messages, setMessages] = useState<ConversationMessage[]>([])
   const [loadingMsgs, setLoadingMsgs] = useState(false)
@@ -41,7 +41,7 @@ export default function Conversations() {
     if (withSpinner) setLoadingMsgs(true)
     setError('')
     try {
-      const result = await (api as any).getConversationHistory(conv.project_id, conv.platform)
+      const result = await api.getConversationHistory(conv.project_id, conv.platform)
       setMessages(result.messages || [])
       if (withSpinner && conv.platform === 'kwork' && result.read_state && result.read_state.ok === false) {
         setNotice('Kwork не подтвердил отметку «прочитано»: Session Hub без cookies или авторизация устарела')
@@ -64,7 +64,7 @@ export default function Conversations() {
     setSending(true)
     setError('')
     try {
-      await (api as any).sendConversationMessage(selected.project_id, selected.platform, replyText.trim())
+      await api.sendConversationMessage(selected.project_id, selected.platform, replyText.trim())
       setReplyText('')
       await loadMessages(selected)
       refetch()
@@ -80,7 +80,7 @@ export default function Conversations() {
     setDrafting(true)
     setError('')
     try {
-      const result = await (api as any).draftConversationReply(selected.project_id, selected.platform)
+      const result = await api.draftConversationReply(selected.project_id, selected.platform)
       setReplyText(result.text || '')
       setNotice('ИИ подготовила черновик ответа')
     } catch (e) {

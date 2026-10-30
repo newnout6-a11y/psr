@@ -55,10 +55,10 @@ export default function Dashboard() {
   const { data: parseStats } = useApi(() => api.getParseStats(days), [days])
   const { data: activity } = useApi(() => api.getActivity(), [days])
   const { data: statusData } = useApi(() => api.getStatus(), [])
-  const { data: funnelData } = useApi(() => (api as any).getFunnel(days), [days])
+  const { data: funnelData } = useApi(() => api.getFunnel(days), [days])
   const { data: queryMemory } = useApi(() => api.getQueryMemory(10), [days])
   const { data: breakerData } = useApi(() => api.getBreaker(), [])
-  const { data: alertsData } = useApi(() => (api as any).getAlerts(), [])
+  const { data: alertsData } = useApi(() => api.getAlerts(), [])
 
   const chartData = timeline ? timelineToChartData(timeline) : []
   const actions = timeline
@@ -92,9 +92,9 @@ export default function Dashboard() {
       </div>
 
       {/* Alerts banner */}
-      {alertsData?.count > 0 && alertsData?.alerts && (
+      {(alertsData?.count ?? 0) > 0 && alertsData?.alerts && (
         <div className="space-y-1.5">
-          {alertsData.alerts.map((alert: any, i: number) => (
+          {alertsData.alerts.map((alert, i) => (
             <div
               key={i}
               className={cn(

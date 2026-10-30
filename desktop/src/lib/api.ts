@@ -369,6 +369,28 @@ export const api = {
   getActivity: () => request<Record<string, string | null>>('/api/dashboard/activity'),
   getErrors: (limit = 50) => request<ErrorRow[]>(`/api/dashboard/errors?limit=${limit}`),
   getRuntimeState: () => request<{ execution_mode: string; paused_platforms: string[] }>('/api/dashboard/runtime-state'),
+  getFunnel: (days = 30) => request<FunnelData>(`/api/dashboard/funnel?days=${days}`),
+  getHealth: () => request<HealthData>('/api/dashboard/health'),
+  getSkipped: (limit = 50) => request<{ items: SkippedCandidate[]; total: number }>(`/api/dashboard/skipped?limit=${limit}`),
+  getConversations: (limit = 50) => request<ConversationRow[]>(`/api/dashboard/conversations?limit=${limit}`),
+  getConversationHistory: (projectId: string, platform: string) =>
+    request<{ messages: ConversationMessage[]; username: string; read_state: { ok: boolean | null; pending?: boolean } | null }>(
+      `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}`,
+    ),
+  draftConversationReply: (projectId: string, platform: string, tone = 'friendly') =>
+    request<{ ok: boolean; text: string }>(
+      `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}/draft`,
+      { method: 'POST', body: JSON.stringify({ tone }) },
+    ),
+  sendConversationMessage: (projectId: string, platform: string, text: string) =>
+    request<{ ok: boolean; message_id?: number }>(
+      `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}/message`,
+      { method: 'POST', body: JSON.stringify({ text }) },
+    ),
+  getConnectsCheck: () => request<ConnectsCheck>('/api/dashboard/kwork-connects-check'),
+  getAlerts: () => request<{ alerts: AlertItem[]; count: number }>('/api/dashboard/alerts'),
+  getKworkOrders: (status = 'all') =>
+    request<{ orders: KworkOrder[] }>(`/api/dashboard/kwork-orders?status=${encodeURIComponent(status)}`),
 
   // Settings
   getEnv: () => request<{ values: Record<string, string>; secret_keys: string[]; mask: string }>('/api/settings/env'),
@@ -976,7 +998,7 @@ export interface KworkBuyerScoutRequest {
   category_name?: string
   classifier_name?: string
   attribute_selection?: Record<string, unknown>
-  attribute_controls?: Array<Record<string, unknown>>
+  attribute_controls?: KworkFormControl[]
   max_probes?: number
   page?: number
   project_page_limit?: number
@@ -1515,10 +1537,7 @@ export interface SkippedCandidate {
 ;(api as any).getEarnings = () => request<EarningsSummary>('/api/dashboard/earnings')
 ;(api as any).getEarningsList = (limit = 50) => request<EarningRow[]>(`/api/dashboard/earnings/list?limit=${limit}`)
 // Funnel
-;(api as any).getFunnel = (days = 30) => request<FunnelData>(`/api/dashboard/funnel?days=${days}`)
 // Health
-;(api as any).getHealth = () => request<HealthData>('/api/dashboard/health')
-;(api as any).getSkipped = (limit = 50) => request<{ items: SkippedCandidate[]; total: number }>(`/api/dashboard/skipped?limit=${limit}`)
 // Lifecycle
 ;(api as any).hireCandidate = (id: number) => request<{ ok: boolean }>(`/api/candidates/${id}/hire`, { method: 'POST' })
 ;(api as any).declineCandidate = (id: number) => request<{ ok: boolean }>(`/api/candidates/${id}/decline`, { method: 'POST' })
@@ -1603,28 +1622,6 @@ export interface ConversationMessage {
   created_at: string
 }
 
-;(api as any).getConversations = (limit = 50) =>
-  request<ConversationRow[]>(`/api/dashboard/conversations?limit=${limit}`)
-;(api as any).getConversationHistory = (projectId: string, platform: string) =>
-  request<{ messages: ConversationMessage[]; username: string; read_state?: Record<string, unknown> | null }>(
-    `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}`,
-  )
-;(api as any).draftConversationReply = (projectId: string, platform: string, tone = 'friendly') =>
-  request<{ ok: boolean; text: string }>(
-    `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}/draft`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ tone }),
-    },
-  )
-;(api as any).sendConversationMessage = (projectId: string, platform: string, text: string) =>
-  request<{ ok: boolean; message_id?: number }>(
-    `/api/dashboard/conversations/${encodeURIComponent(projectId)}/${encodeURIComponent(platform)}/message`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ text }),
-    },
-  )
 ;(api as any).getCandidateDialog = (id: number) =>
   request<{ messages: any[]; username: string }>(`/api/candidates/${id}/dialog`)
 ;(api as any).sendMessageToClient = (id: number, userId: string, text: string) =>
@@ -1660,8 +1657,6 @@ export interface KworkOrder {
   user_username?: string
 }
 
-;(api as any).getKworkOrders = (status = 'all') =>
-  request<{ orders: KworkOrder[] }>(`/api/dashboard/kwork-orders?status=${status}`)
 
 // ── Connects Check ───────────────────────────────────────────────────────────
 
@@ -1673,7 +1668,6 @@ export interface ConnectsCheck {
   block_threshold: number
 }
 
-;(api as any).getConnectsCheck = () => request<ConnectsCheck>('/api/dashboard/kwork-connects-check')
 
 // ── Alerts ───────────────────────────────────────────────────────────────────
 
@@ -1685,5 +1679,3 @@ export interface AlertItem {
   title: string
   detail: string
 }
-
-;(api as any).getAlerts = () => request<{ alerts: AlertItem[]; count: number }>('/api/dashboard/alerts')
