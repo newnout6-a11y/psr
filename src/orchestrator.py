@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import os
 import time
+from collections import deque
 from contextlib import suppress
 from typing import Any
 
@@ -321,6 +322,63 @@ class FreelanceOrchestrator:
         except Exception as e:
             duration_ms = int((time.perf_counter() - started_at) * 1000)
             return parser.PLATFORM_NAME, query, page, [], duration_ms, e
+
+    async def _collect_standard_pages(
+        self,
+        sources: list[tuple[Any, list[str]]],
+        *,
+        per_page: int,
+        pages_to_parse: int,
+        max_concurrency: int,
+    ) -> list[tuple[str, str, int, list[ProjectItem], int, Any]]:
+        """Issue a bounded number of requests, rotating sources after each page.
+
+        Each source's parser retains its own request pacing. Only a fixed number
+        of tasks exist at once, even if the query plan contains many pages.
+        """
+        def source_pages(queries: list[str]):
+            for page in range(1, pages_to_parse + 1):
+                for query in queries:
+                    yield query, page
+
+        pending = deque()
+        for parser, queries in sources:
+            seen: set[str] = set()
+            unique_queries: list[str] = []
+            for raw_query in queries:
+                query = " ".join(raw_query.split())
+                key = query.casefold()
+                if query and key not in seen:
+                    seen.add(key)
+                    unique_queries.append(query)
+            if unique_queries:
+                pending.append((parser, source_pages(unique_queries)))
+
+        def next_page():
+            while pending:
+                parser, pages = pending.popleft()
+                try:
+                    query, page = next(pages)
+                except StopIteration:
+                    continue
+                pending.append((parser, pages))
+                return parser, query, page
+            return None
+
+        results: list[tuple[str, str, int, list[ProjectItem], int, Any]] = []
+
+        async def collect() -> None:
+            while (job := next_page()) is not None:
+                parser, query, page = job
+                results.append(await self._parse_projects(parser, page, per_page, query))
+
+        workers = [
+            asyncio.create_task(collect())
+            for _ in range(min(max(1, max_concurrency), len(pending)))
+        ]
+        if workers:
+            await asyncio.gather(*workers)
+        return results
 
     async def _discover_wide_kwork(
         self,
@@ -918,8 +976,8 @@ class FreelanceOrchestrator:
             f"(queries={total_queries} pages/query={max_pages_per_query} "
             f"~{total_queries * max_pages_per_query} API вызовов)"
         )
-        tasks = []
         results = []
+        standard_sources: list[tuple[Any, list[str]]] = []
         discovery_stats: dict[str, Any] = {
             "mode": discovery_mode,
             "platforms": {},
@@ -948,19 +1006,17 @@ class FreelanceOrchestrator:
                 discovery_stats["raw_found"] += int(parser_stats.get("raw_found", 0) or 0)
                 continue
 
-            for query in queries:
-                for page in range(1, pages_to_parse + 1):
-                    tasks.append(self._parse_projects(parser, page, per_page, query))
+            standard_sources.append((parser, queries))
 
-        if tasks:
-            task_results = await asyncio.gather(*tasks, return_exceptions=True)
-            for tr in task_results:
-                if isinstance(tr, BaseException):
-                    logger.error(f"Parse task exception: {tr}")
-                    results.append(("unknown", "", 0, [], 0, tr))
-                else:
-                    results.append(tr)
-            for platform, _query, _page, projects, _duration_ms, error in results:
+        if standard_sources:
+            task_results = await self._collect_standard_pages(
+                standard_sources,
+                per_page=per_page,
+                pages_to_parse=pages_to_parse,
+                max_concurrency=_env_int("MAX_PARSE_CONCURRENCY", 4, low=1, high=12),
+            )
+            results.extend(task_results)
+            for platform, _query, _page, projects, _duration_ms, error in task_results:
                 if platform == "unknown":
                     continue
                 platform_stats = discovery_stats["platforms"].get(platform)
