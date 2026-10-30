@@ -10,6 +10,8 @@ from __future__ import annotations
 import asyncio
 import os
 import time
+from types import SimpleNamespace
+from uuid import uuid4
 from collections import deque
 from contextlib import suppress
 from typing import Any
@@ -17,6 +19,7 @@ from typing import Any
 from loguru import logger
 
 from src.action.decision_policy import CandidateDecisionContext, DecisionPolicy
+from src.action.candidate_delivery import deliver_candidate_notifications
 from src.action.proposal_db import ProposalDB
 from src.action.proposal_generator import ProposalGenerator
 from src.action.proposal_image import ProposalImageGenerator
@@ -704,10 +707,10 @@ class FreelanceOrchestrator:
             f.write(f"Search query: {project.search_query or 'n/a'}\n")
             f.write(f"Отклик:\n{proposal_text}\n\n")
 
-    async def _notify_candidate(self, candidate_id: int, project: ProjectItem) -> None:
+    async def _notify_candidate(self, candidate_id: int, project: ProjectItem) -> bool:
         candidate = self.db.get_candidate(candidate_id)
         if not candidate:
-            return
+            return False
 
         # Enrich candidate with files from platform_data if missing
         platform_data = candidate.get("platform_data")
@@ -720,15 +723,56 @@ class FreelanceOrchestrator:
 
         if project.url:
             with suppress(Exception):
-                screenshot_path = await self.sender.get_project_preview(
-                    project.url,
-                    project.id,
-                    project.platform,
+                screenshot_path = await asyncio.wait_for(
+                    self.sender.get_project_preview(project.url, project.id, project.platform),
+                    timeout=_env_int("PROJECT_PREVIEW_TIMEOUT_SECONDS", 3, low=1, high=15),
                 )
                 if screenshot_path:
                     candidate["screenshot_path"] = screenshot_path
 
-        await self.notifier.notify_candidate(candidate)
+        return await self.notifier.notify_candidate(candidate)
+
+    async def _drain_candidate_notifications(self, *, limit: int = 8) -> set[int]:
+        """Deliver a bounded outbox batch, with a durable lease and explicit ACK.
+
+        Never hold a SQLite transaction during preview/network I/O. A crash
+        after the provider accepted a message but before ACK can still yield a
+        repeat after lease expiry: Telegram has no end-to-end idempotency key.
+        """
+        if not hasattr(self.db, "claim_due_notifications"):
+            return set()
+        if isinstance(self.notifier, TelegramNotifier) and (not self.notifier.bot or not self.notifier.admin_id):
+            # Retain pending notifications for recovery when Telegram is
+            # configured; do not mark an unattempted send as delivered.
+            return set()
+
+        worker_id = getattr(self, "_notification_worker_id", None)
+        if not worker_id:
+            worker_id = f"orchestrator-{os.getpid()}-{uuid4().hex}"
+            self._notification_worker_id = worker_id
+
+        async def send(candidate: dict[str, Any]) -> bool | None:
+            project = SimpleNamespace(
+                id=str(candidate["project_id"]),
+                platform=str(candidate["platform"]),
+                url=candidate.get("url") or "",
+                platform_data=candidate.get("platform_data") or {},
+            )
+            return await self._notify_candidate(int(candidate["candidate_id"]), project)
+
+        return await deliver_candidate_notifications(self.db, send, worker_id=worker_id, limit=limit)
+
+    async def _notify_queued_candidate(self, candidate_id: int, project: ProjectItem, on_notified: Any) -> None:
+        if hasattr(self.db, "claim_due_notifications"):
+            accepted = await self._drain_candidate_notifications()
+            if candidate_id in accepted and on_notified is not None:
+                on_notified(project)
+            return
+        # Legacy test doubles without an outbox keep their existing contract.
+        with suppress(Exception):
+            await self._notify_candidate(candidate_id, project)
+            if on_notified is not None:
+                on_notified(project)
 
     async def execute_candidate_action(
         self,
@@ -1354,10 +1398,7 @@ class FreelanceOrchestrator:
                         actor="system",
                         reason="cycle auto-send limit reached",
                     )
-                    with suppress(Exception):
-                        await self._notify_candidate(candidate_id, project)
-                        if on_notified is not None:
-                            on_notified(project)
+                    await self._notify_queued_candidate(candidate_id, project, on_notified)
                     queued_count += 1
                     continue
 
@@ -1365,18 +1406,12 @@ class FreelanceOrchestrator:
                 self._record_query_signal(project, "auto_ready")
                 auto_ready_count += 1
                 auto_send_counts[project.platform] = auto_send_counts.get(project.platform, 0) + 1
-                with suppress(Exception):
-                    await self._notify_candidate(candidate_id, project)
-                    if on_notified is not None:
-                        on_notified(project)
+                await self._notify_queued_candidate(candidate_id, project, on_notified)
                 continue
 
             self.db.update_candidate_status(candidate_id, "queued", actor="system", reason=decision.reason)
             queued_count += 1
-            with suppress(Exception):
-                await self._notify_candidate(candidate_id, project)
-                if on_notified is not None:
-                    on_notified(project)
+            await self._notify_queued_candidate(candidate_id, project, on_notified)
         return {
             "parsed": len(all_projects),
             "active": len(active_projects),
@@ -1391,6 +1426,10 @@ class FreelanceOrchestrator:
 
     async def run_cycle(self, dry_run: bool = False, limit_per_platform: int = 5):
         logger.info("=== НАЧАЛО ЦИКЛА ОРКЕСТРАТОРА ===")
+
+        # Recover acknowledged-pending work even if the next scan returns no
+        # matching projects. The outbox is authoritative across restarts.
+        await self._drain_candidate_notifications(limit=16)
 
         self._cycle_sent_count = 0
         self._cycle_sent_per_platform = {}
@@ -1689,6 +1728,8 @@ class FreelanceOrchestrator:
 
         discovery_stats["new_candidates"] = cycle_counts["active"]
         logger.info(f"Discovery stats: {discovery_stats}")
+
+        await self._drain_candidate_notifications(limit=16)
 
         await self.notifier.maybe_send_digest()
 

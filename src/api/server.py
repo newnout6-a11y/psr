@@ -9,8 +9,9 @@ or:
 
 from __future__ import annotations
 
+import asyncio
 import sys
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -539,11 +540,19 @@ async def lifespan(app: FastAPI):
     app.state.buyer_shadow = buyer_shadow_store
     app.state.buyer_taxonomy = buyer_taxonomy
     app.state.buyer_taxonomy_refresh = buyer_taxonomy_refresh
+    from src.api.candidate_notification_runtime import recover_candidate_notifications
+
+    candidate_outbox_task = asyncio.create_task(
+        recover_candidate_notifications(), name="candidate-notification-outbox-recovery"
+    )
     logger.info("PSR API server started on port 7788")
     try:
         yield
     finally:
         logger.info("PSR API server shutting down")
+        candidate_outbox_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await candidate_outbox_task
         await buyer_taxonomy_store.close()
         await buyer_shadow_store.close()
         await buyer_conversation_store.close()
