@@ -40,7 +40,7 @@ from src.utils.reply_linker import classify_and_persist_reply, link_inbox_respon
 
 AUTO_SEND_PLATFORMS = {"kwork", "freelance_ru"}
 ACTIVE_PROCESSING_STATUSES = {"parsed", "filtered", "scored", "vetted", "auto_ready", "error", "sending"}
-BLOCKING_STATUSES = {"queued", "snoozed", "manual_sent", "auto_sent", "draft", "skipped", "sending"}
+BLOCKING_STATUSES = {"queued", "auto_ready", "snoozed", "manual_sent", "auto_sent", "draft", "skipped", "sending"}
 
 _BUSINESS_REJECTION_MARKERS = {
     "project closed",
@@ -331,6 +331,7 @@ class FreelanceOrchestrator:
         pages_to_parse: int,
         max_concurrency: int,
         parse_projects: Any = None,
+        retain_results: bool = True,
     ) -> list[tuple[str, str, int, list[ProjectItem], int, Any]]:
         """Issue a bounded number of requests, rotating sources after each page.
 
@@ -372,7 +373,9 @@ class FreelanceOrchestrator:
         async def collect() -> None:
             while (job := next_page()) is not None:
                 parser, query, page = job
-                results.append(await fetch(parser, page, per_page, query))
+                result = await fetch(parser, page, per_page, query)
+                if retain_results:
+                    results.append(result)
 
         workers = [
             asyncio.create_task(collect())
@@ -398,10 +401,13 @@ class FreelanceOrchestrator:
         max_projects_per_cycle: int,
         max_parse_seconds: int,
         parse_projects: Any = None,
+        retain_results: bool = True,
     ) -> tuple[list[tuple[str, str, int, list[ProjectItem], int, Any]], dict[str, Any]]:
         started_at = time.perf_counter()
         fetch = parse_projects or self._parse_projects
         results: list[tuple[str, str, int, list[ProjectItem], int, Any]] = []
+        pages_scanned = 0
+        raw_found = 0
         seen_keys: set[tuple[str, str]] = set()
         seen_keys_per_query: dict[str, set[tuple[str, str]]] = {}
         query_stops: dict[str, str] = {}
@@ -425,7 +431,10 @@ class FreelanceOrchestrator:
                     per_page,
                     query,
                 )
-                results.append((platform, q, p, projects, duration_ms, error))
+                pages_scanned += 1
+                raw_found += len(projects)
+                if retain_results:
+                    results.append((platform, q, p, projects, duration_ms, error))
 
                 if error:
                     query_stop = f"error:{type(error).__name__}"
@@ -466,8 +475,8 @@ class FreelanceOrchestrator:
         stats = {
             "mode": "wide",
             "queries": len(queries),
-            "pages_scanned": len(results),
-            "raw_found": sum(len(item[3]) for item in results),
+            "pages_scanned": pages_scanned,
+            "raw_found": raw_found,
             "deduped": len(seen_keys),
             "stop_reason": stop_reason,
             "query_stops": query_stops,
@@ -491,6 +500,7 @@ class FreelanceOrchestrator:
         max_projects_per_cycle: int,
         max_parse_seconds: int,
         max_concurrency: int,
+        on_page: Any = None,
     ) -> tuple[
         list[tuple[str, str, int, list[ProjectItem], int, Any]],
         dict[str, dict[str, Any]],
@@ -512,7 +522,10 @@ class FreelanceOrchestrator:
 
         async def bounded_parse(parser: Any, page: int, page_size: int, query: str):
             async with slots:
-                return await self._parse_projects(parser, page, page_size, query)
+                result = await self._parse_projects(parser, page, page_size, query)
+            if on_page is not None:
+                await on_page(result)
+            return result
 
         async def collect_wide():
             found: list[tuple[str, str, int, list[ProjectItem], int, Any]] = []
@@ -526,6 +539,7 @@ class FreelanceOrchestrator:
                     max_projects_per_cycle=max_projects_per_cycle,
                     max_parse_seconds=max_parse_seconds,
                     parse_projects=bounded_parse,
+                    retain_results=on_page is None,
                 )
                 found.extend(pages)
                 stats[parser.PLATFORM_NAME] = summary
@@ -541,6 +555,7 @@ class FreelanceOrchestrator:
                 # still enforces the configured total active-request limit.
                 max_concurrency=min(12, max(len(standard_sources), concurrency - bool(wide_sources), 1)),
                 parse_projects=bounded_parse,
+                retain_results=on_page is None,
             )
 
         # TaskGroup cancels the sibling collector if either one fails or the
@@ -918,223 +933,73 @@ class FreelanceOrchestrator:
         log_db.log_send(platform, project_id, status, duration_ms=duration_ms)
         return f"Кандидат #{candidate_id} отправлен со статусом {status}."
 
-    async def run_cycle(self, dry_run: bool = False, limit_per_platform: int = 5):
-        logger.info("=== НАЧАЛО ЦИКЛА ОРКЕСТРАТОРА ===")
+    async def _consume_incremental_discovery(
+        self,
+        sources: list[tuple[Any, list[str]]],
+        *,
+        wide_mode: bool,
+        per_page: int,
+        pages_to_parse: int,
+        max_pages_per_query: int,
+        max_projects_per_cycle: int,
+        max_parse_seconds: int,
+        max_concurrency: int,
+        on_result: Any,
+        queue_size: int = 4,
+    ) -> dict[str, dict[str, Any]]:
+        """Deliver bounded source pages to one serialized durable consumer.
 
-        self._cycle_sent_count = 0
-        self._cycle_sent_per_platform = {}
+        Fetchers do not touch DB or notifications. A full queue applies
+        backpressure to all producers. Unexpected failures cancel siblings
+        rather than silently discarding still-running source calls.
+        """
+        pages: asyncio.Queue[Any] = asyncio.Queue(maxsize=max(1, min(int(queue_size), 32)))
+        finished = object()
 
-        mode = self._execution_mode()
-        log_db = get_log_db()
-        query_provider = _route_provider_from_env("query_generation")
-        scoring_provider = _route_provider_from_env("scoring")
-        proposal_provider = _route_provider_from_env("proposal_writing")
-        fallback_provider = os.getenv("LLM_PROVIDER", "auto").strip().lower()
-        logger.info(
-            "LLM active routes: "
-            f"query={query_provider}/{_provider_model_from_env(query_provider, task='query_generation')}, "
-            f"scoring={scoring_provider}/{_provider_model_from_env(scoring_provider, task='scoring')}, "
-            f"proposal={proposal_provider}/{_provider_model_from_env(proposal_provider, task='proposal_writing')}, "
-            f"fallback={fallback_provider}/{_provider_model_from_env(fallback_provider)}"
-        )
-        self.db.requeue_due_candidates()
-        self.db.recover_stale_sending()
-        self.search_strategy.invalidate_cache()
+        async def produce():
+            _, wide_stats, _ = await self._collect_discovery_pages(
+                sources,
+                wide_mode=wide_mode,
+                per_page=per_page,
+                pages_to_parse=pages_to_parse,
+                max_pages_per_query=max_pages_per_query,
+                max_projects_per_cycle=max_projects_per_cycle,
+                max_parse_seconds=max_parse_seconds,
+                max_concurrency=max_concurrency,
+                on_page=pages.put,
+            )
+            await pages.put(finished)
+            return wide_stats
 
-        try:
-            from src.utils.schedule import get_schedule_manager
-
-            sched = get_schedule_manager()
-            if not sched.is_work_time():
-                logger.info("Вне рабочих часов — цикл пропущен")
-                return {
-                    "parsed": 0,
-                    "active": 0,
-                    "filtered": 0,
-                    "ai_passed": 0,
-                    "vetted": 0,
-                    "proposal_selected": 0,
-                    "proposal_limited": 0,
-                    "queued": 0,
-                    "auto_ready": 0,
-                    "sent": 0,
-                    "per_platform": {},
-                    "discovery": {},
-                    "skipped": 0,
-                    "skipped_details": [],
-                    "skipped_reason": "outside_work_hours",
-                }
-        except Exception as e:
-            logger.warning(f"Schedule check failed, assuming work time: {e}")
-        for parser in self.parsers:
-            service = getattr(parser, "service", None)
-            if service is not None and hasattr(service, "reset_cycle"):
-                service.reset_cycle()
-
-        if os.getenv("PLATFORMS", "kwork").lower().find("kwork") >= 0:
-            try:
-                from src.platforms.kwork import get_kwork_service
-
-                kwork_svc = get_kwork_service()
-                await kwork_svc.check_connects()
-                await kwork_svc.check_success_rate()
-            except Exception as e:
-                logger.debug(f"Health check (connects/rate) failed: {e}")
-
-        try:
-            responses = await self.inbox_monitor.check_all()
-            for response in responses:
-                # 1) Старый путь — обновляет `proposals.response`, чтобы не
-                #    ломать аналитику, которая опирается на этот столбец.
-                if response.get("project_id") and response.get("message"):
-                    self.db.mark_response(response["project_id"], response["message"])
-
-                # 2) Новый путь — Phase 3 feedback loop.
-                #    Линкер находит кандидата по (platform, username[, project_id])
-                #    и пишет replied_at/reply_text. Дальше зовём LLM-классификатор,
-                #    но уже фоном: его падение не должно валить остальной цикл.
+        async def consume():
+            while True:
+                item = await pages.get()
                 try:
-                    link_result = link_inbox_response(self.db, response)
-                except Exception as link_err:
-                    logger.warning(f"ReplyLinker: не удалось привязать реплай: {link_err}")
-                    continue
+                    if item is finished:
+                        return
+                    await on_result(item)
+                finally:
+                    pages.task_done()
 
-                if not link_result.linked or link_result.candidate_id is None:
-                    continue
+        async with asyncio.TaskGroup() as group:
+            producer_task = group.create_task(produce())
+            group.create_task(consume())
+        return producer_task.result()
 
-                try:
-                    await classify_and_persist_reply(
-                        self.db,
-                        link_result.candidate_id,
-                        response.get("message", ""),
-                    )
-                except Exception as cls_err:
-                    logger.debug(f"ReplyClassifier: классификация не удалась: {cls_err}")
-        except Exception as e:
-            logger.debug(f"Ошибка проверки входящих: {e}")
-
-        discovery_mode = os.getenv("DISCOVERY_MODE", "wide").strip().lower()
-        wide_mode = discovery_mode == "wide"
-        search_queries_map: dict[str, list[str]] = {}
-        query_count = _env_int("QUERY_COUNT", 8 if wide_mode else 6, low=1, high=50 if wide_mode else 20)
-        for parser in self.parsers:
-            platform = parser.PLATFORM_NAME
-            if platform in search_queries_map:
-                continue
-            started_at = time.perf_counter()
-            try:
-                queries = await self.search_strategy.generate_queries(platform, count=query_count)
-                search_queries_map[platform] = queries
-                duration_ms = int((time.perf_counter() - started_at) * 1000)
-                logger.info(f"SearchStrategy: {platform} -> {queries} ({duration_ms}мс)")
-            except Exception as e:
-                duration_ms = int((time.perf_counter() - started_at) * 1000)
-                fallback = os.getenv("SEARCH_QUERY", "python")
-                queries = [q.strip() for q in fallback.split("|") if q.strip()] or ["python"]
-                search_queries_map[platform] = queries
-                logger.warning(f"SearchStrategy fallback для {platform} ({duration_ms}мс): {e}")
-
-        pages_to_parse = _env_int("PAGES_TO_PARSE", 5, low=1, high=50 if wide_mode else 10)
-        max_pages_per_query = _env_int(
-            "MAX_PAGES_PER_QUERY",
-            50 if wide_mode else pages_to_parse,
-            low=1,
-            high=100,
-        )
-        max_projects_per_cycle = _env_int("MAX_PROJECTS_PER_CYCLE", 500, low=20, high=2000)
-        per_page = getattr(self.filter, "per_page", 20)
-
-        # Динамический расчёт лимита времени парсинга
-        all_queries = [search_queries_map.get(p.PLATFORM_NAME, ["python"]) for p in self.parsers]
-        total_queries = sum(len(q) for q in all_queries)
-        env_override = os.getenv("MAX_PARSE_SECONDS", "").strip()
-        if env_override:
-            max_parse_seconds = _env_int("MAX_PARSE_SECONDS", 180, low=10, high=3600)
-        else:
-            max_parse_seconds = _calc_parse_time_limit(total_queries, max_pages_per_query)
-        logger.info(
-            f"Лимит времени парсинга: {max_parse_seconds}s "
-            f"(queries={total_queries} pages/query={max_pages_per_query} "
-            f"~{total_queries * max_pages_per_query} API вызовов)"
-        )
-        discovery_stats: dict[str, Any] = {
-            "mode": discovery_mode,
-            "platforms": {},
-            "queries": 0,
-            "pages_scanned": 0,
-            "raw_found": 0,
-            "deduped": 0,
-            "new_candidates": 0,
-        }
-        skipped_log: list[dict[str, str]] = []
-        sources = [(parser, search_queries_map.get(parser.PLATFORM_NAME, ["python"])) for parser in self.parsers]
-        wide_results, wide_stats, task_results = await self._collect_discovery_pages(
-            sources,
-            wide_mode=wide_mode,
-            per_page=per_page,
-            pages_to_parse=pages_to_parse,
-            max_pages_per_query=max_pages_per_query,
-            max_projects_per_cycle=max_projects_per_cycle,
-            max_parse_seconds=max_parse_seconds,
-            max_concurrency=_env_int("MAX_PARSE_CONCURRENCY", 4, low=1, high=12),
-        )
-        # Process ordinary-source candidates first after collection: a large
-        # Kwork result set should not additionally delay FR/HH notifications.
-        # DB writes and notifications still run in the original serial phase.
-        results = task_results + wide_results
-        for platform, parser_stats in wide_stats.items():
-            discovery_stats["platforms"][platform] = parser_stats
-            discovery_stats["queries"] += int(parser_stats.get("queries", 0) or 0)
-            discovery_stats["pages_scanned"] += int(parser_stats.get("pages_scanned", 0) or 0)
-            discovery_stats["raw_found"] += int(parser_stats.get("raw_found", 0) or 0)
-
-        if task_results:
-            for platform, _query, _page, projects, _duration_ms, error in task_results:
-                if platform == "unknown":
-                    continue
-                platform_stats = discovery_stats["platforms"].get(platform)
-                if platform_stats and platform_stats.get("mode") == "wide":
-                    continue
-                platform_stats = discovery_stats["platforms"].setdefault(
-                    platform,
-                    {
-                        "mode": "standard",
-                        "queries": 0,
-                        "pages_scanned": 0,
-                        "raw_found": 0,
-                        "stop_reason": "fixed_pages",
-                    },
-                )
-                platform_stats["pages_scanned"] += 1
-                platform_stats["raw_found"] += len(projects) if not error else 0
-                discovery_stats["pages_scanned"] += 1
-                discovery_stats["raw_found"] += len(projects) if not error else 0
-            for platform, queries in search_queries_map.items():
-                platform_stats = discovery_stats["platforms"].get(platform)
-                if platform_stats and platform_stats.get("mode") == "standard":
-                    discovery_stats["platforms"][platform]["queries"] = len(queries)
-                    discovery_stats["queries"] += len(queries)
-
-        deduped: dict[tuple[str, str], ProjectItem] = {}
-        for platform, query, page, projects, duration_ms, error in results:
-            self.db.record_query_run(platform, query, len(projects))
-            if error:
-                logger.error(
-                    f"Ошибка получения проектов от {platform} (query='{query}', page={page}, {duration_ms}мс): {error}"
-                )
-                log_db.log_parse(platform, "error", 0, str(error), duration_ms)
-                continue
-
-            log_db.log_parse(platform, "success", len(projects), duration_ms=duration_ms)
-            for project in projects:
-                key = self._project_key(project)
-                if key not in deduped:
-                    deduped[key] = project
-
-        all_projects = list(deduped.values())
-        discovery_stats["deduped"] = len(all_projects)
-        logger.info(f"Собрано уникальных проектов: {len(all_projects)}")
-
+    async def _process_discovery_batch(
+        self,
+        all_projects: list[ProjectItem],
+        *,
+        dry_run: bool,
+        limit_per_platform: int,
+        mode: str,
+        log_db: Any,
+        skipped_log: list[dict[str, str]],
+        cycle_state: dict[str, Any],
+        on_staged: Any = None,
+        on_notified: Any = None,
+    ) -> dict[str, int]:
+        """Run the original serial candidate pipeline for one durable batch."""
         active_projects: list[ProjectItem] = []
         candidate_ids: dict[tuple[str, str], int] = {}
         blocked_existing: dict[str, int] = {}
@@ -1151,17 +1016,34 @@ class FreelanceOrchestrator:
                 blocked_existing["blacklisted"] = blocked_existing.get("blacklisted", 0) + 1
                 self._log_skip(skipped_log, project, stage="blacklisted", reason="client blacklisted")
                 continue
-            candidate_id = self._stage_candidate(project, "parsed", "parsed", dry_run=1 if dry_run else 0)
+            if existing is None and on_staged is not None and hasattr(self.db, "insert_candidate_if_absent"):
+                # Another cycle/process may have won admission after our
+                # read. Never reset its newly queued/sent candidate to parsed.
+                initial = {
+                    "stage": "parsed",
+                    "status": "parsed",
+                    "execution_mode": mode,
+                    **REPROCESS_RESET_FIELDS,
+                    "dry_run": 1 if dry_run else 0,
+                }
+                candidate_id, inserted = self.db.insert_candidate_if_absent(project, **initial)
+                if not inserted:
+                    self._log_skip(
+                        skipped_log, project, stage="existing", reason="concurrent candidate admission"
+                    )
+                    continue
+            else:
+                # Preserve retry of existing system-skipped/error candidates.
+                candidate_id = self._stage_candidate(project, "parsed", "parsed", dry_run=1 if dry_run else 0)
             candidate_ids[self._project_key(project)] = candidate_id
             active_projects.append(project)
+            if on_staged is not None:
+                on_staged(project)
 
         logger.info(f"Новых/перерабатываемых проектов: {len(active_projects)}")
 
         if blocked_existing:
             logger.info(f"Existing candidates blocked before processing: {blocked_existing}")
-
-        discovery_stats["new_candidates"] = len(active_projects)
-        logger.info(f"Discovery stats: {discovery_stats}")
 
         filtered_projects, keyword_decisions = await self.filter.filter_projects_with_reasons(active_projects)
         filtered_keys = {self._project_key(project) for project in filtered_projects}
@@ -1355,14 +1237,24 @@ class FreelanceOrchestrator:
             vetted_payloads = vetted_payloads[:top_n]
 
         vetted_total = len(vetted_payloads)
-        vetted_payloads, proposal_limited = _limit_payloads_per_platform(vetted_payloads, limit_per_platform)
+        proposal_counts = cycle_state.setdefault("proposal_counts", {})
+        selected_payloads: list[dict[str, Any]] = []
+        proposal_limited = 0
+        for payload in vetted_payloads:
+            platform = payload["project"].platform
+            if proposal_counts.get(platform, 0) >= max(1, int(limit_per_platform or 1)):
+                proposal_limited += 1
+                continue
+            selected_payloads.append(payload)
+            proposal_counts[platform] = proposal_counts.get(platform, 0) + 1
+        vetted_payloads = selected_payloads
         if proposal_limited:
             logger.info(
                 f"Лимит генерации откликов: selected={len(vetted_payloads)} "
                 f"limited_out={proposal_limited} per_platform={max(1, int(limit_per_platform or 1))}"
             )
 
-        auto_send_counts: dict[str, int] = {}
+        auto_send_counts = cycle_state.setdefault("auto_send_counts", {})
         queued_count = 0
         auto_ready_count = 0
 
@@ -1464,6 +1356,8 @@ class FreelanceOrchestrator:
                     )
                     with suppress(Exception):
                         await self._notify_candidate(candidate_id, project)
+                        if on_notified is not None:
+                            on_notified(project)
                     queued_count += 1
                     continue
 
@@ -1473,12 +1367,328 @@ class FreelanceOrchestrator:
                 auto_send_counts[project.platform] = auto_send_counts.get(project.platform, 0) + 1
                 with suppress(Exception):
                     await self._notify_candidate(candidate_id, project)
+                    if on_notified is not None:
+                        on_notified(project)
                 continue
 
             self.db.update_candidate_status(candidate_id, "queued", actor="system", reason=decision.reason)
             queued_count += 1
             with suppress(Exception):
                 await self._notify_candidate(candidate_id, project)
+                if on_notified is not None:
+                    on_notified(project)
+        return {
+            "parsed": len(all_projects),
+            "active": len(active_projects),
+            "filtered": len(filtered_projects),
+            "ai_passed": len(scored_passed),
+            "vetted": vetted_total,
+            "proposal_selected": len(vetted_payloads),
+            "proposal_limited": proposal_limited,
+            "queued": queued_count,
+            "auto_ready": auto_ready_count,
+        }
+
+    async def run_cycle(self, dry_run: bool = False, limit_per_platform: int = 5):
+        logger.info("=== НАЧАЛО ЦИКЛА ОРКЕСТРАТОРА ===")
+
+        self._cycle_sent_count = 0
+        self._cycle_sent_per_platform = {}
+
+        mode = self._execution_mode()
+        log_db = get_log_db()
+        query_provider = _route_provider_from_env("query_generation")
+        scoring_provider = _route_provider_from_env("scoring")
+        proposal_provider = _route_provider_from_env("proposal_writing")
+        fallback_provider = os.getenv("LLM_PROVIDER", "auto").strip().lower()
+        logger.info(
+            "LLM active routes: "
+            f"query={query_provider}/{_provider_model_from_env(query_provider, task='query_generation')}, "
+            f"scoring={scoring_provider}/{_provider_model_from_env(scoring_provider, task='scoring')}, "
+            f"proposal={proposal_provider}/{_provider_model_from_env(proposal_provider, task='proposal_writing')}, "
+            f"fallback={fallback_provider}/{_provider_model_from_env(fallback_provider)}"
+        )
+        self.db.requeue_due_candidates()
+        self.db.recover_stale_sending()
+        self.search_strategy.invalidate_cache()
+
+        try:
+            from src.utils.schedule import get_schedule_manager
+
+            sched = get_schedule_manager()
+            if not sched.is_work_time():
+                logger.info("Вне рабочих часов — цикл пропущен")
+                return {
+                    "parsed": 0,
+                    "active": 0,
+                    "filtered": 0,
+                    "ai_passed": 0,
+                    "vetted": 0,
+                    "proposal_selected": 0,
+                    "proposal_limited": 0,
+                    "queued": 0,
+                    "auto_ready": 0,
+                    "sent": 0,
+                    "per_platform": {},
+                    "discovery": {},
+                    "skipped": 0,
+                    "skipped_details": [],
+                    "skipped_reason": "outside_work_hours",
+                }
+        except Exception as e:
+            logger.warning(f"Schedule check failed, assuming work time: {e}")
+        for parser in self.parsers:
+            service = getattr(parser, "service", None)
+            if service is not None and hasattr(service, "reset_cycle"):
+                service.reset_cycle()
+
+        if os.getenv("PLATFORMS", "kwork").lower().find("kwork") >= 0:
+            try:
+                from src.platforms.kwork import get_kwork_service
+
+                kwork_svc = get_kwork_service()
+                await kwork_svc.check_connects()
+                await kwork_svc.check_success_rate()
+            except Exception as e:
+                logger.debug(f"Health check (connects/rate) failed: {e}")
+
+        try:
+            responses = await self.inbox_monitor.check_all()
+            for response in responses:
+                # 1) Старый путь — обновляет `proposals.response`, чтобы не
+                #    ломать аналитику, которая опирается на этот столбец.
+                if response.get("project_id") and response.get("message"):
+                    self.db.mark_response(response["project_id"], response["message"])
+
+                # 2) Новый путь — Phase 3 feedback loop.
+                #    Линкер находит кандидата по (platform, username[, project_id])
+                #    и пишет replied_at/reply_text. Дальше зовём LLM-классификатор,
+                #    но уже фоном: его падение не должно валить остальной цикл.
+                try:
+                    link_result = link_inbox_response(self.db, response)
+                except Exception as link_err:
+                    logger.warning(f"ReplyLinker: не удалось привязать реплай: {link_err}")
+                    continue
+
+                if not link_result.linked or link_result.candidate_id is None:
+                    continue
+
+                try:
+                    await classify_and_persist_reply(
+                        self.db,
+                        link_result.candidate_id,
+                        response.get("message", ""),
+                    )
+                except Exception as cls_err:
+                    logger.debug(f"ReplyClassifier: классификация не удалась: {cls_err}")
+        except Exception as e:
+            logger.debug(f"Ошибка проверки входящих: {e}")
+
+        discovery_mode = os.getenv("DISCOVERY_MODE", "wide").strip().lower()
+        wide_mode = discovery_mode == "wide"
+        search_queries_map: dict[str, list[str]] = {}
+        query_count = _env_int("QUERY_COUNT", 8 if wide_mode else 6, low=1, high=50 if wide_mode else 20)
+        for parser in self.parsers:
+            platform = parser.PLATFORM_NAME
+            if platform in search_queries_map:
+                continue
+            started_at = time.perf_counter()
+            try:
+                queries = await self.search_strategy.generate_queries(platform, count=query_count)
+                search_queries_map[platform] = queries
+                duration_ms = int((time.perf_counter() - started_at) * 1000)
+                logger.info(f"SearchStrategy: {platform} -> {queries} ({duration_ms}мс)")
+            except Exception as e:
+                duration_ms = int((time.perf_counter() - started_at) * 1000)
+                fallback = os.getenv("SEARCH_QUERY", "python")
+                queries = [q.strip() for q in fallback.split("|") if q.strip()] or ["python"]
+                search_queries_map[platform] = queries
+                logger.warning(f"SearchStrategy fallback для {platform} ({duration_ms}мс): {e}")
+
+        pages_to_parse = _env_int("PAGES_TO_PARSE", 5, low=1, high=50 if wide_mode else 10)
+        max_pages_per_query = _env_int(
+            "MAX_PAGES_PER_QUERY",
+            50 if wide_mode else pages_to_parse,
+            low=1,
+            high=100,
+        )
+        max_projects_per_cycle = _env_int("MAX_PROJECTS_PER_CYCLE", 500, low=20, high=2000)
+        per_page = getattr(self.filter, "per_page", 20)
+
+        # Динамический расчёт лимита времени парсинга
+        all_queries = [search_queries_map.get(p.PLATFORM_NAME, ["python"]) for p in self.parsers]
+        total_queries = sum(len(q) for q in all_queries)
+        env_override = os.getenv("MAX_PARSE_SECONDS", "").strip()
+        if env_override:
+            max_parse_seconds = _env_int("MAX_PARSE_SECONDS", 180, low=10, high=3600)
+        else:
+            max_parse_seconds = _calc_parse_time_limit(total_queries, max_pages_per_query)
+        logger.info(
+            f"Лимит времени парсинга: {max_parse_seconds}s "
+            f"(queries={total_queries} pages/query={max_pages_per_query} "
+            f"~{total_queries * max_pages_per_query} API вызовов)"
+        )
+        discovery_stats: dict[str, Any] = {
+            "mode": discovery_mode,
+            "platforms": {},
+            "queries": 0,
+            "pages_scanned": 0,
+            "raw_found": 0,
+            "deduped": 0,
+            "new_candidates": 0,
+        }
+        skipped_log: list[dict[str, str]] = []
+        sources = [(parser, search_queries_map.get(parser.PLATFORM_NAME, ["python"])) for parser in self.parsers]
+        concurrency = _env_int("MAX_PARSE_CONCURRENCY", 4, low=1, high=12)
+        cycle_state: dict[str, Any] = {}
+        counter_keys = (
+            "parsed", "active", "filtered", "ai_passed", "vetted",
+            "proposal_selected", "proposal_limited", "queued", "auto_ready",
+        )
+        cycle_counts = dict.fromkeys(counter_keys, 0)
+        incremental = (
+            wide_mode
+            and _env_int("TOP_PROJECTS", 0, low=0, high=50) == 0
+            and os.getenv("INCREMENTAL_DISCOVERY_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
+        )
+
+        async def process_batch(
+            projects: list[ProjectItem],
+            *,
+            on_staged: Any = None,
+            on_notified: Any = None,
+        ) -> None:
+            if not projects:
+                return
+            counts = await self._process_discovery_batch(
+                projects,
+                dry_run=dry_run,
+                limit_per_platform=limit_per_platform,
+                mode=mode,
+                log_db=log_db,
+                skipped_log=skipped_log,
+                cycle_state=cycle_state,
+                on_staged=on_staged,
+                on_notified=on_notified,
+            )
+            for name in counter_keys:
+                cycle_counts[name] += int(counts[name])
+
+        if incremental:
+            first_started = time.perf_counter()
+            seen_keys: set[tuple[str, str]] = set()
+            persisted_ms: dict[str, int] = {}
+            notifier_call_ms: dict[str, int] = {}
+
+            def on_staged(project: ProjectItem) -> None:
+                persisted_ms.setdefault(project.platform, int((time.perf_counter() - first_started) * 1000))
+
+            def on_notified(project: ProjectItem) -> None:
+                # Call completion means the notifier accepted the request,
+                # not that Telegram delivered it or the UI rendered it.
+                notifier_call_ms.setdefault(project.platform, int((time.perf_counter() - first_started) * 1000))
+
+            async def on_result(page_result: tuple[str, str, int, list[ProjectItem], int, Any]) -> None:
+                platform, query, page, projects, duration_ms, error = page_result
+                self.db.record_query_run(platform, query, len(projects))
+                if error:
+                    logger.error(
+                        f"Ошибка получения проектов от {platform} (query='{query}', page={page}, {duration_ms}мс): {error}"
+                    )
+                    log_db.log_parse(platform, "error", 0, str(error), duration_ms)
+                    return
+                log_db.log_parse(platform, "success", len(projects), duration_ms=duration_ms)
+                discovery_stats["pages_scanned"] += 1
+                discovery_stats["raw_found"] += len(projects)
+                if platform != "kwork":
+                    source_stats = discovery_stats["platforms"].setdefault(
+                        platform,
+                        {"mode": "standard", "queries": 0, "pages_scanned": 0,
+                         "raw_found": 0, "stop_reason": "fixed_pages"},
+                    )
+                    source_stats["pages_scanned"] += 1
+                    source_stats["raw_found"] += len(projects)
+                fresh = []
+                for project in projects:
+                    key = self._project_key(project)
+                    if key not in seen_keys:
+                        seen_keys.add(key)
+                        fresh.append(project)
+                discovery_stats["deduped"] = len(seen_keys)
+                await process_batch(fresh, on_staged=on_staged, on_notified=on_notified)
+
+            wide_stats = await self._consume_incremental_discovery(
+                sources,
+                wide_mode=wide_mode,
+                per_page=per_page,
+                pages_to_parse=pages_to_parse,
+                max_pages_per_query=max_pages_per_query,
+                max_projects_per_cycle=max_projects_per_cycle,
+                max_parse_seconds=max_parse_seconds,
+                max_concurrency=concurrency,
+                on_result=on_result,
+                queue_size=_env_int("DISCOVERY_PAGE_QUEUE_SIZE", 4, low=1, high=32),
+            )
+            discovery_stats["first_persisted_ms"] = persisted_ms
+            discovery_stats["first_notifier_call_completed_ms"] = notifier_call_ms
+            for platform, summary in wide_stats.items():
+                discovery_stats["platforms"][platform] = summary
+                discovery_stats["queries"] += int(summary["queries"])
+            for platform, queries in search_queries_map.items():
+                if platform not in wide_stats and platform in discovery_stats["platforms"]:
+                    discovery_stats["platforms"][platform]["queries"] = len(set(queries))
+                    discovery_stats["queries"] += len(set(queries))
+        else:
+            wide_results, wide_stats, task_results = await self._collect_discovery_pages(
+                sources,
+                wide_mode=wide_mode,
+                per_page=per_page,
+                pages_to_parse=pages_to_parse,
+                max_pages_per_query=max_pages_per_query,
+                max_projects_per_cycle=max_projects_per_cycle,
+                max_parse_seconds=max_parse_seconds,
+                max_concurrency=concurrency,
+            )
+            results = task_results + wide_results
+            for platform, summary in wide_stats.items():
+                discovery_stats["platforms"][platform] = summary
+                discovery_stats["queries"] += int(summary["queries"])
+                discovery_stats["pages_scanned"] += int(summary["pages_scanned"])
+                discovery_stats["raw_found"] += int(summary["raw_found"])
+            for platform, query, page, projects, duration_ms, error in results:
+                self.db.record_query_run(platform, query, len(projects))
+                if error:
+                    logger.error(
+                        f"Ошибка получения проектов от {platform} (query='{query}', page={page}, {duration_ms}мс): {error}"
+                    )
+                    log_db.log_parse(platform, "error", 0, str(error), duration_ms)
+                    continue
+                log_db.log_parse(platform, "success", len(projects), duration_ms=duration_ms)
+                if platform not in wide_stats:
+                    source_stats = discovery_stats["platforms"].setdefault(
+                        platform,
+                        {"mode": "standard", "queries": 0, "pages_scanned": 0,
+                         "raw_found": 0, "stop_reason": "fixed_pages"},
+                    )
+                    source_stats["pages_scanned"] += 1
+                    source_stats["raw_found"] += len(projects)
+                    discovery_stats["pages_scanned"] += 1
+                    discovery_stats["raw_found"] += len(projects)
+            for platform, queries in search_queries_map.items():
+                if platform not in wide_stats and platform in discovery_stats["platforms"]:
+                    discovery_stats["platforms"][platform]["queries"] = len(queries)
+                    discovery_stats["queries"] += len(queries)
+            deduped: dict[tuple[str, str], ProjectItem] = {}
+            for _, _, _, projects, _, error in results:
+                if not error:
+                    for project in projects:
+                        deduped.setdefault(self._project_key(project), project)
+            all_projects = list(deduped.values())
+            discovery_stats["deduped"] = len(all_projects)
+            await process_batch(all_projects)
+
+        discovery_stats["new_candidates"] = cycle_counts["active"]
+        logger.info(f"Discovery stats: {discovery_stats}")
 
         await self.notifier.maybe_send_digest()
 
@@ -1503,22 +1713,17 @@ class FreelanceOrchestrator:
                 await self.notifier.notify_skipped(skipped_log)
 
         logger.info(
-            f"=== ЦИКЛ ЗАВЕРШЕН. parsed={len(all_projects)} active={len(active_projects)} "
-            f"queued={queued_count} auto_ready={auto_ready_count} sent={sent_count} "
+            f"=== ЦИКЛ ЗАВЕРШЕН. parsed={cycle_counts['parsed']} active={cycle_counts['active']} "
+            f"queued={cycle_counts['queued']} auto_ready={cycle_counts['auto_ready']} sent={sent_count} "
             f"skipped={len(skipped_log)} ==="
         )
-        log_db.log_filter("total", len(all_projects), sent_count + queued_count + auto_ready_count, "Общий итог цикла")
+        log_db.log_filter(
+            "total", cycle_counts["parsed"],
+            sent_count + cycle_counts["queued"] + cycle_counts["auto_ready"], "Общий итог цикла",
+        )
 
         return {
-            "parsed": len(all_projects),
-            "active": len(active_projects),
-            "filtered": len(filtered_projects),
-            "ai_passed": len(scored_passed),
-            "vetted": vetted_total,
-            "proposal_selected": len(vetted_payloads),
-            "proposal_limited": proposal_limited,
-            "queued": queued_count,
-            "auto_ready": auto_ready_count,
+            **cycle_counts,
             "sent": sent_count,
             "skipped": len(skipped_log),
             "skipped_details": skipped_log,
