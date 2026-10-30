@@ -44,7 +44,7 @@ def test_new_candidate_insertions_are_paginated_without_replay_or_reprocessing(t
     path, client = _client(tmp_path, monkeypatch)
     _create_candidates(path)
     first = _insert(path, "remote-1", "kwork")
-    second = _insert(path, "remote-2", "freelanceru", "queued")
+    second = _insert(path, "remote-2", "freelance_ru", "queued")
     with client:
         initial = client.get("/api/dashboard/candidate-discovery")
         assert initial.status_code == 200
@@ -55,7 +55,7 @@ def test_new_candidate_insertions_are_paginated_without_replay_or_reprocessing(t
         assert snapshot["items"] == []
         assert snapshot["total"] == 2
         assert snapshot["by_platform"] == [
-            {"platform": "freelanceru", "total": 1},
+            {"platform": "freelance_ru", "total": 1},
             {"platform": "kwork", "total": 1},
         ]
         assert {row["status"] for row in snapshot["recent"]} == {"parsed", "queued"}
@@ -66,7 +66,7 @@ def test_new_candidate_insertions_are_paginated_without_replay_or_reprocessing(t
                 "UPDATE candidates SET status = 'queued', updated_at = '2026-10-30T13:00:00Z' WHERE candidate_id = ?",
                 (first,),
             )
-        inserted_ids = [_insert(path, f"remote-{i}", "hh", "parsed") for i in range(3, 6)]
+        inserted_ids = [_insert(path, f"remote-{i}", "hh_ru", "parsed") for i in range(3, 6)]
         first_page = client.get(f"/api/dashboard/candidate-discovery?after_id={second}&limit=2")
         assert first_page.status_code == 200
         batch = first_page.json()
@@ -79,7 +79,7 @@ def test_new_candidate_insertions_are_paginated_without_replay_or_reprocessing(t
         empty = client.get(f"/api/dashboard/candidate-discovery?after_id={inserted_ids[-1]}").json()
         assert empty["items"] == []
         assert empty["next_after_id"] == inserted_ids[-1]
-        assert empty["by_platform"][0] == {"platform": "hh", "total": 3}
+        assert empty["by_platform"][0] == {"platform": "hh_ru", "total": 3}
 
 
 def test_candidate_discovery_missing_database_and_schema_are_explicit_without_writes(tmp_path, monkeypatch):
