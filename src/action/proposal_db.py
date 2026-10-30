@@ -327,6 +327,53 @@ class ProposalDB:
     # Candidates
     # ------------------------------------------------------------------
 
+    def insert_candidate_if_absent(self, project: Any, **fields: Any) -> tuple[int, bool]:
+        """Atomically admit a discovery without overwriting an existing candidate.
+
+        The unique (project_id, platform) constraint is the arbiter. A retry or
+        another orchestrator cannot reset a queued, sent, or completed candidate
+        to ``parsed`` merely because the page was fetched again.
+        """
+        payload = {
+            "project_id": project.id,
+            "platform": project.platform,
+            "title": project.title,
+            "description": project.description,
+            "budget": project.budget,
+            "currency": project.currency,
+            "skills": _to_json(project.skills or []),
+            "url": project.url,
+            "created_at": project.created_at,
+            "search_query": getattr(project, "search_query", None),
+            "offers_count": int(getattr(project, "offers_count", 0) or 0),
+            "client_hired_percent": int(getattr(project, "client_hired_percent", 0) or 0),
+            "platform_data": _to_json(getattr(project, "platform_data", None)),
+            "updated_at": _now(),
+        }
+        for key, value in fields.items():
+            if key in {"skills", "vet_reasons", "vet_red_flags", "competitor_prices", "client_context", "platform_data"}:
+                payload[key] = _to_json(value)
+            else:
+                payload[key] = value
+
+        columns = list(payload)
+        placeholders = ", ".join("?" for _ in columns)
+        with self._connect() as conn:
+            cur = conn.execute(
+                f"INSERT INTO candidates ({', '.join(columns)}) VALUES ({placeholders}) "
+                "ON CONFLICT(project_id, platform) DO NOTHING",
+                tuple(payload[col] for col in columns),
+            )
+            inserted = cur.rowcount == 1
+            row = conn.execute(
+                "SELECT candidate_id FROM candidates WHERE project_id = ? AND platform = ?",
+                (project.id, project.platform),
+            ).fetchone()
+            if row is None:
+                raise RuntimeError("candidate was not found after conflict-safe insert")
+            conn.commit()
+            return int(row["candidate_id"]), inserted
+
     def upsert_candidate(self, project: Any, **fields: Any) -> int:
         payload = {
             "project_id": project.id,
