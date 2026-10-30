@@ -506,10 +506,16 @@ export interface BuyerSearchFinalScoreRequest {
 }
 
 export interface BuyerSearchEvent {
+  run_id?: string
   seq: number
   type: string
   payload: Record<string, unknown>
-  created_at?: string
+  created_at?: string | null
+}
+
+export interface BuyerSearchEventPage {
+  items: BuyerSearchEvent[]
+  next_after_seq: number
 }
 
 export type BuyerSearchWebSocketMessage =

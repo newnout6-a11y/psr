@@ -3,6 +3,7 @@ import type {
   BuyerSearchBatchProjectActionPayload,
   BuyerSearchBatchProjectActionResult,
   BuyerSearchEnrichmentResult,
+  BuyerSearchEventPage,
   BuyerSearchExport,
   BuyerSearchExportRequest,
   BuyerSearchFinalScoreRequest,
@@ -42,7 +43,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       // Keep a non-JSON error body intact for diagnostics.
     }
-    throw new Error(detail || `HTTP ${response.status}`)
+    throw new Error(`HTTP ${response.status}: ${detail || response.statusText || 'Ошибка запроса'}`)
   }
   return response.json() as Promise<T>
 }
@@ -89,6 +90,11 @@ export const buyerSearchApi = {
   getRun: (runId: string) => request<BuyerSearchRun>(`/api/kwork/buyer-search/runs/${encodeURIComponent(runId)}`),
   getFleet: (runId: string, signal?: AbortSignal) =>
     request<BuyerSearchFleet>(`/api/kwork/buyer-search/runs/${encodeURIComponent(runId)}/fleet`, { signal }),
+  getRunEvents: (runId: string, afterSeq: number, signal?: AbortSignal) =>
+    request<BuyerSearchEventPage>(
+      `/api/kwork/buyer-search/runs/${encodeURIComponent(runId)}/events${queryString({ after_seq: afterSeq, limit: 500 })}`,
+      { signal },
+    ),
   patchRun: (runId: string, payload: BuyerSearchRunPatch) =>
     request<BuyerSearchRun>(`/api/kwork/buyer-search/runs/${encodeURIComponent(runId)}`, {
       method: 'PATCH',
