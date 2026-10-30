@@ -330,6 +330,7 @@ class FreelanceOrchestrator:
         per_page: int,
         pages_to_parse: int,
         max_concurrency: int,
+        parse_projects: Any = None,
     ) -> list[tuple[str, str, int, list[ProjectItem], int, Any]]:
         """Issue a bounded number of requests, rotating sources after each page.
 
@@ -366,18 +367,25 @@ class FreelanceOrchestrator:
             return None
 
         results: list[tuple[str, str, int, list[ProjectItem], int, Any]] = []
+        fetch = parse_projects or self._parse_projects
 
         async def collect() -> None:
             while (job := next_page()) is not None:
                 parser, query, page = job
-                results.append(await self._parse_projects(parser, page, per_page, query))
+                results.append(await fetch(parser, page, per_page, query))
 
         workers = [
             asyncio.create_task(collect())
             for _ in range(min(max(1, max_concurrency), len(pending)))
         ]
         if workers:
-            await asyncio.gather(*workers)
+            try:
+                await asyncio.gather(*workers)
+            finally:
+                for worker in workers:
+                    if not worker.done():
+                        worker.cancel()
+                await asyncio.gather(*workers, return_exceptions=True)
         return results
 
     async def _discover_wide_kwork(
@@ -389,8 +397,10 @@ class FreelanceOrchestrator:
         max_pages_per_query: int,
         max_projects_per_cycle: int,
         max_parse_seconds: int,
+        parse_projects: Any = None,
     ) -> tuple[list[tuple[str, str, int, list[ProjectItem], int, Any]], dict[str, Any]]:
         started_at = time.perf_counter()
+        fetch = parse_projects or self._parse_projects
         results: list[tuple[str, str, int, list[ProjectItem], int, Any]] = []
         seen_keys: set[tuple[str, str]] = set()
         seen_keys_per_query: dict[str, set[tuple[str, str]]] = {}
@@ -409,7 +419,7 @@ class FreelanceOrchestrator:
                     stop_reason = "time_limit"
                     break
 
-                platform, q, p, projects, duration_ms, error = await self._parse_projects(
+                platform, q, p, projects, duration_ms, error = await fetch(
                     parser,
                     page,
                     per_page,
@@ -469,6 +479,77 @@ class FreelanceOrchestrator:
             f"deduped={stats['deduped']} stop={stats['stop_reason']} elapsed={stats['elapsed_ms']}ms"
         )
         return results, stats
+
+    async def _collect_discovery_pages(
+        self,
+        sources: list[tuple[Any, list[str]]],
+        *,
+        wide_mode: bool,
+        per_page: int,
+        pages_to_parse: int,
+        max_pages_per_query: int,
+        max_projects_per_cycle: int,
+        max_parse_seconds: int,
+        max_concurrency: int,
+    ) -> tuple[
+        list[tuple[str, str, int, list[ProjectItem], int, Any]],
+        dict[str, dict[str, Any]],
+        list[tuple[str, str, int, list[ProjectItem], int, Any]],
+    ]:
+        """Fetch wide Kwork and other sources together without concurrent DB writes.
+
+        The shared semaphore bounds total active source requests. Each parser
+        retains its own pacing; waiting for a slot never bypasses rate limits.
+        Results are returned only after both collectors finish, so the existing
+        candidate processing and notifications remain serialized.
+        """
+        wide_sources = [(parser, queries) for parser, queries in sources if wide_mode and parser.PLATFORM_NAME == "kwork"]
+        standard_sources = [
+            (parser, queries) for parser, queries in sources if not (wide_mode and parser.PLATFORM_NAME == "kwork")
+        ]
+        concurrency = max(1, min(max_concurrency, 12))
+        slots = asyncio.Semaphore(concurrency)
+
+        async def bounded_parse(parser: Any, page: int, page_size: int, query: str):
+            async with slots:
+                return await self._parse_projects(parser, page, page_size, query)
+
+        async def collect_wide():
+            found: list[tuple[str, str, int, list[ProjectItem], int, Any]] = []
+            stats: dict[str, dict[str, Any]] = {}
+            for parser, queries in wide_sources:
+                pages, summary = await self._discover_wide_kwork(
+                    parser,
+                    queries,
+                    per_page=per_page,
+                    max_pages_per_query=max_pages_per_query,
+                    max_projects_per_cycle=max_projects_per_cycle,
+                    max_parse_seconds=max_parse_seconds,
+                    parse_projects=bounded_parse,
+                )
+                found.extend(pages)
+                stats[parser.PLATFORM_NAME] = summary
+            return found, stats
+
+        async def collect_standard():
+            return await self._collect_standard_pages(
+                standard_sources,
+                per_page=per_page,
+                pages_to_parse=pages_to_parse,
+                # Keep one waiting worker per ordinary source so a single
+                # global slot is shared fairly with wide Kwork. The semaphore
+                # still enforces the configured total active-request limit.
+                max_concurrency=min(12, max(len(standard_sources), concurrency - bool(wide_sources), 1)),
+                parse_projects=bounded_parse,
+            )
+
+        # TaskGroup cancels the sibling collector if either one fails or the
+        # discovery phase is cancelled. No DB or notification code runs here.
+        async with asyncio.TaskGroup() as group:
+            wide_task = group.create_task(collect_wide())
+            standard_task = group.create_task(collect_standard())
+        wide_results, wide_stats = wide_task.result()
+        return wide_results, wide_stats, standard_task.result()
 
     def _project_key(self, project: ProjectItem) -> tuple[str, str]:
         return project.platform, project.id
@@ -976,8 +1057,6 @@ class FreelanceOrchestrator:
             f"(queries={total_queries} pages/query={max_pages_per_query} "
             f"~{total_queries * max_pages_per_query} API вызовов)"
         )
-        results = []
-        standard_sources: list[tuple[Any, list[str]]] = []
         discovery_stats: dict[str, Any] = {
             "mode": discovery_mode,
             "platforms": {},
@@ -988,34 +1067,28 @@ class FreelanceOrchestrator:
             "new_candidates": 0,
         }
         skipped_log: list[dict[str, str]] = []
-        for parser in self.parsers:
-            queries = search_queries_map.get(parser.PLATFORM_NAME, ["python"])
-            if wide_mode and parser.PLATFORM_NAME == "kwork":
-                parser_results, parser_stats = await self._discover_wide_kwork(
-                    parser,
-                    queries,
-                    per_page=per_page,
-                    max_pages_per_query=max_pages_per_query,
-                    max_projects_per_cycle=max_projects_per_cycle,
-                    max_parse_seconds=max_parse_seconds,
-                )
-                results.extend(parser_results)
-                discovery_stats["platforms"][parser.PLATFORM_NAME] = parser_stats
-                discovery_stats["queries"] += int(parser_stats.get("queries", 0) or 0)
-                discovery_stats["pages_scanned"] += int(parser_stats.get("pages_scanned", 0) or 0)
-                discovery_stats["raw_found"] += int(parser_stats.get("raw_found", 0) or 0)
-                continue
+        sources = [(parser, search_queries_map.get(parser.PLATFORM_NAME, ["python"])) for parser in self.parsers]
+        wide_results, wide_stats, task_results = await self._collect_discovery_pages(
+            sources,
+            wide_mode=wide_mode,
+            per_page=per_page,
+            pages_to_parse=pages_to_parse,
+            max_pages_per_query=max_pages_per_query,
+            max_projects_per_cycle=max_projects_per_cycle,
+            max_parse_seconds=max_parse_seconds,
+            max_concurrency=_env_int("MAX_PARSE_CONCURRENCY", 4, low=1, high=12),
+        )
+        # Process ordinary-source candidates first after collection: a large
+        # Kwork result set should not additionally delay FR/HH notifications.
+        # DB writes and notifications still run in the original serial phase.
+        results = task_results + wide_results
+        for platform, parser_stats in wide_stats.items():
+            discovery_stats["platforms"][platform] = parser_stats
+            discovery_stats["queries"] += int(parser_stats.get("queries", 0) or 0)
+            discovery_stats["pages_scanned"] += int(parser_stats.get("pages_scanned", 0) or 0)
+            discovery_stats["raw_found"] += int(parser_stats.get("raw_found", 0) or 0)
 
-            standard_sources.append((parser, queries))
-
-        if standard_sources:
-            task_results = await self._collect_standard_pages(
-                standard_sources,
-                per_page=per_page,
-                pages_to_parse=pages_to_parse,
-                max_concurrency=_env_int("MAX_PARSE_CONCURRENCY", 4, low=1, high=12),
-            )
-            results.extend(task_results)
+        if task_results:
             for platform, _query, _page, projects, _duration_ms, error in task_results:
                 if platform == "unknown":
                     continue
