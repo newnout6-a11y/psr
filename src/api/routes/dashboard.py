@@ -119,6 +119,11 @@ def funnel(days: int = Query(30, ge=1, le=90)):
     return q.conversion_funnel(days)
 
 
+@router.get("/conversion")
+def conversion(days: int = Query(30, ge=1, le=90)):
+    return q.conversion_analytics(days)
+
+
 @router.get("/earnings")
 def earnings():
     return q.earnings_summary()

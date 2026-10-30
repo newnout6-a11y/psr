@@ -356,7 +356,21 @@ def _conversion_columns_available() -> bool:
             cols = {row[1] for row in conn.execute("PRAGMA table_info(candidates)").fetchall()}
     except sqlite3.Error:
         return False
-    return {"replied_at", "reply_classification"}.issubset(cols)
+    return {
+        "sent_at", "status", "replied_at", "reply_classification",
+        "won", "revenue", "prompt_variant", "provider", "search_query",
+        "offers_count", "currency",
+    }.issubset(cols)
+
+
+# One sent-date cohort for all phase-3 breakdowns. A candidate remains in the
+# cohort after hire/completion; editing or classifying it does not move it into
+# another period. Drafts have sent_at in some legacy data, so status matters.
+_CONVERSION_COHORT = """
+    c.sent_at IS NOT NULL AND trim(c.sent_at) != ''
+    AND c.sent_at >= datetime('now', ?)
+    AND c.status IN ('auto_sent', 'manual_sent', 'hired', 'declined', 'completed')
+"""
 
 
 def conversion_summary(days: int = 30) -> dict[str, float]:
@@ -373,13 +387,12 @@ def conversion_summary(days: int = 30) -> dict[str, float]:
         PROPOSALS_DB,
         """
         SELECT
-            SUM(CASE WHEN status IN ('auto_sent', 'manual_sent') THEN 1 ELSE 0 END) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
-            COALESCE(SUM(revenue), 0) AS revenue
-        FROM candidates
-        WHERE updated_at >= datetime('now', ?)
-        """,
+            COUNT(*) AS sent,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
+            COALESCE(SUM(CASE WHEN c.won = 1 AND upper(c.currency) = 'RUB' THEN c.revenue ELSE 0 END), 0) AS revenue
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT,
         (f"-{days} days",),
     )
     if df.empty:
@@ -400,25 +413,24 @@ def conversion_by_provider(days: int = 30) -> pd.DataFrame:
         PROPOSALS_DB,
         """
         SELECT
-            COALESCE(provider, 'unknown') AS provider,
+            COALESCE(NULLIF(trim(c.provider), ''), 'unknown') AS provider,
             COUNT(*) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
-            COALESCE(SUM(revenue), 0) AS revenue,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
+            COALESCE(SUM(CASE WHEN c.won = 1 AND upper(c.currency) = 'RUB' THEN c.revenue ELSE 0 END), 0) AS revenue,
             ROUND(
-                100.0 * SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS reply_rate,
             ROUND(
-                100.0 * SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS win_rate
-        FROM candidates
-        WHERE status IN ('auto_sent', 'manual_sent')
-          AND updated_at >= datetime('now', ?)
-        GROUP BY COALESCE(provider, 'unknown')
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
+        GROUP BY COALESCE(NULLIF(trim(c.provider), ''), 'unknown')
         ORDER BY sent DESC
         """,
         (f"-{days} days",),
@@ -433,19 +445,18 @@ def conversion_by_niche(days: int = 30, limit: int = 15) -> pd.DataFrame:
         PROPOSALS_DB,
         """
         SELECT
-            COALESCE(NULLIF(search_query, ''), 'unknown') AS niche,
+            COALESCE(NULLIF(trim(c.search_query), ''), 'unknown') AS niche,
             COUNT(*) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
             ROUND(
-                100.0 * SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS reply_rate
-        FROM candidates
-        WHERE status IN ('auto_sent', 'manual_sent')
-          AND updated_at >= datetime('now', ?)
-        GROUP BY COALESCE(NULLIF(search_query, ''), 'unknown')
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
+        GROUP BY COALESCE(NULLIF(trim(c.search_query), ''), 'unknown')
         ORDER BY sent DESC
         LIMIT ?
         """,
@@ -454,7 +465,7 @@ def conversion_by_niche(days: int = 30, limit: int = 15) -> pd.DataFrame:
 
 
 def conversion_by_queue_position(days: int = 30) -> pd.DataFrame:
-    """Конверсия по позиции в очереди откликов (offers_count в момент отклика)."""
+    """Конверсия по сохранённому offers_count; значение не снимок на момент отправки."""
     if not _conversion_columns_available():
         return pd.DataFrame()
     return _read_sql(
@@ -462,31 +473,32 @@ def conversion_by_queue_position(days: int = 30) -> pd.DataFrame:
         """
         SELECT
             CASE
-                WHEN offers_count IS NULL OR offers_count = 0 THEN '0 (первый)'
-                WHEN offers_count BETWEEN 1 AND 3 THEN '1-3'
-                WHEN offers_count BETWEEN 4 AND 9 THEN '4-9'
-                WHEN offers_count BETWEEN 10 AND 19 THEN '10-19'
+                WHEN c.offers_count IS NULL THEN 'неизвестно'
+                WHEN c.offers_count = 0 THEN '0'
+                WHEN c.offers_count BETWEEN 1 AND 3 THEN '1-3'
+                WHEN c.offers_count BETWEEN 4 AND 9 THEN '4-9'
+                WHEN c.offers_count BETWEEN 10 AND 19 THEN '10-19'
                 ELSE '20+'
             END AS queue_bucket,
             COUNT(*) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
             ROUND(
-                100.0 * SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS reply_rate
-        FROM candidates
-        WHERE status IN ('auto_sent', 'manual_sent')
-          AND updated_at >= datetime('now', ?)
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
         GROUP BY queue_bucket
         ORDER BY
             CASE queue_bucket
-                WHEN '0 (первый)' THEN 0
+                WHEN '0' THEN 0
                 WHEN '1-3' THEN 1
                 WHEN '4-9' THEN 2
                 WHEN '10-19' THEN 3
-                ELSE 4
+                WHEN '20+' THEN 4
+                ELSE 5
             END
         """,
         (f"-{days} days",),
@@ -517,15 +529,15 @@ def conversion_by_response_time(days: int = 30) -> pd.DataFrame:
             ) AS win_rate
         FROM (
             SELECT
-                won,
+                c.won,
                 CAST(
-                    (julianday(replied_at) - julianday(sent_at)) * 24 * 60 AS INTEGER
+                    (julianday(c.replied_at) - julianday(c.sent_at)) * 24 * 60 AS INTEGER
                 ) AS diff_minutes
-            FROM candidates
-            WHERE status IN ('auto_sent', 'manual_sent')
-              AND replied_at IS NOT NULL AND replied_at != ''
-              AND sent_at IS NOT NULL AND sent_at != ''
-              AND updated_at >= datetime('now', ?)
+            FROM candidates c
+            WHERE """ + _CONVERSION_COHORT + """
+              AND c.replied_at IS NOT NULL AND trim(c.replied_at) != ''
+              AND julianday(c.sent_at) IS NOT NULL AND julianday(c.replied_at) IS NOT NULL
+              AND julianday(c.replied_at) >= julianday(c.sent_at)
         )
         GROUP BY response_bucket
         ORDER BY
@@ -550,17 +562,17 @@ def reply_classification_breakdown(days: int = 30) -> pd.DataFrame:
         PROPOSALS_DB,
         """
         SELECT
-            COALESCE(NULLIF(reply_classification, ''), 'unclassified') AS classification,
+            COALESCE(NULLIF(trim(c.reply_classification), ''), 'unclassified') AS classification,
             COUNT(*) AS replies,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
             ROUND(
-                100.0 * SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0),
+                100.0 * SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0),
                 1
             ) AS win_rate
-        FROM candidates
-        WHERE replied_at IS NOT NULL AND replied_at != ''
-          AND updated_at >= datetime('now', ?)
-        GROUP BY COALESCE(NULLIF(reply_classification, ''), 'unclassified')
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
+          AND c.replied_at IS NOT NULL AND trim(c.replied_at) != ''
+        GROUP BY COALESCE(NULLIF(trim(c.reply_classification), ''), 'unclassified')
         ORDER BY replies DESC
         """,
         (f"-{days} days",),
@@ -575,28 +587,52 @@ def conversion_by_prompt_variant(days: int = 30) -> pd.DataFrame:
         PROPOSALS_DB,
         """
         SELECT
-            COALESCE(NULLIF(prompt_variant, ''), 'default') AS prompt_variant,
+            COALESCE(NULLIF(trim(c.prompt_variant), ''), 'untracked') AS prompt_variant,
             COUNT(*) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
             ROUND(
-                100.0 * SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS reply_rate,
             ROUND(
-                100.0 * SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS win_rate
-        FROM candidates
-        WHERE status IN ('auto_sent', 'manual_sent')
-          AND updated_at >= datetime('now', ?)
-        GROUP BY COALESCE(NULLIF(prompt_variant, ''), 'default')
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
+        GROUP BY COALESCE(NULLIF(trim(c.prompt_variant), ''), 'untracked')
         ORDER BY sent DESC
         """,
         (f"-{days} days",),
     )
+
+
+def conversion_analytics(days: int = 30) -> dict[str, Any]:
+    """One persisted sent-date cohort across summary and all drilldowns."""
+    _ensure_proposals_schema()
+    available = _conversion_columns_available()
+    summary = conversion_summary(days)
+    sent = int(summary["sent"])
+    replied = int(summary["replied"])
+    won = int(summary["won"])
+    return {
+        "days": days,
+        "status": "ready" if available else "unavailable",
+        "summary": {
+            **summary,
+            "reply_rate": round(100 * replied / sent, 1) if sent else 0.0,
+            "win_rate": round(100 * won / sent, 1) if sent else 0.0,
+        },
+        "by_provider": conversion_by_provider(days).to_dict(orient="records"),
+        "by_niche": conversion_by_niche(days).to_dict(orient="records"),
+        "by_queue_position": conversion_by_queue_position(days).to_dict(orient="records"),
+        "by_response_time": conversion_by_response_time(days).to_dict(orient="records"),
+        "classification_breakdown": reply_classification_breakdown(days).to_dict(orient="records"),
+        "by_prompt_variant": conversion_by_prompt_variant(days).to_dict(orient="records"),
+    }
 
 
 def errors_recent(limit: int = 50) -> pd.DataFrame:

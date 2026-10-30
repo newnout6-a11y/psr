@@ -370,6 +370,7 @@ export const api = {
   getErrors: (limit = 50) => request<ErrorRow[]>(`/api/dashboard/errors?limit=${limit}`),
   getRuntimeState: () => request<{ execution_mode: string; paused_platforms: string[] }>('/api/dashboard/runtime-state'),
   getFunnel: (days = 30) => request<FunnelData>(`/api/dashboard/funnel?days=${days}`),
+  getConversion: (days = 30) => request<ConversionAnalytics>(`/api/dashboard/conversion?days=${days}`),
   getHealth: () => request<HealthData>('/api/dashboard/health'),
   getSkipped: (limit = 50) => request<{ items: SkippedCandidate[]; total: number }>(`/api/dashboard/skipped?limit=${limit}`),
   getConversations: (limit = 50) => request<ConversationRow[]>(`/api/dashboard/conversations?limit=${limit}`),
@@ -1452,6 +1453,50 @@ export interface FunnelData {
   hire_rate: number
   completion_rate: number
   payment_rate: number
+}
+
+export interface ConversionSummary {
+  sent: number
+  replied: number
+  won: number
+  revenue: number
+  reply_rate: number
+  win_rate: number
+}
+export interface ConversionRow {
+  sent: number
+  replied: number
+  won: number
+  reply_rate: number
+  win_rate?: number
+  revenue?: number
+  provider?: string
+  niche?: string
+  queue_bucket?: string
+  prompt_variant?: string
+}
+export interface ConversionResponseRow {
+  response_bucket: string
+  replies: number
+  won: number
+  win_rate: number
+}
+export interface ConversionClassificationRow {
+  classification: string
+  replies: number
+  won: number
+  win_rate: number
+}
+export interface ConversionAnalytics {
+  days: number
+  status: 'ready' | 'unavailable'
+  summary: ConversionSummary
+  by_provider: ConversionRow[]
+  by_niche: ConversionRow[]
+  by_queue_position: ConversionRow[]
+  by_response_time: ConversionResponseRow[]
+  classification_breakdown: ConversionClassificationRow[]
+  by_prompt_variant: ConversionRow[]
 }
 
 // ── Health ──────────────────────────────────────────────────────────────────
