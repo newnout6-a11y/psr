@@ -19,7 +19,11 @@ from typing import Any
 from loguru import logger
 
 from src.action.decision_policy import CandidateDecisionContext, DecisionPolicy
-from src.action.candidate_delivery import deliver_candidate_notifications
+from src.action.candidate_delivery import (
+    NOTIFIABLE_STATUSES,
+    CandidateNoLongerEligible,
+    deliver_candidate_notifications,
+)
 from src.action.proposal_db import ProposalDB
 from src.action.proposal_generator import ProposalGenerator
 from src.action.proposal_image import ProposalImageGenerator
@@ -729,6 +733,12 @@ class FreelanceOrchestrator:
                 )
                 if screenshot_path:
                     candidate["screenshot_path"] = screenshot_path
+
+        # The preview above may take seconds; an operator could skip or send
+        # the candidate meanwhile. Re-check right before the provider call.
+        current = self.db.get_candidate(candidate_id)
+        if not current or current.get("status") not in NOTIFIABLE_STATUSES:
+            raise CandidateNoLongerEligible(f"candidate {candidate_id} left a notifiable status")
 
         return await self.notifier.notify_candidate(candidate)
 

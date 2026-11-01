@@ -134,18 +134,18 @@ def test_retry_backoff_max_attempts_and_replay(db, monkeypatch):
     db.update_candidate_status(candidate_id, "queued")
 
     first = db.claim_due_notifications("worker", max_attempts=3)[0]
-    assert db.fail_notification(first["event_id"], first["lease_token"], "offline", worker_id="worker", max_attempts=3)
+    assert db.fail_notification(first["event_id"], first["lease_token"], "offline", worker_id="worker", max_attempts=3, base_delay_seconds=2)
     assert db.claim_due_notifications("worker", max_attempts=3) == []
     clock[0] += timedelta(seconds=2)
     second = db.claim_due_notifications("worker", max_attempts=3)[0]
     assert second["attempts"] == 2
-    assert db.fail_notification(second["event_id"], second["lease_token"], "offline", worker_id="worker", max_attempts=3)
+    assert db.fail_notification(second["event_id"], second["lease_token"], "offline", worker_id="worker", max_attempts=3, base_delay_seconds=2)
     clock[0] += timedelta(seconds=3)
     assert db.claim_due_notifications("worker", max_attempts=3) == []
     clock[0] += timedelta(seconds=1)
     third = db.claim_due_notifications("worker", max_attempts=3)[0]
     assert third["attempts"] == 3
-    assert db.fail_notification(third["event_id"], third["lease_token"], "offline", worker_id="worker", max_attempts=3)
+    assert db.fail_notification(third["event_id"], third["lease_token"], "offline", worker_id="worker", max_attempts=3, base_delay_seconds=2)
     clock[0] += timedelta(hours=1)
     assert db.claim_due_notifications("worker", max_attempts=3) == []
     assert db.get_notification_summary()["dead"] == 1
@@ -179,9 +179,11 @@ def test_cleanup_scrubs_old_payload_but_keeps_idempotency_tombstone(db, monkeypa
     assert db.get_candidate_events_since()["stream_id"]
 
 def test_journal_pruning_signals_cursor_gap_and_preserves_generation(db, monkeypatch):
-    cid = _candidate(db)
+    # Patch the clock before admission so the initial 'parsed' journal row is
+    # also old enough to prune; otherwise the test depends on the real date.
     clock = [datetime(2026, 10, 30, tzinfo=timezone.utc)]
     monkeypatch.setattr(proposal_db, "_outbox_now", lambda: clock[0])
+    cid = _candidate(db)
     db.update_candidate_status(cid, "queued")
     old_events = db.get_candidate_events_since()
     stream_id = old_events["stream_id"]
@@ -271,3 +273,33 @@ def test_database_replacement_changes_stream_id(tmp_path):
     first = ProposalDB(str(tmp_path / "one.db")).get_candidate_events_since()["stream_id"]
     second = ProposalDB(str(tmp_path / "two.db")).get_candidate_events_since()["stream_id"]
     assert first != second
+
+
+def test_default_retry_schedule_survives_a_short_provider_outage(db, monkeypatch):
+    """A single lifetime outbox row must not die within a minute of failures."""
+    candidate_id = _candidate(db)
+    clock = [datetime(2026, 10, 30, tzinfo=timezone.utc)]
+    monkeypatch.setattr(proposal_db, "_outbox_now", lambda: clock[0])
+    db.update_candidate_status(candidate_id, "queued")
+
+    delays = []
+    for attempt in range(1, proposal_db.OUTBOX_MAX_ATTEMPTS):
+        event = db.claim_due_notifications("worker")[0]
+        assert event["attempts"] == attempt
+        assert db.fail_notification(event["event_id"], event["lease_token"], "offline", worker_id="worker")
+        row = _outbox_rows(db)[0]
+        assert row["status"] == "pending"
+        delay = datetime.fromisoformat(row["available_at"]) - clock[0]
+        delays.append(delay.total_seconds())
+        # Not claimable a moment before the backoff elapses.
+        clock[0] += delay - timedelta(seconds=1)
+        assert db.claim_due_notifications("worker") == []
+        clock[0] += timedelta(seconds=1)
+
+    assert delays == [30, 60, 120, 240, 480, 900, 900]
+    assert sum(delays) >= 30 * 60  # outlasts a half-hour Telegram outage
+
+    last = db.claim_due_notifications("worker")[0]
+    assert last["attempts"] == proposal_db.OUTBOX_MAX_ATTEMPTS
+    assert db.fail_notification(last["event_id"], last["lease_token"], "offline", worker_id="worker")
+    assert _outbox_rows(db)[0]["status"] == "dead"

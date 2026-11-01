@@ -23,6 +23,14 @@ def _outbox_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+# Each candidate has a single lifetime outbox row, so a dead event is never
+# rescheduled. The retry schedule must outlast an ordinary Telegram/network
+# outage: 30s, 1m, 2m, 4m, 8m, then 15m caps — about 45 minutes in total.
+OUTBOX_MAX_ATTEMPTS = 8
+OUTBOX_BASE_DELAY_SECONDS = 30.0
+OUTBOX_MAX_DELAY_SECONDS = 900.0
+
+
 def _outbox_timestamp(value: datetime) -> str:
     return value.astimezone(timezone.utc).isoformat(timespec="microseconds")
 
@@ -782,7 +790,7 @@ class ProposalDB:
         *,
         limit: int = 10,
         lease_seconds: float = 60,
-        max_attempts: int = 5,
+        max_attempts: int = OUTBOX_MAX_ATTEMPTS,
     ) -> list[dict[str, Any]]:
         """Claim due events with a transaction-wide SQLite write lock.
 
@@ -883,9 +891,9 @@ class ProposalDB:
         worker_id: str,
         target_status: str,
         error: str | None = None,
-        base_delay_seconds: float = 2,
-        max_delay_seconds: float = 300,
-        max_attempts: int = 5,
+        base_delay_seconds: float = OUTBOX_BASE_DELAY_SECONDS,
+        max_delay_seconds: float = OUTBOX_MAX_DELAY_SECONDS,
+        max_attempts: int = OUTBOX_MAX_ATTEMPTS,
     ) -> bool:
         if target_status not in {"delivered", "pending", "dead", "cancelled"}:
             raise ValueError("invalid notification status")
@@ -959,9 +967,9 @@ class ProposalDB:
         error: str,
         *,
         worker_id: str,
-        base_delay_seconds: float = 2,
-        max_delay_seconds: float = 300,
-        max_attempts: int = 5,
+        base_delay_seconds: float = OUTBOX_BASE_DELAY_SECONDS,
+        max_delay_seconds: float = OUTBOX_MAX_DELAY_SECONDS,
+        max_attempts: int = OUTBOX_MAX_ATTEMPTS,
     ) -> bool:
         return self._finish_notification(
             event_id, lease_token, worker_id=worker_id, target_status="pending",

@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import sqlite3
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
+from src.action import proposal_db
 from src.action.candidate_delivery import deliver_candidate_notifications
 from src.action.proposal_db import ProposalDB
 from src.parsers.base_parser import ProjectItem
@@ -210,3 +213,95 @@ async def test_api_recovery_without_telegram_leaves_durable_pending(tmp_path, mo
             (candidate_id,),
         ).fetchone()
     assert (status, attempts) == ("pending", 0)
+
+
+def _outbox_status(path: str, candidate_id: int) -> str:
+    with sqlite3.connect(path) as connection:
+        return connection.execute(
+            "SELECT status FROM candidate_notification_outbox WHERE candidate_id = ?",
+            (candidate_id,),
+        ).fetchone()[0]
+
+
+@pytest.mark.asyncio
+async def test_slow_sends_do_not_let_another_process_resend_later_events(tmp_path, monkeypatch):
+    """Leases are per event: slow earlier sends must not expire later leases."""
+    path = str(tmp_path / "proposals.sqlite")
+    db = ProposalDB(path)
+    clock = [datetime(2026, 10, 30, tzinfo=timezone.utc)]
+    monkeypatch.setattr(proposal_db, "_outbox_now", lambda: clock[0])
+    candidate_ids = {_admit_queued(db, "kwork", f"slow-{number}") for number in range(3)}
+    other_process = ProposalDB(path)
+    sent_here: list[int] = []
+    claimed_elsewhere: list[int] = []
+
+    async def slow_send(candidate):
+        sent_here.append(candidate["candidate_id"])
+        # Each send takes 100s — under the 120s lease, but three in a row
+        # would outlive a lease taken for the whole batch at the start.
+        clock[0] += timedelta(seconds=100)
+        claimed_elsewhere.extend(
+            int(event["candidate_id"])
+            for event in other_process.claim_due_notifications("other-process", limit=10, lease_seconds=120)
+        )
+        return True
+
+    accepted = await deliver_candidate_notifications(db, slow_send, worker_id="slow", limit=3)
+    assert accepted == set(sent_here)
+    assert not set(sent_here) & set(claimed_elsewhere)
+    assert set(sent_here) | set(claimed_elsewhere) == candidate_ids
+
+
+@pytest.mark.asyncio
+async def test_batch_claims_lazily_and_stops_when_nothing_is_due(tmp_path):
+    db = ProposalDB(str(tmp_path / "proposals.sqlite"))
+    expected = {_admit_queued(db, "hh_ru", f"lazy-{number}") for number in range(2)}
+    leased_while_sending: list[int] = []
+
+    async def send(candidate):
+        leased_while_sending.append(db.get_notification_summary()["leased"])
+        return True
+
+    assert await deliver_candidate_notifications(db, send, worker_id="lazy", limit=5) == expected
+    assert leased_while_sending == [1, 1]  # only the event in flight is leased
+
+
+def _orchestrator_with(db: ProposalDB, preview, notifier):
+    from src.orchestrator import FreelanceOrchestrator
+
+    orch = FreelanceOrchestrator.__new__(FreelanceOrchestrator)
+    orch.db = db
+    orch.sender = SimpleNamespace(get_project_preview=preview)
+    orch.notifier = notifier
+    return orch
+
+
+@pytest.mark.asyncio
+async def test_candidate_skipped_during_preview_is_cancelled_not_sent(tmp_path):
+    path = str(tmp_path / "proposals.sqlite")
+    db = ProposalDB(path)
+    candidate_id = _admit_queued(db, "kwork", "skipped-mid-preview")
+
+    async def preview_while_operator_skips(*_args):
+        db.update_candidate_status(candidate_id, "skipped", actor="ui")
+        return None
+
+    notifier = SimpleNamespace(notify_candidate=AsyncMock(return_value=True))
+    orch = _orchestrator_with(db, preview_while_operator_skips, notifier)
+
+    assert await orch._drain_candidate_notifications() == set()
+    notifier.notify_candidate.assert_not_awaited()
+    assert _outbox_status(path, candidate_id) == "cancelled"
+
+
+@pytest.mark.asyncio
+async def test_candidate_still_queued_after_preview_is_sent(tmp_path):
+    path = str(tmp_path / "proposals.sqlite")
+    db = ProposalDB(path)
+    candidate_id = _admit_queued(db, "kwork", "still-queued")
+    notifier = SimpleNamespace(notify_candidate=AsyncMock(return_value=True))
+    orch = _orchestrator_with(db, AsyncMock(return_value=None), notifier)
+
+    assert await orch._drain_candidate_notifications() == {candidate_id}
+    notifier.notify_candidate.assert_awaited_once()
+    assert _outbox_status(path, candidate_id) == "delivered"
