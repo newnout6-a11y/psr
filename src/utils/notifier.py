@@ -1041,27 +1041,39 @@ class TelegramNotifier:
             return
         await self._safe_send_message(target, text)
 
-    async def notify_candidate(self, candidate: dict[str, Any], chat_id: Optional[str] = None) -> None:
+    async def notify_candidate(self, candidate: dict[str, Any], chat_id: Optional[str] = None) -> bool:
+        """Return whether Telegram accepted the primary candidate message.
+
+        A missing bot/chat and a failed send are *not* delivery acknowledgements.
+        Attachments are supplementary; failures there must not cause the outbox
+        to resend a primary message that Telegram already accepted.
+        """
         if not self.bot:
-            return
+            return False
         target = chat_id or self.admin_id
         if not target:
-            return
+            return False
         text = self._candidate_message(candidate)
         keyboard = self._candidate_keyboard(candidate)
         screenshot_path = candidate.get("screenshot_path") or self._find_project_screenshot(candidate)
 
         # Скриншот страницы проекта
         if screenshot_path and Path(str(screenshot_path)).exists():
-            if await self._safe_send_photo(target, str(screenshot_path), text, reply_markup=keyboard):
-                pass
-            else:
-                await self._safe_send_message(target, text, reply_markup=keyboard)
+            sent = await self._safe_send_photo(target, str(screenshot_path), text, reply_markup=keyboard)
+            if not sent:
+                sent = await self._safe_send_message(target, text, reply_markup=keyboard)
         else:
-            await self._safe_send_message(target, text, reply_markup=keyboard)
+            sent = await self._safe_send_message(target, text, reply_markup=keyboard)
+
+        if not sent:
+            return False
 
         # Прикреплённые файлы проекта
-        await self._send_project_attachments(target, candidate)
+        try:
+            await self._send_project_attachments(target, candidate)
+        except Exception as exc:
+            logger.warning(f"TelegramNotifier: supplementary attachments failed: {exc}")
+        return True
 
     async def _send_project_attachments(self, target: str, candidate: dict[str, Any]) -> None:
         """Отправить файлы проекта (фото, PDF, документы) в Telegram."""

@@ -297,8 +297,10 @@ export function PublicationWorkspace({ job, results, opportunity }: PublicationW
       let currentHandoff = handoff
       let currentSelection = { ...selection }
       for (let round = 0; round < 2; round += 1) {
-        const currentManifest = currentHandoff.attribute_manifest as KworkFormManifest
-        const currentControls = Array.isArray(currentManifest?.controls) ? currentManifest.controls : []
+        const currentManifest = currentHandoff.attribute_manifest
+        const currentControls: KworkFormControl[] = Array.isArray(currentManifest?.controls)
+          ? currentManifest.controls.filter((item): item is KworkFormControl => typeof item === 'object' && item !== null && typeof item.name === 'string')
+          : []
         let dynamicSelectionChanged = false
         for (const control of currentControls) {
           if (control.disabled || !control.options?.length || selectedIds(currentSelection, control).length) continue

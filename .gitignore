@@ -31,6 +31,7 @@ yarn-error.log*
 # Runtime and debug artifacts live under data/ and should not pollute git.
 /data/runtime/
 /data/debug/
+/data/kwork_market_jobs/
 /*.png
 /output/
 /.commandcode/

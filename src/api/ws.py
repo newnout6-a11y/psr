@@ -16,14 +16,14 @@ router = APIRouter(tags=["ws"])
 async def ws_logs(websocket: WebSocket):
     await websocket.accept()
     q: asyncio.Queue = asyncio.Queue(maxsize=500)
-    app_state.log_queues.add(q)
-    await websocket.send_text(
-        json.dumps(
-            {"type": "logs_snapshot", "items": app_state.log_snapshot()},
-            ensure_ascii=False,
-        )
-    )
+    app_state.register_queue(q)
     try:
+        await websocket.send_text(
+            json.dumps(
+                {"type": "logs_snapshot", "items": app_state.log_snapshot()},
+                ensure_ascii=False,
+            )
+        )
         while True:
             try:
                 msg = await asyncio.wait_for(q.get(), timeout=30.0)
@@ -34,14 +34,14 @@ async def ws_logs(websocket: WebSocket):
     except (WebSocketDisconnect, Exception):
         pass
     finally:
-        app_state.log_queues.discard(q)
+        app_state.unregister_queue(q)
 
 
 @router.websocket("/ws/status")
 async def ws_status(websocket: WebSocket):
     await websocket.accept()
     q: asyncio.Queue = asyncio.Queue(maxsize=100)
-    app_state.status_queues.add(q)
+    app_state.register_queue(q, status=True)
     # Send current status immediately on connect
     try:
         await websocket.send_text(json.dumps({"type": "status", **app_state.to_status_dict()}))
@@ -54,4 +54,4 @@ async def ws_status(websocket: WebSocket):
     except (WebSocketDisconnect, Exception):
         pass
     finally:
-        app_state.status_queues.discard(q)
+        app_state.unregister_queue(q)

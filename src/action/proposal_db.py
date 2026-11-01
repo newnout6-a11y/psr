@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime
+import uuid
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
@@ -14,9 +15,24 @@ from src.paths import PROPOSALS_DB_FILE
 
 
 def _now() -> str:
-    from datetime import datetime, timezone
-
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _outbox_now() -> datetime:
+    """Clock seam for deterministic retry/lease tests."""
+    return datetime.now(timezone.utc)
+
+
+# Each candidate has a single lifetime outbox row, so a dead event is never
+# rescheduled. The retry schedule must outlast an ordinary Telegram/network
+# outage: 30s, 1m, 2m, 4m, 8m, then 15m caps — about 45 minutes in total.
+OUTBOX_MAX_ATTEMPTS = 8
+OUTBOX_BASE_DELAY_SECONDS = 30.0
+OUTBOX_MAX_DELAY_SECONDS = 900.0
+
+
+def _outbox_timestamp(value: datetime) -> str:
+    return value.astimezone(timezone.utc).isoformat(timespec="microseconds")
 
 
 def _to_json(value: Any) -> str | None:
@@ -267,6 +283,66 @@ class ProposalDB:
             ]:
                 self._ensure_column(conn, "candidates", column, ddl)
 
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS candidate_notification_outbox (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    candidate_id INTEGER NOT NULL REFERENCES candidates(candidate_id) ON DELETE CASCADE,
+                    event_type TEXT NOT NULL DEFAULT 'candidate_notification',
+                    status TEXT NOT NULL DEFAULT 'pending'
+                        CHECK(status IN ('pending', 'leased', 'delivered', 'dead', 'cancelled')),
+                    payload TEXT,
+                    attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts >= 0),
+                    available_at TEXT NOT NULL,
+                    lease_owner TEXT,
+                    lease_token TEXT,
+                    lease_until TEXT,
+                    last_error TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    delivered_at TEXT,
+                    UNIQUE(candidate_id, event_type)
+                )
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_candidate_notification_outbox_due
+                ON candidate_notification_outbox(status, available_at, lease_until, event_id)
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_candidate_notification_outbox_delivered
+                ON candidate_notification_outbox(status, delivered_at)
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS candidate_event_journal (
+                    seq INTEGER PRIMARY KEY AUTOINCREMENT,
+                    stream_id TEXT NOT NULL,
+                    candidate_id INTEGER NOT NULL,
+                    event_id INTEGER,
+                    event_kind TEXT NOT NULL,
+                    candidate_status TEXT,
+                    delivery_status TEXT,
+                    detail TEXT,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_candidate_event_journal_candidate ON candidate_event_journal(candidate_id, seq)"
+            )
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO runtime_state(state_key, state_value, updated_at)
+                VALUES ('candidate_events.stream_id', ?, ?)
+                """,
+                (uuid.uuid4().hex, _now()),
+            )
+
             self._ensure_column(conn, "conversations", "account_registration_id", "TEXT NOT NULL DEFAULT ''")
             self._ensure_column(conn, "conversations", "remote_dialog_id", "TEXT")
             conn.execute("UPDATE conversations SET account_registration_id = '' WHERE account_registration_id IS NULL")
@@ -327,6 +403,64 @@ class ProposalDB:
     # Candidates
     # ------------------------------------------------------------------
 
+    def insert_candidate_if_absent(self, project: Any, **fields: Any) -> tuple[int, bool]:
+        """Atomically admit a discovery without overwriting an existing candidate.
+
+        The unique (project_id, platform) constraint is the arbiter. A retry or
+        another orchestrator cannot reset a queued, sent, or completed candidate
+        to ``parsed`` merely because the page was fetched again.
+        """
+        payload = {
+            "project_id": project.id,
+            "platform": project.platform,
+            "title": project.title,
+            "description": project.description,
+            "budget": project.budget,
+            "currency": project.currency,
+            "skills": _to_json(project.skills or []),
+            "url": project.url,
+            "created_at": project.created_at,
+            "search_query": getattr(project, "search_query", None),
+            "offers_count": int(getattr(project, "offers_count", 0) or 0),
+            "client_hired_percent": int(getattr(project, "client_hired_percent", 0) or 0),
+            "platform_data": _to_json(getattr(project, "platform_data", None)),
+            "updated_at": _now(),
+        }
+        for key, value in fields.items():
+            if key in {"skills", "vet_reasons", "vet_red_flags", "competitor_prices", "client_context", "platform_data"}:
+                payload[key] = _to_json(value)
+            else:
+                payload[key] = value
+
+        columns = list(payload)
+        placeholders = ", ".join("?" for _ in columns)
+        with self._connect() as conn:
+            cur = conn.execute(
+                f"INSERT INTO candidates ({', '.join(columns)}) VALUES ({placeholders}) "
+                "ON CONFLICT(project_id, platform) DO NOTHING",
+                tuple(payload[col] for col in columns),
+            )
+            inserted = cur.rowcount == 1
+            row = conn.execute(
+                "SELECT candidate_id FROM candidates WHERE project_id = ? AND platform = ?",
+                (project.id, project.platform),
+            ).fetchone()
+            if row is None:
+                raise RuntimeError("candidate was not found after conflict-safe insert")
+            if inserted:
+                candidate_status = str(payload.get("status") or "parsed")
+                self._journal_candidate_event(
+                    conn, candidate_id=int(row["candidate_id"]), event_id=None,
+                    event_kind="candidate_status", candidate_status=candidate_status,
+                    delivery_status=None,
+                )
+                if candidate_status in {"queued", "auto_ready"}:
+                    self._insert_notification_event(
+                        conn, candidate_id=int(row["candidate_id"]), candidate_status=candidate_status
+                    )
+            conn.commit()
+            return int(row["candidate_id"]), inserted
+
     def upsert_candidate(self, project: Any, **fields: Any) -> int:
         payload = {
             "project_id": project.id,
@@ -367,13 +501,30 @@ class ProposalDB:
                 {assignments}
         """
         with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            previous = conn.execute(
+                "SELECT candidate_id, status FROM candidates WHERE project_id = ? AND platform = ?",
+                (project.id, project.platform),
+            ).fetchone()
             conn.execute(sql, tuple(payload[col] for col in columns))
             row = conn.execute(
                 "SELECT candidate_id FROM candidates WHERE project_id = ? AND platform = ?",
                 (project.id, project.platform),
             ).fetchone()
+            candidate_id = int(row["candidate_id"])
+            if previous is None or ("status" in payload and str(payload["status"]) != previous["status"]):
+                new_status = str(payload.get("status") or "parsed") if previous is None else str(payload["status"])
+                self._journal_candidate_event(
+                    conn, candidate_id=candidate_id, event_id=None,
+                    event_kind="candidate_status", candidate_status=new_status,
+                    delivery_status=None,
+                )
+                if new_status in {"queued", "auto_ready"}:
+                    self._insert_notification_event(
+                        conn, candidate_id=candidate_id, candidate_status=new_status
+                    )
             conn.commit()
-            return int(row["candidate_id"])
+            return candidate_id
 
     def update_candidate(self, candidate_id: int, **fields: Any) -> None:
         if not fields:
@@ -394,10 +545,28 @@ class ProposalDB:
         prepared["updated_at"] = _now()
         sets = ", ".join(f"{key} = ?" for key in prepared.keys())
         with self._connect() as conn:
+            old_status = None
+            if "status" in prepared:
+                conn.execute("BEGIN IMMEDIATE")
+                row = conn.execute(
+                    "SELECT status FROM candidates WHERE candidate_id = ?", (candidate_id,)
+                ).fetchone()
+                old_status = row["status"] if row else None
             conn.execute(
                 f"UPDATE candidates SET {sets} WHERE candidate_id = ?",
                 tuple(prepared.values()) + (candidate_id,),
             )
+            if old_status is not None and old_status != prepared.get("status"):
+                new_status = str(prepared["status"])
+                self._journal_candidate_event(
+                    conn, candidate_id=candidate_id, event_id=None,
+                    event_kind="candidate_status", candidate_status=new_status,
+                    delivery_status=None,
+                )
+                if new_status in {"queued", "auto_ready"}:
+                    self._insert_notification_event(
+                        conn, candidate_id=candidate_id, candidate_status=new_status
+                    )
             conn.commit()
 
     def claim_candidate_for_sending(self, candidate_id: int) -> bool:
@@ -407,10 +576,17 @@ class ProposalDB:
         Prevents double-send on concurrent approve (Telegram double-tap, HTTP+Telegram, etc).
         """
         with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
             cur = conn.execute(
                 "UPDATE candidates SET status = 'sending', updated_at = ? WHERE candidate_id = ? AND status IN ('queued', 'auto_ready')",
                 (_now(), candidate_id),
             )
+            if cur.rowcount:
+                self._journal_candidate_event(
+                    conn, candidate_id=candidate_id, event_id=None,
+                    event_kind="candidate_status", candidate_status="sending",
+                    delivery_status=None,
+                )
             conn.commit()
             return cur.rowcount > 0
 
@@ -439,17 +615,464 @@ class ProposalDB:
         actor: str = "system",
         reason: Optional[str] = None,
         record_action: bool = True,
+        enqueue_notification: bool = True,
         **extra_fields: Any,
     ) -> None:
-        extra_fields["status"] = status
-        extra_fields["last_actor"] = actor
+        self._set_candidate_status_with_outbox(
+            candidate_id, status, actor=actor, reason=reason, record_action=record_action,
+            enqueue_notification=enqueue_notification and status in {"queued", "auto_ready"},
+            extra_fields=extra_fields,
+        )
+
+    def enqueue_candidate_notification(
+        self,
+        candidate_id: int,
+        status: str,
+        *,
+        actor: str = "system",
+        reason: Optional[str] = None,
+        record_action: bool = True,
+        **extra_fields: Any,
+    ) -> tuple[int | None, bool]:
+        """Atomically change candidate status and create one durable notification.
+
+        Returns (event_id, newly_inserted). A candidate gets at most one
+        notification event over its lifetime, including after historical
+        cleanup and across process restarts.
+        """
+        if status not in {"queued", "auto_ready"}:
+            raise ValueError("candidate notifications require queued or auto_ready status")
+        return self._set_candidate_status_with_outbox(
+            candidate_id, status, actor=actor, reason=reason, record_action=record_action,
+            enqueue_notification=True, extra_fields=extra_fields,
+        )
+
+    def _outbox_stream_id(self, conn: sqlite3.Connection) -> str:
+        row = conn.execute(
+            "SELECT state_value FROM runtime_state WHERE state_key = 'candidate_events.stream_id'"
+        ).fetchone()
+        if row is None:
+            stream_id = uuid.uuid4().hex
+            conn.execute(
+                "INSERT INTO runtime_state(state_key, state_value, updated_at) VALUES (?, ?, ?)",
+                ("candidate_events.stream_id", stream_id, _now()),
+            )
+            return stream_id
+        return str(row["state_value"])
+
+    def _journal_candidate_event(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        candidate_id: int,
+        event_id: int | None,
+        event_kind: str,
+        candidate_status: str | None,
+        delivery_status: str | None,
+        detail: str | None = None,
+        timestamp: str | None = None,
+    ) -> None:
+        conn.execute(
+            """
+            INSERT INTO candidate_event_journal(
+                stream_id, candidate_id, event_id, event_kind,
+                candidate_status, delivery_status, detail, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                self._outbox_stream_id(conn), candidate_id, event_id, event_kind,
+                candidate_status, delivery_status, (detail or "")[:500],
+                timestamp or _outbox_timestamp(_outbox_now()),
+            ),
+        )
+
+    def _insert_notification_event(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        candidate_id: int,
+        candidate_status: str,
+        timestamp: str | None = None,
+    ) -> tuple[int, bool]:
+        stamp = timestamp or _outbox_timestamp(_outbox_now())
+        cursor = conn.execute(
+            """
+            INSERT INTO candidate_notification_outbox(
+                candidate_id, event_type, status, payload, available_at, created_at, updated_at
+            ) VALUES (?, 'candidate_notification', 'pending', ?, ?, ?, ?)
+            ON CONFLICT(candidate_id, event_type) DO NOTHING
+            """,
+            (
+                candidate_id,
+                _to_json({"candidate_id": candidate_id, "candidate_status": candidate_status}),
+                stamp, stamp, stamp,
+            ),
+        )
+        inserted = cursor.rowcount == 1
+        event = conn.execute(
+            """
+            SELECT event_id FROM candidate_notification_outbox
+            WHERE candidate_id = ? AND event_type = 'candidate_notification'
+            """,
+            (candidate_id,),
+        ).fetchone()
+        event_id = int(event["event_id"])
+        if inserted:
+            self._journal_candidate_event(
+                conn, candidate_id=candidate_id, event_id=event_id,
+                event_kind="notification", candidate_status=candidate_status,
+                delivery_status="pending", timestamp=stamp,
+            )
+        return event_id, inserted
+
+    def _set_candidate_status_with_outbox(
+        self,
+        candidate_id: int,
+        status: str,
+        *,
+        actor: str,
+        reason: str | None,
+        record_action: bool,
+        enqueue_notification: bool,
+        extra_fields: dict[str, Any],
+    ) -> tuple[int | None, bool]:
+        fields = dict(extra_fields)
+        fields["status"] = status
+        fields["last_actor"] = actor
         if reason is not None:
-            extra_fields["decision_reason"] = reason
+            fields["decision_reason"] = reason
         if status in {"auto_sent", "manual_sent", "draft"}:
-            extra_fields.setdefault("sent_at", _now())
-        self.update_candidate(candidate_id, **extra_fields)
-        if record_action:
-            self.record_candidate_action(candidate_id, status, actor=actor, payload={"reason": reason, **extra_fields})
+            fields.setdefault("sent_at", _now())
+        prepared: dict[str, Any] = {}
+        for key, value in fields.items():
+            if key in {"skills", "vet_reasons", "vet_red_flags", "competitor_prices", "client_context", "platform_data"}:
+                prepared[key] = _to_json(value)
+            else:
+                prepared[key] = value
+        prepared["updated_at"] = _now()
+        assignments = ", ".join(f"{key} = ?" for key in prepared)
+        timestamp = _outbox_timestamp(_outbox_now())
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            current = conn.execute(
+                "SELECT status FROM candidates WHERE candidate_id = ?", (candidate_id,)
+            ).fetchone()
+            if current is None:
+                return None, False
+            previous_status = str(current["status"])
+            conn.execute(
+                f"UPDATE candidates SET {assignments} WHERE candidate_id = ?",
+                (*prepared.values(), candidate_id),
+            )
+            if record_action:
+                conn.execute(
+                    "INSERT INTO candidate_actions(candidate_id, action, actor, payload, created_at) VALUES (?, ?, ?, ?, ?)",
+                    (candidate_id, status, actor, _to_json({"reason": reason, **fields}), _now()),
+                )
+            if previous_status != status:
+                self._journal_candidate_event(
+                    conn, candidate_id=candidate_id, event_id=None,
+                    event_kind="candidate_status", candidate_status=status,
+                    delivery_status=None, detail=reason, timestamp=timestamp,
+                )
+            event_id: int | None = None
+            inserted = False
+            if enqueue_notification:
+                event_id, inserted = self._insert_notification_event(
+                    conn, candidate_id=candidate_id, candidate_status=status, timestamp=timestamp,
+                )
+            conn.commit()
+            return event_id, inserted
+
+    def claim_due_notifications(
+        self,
+        worker_id: str,
+        *,
+        limit: int = 10,
+        lease_seconds: float = 60,
+        max_attempts: int = OUTBOX_MAX_ATTEMPTS,
+    ) -> list[dict[str, Any]]:
+        """Claim due events with a transaction-wide SQLite write lock.
+
+        Each lease issues a fresh token; stale workers cannot ACK or fail a
+        newer claim. Expired leases are eligible for retry up to max_attempts.
+        """
+        if not worker_id or not worker_id.strip():
+            raise ValueError("worker_id is required")
+        if lease_seconds <= 0 or max_attempts < 1:
+            raise ValueError("lease_seconds and max_attempts must be positive")
+        limit = max(0, min(int(limit), 100))
+        if not limit:
+            return []
+        now = _outbox_now()
+        stamp = _outbox_timestamp(now)
+        until = _outbox_timestamp(now + timedelta(seconds=lease_seconds))
+        claimed: list[dict[str, Any]] = []
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            # Previous worker could crash after the final allowed attempt.
+            expired = conn.execute(
+                """
+                SELECT o.event_id, o.candidate_id, c.status AS candidate_status
+                FROM candidate_notification_outbox AS o
+                JOIN candidates AS c ON c.candidate_id = o.candidate_id
+                WHERE o.attempts >= ?
+                  AND (o.status = 'pending'
+                       OR (o.status = 'leased' AND o.lease_until <= ?))
+                """,
+                (max_attempts, stamp),
+            ).fetchall()
+            if expired:
+                conn.execute(
+                    """
+                    UPDATE candidate_notification_outbox
+                    SET status = 'dead', lease_owner = NULL, lease_token = NULL,
+                        lease_until = NULL, updated_at = ?,
+                        last_error = coalesce(last_error, 'lease expired at max attempts')
+                    WHERE attempts >= ?
+                      AND (status = 'pending'
+                           OR (status = 'leased' AND lease_until <= ?))
+                    """,
+                    (stamp, max_attempts, stamp),
+                )
+                for event in expired:
+                    self._journal_candidate_event(
+                        conn, candidate_id=int(event["candidate_id"]), event_id=int(event["event_id"]),
+                        event_kind="notification", candidate_status=event["candidate_status"],
+                        delivery_status="failed", detail="max attempts exhausted", timestamp=stamp,
+                    )
+
+            due = conn.execute(
+                """
+                SELECT o.*, c.status AS candidate_status
+                FROM candidate_notification_outbox AS o
+                JOIN candidates AS c ON c.candidate_id = o.candidate_id
+                WHERE o.attempts < ? AND o.available_at <= ?
+                  AND (
+                    o.status = 'pending'
+                    OR (o.status = 'leased' AND o.lease_until <= ?)
+                  )
+                ORDER BY o.available_at, o.event_id LIMIT ?
+                """,
+                (max_attempts, stamp, stamp, limit),
+            ).fetchall()
+            for event in due:
+                token = uuid.uuid4().hex
+                attempts = int(event["attempts"]) + 1
+                conn.execute(
+                    """
+                    UPDATE candidate_notification_outbox
+                    SET status = 'leased', attempts = ?, lease_owner = ?,
+                        lease_token = ?, lease_until = ?, updated_at = ?
+                    WHERE event_id = ?
+                    """,
+                    (attempts, worker_id, token, until, stamp, event["event_id"]),
+                )
+                self._journal_candidate_event(
+                    conn, candidate_id=int(event["candidate_id"]), event_id=int(event["event_id"]),
+                    event_kind="notification", candidate_status=event["candidate_status"],
+                    delivery_status="leased", timestamp=stamp,
+                )
+                record = dict(event)
+                record.update(
+                    status="leased", attempts=attempts, lease_owner=worker_id,
+                    lease_token=token, lease_until=until, updated_at=stamp,
+                    payload=_from_json(event["payload"], {}),
+                )
+                claimed.append(record)
+            conn.commit()
+        return claimed
+
+    def _finish_notification(
+        self,
+        event_id: int,
+        lease_token: str,
+        *,
+        worker_id: str,
+        target_status: str,
+        error: str | None = None,
+        base_delay_seconds: float = OUTBOX_BASE_DELAY_SECONDS,
+        max_delay_seconds: float = OUTBOX_MAX_DELAY_SECONDS,
+        max_attempts: int = OUTBOX_MAX_ATTEMPTS,
+    ) -> bool:
+        if target_status not in {"delivered", "pending", "dead", "cancelled"}:
+            raise ValueError("invalid notification status")
+        if not lease_token or not worker_id:
+            return False
+        if base_delay_seconds < 0 or max_delay_seconds < 0 or max_attempts < 1:
+            raise ValueError("backoff limits must be nonnegative and max_attempts positive")
+        now = _outbox_now()
+        stamp = _outbox_timestamp(now)
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            event = conn.execute(
+                """
+                SELECT o.*, c.status AS candidate_status
+                FROM candidate_notification_outbox AS o
+                JOIN candidates AS c ON c.candidate_id = o.candidate_id
+                WHERE o.event_id = ? AND o.status = 'leased'
+                  AND o.lease_owner = ? AND o.lease_token = ?
+                """,
+                (event_id, worker_id, lease_token),
+            ).fetchone()
+            if event is None:
+                return False
+            final_status = target_status
+            delay = 0.0
+            if target_status == "pending":
+                if int(event["attempts"]) >= max_attempts:
+                    final_status = "dead"
+                else:
+                    delay = min(
+                        max_delay_seconds, base_delay_seconds * (2 ** min(int(event["attempts"]) - 1, 30))
+                    )
+            next_time = _outbox_timestamp(now + timedelta(seconds=delay))
+            conn.execute(
+                """
+                UPDATE candidate_notification_outbox
+                SET status = ?, available_at = ?, lease_owner = NULL, lease_token = NULL,
+                    lease_until = NULL, updated_at = ?, last_error = ?,
+                    delivered_at = CASE WHEN ? = 'delivered' THEN ? ELSE delivered_at END
+                WHERE event_id = ?
+                """,
+                (
+                    final_status, next_time, stamp, (error or "")[:1000] if error is not None else None,
+                    final_status, stamp, event_id,
+                ),
+            )
+            state = {
+                "delivered": "provider_accepted",
+                "pending": "retry",
+                "dead": "failed",
+                "cancelled": "cancelled",
+            }[final_status]
+            self._journal_candidate_event(
+                conn, candidate_id=int(event["candidate_id"]), event_id=int(event_id),
+                event_kind="notification", candidate_status=event["candidate_status"],
+                delivery_status=state, detail=error, timestamp=stamp,
+            )
+            conn.commit()
+            return True
+
+    def ack_notification(self, event_id: int, lease_token: str, *, worker_id: str) -> bool:
+        """ACK only a still-owned event after provider accepted the message."""
+        return self._finish_notification(
+            event_id, lease_token, worker_id=worker_id, target_status="delivered",
+        )
+
+    def fail_notification(
+        self,
+        event_id: int,
+        lease_token: str,
+        error: str,
+        *,
+        worker_id: str,
+        base_delay_seconds: float = OUTBOX_BASE_DELAY_SECONDS,
+        max_delay_seconds: float = OUTBOX_MAX_DELAY_SECONDS,
+        max_attempts: int = OUTBOX_MAX_ATTEMPTS,
+    ) -> bool:
+        return self._finish_notification(
+            event_id, lease_token, worker_id=worker_id, target_status="pending",
+            error=error, base_delay_seconds=base_delay_seconds,
+            max_delay_seconds=max_delay_seconds, max_attempts=max_attempts,
+        )
+
+    def cancel_notification(
+        self, event_id: int, lease_token: str, *, worker_id: str, reason: str = "candidate no longer eligible"
+    ) -> bool:
+        """Mark a claimed notification obsolete when candidate status changed."""
+        return self._finish_notification(
+            event_id, lease_token, worker_id=worker_id, target_status="cancelled", error=reason,
+        )
+
+    def cleanup_notification_history(self, retention_days: int = 30) -> int:
+        """Scrub completed details and prune journal older than retention.
+
+        Deleting a completed outbox row would allow an old candidate to be
+        notified again. This preserves those identity tombstones; journal seqs
+        remain monotonic, and replay clients detect retention gaps via
+        get_candidate_events_since(...).reset_required.
+
+        Returns the number of outbox records scrubbed.
+        """
+        if retention_days < 0:
+            raise ValueError("retention_days must be nonnegative")
+        cutoff = _outbox_timestamp(_outbox_now() - timedelta(days=retention_days))
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            cursor = conn.execute(
+                """
+                UPDATE candidate_notification_outbox
+                SET payload = NULL, last_error = NULL
+                WHERE status IN ('delivered', 'dead', 'cancelled')
+                  AND updated_at < ?
+                  AND (payload IS NOT NULL OR last_error IS NOT NULL)
+                """,
+                (cutoff,),
+            )
+            scrubbed = int(cursor.rowcount)
+            conn.execute(
+                "DELETE FROM candidate_event_journal WHERE created_at < ?", (cutoff,)
+            )
+            conn.commit()
+            return scrubbed
+
+    def get_notification_summary(self) -> dict[str, Any]:
+        now = _outbox_timestamp(_outbox_now())
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT status, COUNT(*) AS count FROM candidate_notification_outbox GROUP BY status"
+            ).fetchall()
+            due = conn.execute(
+                """
+                SELECT COUNT(*) AS count FROM candidate_notification_outbox
+                WHERE (status = 'pending' OR (status = 'leased' AND lease_until <= ?))
+                  AND available_at <= ?
+                """,
+                (now, now),
+            ).fetchone()
+            return {
+                **{status: next((int(row["count"]) for row in rows if row["status"] == status), 0)
+                   for status in ("pending", "leased", "delivered", "dead", "cancelled")},
+                "due": int(due["count"]),
+            }
+
+    def get_candidate_events_since(self, after_seq: int = 0, limit: int = 100) -> dict[str, Any]:
+        """Read a replayable journal, marking cursor gaps after retention.
+
+        A client should discard its prior cursor if stream_id changes, and
+        refresh its snapshot if reset_required is True.
+        """
+        limit = max(1, min(int(limit), 500))
+        cursor = max(0, int(after_seq))
+        with self._connect() as conn:
+            stream_id = self._outbox_stream_id(conn)
+            first = conn.execute("SELECT MIN(seq) AS earliest FROM candidate_event_journal").fetchone()
+            if first["earliest"] is not None:
+                earliest_seq = int(first["earliest"])
+            else:
+                history = conn.execute(
+                    "SELECT seq FROM sqlite_sequence WHERE name = 'candidate_event_journal'"
+                ).fetchone()
+                earliest_seq = (int(history["seq"]) + 1) if history is not None else 1
+            reset_required = cursor != 0 and cursor < earliest_seq - 1
+            rows = conn.execute(
+                """
+                SELECT seq, stream_id, candidate_id, event_id, event_kind,
+                       candidate_status, delivery_status, detail, created_at
+                FROM candidate_event_journal WHERE seq > ?
+                ORDER BY seq LIMIT ?
+                """,
+                (max(cursor, earliest_seq - 1), limit),
+            ).fetchall()
+            items = [dict(row) for row in rows]
+            return {
+                "stream_id": stream_id,
+                "items": items,
+                "earliest_seq": earliest_seq,
+                "reset_required": reset_required,
+                "next_cursor": items[-1]["seq"] if items else max(cursor, earliest_seq - 1),
+            }
 
     def get_candidate(self, candidate_id: int) -> Optional[dict[str, Any]]:
         with self._connect() as conn:
@@ -697,6 +1320,14 @@ class ProposalDB:
 
     def requeue_due_candidates(self) -> int:
         with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            due = conn.execute(
+                """
+                SELECT candidate_id FROM candidates
+                WHERE status = 'snoozed' AND snoozed_until IS NOT NULL AND snoozed_until <= ?
+                """,
+                (_now(),),
+            ).fetchall()
             cur = conn.execute(
                 """
                 UPDATE candidates
@@ -705,6 +1336,12 @@ class ProposalDB:
                 """,
                 (_now(), _now()),
             )
+            for row in due:
+                self._journal_candidate_event(
+                    conn, candidate_id=int(row["candidate_id"]), event_id=None,
+                    event_kind="candidate_status", candidate_status="queued",
+                    delivery_status=None, detail="snooze expired",
+                )
             conn.commit()
             return cur.rowcount or 0
 
@@ -715,14 +1352,26 @@ class ProposalDB:
         the status is moved to a terminal value, the candidate is stranded.
         This method recovers them by setting status back to 'queued'.
         """
-        from datetime import datetime, timedelta, timezone
-
         cutoff = (datetime.now(timezone.utc) - timedelta(minutes=max_age_minutes)).strftime("%Y-%m-%d %H:%M:%S")
         with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            stale = conn.execute(
+                """
+                SELECT candidate_id FROM candidates
+                WHERE status = 'sending' AND updated_at <= ?
+                """,
+                (cutoff,),
+            ).fetchall()
             cur = conn.execute(
                 "UPDATE candidates SET status = 'queued', updated_at = ? WHERE status = 'sending' AND updated_at <= ?",
                 (_now(), cutoff),
             )
+            for row in stale:
+                self._journal_candidate_event(
+                    conn, candidate_id=int(row["candidate_id"]), event_id=None,
+                    event_kind="candidate_status", candidate_status="queued",
+                    delivery_status=None, detail="stale sending recovered",
+                )
             conn.commit()
             recovered = cur.rowcount or 0
             if recovered:
@@ -1144,10 +1793,16 @@ class ProposalDB:
             return int(row["conversation_id"])
 
     def add_conversation_message(
-        self, conversation_id: int, *, sender: str, message_text: str, platform_message_id: str | None = None
+        self,
+        conversation_id: int,
+        *,
+        sender: str,
+        message_text: str,
+        platform_message_id: str | None = None,
+        created_at: str | None = None,
     ) -> bool:
         """Добавить сообщение в диалог. Возвращает True если новое, False если дубликат."""
-        now = _now()
+        now = created_at or _now()
         with self._connect() as conn:
             if platform_message_id:
                 existing = conn.execute(

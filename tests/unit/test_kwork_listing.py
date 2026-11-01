@@ -19,6 +19,13 @@ from src.platforms.kwork_listing import (
 )
 
 
+@pytest.fixture(autouse=True)
+def isolated_listing_transport(monkeypatch):
+    """Exercise the mocked HTTP client instead of the machine's VPNTE daemon."""
+    for key in ("VPNTE_PROXY_ENABLED", "VPNTE_PROXY", "VPNTE_EXTERNAL_PROXY", "VPNTE_PROXY_STRICT"):
+        monkeypatch.setenv(key, "false")
+
+
 def test_parse_classification_html_groups_radio_and_checkbox_controls():
     html = """
     <div>

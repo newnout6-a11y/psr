@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +32,217 @@ def _read_sql(db_path: str, query: str, params: tuple = ()) -> pd.DataFrame:
             return pd.read_sql_query(query, conn, params=params)
     except (sqlite3.OperationalError, pd.errors.DatabaseError):
         return pd.DataFrame()
+
+
+def candidate_discovery_snapshot(*, after_id: int | None = None, limit: int = 50) -> dict[str, Any]:
+    """Read the orchestrator's persisted candidate insertions without sending notifications.
+
+    The monotonically increasing candidate_id tracks *new rows*, not page
+    discoveries, suitability decisions, or state changes to existing rows.
+    The separate Buyer Search repository is intentionally not included.
+    """
+    missing = {
+        "status": "unavailable",
+        "reason": "База кандидатов ещё не создана",
+        "latest_id": 0,
+        "next_after_id": after_id if after_id is not None else 0,
+        "has_more": False,
+        "total": 0,
+        "by_platform": [],
+        "recent": [],
+        "items": [],
+    }
+    db_path = Path(PROPOSALS_DB)
+    if not db_path.is_file():
+        return missing
+    try:
+        # Opening read-only prevents a monitoring request from creating or
+        # migrating the live proposal database.
+        with closing(sqlite3.connect(db_path.resolve().as_uri() + "?mode=ro", uri=True, timeout=1)) as connection:
+            connection.row_factory = sqlite3.Row
+            columns = {row["name"] for row in connection.execute("PRAGMA table_info(candidates)")}
+            required = {"candidate_id", "project_id", "platform", "title", "status", "updated_at"}
+            if not required.issubset(columns):
+                return {**missing, "reason": "Таблица кандидатов или необходимые поля пока недоступны"}
+            summary = connection.execute(
+                "SELECT COALESCE(MAX(candidate_id), 0) AS latest_id, COUNT(*) AS total FROM candidates"
+            ).fetchone()
+            latest_id = int(summary["latest_id"])
+            total = int(summary["total"])
+            by_platform = [
+                {"platform": str(row["platform"] or "unknown"), "total": int(row["total"])}
+                for row in connection.execute(
+                    "SELECT platform, COUNT(*) AS total FROM candidates GROUP BY platform ORDER BY total DESC, platform"
+                )
+            ]
+            fields = "candidate_id, project_id, platform, title, status, updated_at"
+            recent = [
+                dict(row)
+                for row in connection.execute(
+                    f"SELECT {fields} FROM candidates ORDER BY candidate_id DESC LIMIT 10"
+                )
+            ]
+            # The first request is a baseline. Historical rows appear as
+            # 'recent' but are never reported as newly detected notifications.
+            next_after_id = latest_id if after_id is None else after_id
+            items: list[dict[str, Any]] = []
+            if after_id is not None:
+                items = [
+                    dict(row)
+                    for row in connection.execute(
+                        f"SELECT {fields} FROM candidates WHERE candidate_id > ? ORDER BY candidate_id LIMIT ?",
+                        (after_id, limit),
+                    )
+                ]
+                if items:
+                    next_after_id = int(items[-1]["candidate_id"])
+            return {
+                "status": "ready",
+                "reason": None,
+                "latest_id": latest_id,
+                "next_after_id": next_after_id,
+                "has_more": latest_id > next_after_id,
+                "total": total,
+                "by_platform": by_platform,
+                "recent": recent,
+                "items": items,
+            }
+    except sqlite3.Error:
+        return {**missing, "reason": "Не удалось прочитать базу кандидатов; проверьте доступность SQLite"}
+
+
+def candidate_event_snapshot(
+    *, after_seq: int | None = None, stream_id: str | None = None, limit: int = 100,
+) -> dict[str, Any]:
+    """Read-only replay of the orchestrator's *committed* status/delivery journal.
+
+    The journal has its own sequence and database generation; the Buyer Search
+    WebSocket and its independent repository are deliberately not consulted.
+    A delivery outcome is reported only when the outbox journal persisted it.
+    """
+    unavailable: dict[str, Any] = {
+        "status": "unavailable",
+        "reason": "Журнал событий кандидатов недоступен",
+        "stream_id": None,
+        "latest_seq": 0,
+        "next_after_seq": after_seq if after_seq is not None else 0,
+        "has_more": False,
+        "recent": [],
+        "items": [],
+        "outbox_status_counts": {},
+    }
+    db_path = Path(PROPOSALS_DB)
+    if not db_path.is_file():
+        return {**unavailable, "reason": "База кандидатов ещё не создана"}
+
+    def project_event(row: sqlite3.Row) -> dict[str, Any]:
+        event_kind = str(row["event_kind"])
+        delivery_status = row["delivery_status"]
+        if event_kind == "notification" and isinstance(delivery_status, str):
+            event_type = f"notification.{delivery_status}"
+        elif event_kind == "candidate_status":
+            event_type = "candidate.status_changed"
+        else:
+            event_type = event_kind
+        return {
+            "seq": int(row["seq"]),
+            "candidate_id": int(row["candidate_id"]),
+            "platform": str(row["platform"] or "unknown"),
+            "project_id": str(row["project_id"] or ""),
+            "event_type": event_type,
+            "candidate_status": row["candidate_status"],
+            "delivery_status": delivery_status,
+            "occurred_at": str(row["created_at"]),
+        }
+
+    try:
+        # Read-only URI is intentional: no implicit migrations or notification
+        # deliveries should be triggered by opening the Dashboard.
+        with closing(sqlite3.connect(db_path.resolve().as_uri() + "?mode=ro", uri=True, timeout=1)) as conn:
+            conn.row_factory = sqlite3.Row
+            tables = {
+                row["name"] for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'"
+                )
+            }
+            if not {"candidate_event_journal", "candidate_notification_outbox", "runtime_state", "candidates"}.issubset(tables):
+                return {**unavailable, "reason": "Журнал событий ещё не инициализирован"}
+            required_columns = {
+                "seq", "stream_id", "candidate_id", "event_id", "event_kind",
+                "candidate_status", "delivery_status", "created_at",
+            }
+            columns = {
+                row["name"] for row in conn.execute("PRAGMA table_info(candidate_event_journal)")
+            }
+            if not required_columns.issubset(columns):
+                return {**unavailable, "reason": "Таблица журнала имеет несовместимую схему"}
+            stream_row = conn.execute(
+                "SELECT state_value FROM runtime_state WHERE state_key = 'candidate_events.stream_id'"
+            ).fetchone()
+            current_stream_id = str(stream_row["state_value"] or "") if stream_row else ""
+            if not current_stream_id:
+                return {**unavailable, "reason": "Идентификатор потока событий ещё не создан"}
+            latest_seq = int(conn.execute(
+                "SELECT COALESCE(MAX(seq), 0) AS latest_seq FROM candidate_event_journal"
+            ).fetchone()["latest_seq"])
+            counts = {
+                str(row["status"]): int(row["total"])
+                for row in conn.execute(
+                    "SELECT status, COUNT(*) AS total FROM candidate_notification_outbox GROUP BY status"
+                )
+            }
+            summary: dict[str, Any] = {
+                **unavailable,
+                "status": "ready",
+                "reason": None,
+                "stream_id": current_stream_id,
+                "latest_seq": latest_seq,
+                "next_after_seq": latest_seq if after_seq is None else after_seq,
+                "outbox_status_counts": counts,
+            }
+            join = """
+                SELECT j.seq, j.candidate_id, j.event_kind, j.candidate_status,
+                       j.delivery_status, j.created_at, c.platform, c.project_id
+                FROM candidate_event_journal j
+                LEFT JOIN candidates c ON c.candidate_id = j.candidate_id
+            """
+            recent_rows = conn.execute(join + " ORDER BY j.seq DESC LIMIT 10").fetchall()
+            summary["recent"] = [project_event(row) for row in reversed(recent_rows)]
+            if after_seq is None:
+                # Initial snapshot of existing journal, not new notifications.
+                return summary
+
+            if (stream_id is not None and stream_id != current_stream_id) or after_seq > latest_seq:
+                return {
+                    **summary,
+                    "status": "reset_required",
+                    "reason": "Поток событий изменился или последовательность больше недоступна. Нужна новая базовая точка.",
+                    "next_after_seq": latest_seq,
+                }
+
+            rows = conn.execute(
+                join + " WHERE j.seq > ? ORDER BY j.seq LIMIT ?",
+                (after_seq, limit),
+            ).fetchall()
+            sequences = [int(row["seq"]) for row in rows]
+            contiguous = not sequences or all(
+                seq == previous + 1
+                for previous, seq in zip([after_seq, *sequences[:-1]], sequences, strict=True)
+            )
+            if not contiguous or (not rows and latest_seq > after_seq):
+                return {
+                    **summary,
+                    "status": "reset_required",
+                    "reason": "В журнале обнаружен пропуск событий. Нельзя гарантировать полное воспроизведение.",
+                    "next_after_seq": latest_seq,
+                }
+            summary["items"] = [project_event(row) for row in rows]
+            if rows:
+                summary["next_after_seq"] = int(rows[-1]["seq"])
+            summary["has_more"] = latest_seq > summary["next_after_seq"]
+            return summary
+    except sqlite3.Error:
+        return {**unavailable, "reason": "Не удалось прочитать журнал событий SQLite"}
 
 
 def overview_metrics(days: int = 7) -> dict[str, Any]:
@@ -356,7 +568,21 @@ def _conversion_columns_available() -> bool:
             cols = {row[1] for row in conn.execute("PRAGMA table_info(candidates)").fetchall()}
     except sqlite3.Error:
         return False
-    return {"replied_at", "reply_classification"}.issubset(cols)
+    return {
+        "sent_at", "status", "replied_at", "reply_classification",
+        "won", "revenue", "prompt_variant", "provider", "search_query",
+        "offers_count", "currency",
+    }.issubset(cols)
+
+
+# One sent-date cohort for all phase-3 breakdowns. A candidate remains in the
+# cohort after hire/completion; editing or classifying it does not move it into
+# another period. Drafts have sent_at in some legacy data, so status matters.
+_CONVERSION_COHORT = """
+    c.sent_at IS NOT NULL AND trim(c.sent_at) != ''
+    AND c.sent_at >= datetime('now', ?)
+    AND c.status IN ('auto_sent', 'manual_sent', 'hired', 'declined', 'completed')
+"""
 
 
 def conversion_summary(days: int = 30) -> dict[str, float]:
@@ -373,13 +599,12 @@ def conversion_summary(days: int = 30) -> dict[str, float]:
         PROPOSALS_DB,
         """
         SELECT
-            SUM(CASE WHEN status IN ('auto_sent', 'manual_sent') THEN 1 ELSE 0 END) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
-            COALESCE(SUM(revenue), 0) AS revenue
-        FROM candidates
-        WHERE updated_at >= datetime('now', ?)
-        """,
+            COUNT(*) AS sent,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
+            COALESCE(SUM(CASE WHEN c.won = 1 AND upper(c.currency) = 'RUB' THEN c.revenue ELSE 0 END), 0) AS revenue
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT,
         (f"-{days} days",),
     )
     if df.empty:
@@ -400,25 +625,24 @@ def conversion_by_provider(days: int = 30) -> pd.DataFrame:
         PROPOSALS_DB,
         """
         SELECT
-            COALESCE(provider, 'unknown') AS provider,
+            COALESCE(NULLIF(trim(c.provider), ''), 'unknown') AS provider,
             COUNT(*) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
-            COALESCE(SUM(revenue), 0) AS revenue,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
+            COALESCE(SUM(CASE WHEN c.won = 1 AND upper(c.currency) = 'RUB' THEN c.revenue ELSE 0 END), 0) AS revenue,
             ROUND(
-                100.0 * SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS reply_rate,
             ROUND(
-                100.0 * SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS win_rate
-        FROM candidates
-        WHERE status IN ('auto_sent', 'manual_sent')
-          AND updated_at >= datetime('now', ?)
-        GROUP BY COALESCE(provider, 'unknown')
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
+        GROUP BY COALESCE(NULLIF(trim(c.provider), ''), 'unknown')
         ORDER BY sent DESC
         """,
         (f"-{days} days",),
@@ -433,19 +657,18 @@ def conversion_by_niche(days: int = 30, limit: int = 15) -> pd.DataFrame:
         PROPOSALS_DB,
         """
         SELECT
-            COALESCE(NULLIF(search_query, ''), 'unknown') AS niche,
+            COALESCE(NULLIF(trim(c.search_query), ''), 'unknown') AS niche,
             COUNT(*) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
             ROUND(
-                100.0 * SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS reply_rate
-        FROM candidates
-        WHERE status IN ('auto_sent', 'manual_sent')
-          AND updated_at >= datetime('now', ?)
-        GROUP BY COALESCE(NULLIF(search_query, ''), 'unknown')
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
+        GROUP BY COALESCE(NULLIF(trim(c.search_query), ''), 'unknown')
         ORDER BY sent DESC
         LIMIT ?
         """,
@@ -454,7 +677,7 @@ def conversion_by_niche(days: int = 30, limit: int = 15) -> pd.DataFrame:
 
 
 def conversion_by_queue_position(days: int = 30) -> pd.DataFrame:
-    """Конверсия по позиции в очереди откликов (offers_count в момент отклика)."""
+    """Конверсия по сохранённому offers_count; значение не снимок на момент отправки."""
     if not _conversion_columns_available():
         return pd.DataFrame()
     return _read_sql(
@@ -462,31 +685,32 @@ def conversion_by_queue_position(days: int = 30) -> pd.DataFrame:
         """
         SELECT
             CASE
-                WHEN offers_count IS NULL OR offers_count = 0 THEN '0 (первый)'
-                WHEN offers_count BETWEEN 1 AND 3 THEN '1-3'
-                WHEN offers_count BETWEEN 4 AND 9 THEN '4-9'
-                WHEN offers_count BETWEEN 10 AND 19 THEN '10-19'
+                WHEN c.offers_count IS NULL THEN 'неизвестно'
+                WHEN c.offers_count = 0 THEN '0'
+                WHEN c.offers_count BETWEEN 1 AND 3 THEN '1-3'
+                WHEN c.offers_count BETWEEN 4 AND 9 THEN '4-9'
+                WHEN c.offers_count BETWEEN 10 AND 19 THEN '10-19'
                 ELSE '20+'
             END AS queue_bucket,
             COUNT(*) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
             ROUND(
-                100.0 * SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS reply_rate
-        FROM candidates
-        WHERE status IN ('auto_sent', 'manual_sent')
-          AND updated_at >= datetime('now', ?)
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
         GROUP BY queue_bucket
         ORDER BY
             CASE queue_bucket
-                WHEN '0 (первый)' THEN 0
+                WHEN '0' THEN 0
                 WHEN '1-3' THEN 1
                 WHEN '4-9' THEN 2
                 WHEN '10-19' THEN 3
-                ELSE 4
+                WHEN '20+' THEN 4
+                ELSE 5
             END
         """,
         (f"-{days} days",),
@@ -517,15 +741,15 @@ def conversion_by_response_time(days: int = 30) -> pd.DataFrame:
             ) AS win_rate
         FROM (
             SELECT
-                won,
+                c.won,
                 CAST(
-                    (julianday(replied_at) - julianday(sent_at)) * 24 * 60 AS INTEGER
+                    (julianday(c.replied_at) - julianday(c.sent_at)) * 24 * 60 AS INTEGER
                 ) AS diff_minutes
-            FROM candidates
-            WHERE status IN ('auto_sent', 'manual_sent')
-              AND replied_at IS NOT NULL AND replied_at != ''
-              AND sent_at IS NOT NULL AND sent_at != ''
-              AND updated_at >= datetime('now', ?)
+            FROM candidates c
+            WHERE """ + _CONVERSION_COHORT + """
+              AND c.replied_at IS NOT NULL AND trim(c.replied_at) != ''
+              AND julianday(c.sent_at) IS NOT NULL AND julianday(c.replied_at) IS NOT NULL
+              AND julianday(c.replied_at) >= julianday(c.sent_at)
         )
         GROUP BY response_bucket
         ORDER BY
@@ -550,17 +774,17 @@ def reply_classification_breakdown(days: int = 30) -> pd.DataFrame:
         PROPOSALS_DB,
         """
         SELECT
-            COALESCE(NULLIF(reply_classification, ''), 'unclassified') AS classification,
+            COALESCE(NULLIF(trim(c.reply_classification), ''), 'unclassified') AS classification,
             COUNT(*) AS replies,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
             ROUND(
-                100.0 * SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0),
+                100.0 * SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0),
                 1
             ) AS win_rate
-        FROM candidates
-        WHERE replied_at IS NOT NULL AND replied_at != ''
-          AND updated_at >= datetime('now', ?)
-        GROUP BY COALESCE(NULLIF(reply_classification, ''), 'unclassified')
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
+          AND c.replied_at IS NOT NULL AND trim(c.replied_at) != ''
+        GROUP BY COALESCE(NULLIF(trim(c.reply_classification), ''), 'unclassified')
         ORDER BY replies DESC
         """,
         (f"-{days} days",),
@@ -575,28 +799,52 @@ def conversion_by_prompt_variant(days: int = 30) -> pd.DataFrame:
         PROPOSALS_DB,
         """
         SELECT
-            COALESCE(NULLIF(prompt_variant, ''), 'default') AS prompt_variant,
+            COALESCE(NULLIF(trim(c.prompt_variant), ''), 'untracked') AS prompt_variant,
             COUNT(*) AS sent,
-            SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END) AS replied,
-            SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) AS won,
+            SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END) AS replied,
+            SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END) AS won,
             ROUND(
-                100.0 * SUM(CASE WHEN replied_at IS NOT NULL AND replied_at != '' THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.replied_at IS NOT NULL AND trim(c.replied_at) != '' THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS reply_rate,
             ROUND(
-                100.0 * SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END)
+                100.0 * SUM(CASE WHEN c.won = 1 THEN 1 ELSE 0 END)
                        / NULLIF(COUNT(*), 0),
                 1
             ) AS win_rate
-        FROM candidates
-        WHERE status IN ('auto_sent', 'manual_sent')
-          AND updated_at >= datetime('now', ?)
-        GROUP BY COALESCE(NULLIF(prompt_variant, ''), 'default')
+        FROM candidates c
+        WHERE """ + _CONVERSION_COHORT + """
+        GROUP BY COALESCE(NULLIF(trim(c.prompt_variant), ''), 'untracked')
         ORDER BY sent DESC
         """,
         (f"-{days} days",),
     )
+
+
+def conversion_analytics(days: int = 30) -> dict[str, Any]:
+    """One persisted sent-date cohort across summary and all drilldowns."""
+    _ensure_proposals_schema()
+    available = _conversion_columns_available()
+    summary = conversion_summary(days)
+    sent = int(summary["sent"])
+    replied = int(summary["replied"])
+    won = int(summary["won"])
+    return {
+        "days": days,
+        "status": "ready" if available else "unavailable",
+        "summary": {
+            **summary,
+            "reply_rate": round(100 * replied / sent, 1) if sent else 0.0,
+            "win_rate": round(100 * won / sent, 1) if sent else 0.0,
+        },
+        "by_provider": conversion_by_provider(days).to_dict(orient="records"),
+        "by_niche": conversion_by_niche(days).to_dict(orient="records"),
+        "by_queue_position": conversion_by_queue_position(days).to_dict(orient="records"),
+        "by_response_time": conversion_by_response_time(days).to_dict(orient="records"),
+        "classification_breakdown": reply_classification_breakdown(days).to_dict(orient="records"),
+        "by_prompt_variant": conversion_by_prompt_variant(days).to_dict(orient="records"),
+    }
 
 
 def errors_recent(limit: int = 50) -> pd.DataFrame:

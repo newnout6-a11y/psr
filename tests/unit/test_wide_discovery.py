@@ -3,14 +3,12 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from src.action.proposal_image import ProposalImageGenerator
 from src.filter.ai_scorer import AIRelevanceScorer, ScoreResult
 from src.orchestrator import FreelanceOrchestrator, _limit_payloads_per_platform
 from src.parsers.base_parser import ProjectItem
 from src.parsers.kwork_api_parser import KworkAPIParser
-from src.platforms.kwork import KworkAPIResponseError, KworkService
+from src.platforms.kwork import KworkService
 
 
 def _project(project_id: str, *, platform: str = "kwork") -> ProjectItem:

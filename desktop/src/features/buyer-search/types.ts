@@ -350,6 +350,8 @@ export interface BuyerSearchFleet {
 
 export type BuyerSearchProjectSort =
   | 'updated_desc'
+  | 'first_seen_desc'
+  | 'remote_updated_desc'
   | 'score_desc'
   | 'preliminary_score_desc'
   | 'final_score_desc'
@@ -504,10 +506,16 @@ export interface BuyerSearchFinalScoreRequest {
 }
 
 export interface BuyerSearchEvent {
+  run_id?: string
   seq: number
   type: string
   payload: Record<string, unknown>
-  created_at?: string
+  created_at?: string | null
+}
+
+export interface BuyerSearchEventPage {
+  items: BuyerSearchEvent[]
+  next_after_seq: number
 }
 
 export type BuyerSearchWebSocketMessage =
@@ -525,6 +533,7 @@ export interface CreateBuyerSearchRunPayload {
   target_unique_projects?: number
   enrichment_policy?: Record<string, unknown>
   scoring_profile_id?: string
+  account_registration_ids?: string[]
   queries?: Array<{
     text: string
     rationale?: string

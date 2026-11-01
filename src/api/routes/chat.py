@@ -288,7 +288,7 @@ async def send_message(req: ChatRequest):
     try:
         cfg = _build_client(provider)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     model = req.model or _default_model(provider)
 
@@ -312,7 +312,7 @@ async def send_message(req: ChatRequest):
         except Exception:
             pass
         logger.warning(f"Chat send HTTP error: provider={provider} status={e.response.status_code} body={body}")
-        raise HTTPException(status_code=502, detail=f"HTTP {e.response.status_code}: {body or str(e)}")
+        raise HTTPException(status_code=502, detail=f"HTTP {e.response.status_code}: {body or str(e)}") from e
     except Exception as e:
         logger.warning(f"Chat send error: provider={provider} model={model}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

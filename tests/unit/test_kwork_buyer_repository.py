@@ -44,6 +44,37 @@ async def _run_with_queries(repository: BuyerSearchRepository) -> None:
 
 
 @pytest.mark.asyncio
+async def test_legacy_query_table_migrates_assignment_columns(tmp_path):
+    """Upgrade an installed database missing query-assignment columns."""
+    path = tmp_path / "legacy.sqlite3"
+    repo = BuyerSearchRepository(path)
+    await repo.initialize()
+    with sqlite3.connect(path) as connection:
+        connection.execute("ALTER TABLE buyer_queries RENAME TO buyer_queries_previous")
+        previous = connection.execute("PRAGMA table_info(buyer_queries_previous)").fetchall()
+        definitions = []
+        for _, name, field_type, not_null, default, primary_key in previous:
+            if name in {"worker_index", "assignment_order"}:
+                continue
+            definition = f'"{name}" {field_type}'
+            if primary_key:
+                definition += " PRIMARY KEY"
+            if not_null:
+                definition += " NOT NULL"
+            if default is not None:
+                definition += f" DEFAULT {default}"
+            definitions.append(definition)
+        connection.execute(f"CREATE TABLE buyer_queries ({', '.join(definitions)})")
+        connection.execute("DROP TABLE buyer_queries_previous")
+    upgraded = BuyerSearchRepository(path)
+    await upgraded.initialize()
+    await _run_with_queries(upgraded)
+    with sqlite3.connect(path) as connection:
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(buyer_queries)")}
+    assert {"worker_index", "assignment_order"} <= columns
+
+
+@pytest.mark.asyncio
 async def test_run_record_decodes_json_fields_for_typed_api(repository: BuyerSearchRepository):
     await _run_with_queries(repository)
 
@@ -335,6 +366,88 @@ async def test_stale_task_fence_cannot_commit_new_observations(repository: Buyer
         )
 
     assert (await repository.list_run_projects("run_1"))["items"] == []
+
+
+@pytest.mark.asyncio
+async def test_expired_lease_rejects_commit_even_when_observed_at_is_older(repository: BuyerSearchRepository):
+    await _run_with_queries(repository)
+    await repository.enqueue_query_task(
+        "run_1", {"task_id": "task_expired", "query_id": "query_1", "source": "mobile_projects", "page": 1}
+    )
+    lease = await repository.lease_query_task("run_1", "worker_1")
+    assert lease is not None
+
+    with sqlite3.connect(repository.db_path) as connection:
+        connection.execute(
+            "UPDATE buyer_query_tasks SET lease_deadline = '2000-01-02T00:00:00.000Z' WHERE task_id = ?",
+            ("task_expired",),
+        )
+
+    with pytest.raises(BuyerQueryTaskLeaseLostError):
+        await repository.commit_observed_page(
+            task_id="task_expired",
+            worker_id="worker_1",
+            attempt_id=lease["attempt_id"],
+            lease_fence=lease["lease_fence"],
+            observed_at="2000-01-01T00:00:00.000Z",
+            projects=[{"id": "must_not_commit", "title": "Expired lease"}],
+        )
+
+    assert (await repository.list_run_projects("run_1"))["items"] == []
+
+
+@pytest.mark.asyncio
+async def test_first_seen_and_remote_updated_sorts_ignore_repeat_observation(repository: BuyerSearchRepository):
+    await _run_with_queries(repository)
+
+    async def commit(task_id: str, query_id: str, page: int, observed_at: str, projects: list[dict]) -> None:
+        await repository.enqueue_query_task(
+            "run_1", {"task_id": task_id, "query_id": query_id, "source": "mobile_projects", "page": page}
+        )
+        lease = await repository.lease_query_task("run_1", "worker_1")
+        assert lease is not None and lease["task_id"] == task_id
+        await repository.commit_observed_page(
+            task_id=task_id,
+            worker_id="worker_1",
+            attempt_id=lease["attempt_id"],
+            lease_fence=lease["lease_fence"],
+            observed_at=observed_at,
+            projects=projects,
+        )
+
+    await commit(
+        "task_old", "query_1", 1, "2026-04-01T10:00:00Z",
+        [
+            {"id": "old", "title": "Older project", "remote_updated_at": "2026-01-02T02:00:00+03:00"},
+            {"id": "unknown", "title": "Unknown remote date"},
+        ],
+    )
+    await commit(
+        "task_new", "query_2", 1, "2026-04-02T10:00:00Z",
+        [{"id": "new", "title": "Newer project", "remote_updated_at": "2026-01-02T00:30:00Z"}],
+    )
+    await commit(
+        "task_repeat", "query_1", 2, "2026-04-03T10:00:00Z",
+        [{"id": "old", "title": "Older project", "remote_updated_at": "2026-01-02T02:00:00+03:00"}],
+    )
+
+    assert (await repository.list_run_projects("run_1"))["items"][0]["remote_project_id"] == "new"
+    assert (await repository.list_run_projects("run_1", sort="updated_desc"))["items"][0]["remote_project_id"] == "old"
+    remote_items = (await repository.list_run_projects("run_1", sort="remote_updated_desc"))["items"]
+    assert [item["remote_project_id"] for item in remote_items] == ["new", "old", "unknown"]
+
+    for sort in ("first_seen_desc", "remote_updated_desc"):
+        cursor = None
+        project_ids: list[str] = []
+        while True:
+            batch = await repository.list_run_projects("run_1", sort=sort, limit=1, cursor=cursor)
+            project_ids.extend(item["remote_project_id"] for item in batch["items"])
+            cursor = batch["next_cursor"]
+            if cursor is None:
+                break
+        assert len(project_ids) == 3
+        assert set(project_ids) == {"new", "old", "unknown"}
+        assert project_ids[0] == "new"
 
 
 @pytest.mark.asyncio

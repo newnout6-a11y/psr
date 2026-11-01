@@ -101,7 +101,7 @@ async def test_adapter_fetches_first_batch_with_raw_response_and_metadata(
         {
             "alias": "website-repair",
             "page": 1,
-            "page_size": 10,
+            "page_size": 24,
             "filters": {},
             "include_raw": True,
             "cookies": {"slrememberme": "present"},

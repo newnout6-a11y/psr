@@ -3,6 +3,7 @@
 Открытое API, не требует авторизации для поиска.
 """
 
+import asyncio
 from typing import Optional, Dict, Any, List
 from .base_parser import BaseParser, ProjectItem
 from loguru import logger
@@ -39,7 +40,9 @@ class HHParser(BaseParser):
             params["salary"] = filters["salary"]
 
         try:
-            response = self._safe_get(
+            await self.rate_limiter.wait()
+            response = await asyncio.to_thread(
+                self._safe_get,
                 f"{self.BASE_URL}/vacancies",
                 params=params,
             )
@@ -56,7 +59,9 @@ class HHParser(BaseParser):
     async def get_project_details(self, vacancy_id: str) -> Optional[ProjectItem]:
         """Получить детали вакансии."""
         try:
-            response = self._safe_get(
+            await self.rate_limiter.wait()
+            response = await asyncio.to_thread(
+                self._safe_get,
                 f"{self.BASE_URL}/vacancies/{vacancy_id}",
             )
             return self._normalize_vacancy(response.json())

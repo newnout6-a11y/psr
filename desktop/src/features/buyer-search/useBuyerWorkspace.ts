@@ -59,33 +59,82 @@ export function useBuyerWorkspace() {
   const [state, setState] = useState<BuyerSearchWorkspaceState>(DEFAULT_BUYER_WORKSPACE)
   const [ready, setReady] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'offline'>('idle')
+  const [saveRetryCount, setSaveRetryCount] = useState(0)
   const latestRef = useRef(state)
+  const hydratedRef = useRef(false)
+  const revisionRef = useRef(0)
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve())
   latestRef.current = state
 
-  useEffect(() => {
-    const controller = new AbortController()
-    buyerSearchApi.getWorkspace(controller.signal)
-      .then((snapshot) => setState(normalizeWorkspace(snapshot.state)))
-      .catch(() => setSaveState('offline'))
-      .finally(() => setReady(true))
-    return () => controller.abort()
+  const queueSave = useCallback((revision: number, snapshot: BuyerSearchWorkspaceState, keepalive = false) => {
+    // Serialize PUTs: a slow old request must not overwrite a newer saved
+    // workspace. Ignore queued snapshots already superseded by a new edit.
+    saveQueueRef.current = saveQueueRef.current.catch(() => undefined).then(async () => {
+      if (revision !== revisionRef.current) return
+      try {
+        await buyerSearchApi.putWorkspace(snapshot, { keepalive })
+        if (revision === revisionRef.current) {
+          setSaveRetryCount(0)
+          setSaveState('saved')
+        }
+      } catch {
+        if (revision === revisionRef.current) {
+          setSaveState('offline')
+          setSaveRetryCount((count) => count + 1)
+        }
+      }
+    })
   }, [])
 
   useEffect(() => {
-    if (!ready) return
+    const controller = new AbortController()
+    let retryTimer: number | null = null
+    let failures = 0
+    const restore = async () => {
+      try {
+        const snapshot = await buyerSearchApi.getWorkspace(controller.signal)
+        if (controller.signal.aborted) return
+        hydratedRef.current = true
+        setState(normalizeWorkspace(snapshot.state))
+        setReady(true)
+      } catch {
+        if (controller.signal.aborted) return
+        setSaveState('offline')
+        // Never replace a persisted workspace with an empty default state
+        // when startup failed. Retry GET until the authoritative state loads.
+        retryTimer = window.setTimeout(restore, Math.min(30_000, 1_000 * 2 ** Math.min(failures++, 5)))
+      }
+    }
+    void restore()
+    return () => {
+      controller.abort()
+      if (retryTimer !== null) window.clearTimeout(retryTimer)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!ready || !hydratedRef.current) return
+    const revision = ++revisionRef.current
     setSaveState('saving')
     const timer = window.setTimeout(() => {
-      buyerSearchApi.putWorkspace(latestRef.current)
-        .then(() => setSaveState('saved'))
-        .catch(() => setSaveState('offline'))
+      queueSave(revision, latestRef.current)
     }, 450)
     return () => window.clearTimeout(timer)
-  }, [ready, state])
+  }, [ready, state, queueSave])
+
+  useEffect(() => {
+    if (!ready || !hydratedRef.current || saveState !== 'offline') return
+    const timer = window.setTimeout(() => {
+      queueSave(revisionRef.current, latestRef.current)
+    }, Math.min(30_000, 2_000 * 2 ** Math.min(saveRetryCount, 4)))
+    return () => window.clearTimeout(timer)
+  }, [queueSave, ready, saveRetryCount, saveState])
 
   useEffect(() => {
     const flush = () => {
-      if (document.visibilityState === 'hidden') {
-        void buyerSearchApi.putWorkspace(latestRef.current, { keepalive: true })
+      if (hydratedRef.current && document.visibilityState === 'hidden') {
+        const revision = ++revisionRef.current
+        queueSave(revision, latestRef.current, true)
       }
     }
     window.addEventListener('pagehide', flush)
@@ -94,10 +143,24 @@ export function useBuyerWorkspace() {
       window.removeEventListener('pagehide', flush)
       document.removeEventListener('visibilitychange', flush)
     }
-  }, [])
+  }, [queueSave])
 
   const updateBuilder = useCallback((patch: Partial<BuyerSearchWorkspaceBuilder>) => {
-    setState((current) => ({ ...current, builder: { ...current.builder, ...patch } }))
+    setState((current) => ({
+      ...current,
+      builder: {
+        ...current.builder,
+        // A manually reviewed query plan belongs to the brief, exact phrases
+        // and category selection that produced it. Never silently reuse it
+        // after any of those inputs have changed.
+        ...(Object.prototype.hasOwnProperty.call(patch, 'brief') ||
+          Object.prototype.hasOwnProperty.call(patch, 'exact_queries') ||
+          Object.prototype.hasOwnProperty.call(patch, 'taxonomy_selections')
+          ? { preview_queries: [] }
+          : {}),
+        ...patch,
+      },
+    }))
   }, [])
 
   const updateView = useCallback((patch: Partial<BuyerSearchWorkspaceView>) => {

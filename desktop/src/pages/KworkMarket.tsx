@@ -814,7 +814,7 @@ function controlTypeLabel(control: KworkFormControl) {
   return control.type || 'поле'
 }
 
-function cleanCompetitorText(value: unknown) {
+function cleanCompetitorText(value: unknown): string {
   if (value === null || value === undefined) return ''
   if (Array.isArray(value)) return value.map(cleanCompetitorText).filter(Boolean).join(' ')
   if (typeof value === 'object') {
@@ -1295,7 +1295,7 @@ export default function KworkMarket() {
       .slice(0, 10)
   }, [marketInsights?.title_terms, marketInsights?.description_terms])
   const marketInsightSearchQueries = useMemo(() => {
-    const raw = Array.isArray(marketInsights?.search_queries) && marketInsights.search_queries.length
+    const raw: Array<Record<string, unknown>> = Array.isArray(marketInsights?.search_queries) && marketInsights.search_queries.length
       ? (marketInsights.search_queries as Array<Record<string, unknown>>)
       : [
           ...marketInsightClassifiers.slice(0, 5).map((item) => ({
@@ -2654,7 +2654,7 @@ export default function KworkMarket() {
                             <span>примеров {formatNumber(cards.length)}</span>
                           </div>
                         </div>
-                        {row.timings_ms && (
+                        {row.timings_ms != null && (
                           <div className="shrink-0 text-[11px] text-zinc-500">
                             {formatNumber(String(objectOrDefault(row.timings_ms, {} as Record<string, unknown>).total || 0))} мс
                           </div>
@@ -3067,7 +3067,7 @@ export default function KworkMarket() {
               <MetricTile label="срез рынка" value={selectedClassifierId ? 'узкий' : 'вся рубрика'} sub="для анализа предложений используйте кнопку сверху" />
             </div>
 
-            {false && marketInsights && (
+            {false && marketInsights != null && (
               <div className="grid grid-cols-[1.15fr_0.85fr] gap-3 max-xl:grid-cols-1">
                 <div className="rounded-md border border-brand-500/25 bg-brand-600/10 p-3">
                   <div className="mb-3 flex items-center justify-between gap-3">
@@ -3076,28 +3076,28 @@ export default function KworkMarket() {
                       Что видно по рынку
                     </div>
                     <div className="text-[11px] text-brand-100/60">
-                      выборка {formatNumber(marketInsights.sample_size)} из {formatNumber(marketInsights.kworks_count || visibleMetrics?.kworks_count)}
+                      выборка {formatNumber(marketInsights?.sample_size)} из {formatNumber(marketInsights?.kworks_count || visibleMetrics?.kworks_count)}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 max-md:grid-cols-1">
                     <div className="rounded-md border border-surface-700 bg-surface-950/35 p-2">
                       <div className="mono-label">цена в топе</div>
                       <div className="mt-1 text-sm font-semibold text-white">
-                        {formatPrice(marketInsights.price?.min)} - {formatPrice(marketInsights.price?.max)}
+                        {formatPrice(marketInsights?.price?.min)} - {formatPrice(marketInsights?.price?.max)}
                       </div>
-                      <div className="mt-1 text-[11px] text-zinc-500">медиана {formatPrice(marketInsights.price?.median)}</div>
+                      <div className="mt-1 text-[11px] text-zinc-500">медиана {formatPrice(marketInsights?.price?.median)}</div>
                     </div>
                     <div className="rounded-md border border-surface-700 bg-surface-950/35 p-2">
                       <div className="mono-label">сила продавцов</div>
                       <div className="mt-1 text-sm font-semibold text-white">
-                        {formatNumber(marketInsights.seller_review_strength?.reviews_100_plus)}/{formatNumber(marketInsights.seller_review_strength?.sample_size)}
+                        {formatNumber(marketInsights?.seller_review_strength?.reviews_100_plus)}/{formatNumber(marketInsights?.seller_review_strength?.sample_size)}
                       </div>
                       <div className="mt-1 text-[11px] text-zinc-500">карточек с 100+ отзывами</div>
                     </div>
                     <div className="rounded-md border border-surface-700 bg-surface-950/35 p-2">
                       <div className="mono-label">повторы карточек</div>
                       <div className="mt-1 text-sm font-semibold text-white">
-                        {formatPercent(marketInsights.seller_repetition_in_sample?.repeat_share)}
+                        {formatPercent(marketInsights?.seller_repetition_in_sample?.repeat_share)}
                       </div>
                       <div className="mt-1 text-[11px] text-zinc-500">в короткой выборке, не доля рынка</div>
                     </div>

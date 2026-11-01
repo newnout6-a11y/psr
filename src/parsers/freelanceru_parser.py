@@ -3,6 +3,7 @@
 Использует HTML парсинг списка проектов.
 """
 
+import asyncio
 import re
 from typing import Any, Dict, List, Optional
 
@@ -39,7 +40,8 @@ class FreelanceRuParser(BaseParser):
             params["keyword"] = search_query
 
         try:
-            response = await self.throttled_get(self.API_URL, params=params)
+            await self.rate_limiter.wait()
+            response = await asyncio.to_thread(self._safe_get, self.API_URL, params=params)
             return self._parse_html(response.text)[:per_page]
         except Exception as e:
             logger.error(f"Исключение при парсинге Freelance.ru: {e}")
